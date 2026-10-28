@@ -18,6 +18,16 @@
   (document.body || document.documentElement).appendChild(host);
   var sh = host.attachShadow({mode: 'open'});
 
+  // Mantener el overlay visible en pantalla completa: el navegador solo pinta el elemento
+  // en fullscreen y sus descendientes, así que re-parentamos el host ahí (y lo devolvemos al salir).
+  function rpFullscreen() {
+    var fs = document.fullscreenElement || document.webkitFullscreenElement || null;
+    var dest = fs || document.body;
+    if (dest && host.parentNode !== dest) dest.appendChild(host);  // appendChild mueve el nodo: conserva Shadow DOM, listeners y estado
+  }
+  document.addEventListener('fullscreenchange', rpFullscreen);
+  document.addEventListener('webkitfullscreenchange', rpFullscreen);
+
   var CSS = '\
   :host{all:initial}\
   *{box-sizing:border-box;font-family:"Chakra Petch",system-ui,Segoe UI,Roboto,sans-serif}\
