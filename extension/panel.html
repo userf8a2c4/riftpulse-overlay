@@ -108,6 +108,23 @@ table.fiab td{white-space:normal}table.fiab td:first-child{text-align:left}#fiab
 .nm-vs .hc-t{font-size:24px;margin-top:6px}.nm-vs .hc-l{display:block}
 .ini-btns{display:flex;gap:16px;flex-wrap:wrap;margin-top:auto}.ini-btns .ini-go{margin-top:0}
 .ini-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.ini-head h2{margin:0}.ini-head .ini-go{margin-top:0;align-self:center}
+/* elementos clickeables del hero/agenda */
+.clk{cursor:pointer;border-radius:8px;transition:background .15s}.clk:hover{background:rgba(74,163,255,.1)}
+.nm-team.clk:hover,.nm-vs.clk:hover,.betrow.clk:hover{outline:1px solid rgba(74,163,255,.3)}
+/* panel de detalle desplegable (#iniDetalle) */
+#iniDetalle{border-left:3px solid var(--blue)}
+.idet-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.idet-logo{width:40px;height:40px;object-fit:contain;flex:none}.idet-code{font-size:22px;font-weight:800}
+.idet-x{margin-left:auto;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;width:30px;height:30px;font-size:15px;cursor:pointer;flex:none}.idet-x:hover{border-color:var(--blue)}
+.idet-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 22px}
+.idet-grid h3{font-size:13px;margin:0 0 4px}
+@media (max-width:760px){.idet-grid{grid-template-columns:1fr}}
+.idet-odds{display:flex;flex-wrap:wrap;gap:8px}.idet-od{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;text-align:center;min-width:72px}.idet-odv{font-size:18px;font-weight:800;color:var(--gold)}
+.idet-roster{display:flex;flex-wrap:wrap;gap:10px}.idet-pl{width:62px;text-align:center}.idet-pl img,.idet-pl-ph{width:48px;height:48px;border-radius:50%;object-fit:cover;background:var(--panel2);display:block;margin:0 auto 3px}
+.idet-champs{display:flex;flex-wrap:wrap;gap:6px}.idet-champs .pk-chip img{width:18px;height:18px;border-radius:3px}
+.idet-h2h{font-size:15px}.idet-h2h .iv-sc{font-size:22px;font-weight:800;margin:0 4px}
+.idet-why{margin:4px 0 0;padding-left:16px;font-size:13px}.idet-why li{margin:3px 0}
+.idet-foot{margin-top:10px;font-size:11px}
 /* bola de cristal */
 .bc-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-top:1px solid var(--line)}.bc-row:first-of-type{border-top:0}
 .bc-row img{width:30px;height:30px;border-radius:5px;object-fit:cover}.bc-row b{font-size:14px}
@@ -451,6 +468,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
   <div id="vistaInicio" hidden>
     <div class="inicio">
       <section class="card hero" id="iniVivo"></section>
+      <section class="card hero" id="iniDetalle" hidden></section>
       <section class="card mid" id="iniCopa"></section>
       <section class="card mid" id="iniBet"></section>
       <section class="card mid" id="iniAgenda"></section>

@@ -1611,6 +1611,110 @@ function teamForm(code, n = 5) {
 // Solo reescribe la tarjeta si su contenido cambió: evita repintados/parpadeo en el ciclo de 2 s.
 const _iniCache = {};
 function setHtml(sel, html) { const el = $(sel); if (el && _iniCache[sel] !== html) { _iniCache[sel] = html; el.innerHTML = html; } }
+// ---------- Inicio: paneles de detalle (equipo / enfrentamiento), desplegables ----------
+let INIDET = null;  // {type:'team',code} | {type:'h2h',a,b,ev}
+const TEAMID = {};  // code -> esportsTeamId (el calendario no lo trae; se resuelve vía getEventDetails y se cachea)
+async function prepTeamData(code) {
+  if (TEAMID[code] === undefined) {
+    TEAMID[code] = null;
+    const ev = schedule.find(e => e.match.teams.some(t => t.code === code));
+    if (ev) {
+      let m = HI.events[ev.match.id];
+      if (!m) { try { m = (await api('getEventDetails', {id: ev.match.id})).event.match; HI.events[ev.match.id] = m; } catch (e) {} }
+      const t = m && (m.teams || []).find(x => x.code === code);
+      TEAMID[code] = t ? t.id : null;
+    }
+    if (INIDET && INIDET.type === 'team' && INIDET.code === code) renderIniDetalle();
+  }
+  const id = TEAMID[code];
+  if (id && !ROSTER[id]) { const ok = await loadRosters([id]); if (ok && INIDET && INIDET.type === 'team' && INIDET.code === code) renderIniDetalle(); }
+}
+// Head-to-head directo entre dos equipos, derivado del calendario.
+function h2h(a, b) {
+  const ms = schedule.filter(e => e.state === 'completed' && e.match.teams.length === 2 && e.match.teams.every(t => t.code === a || t.code === b));
+  let wa = 0, wb = 0; const list = [];
+  for (const e of ms.sort((x, y) => x.startTime < y.startTime ? 1 : -1)) {
+    const ta = e.match.teams.find(t => t.code === a), tb = e.match.teams.find(t => t.code === b);
+    const ga = (ta.result || {}).gameWins || 0, gb = (tb.result || {}).gameWins || 0;
+    ga >= gb ? wa++ : wb++;
+    list.push({ga, gb, date: e.startTime, block: e.blockName, id: e.match.id});
+  }
+  return {wa, wb, list};
+}
+// Campeones elegidos por los jugadores de un equipo en Worlds (de los juegos ya cargados por la Bola de Cristal).
+function teamChamps(code) {
+  const champs = {}; let n = 0; const up = code.toUpperCase();
+  for (const g of Object.values(CB.games)) {
+    if (!g.done || !g.players) continue;
+    let jugo = false;
+    for (const pl of g.players) {
+      if (!pl.name || pl.name.split(' ')[0].toUpperCase() !== up) continue;
+      const side = (g.champs.blue || []).includes(pl.champ) ? 'blue' : (g.champs.red || []).includes(pl.champ) ? 'red' : null;
+      const o = champs[pl.champ] = champs[pl.champ] || {picks: 0, wins: 0}; o.picks++; if (side && g.win === side) o.wins++; jugo = true;
+    }
+    if (jugo) n++;
+  }
+  return {champs, n};
+}
+function openIniDet(x) {
+  const cur = INIDET;
+  const same = cur && cur.type === x.type && cur.code === x.code && cur.a === x.a && cur.b === x.b;
+  INIDET = same ? null : x;
+  if (INIDET && INIDET.type === 'team') prepTeamData(INIDET.code);  // resuelve id + roster async; refresca al cargar
+  renderIniDetalle();
+  if (INIDET) requestAnimationFrame(() => { const el = $('#iniDetalle'); if (el) el.scrollIntoView({block: 'nearest', behavior: 'smooth'}); });
+}
+function renderIniDetalle() {
+  const el = $('#iniDetalle'); if (!el) return;
+  if (!INIDET) { el.hidden = true; el.innerHTML = ''; return; }
+  el.hidden = false;
+  el.innerHTML = INIDET.type === 'team' ? renderTeamPanel(INIDET.code) : renderH2hPanel(INIDET.a, INIDET.b, INIDET.ev);
+}
+function renderTeamPanel(code) {
+  const close = `<button class="idet-x" data-act="inidet-close" title="Cerrar">✕</button>`;
+  const elo = C.loaded && C.r[code] != null ? Math.round(eloOf(code)) : null;
+  const rank = C.rows ? C.rows.slice().sort((a, b) => b.elo - a.elo).findIndex(r => r.t === code) + 1 : 0;
+  const row = C.rows ? C.rows.find(r => r.t === code) : null;
+  const odds = row ? `<div class="idet-odds">${[['Avanza Play-In', row.pi], ['Cuartos', row.qf], ['Semis', row.sf], ['Final', row.f], ['Campeón', row.c]].filter(([, v]) => v != null).map(([l, v]) => `<div class="idet-od"><div class="idet-odv">${pct(v)}</div><div class="pm">${l}</div></div>`).join('')}</div>` : '<div class="pm">Calculando la simulación del torneo…</div>';
+  const done = schedule.filter(e => e.state === 'completed' && e.match.teams.some(t => t.code === code)).sort((a, b) => a.startTime < b.startTime ? 1 : -1).slice(0, 6);
+  const results = done.map(e => { const t = e.match.teams.find(x => x.code === code), o = e.match.teams.find(x => x.code !== code), g = (t.result || {}).gameWins || 0, go = (o.result || {}).gameWins || 0, w = g >= go; return `<div class="up-row"><span><b class="${w ? '' : 'pm'}">${g}</b>–<b class="${w ? 'pm' : ''}">${go}</b> vs <b>${esc(o ? o.code : '?')}</b></span><span class="pm">${fmtDate(e.startTime)}</span></div>`; }).join('') || '<div class="pm">Sin resultados recientes.</div>';
+  const id = TEAMID[code], R = id ? ROSTER[id] : null;
+  let roster;
+  if (id === null) roster = '<div class="pm">Roster no disponible.</div>';
+  else if (!R) roster = '<div class="pm">Cargando roster…</div>';
+  else { const ps = Object.values(R).filter(p => p && (p.img || p.name)); roster = ps.length ? `<div class="idet-roster">${ps.map(p => `<div class="idet-pl">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy">` : '<div class="idet-pl-ph"></div>'}<div class="pm">${esc(p.name || '')}</div></div>`).join('')}</div>` : '<div class="pm">Roster no disponible.</div>'; }
+  const tc = teamChamps(code);
+  const champs = tc.n ? `<section><h3>Campeones en Worlds</h3><div class="idet-champs">${Object.entries(tc.champs).sort((a, b) => b[1].picks - a[1].picks).slice(0, 6).map(([c, o]) => `<span class="pk-chip"><img src="${champImg(c)}" alt="">${esc(cname(c))} <span class="pm">${o.picks}${o.picks ? ` · ${pct(o.wins / o.picks)}` : ''}</span></span>`).join('')}</div><div class="pm" style="margin-top:5px">De ${tc.n} juegos de sus jugadores.</div></section>` : '';
+  return `<div class="idet-head">${C.img && C.img[code] ? `<img class="idet-logo" src="${esc(C.img[code])}" alt="">` : ''}<div><div class="idet-code">${esc(code)}</div><div class="pm">${esc(C.reg[code] || '')}${elo != null ? ` · Elo ${elo}` : ''}${rank ? ` · #${rank} por Elo` : ''}</div></div>${close}</div>
+    <div class="idet-grid">
+      <section><h3>Camino en el torneo</h3><p class="card-help">Probabilidad de 20.000 simulaciones.</p>${odds}</section>
+      <section><h3>Forma reciente</h3><div class="nm-form">${teamForm(code).map(r => `<span class="fm ${r === 'W' ? 'w' : 'l'}">${r}</span>`).join('') || '<span class="pm">sin historial</span>'}</div><div style="margin-top:6px">${results}</div></section>
+      <section><h3>Roster</h3>${roster}</section>
+      ${champs}
+    </div>
+    <div class="pm idet-foot">Elo: fuerza estimada del equipo según resultados 2025–26 (más alto = más fuerte).</div>`;
+}
+function renderH2hPanel(a, b, ev) {
+  const close = `<button class="idet-x" data-act="inidet-close" title="Cerrar">✕</button>`;
+  const rec = h2h(a, b), e = schedule.find(x => x.match && x.match.id === ev) || null, bo = e ? (e.match.strategy || {}).count || 3 : 3;
+  const ps = probSerie(a, b, bo), pm = probSerie(a, b, 1);
+  const eA = C.loaded && C.r[a] != null ? Math.round(eloOf(a)) : null, eB = C.loaded && C.r[b] != null ? Math.round(eloOf(b)) : null;
+  const fav = ps != null ? (ps >= 0.5 ? a : b) : null, fa = teamForm(a).filter(x => x === 'W').length, fb = teamForm(b).filter(x => x === 'W').length;
+  const why = [];
+  if (fav && eA != null && eB != null) why.push(`${esc(fav)} llega con más Elo (${esc(a)} ${eA} · ${esc(b)} ${eB})`);
+  if (fa !== fb) why.push(`Mejor forma reciente: ${esc(fa > fb ? a : b)} (${Math.max(fa, fb)} de 5 ganadas)`);
+  if (C.reg[a] && C.reg[b] && C.reg[a] !== C.reg[b]) why.push(`Regiones distintas: ${esc(a)} (${esc(C.reg[a])}) vs ${esc(b)} (${esc(C.reg[b])})`);
+  const rowA = C.rows ? C.rows.find(r => r.t === a) : null, rowB = C.rows ? C.rows.find(r => r.t === b) : null;
+  const cmp = cmpRow('Elo', eA || 0, eB || 0) + cmpRow('Forma (de 5)', fa, fb) + (rowA && rowB ? cmpRow('Prob. campeón', Math.round(rowA.c * 1000), Math.round(rowB.c * 1000), v => pct(v / 1000)) : '');
+  const hist = rec.list.length ? rec.list.map(m => `<div class="up-row"><span><b class="${m.ga >= m.gb ? '' : 'pm'}">${esc(a)} ${m.ga}</b>–<b class="${m.ga >= m.gb ? 'pm' : ''}">${m.gb} ${esc(b)}</b></span><span class="pm">${esc(m.block || '')} · ${fmtDate(m.date)}</span></div>`).join('') : '<div class="pm">Sin enfrentamientos previos registrados.</div>';
+  return `<div class="idet-head"><div><div class="idet-code">${esc(a)} <span class="pm">vs</span> ${esc(b)}</div><div class="pm">${e ? esc(e.blockName || '') + ' · Bo' + bo : 'Enfrentamiento'}</div></div>${close}</div>
+    <div class="idet-grid">
+      <section><h3>Head-to-head</h3><div class="idet-h2h"><b class="b">${esc(a)}</b> <span class="iv-sc">${rec.wa}–${rec.wb}</span> <b class="r">${esc(b)}</b> <span class="pm">en series</span></div><div style="margin-top:6px">${hist}</div></section>
+      <section><h3>Probabilidad</h3>${ps != null ? `<div class="pk2">Por serie (Bo${bo})</div>${predBar(ps, a, b, true)}<div class="pk2" style="margin-top:8px">Por mapa</div>${predBar(pm, a, b, true)}` : '<div class="pm">Calculando con el Elo…</div>'}
+        ${why.length ? `<div class="pk2" style="margin-top:8px">Por qué</div><ul class="idet-why">${why.map(w => `<li>${w}</li>`).join('')}</ul>` : ''}</section>
+      <section><h3>Comparativa</h3>${cmp}</section>
+    </div>`;
+}
 function renderInicio() {
   if ($('#vistaInicio').hidden) return;
   if (!CB.loaded && !CB.loading) crystalBall();  // carga la Bola de Cristal (se cachea)
@@ -1658,13 +1762,14 @@ function renderInicio() {
   }
   else if (NEXT && NEXT.e) {
     const [A, B] = NEXT.e.match.teams, bo = NEXT.e.match.strategy.count, ps = probSerie(A.code, B.code, bo);
-    const col = (t, side) => `<div class="nm-team ${side}"><img src="${t.image ? esc(https(t.image)) : ''}" alt="">
+    const col = (t, side) => `<div class="nm-team clk ${side}" data-act="team" data-arg="${esc(t.code)}"><img src="${t.image ? esc(https(t.image)) : ''}" alt="">
       <div><div class="nm-code">${esc(t.code)}</div><div class="pm">${esc(C.reg[t.code] || '')}${C.loaded && C.r[t.code] != null ? ` · Elo ${Math.round(eloOf(t.code))}` : ''}</div><div class="nm-form">${formHtml(t.code)}</div></div></div>`;
     const dayEvents = schedule.filter(e => e.state === 'unstarted').slice(0, 4);
-    h = `<div class="ini-head"><h2>Próximo partido</h2>${go('partido', '▶ En vivo', true)}</div><div class="nm-head">${col(A, 'l')}<div class="nm-vs"><div class="pm">${esc(NEXT.e.blockName || '')} · Bo${bo}</div><div class="nm-vsbig">VS</div><div class="pm">${fmtDate(NEXT.e.startTime)}</div>
+    const h2hArg = `${esc(A.code)}|${esc(B.code)}|${esc(NEXT.e.match.id)}`;
+    h = `<div class="ini-head"><h2>Próximo partido</h2>${go('partido', '▶ En vivo', true)}</div><div class="nm-head">${col(A, 'l')}<div class="nm-vs clk" data-act="h2h" data-arg="${h2hArg}"><div class="pm">${esc(NEXT.e.blockName || '')} · Bo${bo}</div><div class="nm-vsbig">VS</div><div class="pm">${fmtDate(NEXT.e.startTime)}</div>
         <div class="hc-t" id="iniReloj" data-start="${esc(NEXT.e.startTime)}"></div><div class="hc-l">⏱ para el partido</div></div>${col(B, 'r')}</div>
-      ${ps != null ? `<div class="betrow"><span class="pm">Probabilidad de serie</span>${predBar(ps, A.code, B.code, true)}</div>` : ''}
-      <div class="pk2" style="margin-top:8px">Agenda</div><div class="ini-day">${dayEvents.map(e => `<span class="d"><b>${e.match.teams.map(t => esc(t.code)).join(' vs ')}</b> <span class="pm">${fmtDate(e.startTime).replace(/^\S+,?\s/, '')}</span></span>`).join('') || '<span class="pm">Sin próximos partidos.</span>'}</div>`;
+      ${ps != null ? `<div class="betrow clk" data-act="h2h" data-arg="${h2hArg}"><span class="pm">Probabilidad de serie</span>${predBar(ps, A.code, B.code, true)}</div>` : ''}
+      <div class="pk2" style="margin-top:8px">Agenda <span class="pm">· tocá un partido para ver el enfrentamiento</span></div><div class="ini-day">${dayEvents.map(e => { const ok = e.match.teams.every(t => t.code && t.code !== 'TBD'); return `<span class="d${ok ? ' clk' : ''}"${ok ? ` data-act="h2h" data-arg="${e.match.teams.map(t => esc(t.code)).join('|')}|${esc(e.match.id)}"` : ''}><b>${e.match.teams.map(t => esc(t.code)).join(' vs ')}</b> <span class="pm">${fmtDate(e.startTime).replace(/^\S+,?\s/, '')}</span></span>`; }).join('') || '<span class="pm">Sin próximos partidos.</span>'}</div>`;
   } else h += `<div class="pm">No hay partido en vivo. ${esc(nextText())}</div>`;
   setHtml('#iniVivo', h); tickReloj();
   // Bola de Cristal: campeón más elegido, mejor % de victorias y jugador con mejor KDA (de los juegos ya jugados).
@@ -1715,7 +1820,7 @@ function renderInicio() {
   setHtml('#iniRes', h + go('hist', 'Ver el historial'));
   const up = schedule.filter(e => e.state === 'unstarted').slice(0, 7);
   const tzo = -new Date().getTimezoneOffset() / 60, tzs = `GMT${tzo >= 0 ? '+' : ''}${tzo}`;
-  setHtml('#iniAgenda', `<h2>📅 Próximos partidos</h2><p class="card-help">En tu hora local (${tzs}).</p>` + (up.map(e => `<div class="up-row"><span><b>${e.match.teams.map(t => esc(t.code)).join(' vs ')}</b> <span class="pm">· ${esc(e.blockName || '')} · Bo${e.match.strategy.count}</span></span><span class="pm">${fmtDate(e.startTime)}</span></div>`).join('') || '<div class="pm">Sin agenda.</div>'));
+  setHtml('#iniAgenda', `<h2>📅 Próximos partidos</h2><p class="card-help">En tu hora local (${tzs}). Tocá uno para el enfrentamiento.</p>` + (up.map(e => { const ok = e.match.teams.every(t => t.code && t.code !== 'TBD'); return `<div class="up-row${ok ? ' clk' : ''}"${ok ? ` data-act="h2h" data-arg="${e.match.teams.map(t => esc(t.code)).join('|')}|${esc(e.match.id)}"` : ''}><span><b>${e.match.teams.map(t => esc(t.code)).join(' vs ')}</b> <span class="pm">· ${esc(e.blockName || '')} · Bo${e.match.strategy.count}</span></span><span class="pm">${fmtDate(e.startTime)}</span></div>`; }).join('') || '<div class="pm">Sin agenda.</div>'));
   setHtml('#iniDatos', `<h2>📡 Estado de los datos</h2>
     <div class="iv-st">Retraso frente al stream: <b>${delay} s</b> <span class="pm">(automático)</span></div>
     <div class="iv-st">Los datos de lolesports llegan con <b>${Math.round(feedLag) || '—'} s</b></div>
@@ -1915,6 +2020,9 @@ document.addEventListener('click', e => {
   const act = a.dataset.act, arg = a.dataset.arg;
   if (act === 'vista') setVista(arg);
   else if (act === 'fiab') { setVista('copa'); const c = $('#fiabCard'); if (c) c.scrollIntoView(); }
+  else if (act === 'team') openIniDet({type: 'team', code: arg});
+  else if (act === 'h2h') { const [a, b, ev] = arg.split('|'); openIniDet({type: 'h2h', a, b, ev}); }
+  else if (act === 'inidet-close') { INIDET = null; renderIniDetalle(); }
 });
 
 // ---------- reproductor: retroceder y adelantar dentro del juego ----------
