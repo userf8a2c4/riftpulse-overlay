@@ -23,11 +23,22 @@ Si la movio de sitio y aparece "ERR_FILE_NOT_FOUND" o "movido/borrado":
 quite la extension vieja con "Quitar" (Remove) y repita los pasos 3-4
 seleccionando la carpeta en su ubicacion actual.
 
-USAR
-----
+USAR — PANEL LATERAL
+--------------------
 1. Abra el stream del Mundial en una pestana normal.
 2. Clic en el icono azul "RiftPulse": se abre el panel a la derecha, con
    todo el sistema (predicciones, copa, historial, Pick'Em).
+
+USAR — OVERLAY SOBRE EL STREAM (nuevo)
+--------------------------------------
+No hay que configurar nada. Con la extension instalada, abra el partido en
+twitch.tv o en lolesports.com: aparece solo, encima de la pagina, un widget
+"RiftPulse" con la prediccion en vivo (probabilidad, marcador y objetivos).
+Solo lo ve usted; no se transmite.
+- Arrastrelo (desde su barra de titulo) a donde prefiera. Recuerda el lugar.
+- El boton "—" lo pliega.
+- Si los datos van adelantados o atrasados respecto a lo que ve en el video,
+  ajuste el retraso con los botones "-" y "+" abajo a la derecha del widget.
 
 ACTUALIZAR
 ----------

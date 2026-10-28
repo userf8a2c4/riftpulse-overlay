@@ -252,8 +252,8 @@ function analyzeDraft(meta = G.meta) {
 // Peso del draft: el equipo de juego temprano suma antes del min ~24 y el de juego tardío después.
 const draftPhase = min => Math.max(-1, Math.min(1, (min - 24) / 10));
 
-// Modelo entrenado con juegos profesionales 2025–26 (regresión logística por minuto). null = fórmula manual.
-const MODELO = {"pre":{"w":[0.2099,0.8968,0.394,-0.1526,0.0837]},"min":{"10":[0.2402,0.8476,0.6668,-0.224,-0.2233,0.0,0.0968,0.3321,0.0,0.0,0.0,0.0779],"15":[0.2933,0.7776,0.4647,0.082,-0.0205,0.0,0.0,0.3271,0.0,0.0,0.0,0.1124],"20":[0.3102,0.6405,0.4355,0.0788,-0.0542,0.0012,0.0,0.3674,0.0,0.014,0.0,0.2169],"25":[0.3222,0.5485,0.3853,0.2027,-0.0673,-0.0616,0.2451,0.4423,-0.0819,-0.2113,0.015,0.274]},"juegos":2247};
+// Modelo entrenado con juegos profesionales 2025–26 (regresión logística por minuto). Fuente única: engine.js.
+const MODELO = (window.RiftEngine && window.RiftEngine.MODELO) || null;
 // Pesos del modelo en un minuto dado: en el minuto 0 solo cuenta la predicción previa; entre minutos entrenados se interpola.
 function modelW(min) {
   const ks = Object.keys(MODELO.min).map(Number).sort((a, b) => a - b);
@@ -311,6 +311,26 @@ function winProb(f, gt) {
   return {p: 1 / (1 + Math.exp(-z)), parts: parts.sort((x, y) => Math.abs(y.z) - Math.abs(x.z)).slice(0, 4)};
 }
 
+// ---------- motor: estado central + suscripción (lo consumen la app y, en la Fase 2, el overlay) ----------
+const Engine = {
+  _subs: [],
+  subscribe(fn) { if (typeof fn === 'function') { this._subs.push(fn); try { fn(this.snapshot()); } catch (e) {} } return () => { this._subs = this._subs.filter(f => f !== fn); }; },
+  emit() { const s = this.snapshot(); for (const f of this._subs) { try { f(s); } catch (e) {} } },
+  snapshot() {
+    const g = G, m = M;
+    return {
+      match: m ? {id: m.id, league: m.league, strategy: m.strategy, teams: m.teams} : null,
+      game: g ? {
+        id: g.id, gt: g.gt, state: g.last ? g.last.gameState : null, ended: !!g.ended,
+        wp: g.wp ? g.wp.p : null, pre: g.pre ? g.pre.p : null,
+        blue: g.meta ? g.meta.blueTeamMetadata : null, red: g.meta ? g.meta.redTeamMetadata : null,
+        t: g.t || null, frame: g.last || null,
+      } : null,
+      delay, at: Date.now(),
+    };
+  },
+};
+
 function processFrame(f) {
   const ts = Date.parse(f.rfc460Timestamp);
   if (ts <= G.lastTs) return;
@@ -327,6 +347,7 @@ function processFrame(f) {
     G.ended = true; ENDS[G.id] = gt;
     if (!wasEnded && !REPLAY && !PIN) { confirmSeries(); saveEndedGame(G.id); }  // marcador al instante + guardar el análisis en el Historial
   }
+  Engine.emit();
 }
 
 async function startGame(id) {
@@ -690,7 +711,8 @@ function keyMoments(samples, events, maxN = 3) {
 }
 function predBar(p, cb, cr, small) {
   const pb = Math.round(p * 100), pr = 100 - pb;
-  return `<div class="probbar${small ? ' sm' : ''}"><div class="pb" style="width:${Math.min(86, Math.max(pb, 14))}%">${esc(cb)} ${pb}%</div><div class="pr" style="width:${Math.min(86, Math.max(pr, 14))}%">${pr}% ${esc(cr)}</div></div>`;
+  const lb = pb >= pr ? ' lead' : '', lr = pr > pb ? ' lead' : '';
+  return `<div class="probbar${small ? ' sm' : ''}"><div class="pb${lb}" style="width:${Math.min(86, Math.max(pb, 14))}%">${esc(cb)} ${pb}%</div><div class="pr${lr}" style="width:${Math.min(86, Math.max(pr, 14))}%">${pr}% ${esc(cr)}</div></div>`;
 }
 const reasonsList = parts => parts.slice(0, 3).map(x => `<li><b class="${x.z > 0 ? 'b' : 'r'}">▲ ${esc(code(x.z > 0 ? 'blue' : 'red'))}</b> ${esc(x.txt)}</li>`).join('') || '<li class="pm">Sin factores claros.</li>';
 
@@ -1500,6 +1522,8 @@ function calibTick() {
 // Prueba durante el juego (internacionales), calculada aparte con el mismo modelo. Se completa al terminar la prueba.
 const BACKTEST = {"fecha":"2026-10-16","juego":{"pre":{"juegos":589,"acc":0.6248,"brier":0.2208,"accAnt":0.6265,"brierAnt":0.2256},"m10":{"juegos":589,"acc":0.6842,"brier":0.2023,"accAnt":0.6418,"brierAnt":0.2187},"m15":{"juegos":589,"acc":0.7453,"brier":0.1729,"accAnt":0.7267,"brierAnt":0.1831},"m20":{"juegos":588,"acc":0.7857,"brier":0.145,"accAnt":0.7704,"brierAnt":0.1513},"m25":{"juegos":554,"acc":0.8357,"brier":0.1137,"accAnt":0.8303,"brierAnt":0.1172}},"eventos":"Prueba con 589 juegos de agosto a octubre de 2026 que el modelo no vio (ligas regionales e internacionales). Entrenado con 1658 juegos anteriores; la version activa usa los 2247 juegos"};
 const seriesP = (p, bo) => { const need = Math.ceil(bo / 2), f = (x, y) => x >= need ? 1 : y >= need ? 0 : p * f(x + 1, y) + (1 - p) * f(x, y + 1); return f(0, 0); };
+// Badge de precisión en la cabecera (siempre visible): dato real del backtest.
+try { const _j = BACKTEST && BACKTEST.juego, _e = $('#precHdr'); if (_e && _j && _j.m15) _e.textContent = Math.round(_j.m15.acc * 100) + '% de acierto en vivo · min 15'; } catch (e) {}
 function eloStats(rows) {
   let gOk = 0, gN = 0, br = 0, sOk = 0;
   const bins = {};

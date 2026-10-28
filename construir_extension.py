@@ -3,8 +3,7 @@ Ejecútelo (o use actualizar-extension.bat) cada vez que cambie la página."""
 import json
 import os
 import re
-import struct
-import zlib
+import shutil
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 src = open(os.path.join(AQUI, 'index.html'), encoding='utf-8').read()
@@ -18,6 +17,11 @@ os.makedirs(ext, exist_ok=True)
 open(os.path.join(ext, 'panel.html'), 'w', encoding='utf-8').write(html)
 open(os.path.join(ext, 'panel.js'), 'w', encoding='utf-8').write(m.group(1))
 
+# Overlay de espectador: motor + widget, inyectados sobre el stream (content script).
+# logo.svg: marca y favicon del panel. icon128.png: ícono de la extensión (el logo).
+for f in ('engine.js', 'overlay.js', 'logo.svg', 'icon128.png'):
+    shutil.copy(os.path.join(AQUI, f), os.path.join(ext, f))
+
 manifest = {
     "manifest_version": 3,
     "name": "RiftPulse",
@@ -26,9 +30,13 @@ manifest = {
     "permissions": ["sidePanel"],
     "host_permissions": [
         "https://esports-api.lolesports.com/*", "https://feed.lolesports.com/*",
-        "https://ddragon.leagueoflegends.com/*", "https://sb2frontend-altenar2.biahosted.com/*",
-        "https://static.lolesports.com/*"
+        "https://ddragon.leagueoflegends.com/*", "https://static.lolesports.com/*"
     ],
+    "content_scripts": [{
+        "matches": ["*://*.twitch.tv/*", "*://*.lolesports.com/*"],
+        "js": ["engine.js", "overlay.js"],
+        "run_at": "document_idle"
+    }],
     "action": {"default_title": "Abrir RiftPulse"},
     "side_panel": {"default_path": "panel.html"},
     "background": {"service_worker": "background.js"},
@@ -40,14 +48,4 @@ open(os.path.join(ext, 'background.js'), 'w', encoding='utf-8').write(
     "chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});\n")
 
 
-def solid_png(size, rgb):
-    def chunk(typ, data):
-        c = typ + data
-        return struct.pack('>I', len(data)) + c + struct.pack('>I', zlib.crc32(c) & 0xffffffff)
-    ihdr = struct.pack('>IIBBBBB', size, size, 8, 2, 0, 0, 0)
-    raw = (b'\x00' + bytes(rgb) * size) * size
-    return b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', ihdr) + chunk(b'IDAT', zlib.compress(raw)) + chunk(b'IEND', b'')
-
-
-open(os.path.join(ext, 'icon128.png'), 'wb').write(solid_png(128, (74, 163, 255)))
 print('Extensión actualizada en:', ext)

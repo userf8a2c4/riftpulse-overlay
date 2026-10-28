@@ -10,8 +10,20 @@
     "https://esports-api.lolesports.com/*",
     "https://feed.lolesports.com/*",
     "https://ddragon.leagueoflegends.com/*",
-    "https://sb2frontend-altenar2.biahosted.com/*",
     "https://static.lolesports.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.twitch.tv/*",
+        "*://*.lolesports.com/*"
+      ],
+      "js": [
+        "engine.js",
+        "overlay.js"
+      ],
+      "run_at": "document_idle"
+    }
   ],
   "action": {
     "default_title": "Abrir RiftPulse"
