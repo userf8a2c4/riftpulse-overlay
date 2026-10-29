@@ -117,6 +117,7 @@
     if (dk >= 3) {
       var bk = cur.blueTeam.totalKills - prev.blueTeam.totalKills, rk = cur.redTeam.totalKills - prev.redTeam.totalKills;
       ev(gt, bk >= rk ? 'blue' : 'red', 'Pelea: ' + code('blue') + ' ' + bk + ' – ' + rk + ' ' + code('red'), 'fight');
+      G.fight = {gt: gt, win: bk >= rk ? 'blue' : 'red', players: G.players ? JSON.parse(JSON.stringify(G.players)) : null};
     }
   }
 
@@ -210,6 +211,16 @@
     if (G !== g0 || G.loading) return;
     var f = w && lastBefore(w.frames, t);
     if (f) processFrame(f);
+    try { var dd = await feed('details', G.id, t); if (G === g0) { var df = dd && lastBefore(dd.frames, t); if (df) updatePlayers(df); } } catch (e) {}
+  }
+  function shortName(s) { s = String(s || ''); var i = s.indexOf(' '); return i > 0 ? s.slice(i + 1) : s; }
+  function updatePlayers(df) {
+    if (!G || !G.meta || !df || !df.participants) return;
+    function sideP(key) {
+      var md = (G.meta[key] || {}).participantMetadata || [];
+      return md.map(function (p) { var st = df.participants.find(function (x) { return x.participantId === p.participantId; }); return {name: shortName(p.summonerName), role: p.role, share: st ? (st.championDamageShare || 0) : 0}; }).sort(function (a, b) { return b.share - a.share; });
+    }
+    G.players = {blue: sideP('blueTeamMetadata'), red: sideP('redTeamMetadata')};
   }
 
   // ---------- suscripción / snapshot ----------
@@ -246,7 +257,8 @@
         waiting: !!G.waiting, pBlue: G.wp ? G.wp.p : null,
         reasons: G.wp ? G.wp.parts : [], events: G.events.slice(-8), timers: G.t,
         stats: G.last ? {blue: tstat(G.last.blueTeam), red: tstat(G.last.redTeam)} : null,
-        samples: G.samples ? G.samples.slice() : [], impact: impactNext()} : null,
+        samples: G.samples ? G.samples.slice() : [], impact: impactNext(),
+        fight: G.fight && G.fight.players ? {gt: G.fight.gt, win: G.fight.win, blue: G.fight.players.blue, red: G.fight.players.red} : null} : null,
       blueCode: blueCode, redCode: redCode, delay: delay, precision: PRECISION, next: NEXTM, at: Date.now()
     };
   }
