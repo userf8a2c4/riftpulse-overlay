@@ -869,5 +869,14 @@
   RiftEngine.MODELO = MODELO;       // fuente única de los pesos del modelo (la app los lee de aquí)
   RiftEngine.PRECISION = PRECISION;
   RiftEngine.accAt = accAt;
+  // simulador para «Cómo funciona»: el mismo modelo, con un estado de juego a mano (todo desde el lado azul)
+  // o = {min, previa, oro, kills, torres, inhib, barones, dragones, alma, punto, ancestral}
+  RiftEngine.simular = function (o) {
+    var w = modelW(o.min || 15), x = [1, o.previa || 0, (o.oro || 0) / 1000, (o.kills || 0) / 5, o.torres || 0, o.inhib || 0, o.barones || 0, o.dragones || 0, o.alma || 0, o.punto || 0, o.ancestral || 0, 0];
+    var nom = ['Lado azul', 'Fuerza previa', 'Oro', 'Kills', 'Torres', 'Inhibidores', 'Barones', 'Dragones', 'Alma', 'Punto de alma', 'Ancestral'], z = 0, parts = [];
+    x.forEach(function (v, i) { var c = w[i] * v; z += c; if (i < nom.length && Math.abs(c) > 0.005) parts.push({txt: nom[i], z: c}); });
+    z = Math.max(-4.6, Math.min(4.6, z));
+    return {p: 1 / (1 + Math.exp(-z)), parts: parts.sort(function (a, b) { return Math.abs(b.z) - Math.abs(a.z); })};
+  };
   root.RiftEngine = RiftEngine;
 })(typeof window !== 'undefined' ? window : this);
