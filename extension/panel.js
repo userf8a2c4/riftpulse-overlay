@@ -1998,7 +1998,7 @@ function tinte() {
 }
 
 function setVista(v) {
-  for (const [vista, tab] of [['inicio', 'Inicio'], ['partido', 'Partido'], ['copa', 'Copa'], ['hist', 'Hist'], ['pickem', 'Pickem']]) {
+  for (const [vista, tab] of [['inicio', 'Inicio'], ['partido', 'Partido'], ['mando', 'Mando'], ['copa', 'Copa'], ['hist', 'Hist'], ['pickem', 'Pickem']]) {
     $('#vista' + (vista === 'hist' ? 'Hist' : vista === 'pickem' ? 'Pickem' : vista[0].toUpperCase() + vista.slice(1))).hidden = v !== vista;
     $('#tab' + tab).classList.toggle('on', v === vista);
   }
@@ -2006,6 +2006,7 @@ function setVista(v) {
   if (v === 'copa') loadCopa();
   if (v === 'hist') renderHistList();
   if (v === 'inicio') { loadCopa(); renderInicio(); }
+  if (v === 'mando') mandoOn();
   if (v === 'pickem') { loadCopa(); if (!ddv || !champs || !Object.keys(champs).length) ddragon('15.20').then(renderPickem); renderPickem(); }
   tinte();
 }
@@ -2036,6 +2037,7 @@ document.addEventListener('click', async e => {
   if (repOpen && !HI.events[id]) { try { HI.events[id] = (await api('getEventDetails', {id})).event.match; } catch (err) { HI.events[id] = {games: [], teams: []}; } renderRepList(); }
 });
 $('#tabPartido').addEventListener('click', () => setVista('partido'));
+$('#tabMando').addEventListener('click', () => setVista('mando'));
 $('#tabCopa').addEventListener('click', () => setVista('copa'));
 $('#tabHist').addEventListener('click', () => setVista('hist'));
 $('#tabPickem').addEventListener('click', () => setVista('pickem'));
@@ -2048,6 +2050,154 @@ document.addEventListener('click', e => {
   else if (act === 'h2h') { const [a, b, ev] = arg.split('|'); openIniDet({type: 'h2h', a, b, ev}); }
   else if (act === 'inidet-close') { INIDET = null; renderIniDetalle(); }
 });
+
+// ---------- centro de mando: operar el stream en vivo (streamers y analistas) ----------
+// Usa el motor compartido (engine.js): las mismas frases, giros y simulaciones que la mesa de análisis y el overlay.
+const MX = {on: false, s: null, ov: null, copied: null, copiedAt: 0, msg: ''};
+const OBS_BASE = 'https://userf8a2c4.github.io/riftpulse-overlay/';
+const mxPct = x => Math.round(x * 100) + '%';
+const mxK = g => (Math.abs(g) / 1000).toFixed(1).replace('.', ',') + 'k';
+const mxSc = side => side === 'blue' ? 'b' : 'r';
+const mxHasExt = () => !!(window.chrome && chrome.storage && chrome.storage.local);
+function mxOv() {
+  if (!MX.ov) { try { MX.ov = JSON.parse(store('mandoOv') || 'null'); } catch (e) {} MX.ov = Object.assign({ext: ['obj', 'pg'], pos: 'top', hidden: false, dmg: true}, MX.ov || {}); }
+  return MX.ov;
+}
+// manda la orden al overlay del stream (content script) por chrome.storage; sync/nudge son de un solo uso
+function mxSend(extra) {
+  const o = mxOv(); store('mandoOv', JSON.stringify(o));
+  if (mxHasExt()) chrome.storage.local.set({rp_cmd: Object.assign({ext: o.ext, pos: o.pos, hidden: o.hidden, dmg: o.dmg, n: Date.now()}, extra || {})});
+}
+function mandoOn() {
+  if (!window.RiftEngine) { $('#mxAir').innerHTML = '<div class="empty">No cargó el motor (engine.js).</div>'; return; }
+  if (!MX.on) {
+    MX.on = true;
+    RiftEngine.onUpdate(s => {
+      MX.s = s;
+      if (!s.demo && RiftEngine.delay !== delay) RiftEngine.setDelay(delay);  // mismo retraso que la app
+      if (!$('#vistaMando').hidden) renderMando();
+    });
+    RiftEngine.start();
+    renderMxOv(); renderMxObs();
+  }
+  renderMando();
+}
+function mxSpark(g) {
+  const pts = g.samples || [];
+  if (pts.length < 2) return '';
+  const W = 600, H = 70, t0 = pts[0].gt, span = Math.max(1, pts[pts.length - 1].gt - t0);
+  const X = gt => (gt - t0) / span * W, Y = p => H - 6 - p * (H - 12);
+  const d = 'M' + pts.map(p => X(p.gt).toFixed(1) + ' ' + Y(p.p).toFixed(1)).join(' L');
+  const marks = (g.swings || []).map(m => `<rect x="${X(m.a).toFixed(1)}" y="0" width="${Math.max(2, X(m.b) - X(m.a)).toFixed(1)}" height="${H}" fill="${m.side === 'blue' ? '#4aa3ff' : '#ff5a5f'}" opacity=".1"/>`).join('');
+  return `<svg class="mx-spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${marks}<line x1="0" y1="${H / 2}" x2="${W}" y2="${H / 2}" stroke="#263352" stroke-dasharray="4 4"/><path d="${d}" fill="none" stroke="url(#mxg)" stroke-width="2.5" vector-effect="non-scaling-stroke"/><defs><linearGradient id="mxg" x1="0" y1="0" x2="0" y2="${H}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4aa3ff"/><stop offset="1" stop-color="#ff5a5f"/></linearGradient></defs></svg>`;
+}
+function mxPost(s) {
+  const m = s.match, g = s.game;
+  if (g.recap) return RiftEngine.recapLines(s).map(t => t.replace(/<[^>]+>/g, '')).join('\n') + '\n\nSegún RiftPulse · #Worlds2026';
+  const lead = g.pBlue >= 0.5, lc = lead ? m.blue.code : m.red.code, oc = lead ? m.red.code : m.blue.code, lp = lead ? g.pBlue : 1 - g.pBlue;
+  const top = (g.reasons || []).filter(x => (x.z >= 0) === lead)[0];
+  let t = `⚡ ${lc} tiene ${mxPct(lp)} de ganar contra ${oc} al min ${mmss(g.gt)}, según RiftPulse.`;
+  if (top) t += `\nLa clave: ${top.txt}.`;
+  if (s.series && s.series.bo > 1) t += `\nSerie ${s.series.score[0]}–${s.series.score[1]}: si gana ${oc} este juego, queda con ${mxPct(lead ? 1 - s.series.ifRed : s.series.ifBlue)} de llevársela.`;
+  return t + '\n#Worlds2026';
+}
+function renderMando() {
+  const s = MX.s, air = $('#mxAir');
+  if (!air) return;
+  if (!s || !s.match || !s.game || s.game.pBlue == null) {
+    const nx = s && s.next ? `<div class="mx-note">Próximo partido: <b>${esc(s.next.blue)} vs ${esc(s.next.red)}</b>.</div>` : '';
+    air.innerHTML = `<h2>Al aire ahora</h2><div class="empty" style="padding:10px 0">${s && s.match ? 'El juego está por empezar…' : 'No hay un partido en vivo en este momento.'}</div>${nx}
+      <div class="mx-row" style="justify-content:center"><button class="mx-btn gold" data-mx="demo">▶ Probar con un partido real ya jugado (demo)</button></div>`;
+    $('#mxTalk').innerHTML = '<h2>Guion para comentar</h2><div class="empty">Aparece con el partido.</div>';
+    $('#mxRead').innerHTML = '<h2>Lectura del juego</h2><div class="empty">Aparece con el partido.</div>';
+    $('#mxSoc').innerHTML = '<h2>Para redes</h2><div class="empty">Aparece con el partido.</div>';
+    return;
+  }
+  const m = s.match, g = s.game, pb = Math.round(g.pBlue * 100), pr = 100 - pb;
+  const badge = s.demo ? `<span class="mx-badge demo">DEMO · partido real del ${s.demo.date.slice(8, 10)}/${s.demo.date.slice(5, 7)} · ×${s.demo.vel}</span>` : g.ended ? '<span class="mx-badge fin">FINAL</span>' : '<span class="mx-badge live">● EN VIVO</span>';
+  const se = s.series, im = g.impact, chips = [];
+  chips.push(`<div class="mx-k">Min <b>${mmss(g.gt)}</b>${m.gameNo ? ` · juego ${m.gameNo}` : ''}</div>`);
+  if (se && se.bo > 1) chips.push(`<div class="mx-k">Serie Bo${se.bo} <b>${se.score[0]}–${se.score[1]}</b> · si gana <b class="b">${esc(m.blue.code)}</b> ${mxPct(se.ifBlue)} · si gana <b class="r">${esc(m.red.code)}</b> ${mxPct(1 - se.ifRed)}</div>`);
+  if (im) chips.push(`<div class="mx-k">Próx. <b>${esc(im.obj)}</b> en ${mmss(Math.max(0, im.at - g.gt))}: <b class="b">${esc(m.blue.code)} ${im.blue >= 0 ? '+' : ''}${im.blue}</b> · <b class="r">${esc(m.red.code)} ${im.red >= 0 ? '+' : ''}${im.red}</b> pts</div>`);
+  air.innerHTML = `<h2>Al aire ahora</h2><div class="mx-top">${badge}<span>${esc(m.league || '')}</span>${s.demo ? '<button class="mx-btn" data-mx="live" style="margin-left:auto;padding:4px 10px">⏹ Volver al vivo</button>' : ''}</div>
+    <div class="mx-teams"><span class="b">${esc(m.blue.code)}</span><span class="sc">${m.blue.wins == null ? 'vs' : m.blue.wins + ' – ' + m.red.wins}</span><span class="r">${esc(m.red.code)}</span></div>
+    <div class="mx-bar"><div class="pb" style="width:${Math.min(85, Math.max(pb, 15))}%">${pb}%</div><div class="pr" style="width:${Math.min(85, Math.max(pr, 15))}%">${pr}%</div></div>
+    <div class="mx-row">${chips.join('')}</div>${mxSpark(g)}`;
+
+  // guion: frases con botón para copiar
+  const talk = RiftEngine.talk(s);
+  if (MX.copied != null && Date.now() - MX.copiedAt > 1500) MX.copied = null;
+  $('#mxTalk').innerHTML = `<h2>Guion para comentar</h2><ul class="mx-list">${talk.map((t, i) => `<li><span>${t.html}</span><button class="mx-cp${MX.copied === 't' + i ? ' ok' : ''}" data-mx="cp" data-k="t${i}">${MX.copied === 't' + i ? '✓' : '📋'}</button></li>`).join('')}</ul>
+    <div class="mx-row"><button class="mx-btn${MX.copied === 'all' ? ' on' : ''}" data-mx="cp" data-k="all">${MX.copied === 'all' ? '✓ Copiado' : '📋 Copiar todo'}</button></div>`;
+  MX.talk = talk;
+
+  // lectura del juego
+  const sw = g.swings || [], c = g.comeback, k = g.keyPlayer, dw = g.draft && g.draft.window;
+  let rd = '<h2>Lectura del juego</h2><div class="mx-sub">Giros clave</div>';
+  rd += sw.length ? `<ul class="mx-list">${sw.map(x => `<li><span class="t">${mmss(x.a)}–${mmss(x.b)}</span><span><b class="${mxSc(x.side)}">${esc(x.code)} +${Math.round(Math.abs(x.d) * 100)}</b> · ${esc(x.cause)}</span></li>`).join('')}</ul>` : '<div class="mx-note">Todavía no hay giros de 9 puntos o más.</div>';
+  rd += '<div class="mx-sub">Para remontar</div>';
+  rd += c ? `<div style="font-size:13.5px"><b class="${mxSc(c.side)}">${esc(c.code)}</b> está en ${mxPct(c.p)}. ${c.reached ? 'Necesita' : 'Lo que más lo acerca:'} <b>${esc(c.paths[0].txt)}</b> → ${mxPct(c.paths[0].p)}${c.paths[1] ? `, o <b>${esc(c.paths[1].txt)}</b> → ${mxPct(c.paths[1].p)}` : ''}.</div>` : '<div class="mx-note">Nadie está por debajo del 45%.</div>';
+  if (k) rd += `<div class="mx-key">⭐ Jugador clave: <b>${esc(k.name)}</b> (${esc(k.code)}, ${esc(k.champ)}) · ${k.gd >= 0 ? '+' : '−'}${mxK(k.gd)} de oro sobre ${esc(k.vs)} · ${Math.round(k.share * 100)}% del daño · ${k.k}/${k.d}/${k.a}</div>`;
+  if (dw && g.gt < 1500) rd += `<div class="mx-note">⏱ Ventana de poder: <b>${esc(dw.early)}</b> necesita ventaja antes del min ~24; después el draft favorece a <b>${esc(dw.late)}</b>.</div>`;
+  $('#mxRead').innerHTML = rd;
+
+  // redes
+  const post = mxPost(s);
+  MX.post = post;
+  $('#mxSoc').innerHTML = `<h2>Para redes</h2><div class="mx-post">${esc(post)}</div>
+    <div class="mx-row"><button class="mx-btn${MX.copied === 'post' ? ' on' : ''}" data-mx="cp" data-k="post">${MX.copied === 'post' ? '✓ Copiado' : '📋 Copiar post'}</button>
+    <a class="mx-btn" href="https://x.com/intent/post?text=${encodeURIComponent(post)}" target="_blank" rel="noopener" style="text-decoration:none">Publicar en X</a>
+    ${g.recap ? '<button class="mx-btn gold" data-mx="png">⬇ Imagen del resumen</button>' : ''}</div>
+    <div class="mx-note">${g.recap ? 'El juego terminó: el post y la imagen resumen quién ganó, el giro decisivo y el jugador clave.' : 'Se actualiza solo con el partido. Al terminar el juego aparece la imagen del resumen.'}</div>`;
+}
+// controles del overlay del stream (no se redibujan con cada dato, para no perder lo que se escribe)
+function renderMxOv() {
+  const o = mxOv(), ext = mxHasExt(), dis = ext ? '' : ' disabled';
+  const chip = (key, label) => `<button class="mx-btn${o.ext.includes(key) ? ' on' : ''}" data-mx="ext" data-k="${key}"${dis}>${label}</button>`;
+  $('#mxOv').innerHTML = `<h2>Overlay en el stream</h2>
+    <div class="mx-sub">Piezas</div><div class="mx-row" style="margin-top:0">${chip('obj', 'Impacto del objetivo')}${chip('pg', 'Trayectoria')}
+      <button class="mx-btn${o.dmg ? ' on' : ''}" data-mx="dmg"${dis}>Reparto de daño</button></div>
+    <div class="mx-sub">Posición y visibilidad</div><div class="mx-row" style="margin-top:0">
+      <button class="mx-btn${o.pos === 'top' ? ' on' : ''}" data-mx="pos" data-k="top"${dis}>Arriba</button><button class="mx-btn${o.pos === 'bottom' ? ' on' : ''}" data-mx="pos" data-k="bottom"${dis}>Abajo</button>
+      <button class="mx-btn" data-mx="hide"${dis}>${o.hidden ? '👁 Mostrar overlay' : '🙈 Ocultar overlay'}</button></div>
+    <div class="mx-sub">Sincronía con el video</div>
+    <div class="mx-sync"><span class="pm" style="white-space:normal">Minuto que ves:</span><input id="mxMin" placeholder="mm:ss" maxlength="5"${dis}><button class="mx-btn gold" data-mx="sync"${dis}>⟲ Clavar</button>
+      <button class="mx-btn" data-mx="nudge" data-k="-5"${dis}>−5 s</button><button class="mx-btn" data-mx="nudge" data-k="5"${dis}>+5 s</button></div>
+    <div class="mx-note">${ext ? (MX.msg || 'Los cambios se aplican al instante en el overlay de Twitch o lolesports.') : 'Estos controles mueven el overlay de la extensión sobre Twitch o lolesports. Ábralos desde el panel lateral de la extensión.'}</div>`;
+}
+function renderMxObs() {
+  const items = [['Barra en vivo', 'overlay.html'], ['Serie', 'overlay.html?view=serie'], ['Duelos por línea', 'overlay.html?view=duelos'], ['Para remontar (sola)', 'overlay.html?view=remontada'],
+    ['Resumen del juego (solo)', 'overlay.html?view=recap'], ['Claves del momento', 'overlay.html?view=keys'], ['Alerta de giro', 'overlay.html?view=alert'], ['Mesa de análisis', 'analista.html'], ['Control de producción (dock)', 'control.html']];
+  $('#mxObs').innerHTML = `<h2>Piezas para OBS</h2><ul class="mx-obs">${items.map(([l, u], i) => `<li><b style="flex:none">${l}</b><span class="u">${OBS_BASE}${u}</span><button class="mx-cp${MX.copied === 'o' + i ? ' ok' : ''}" data-mx="cp" data-k="o${i}" data-u="${OBS_BASE}${u}">${MX.copied === 'o' + i ? '✓' : '📋'}</button></li>`).join('')}</ul>
+    <div class="mx-note">Cada pieza va como <b>Navegador</b> (Browser Source) en OBS, 1920 × 1080. Con <code>?demo</code> al final se ven con un partido real ya jugado.</div>`;
+}
+function mxCopy(key, text) {
+  const done = () => { MX.copied = key; MX.copiedAt = Date.now(); renderMando(); renderMxObs(); setTimeout(() => { renderMando(); renderMxObs(); }, 1600); };
+  navigator.clipboard.writeText(text).then(done, done);
+}
+$('#vistaMando').addEventListener('click', e => {
+  const b = e.target.closest('[data-mx]'); if (!b || b.disabled) return;
+  const a = b.dataset.mx, k = b.dataset.k, o = mxOv();
+  if (a === 'demo') { RiftEngine.demo(8); return; }
+  if (a === 'live') { RiftEngine.live(); return; }
+  if (a === 'cp') {
+    const text = k === 'all' ? (MX.talk || []).map((t, i) => (i + 1) + '. ' + t.text).join('\n') : k === 'post' ? MX.post : k[0] === 'o' ? b.dataset.u : ((MX.talk || [])[+k.slice(1)] || {}).text;
+    if (text) mxCopy(k, text); return;
+  }
+  if (a === 'png') { const u = RiftEngine.recapPNG(MX.s); if (u) { const l = document.createElement('a'); l.href = u; l.download = 'riftpulse-resumen.png'; l.click(); } return; }
+  if (a === 'ext') { o.ext = o.ext.includes(k) ? o.ext.filter(x => x !== k) : o.ext.concat([k]); mxSend(); }
+  else if (a === 'dmg') { o.dmg = !o.dmg; mxSend(); }
+  else if (a === 'pos') { o.pos = k; mxSend(); }
+  else if (a === 'hide') { o.hidden = !o.hidden; mxSend(); }
+  else if (a === 'nudge') { mxSend({nudge: +k}); MX.msg = `Overlay movido ${+k > 0 ? '+' : ''}${k} s.`; }
+  else if (a === 'sync') {
+    const mm = ($('#mxMin').value || '').trim().match(/^(\d{1,2})(?::([0-5]?\d))?$/);
+    if (!mm) { MX.msg = 'Escriba el minuto como mm:ss (por ejemplo 14:32).'; renderMxOv(); return; }
+    mxSend({sync: {secs: +mm[1] * 60 + (+mm[2] || 0), at: Date.now()}}); MX.msg = `Overlay clavado al ${mm[1]}:${String(+mm[2] || 0).padStart(2, '0')} del video.`;
+  }
+  renderMxOv();
+});
+$('#vistaMando').addEventListener('keydown', e => { if (e.target.id === 'mxMin' && e.key === 'Enter') { const b = $('[data-mx="sync"]'); if (b) b.click(); } });
 
 // ---------- reproductor: retroceder y adelantar dentro del juego ----------
 const MARKS = {};
@@ -2156,7 +2306,7 @@ async function pinGame(matchId, gameId) {
   loadCopa().then(() => { if (G && G.start && G.pre && !G.pre.elo) rebuild(); });
   const v0 = q.get('vista') || store('vista'); // ?vista=partido abre directo en esa pestaña
   applyCity();  // fondo de ciudad aérea (se genera una vez)
-  setVista(['inicio', 'partido', 'copa', 'hist', 'pickem'].includes(v0) ? v0 : 'inicio');
+  setVista(['inicio', 'partido', 'mando', 'copa', 'hist', 'pickem'].includes(v0) ? v0 : 'inicio');
   if (q.get('hist')) { // ?vista=hist&hist=<partido>:<juego> abre ese resumen directo
     const [mid, gid] = q.get('hist').split(':');
     try { HI.open = mid; HI.events[mid] = (await api('getEventDetails', {id: mid})).event.match; renderHistList(); showHistGame(gid); } catch (e) {}

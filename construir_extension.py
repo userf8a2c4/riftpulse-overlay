@@ -27,7 +27,7 @@ manifest = {
     "name": "RiftPulse",
     "version": "1.0",
     "description": "Panel lateral con predicciones, copa, historial y Pick'Em de Worlds 2026.",
-    "permissions": ["sidePanel"],
+    "permissions": ["sidePanel", "storage"],
     "host_permissions": [
         "https://esports-api.lolesports.com/*", "https://feed.lolesports.com/*",
         "https://ddragon.leagueoflegends.com/*", "https://static.lolesports.com/*"

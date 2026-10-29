@@ -11,6 +11,7 @@
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
   var EXT = (function () { try { return JSON.parse(ls('rp_ext6') || '["obj","pg"]'); } catch (e) { return ['obj', 'pg']; } })();
   var POS = ls('rp_pos6') || 'top';
+  var DMG = ls('rp_dmg6') !== '0';  // reparto de daño automático tras cada pelea
   var XY = (function () { try { return JSON.parse(ls('rp_xy6') || 'null'); } catch (e) { return null; } })();
 
   var host = document.createElement('div');
@@ -131,6 +132,7 @@
 
   var hist = [], lastMom = 0, lastFightGt = -1, fightTimer = null;
   function showFight(s) {
+    if (!DMG) return;
     var f = s.game && s.game.fight;
     if (!f || f.gt == null || !(f.blue || f.red)) return;
     if (f.gt === lastFightGt) return;  // ya mostrada
@@ -193,6 +195,22 @@
     momEl.innerHTML = '<span class="zap">⚡</span><span class="k ' + (toB ? 'b' : 'r') + '">' + esc(code) + ' +' + Math.abs(d) + '</span>' + (ev ? '<span>· ' + esc(ev.txt) + '</span>' : '<span>de momentum</span>');
     momEl.classList.add('show'); setTimeout(function () { momEl.classList.remove('show'); }, 6500);
   }
+
+  // ---------- órdenes del centro de mando (pestaña «Mando» del panel lateral de la extensión) ----------
+  function applyCmd(c, inicial) {
+    if (!c) return;
+    if (c.ext) { EXT = c.ext.slice(); ls('rp_ext6', JSON.stringify(EXT)); syncChips(); }
+    if (c.pos) { POS = c.pos; XY = null; ls('rp_xy6', 'null'); ls('rp_pos6', POS); place(); }
+    if (c.dmg != null) { DMG = !!c.dmg; ls('rp_dmg6', DMG ? '1' : '0'); if (!DMG) dmgEl.classList.remove('show'); }
+    if (c.hidden != null) host.style.display = c.hidden ? 'none' : '';
+    if (!inicial && c.sync) R.syncTo(c.sync.secs + (Date.now() - c.sync.at) / 1000);  // las órdenes de un solo uso no se repiten al recargar
+    if (!inicial && c.nudge) R.nudge(c.nudge);
+    if (LAST) render(LAST);
+  }
+  try {
+    chrome.storage.local.get('rp_cmd', function (o) { applyCmd(o && o.rp_cmd, true); });
+    chrome.storage.onChanged.addListener(function (ch, area) { if (area === 'local' && ch.rp_cmd) applyCmd(ch.rp_cmd.newValue, false); });
+  } catch (e) {}
 
   R.onUpdate(render);
   if (!window.RP_NO_AUTOSTART) R.start();
