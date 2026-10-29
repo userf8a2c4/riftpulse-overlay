@@ -7,6 +7,7 @@
 - [Preguntas frecuentes](Preguntas-frecuentes)
 
 **El modelo**
+- [Cómo funciona (con simulador)](https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html)
 - [Cómo funciona el modelo](Cómo-funciona-el-modelo)
 - [Precisión y pruebas](Precisión-y-pruebas)
 

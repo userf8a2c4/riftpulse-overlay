@@ -12,7 +12,7 @@
 ![Enfoque](https://img.shields.io/badge/pron%C3%B3stico%20%C2%B7%20sin%20apuestas-FF5A5F)
 ![Riot](https://img.shields.io/badge/no%20afiliado%20a-Riot%20Games-1E2740)
 
-**[Página](https://userf8a2c4.github.io/riftpulse-overlay/)** · **[Wiki](https://github.com/userf8a2c4/riftpulse-overlay/wiki)** · **[Instalación](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Instalación-en-OBS)** · **[Preguntas frecuentes](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Preguntas-frecuentes)**
+**[Página](https://userf8a2c4.github.io/riftpulse-overlay/)** · **[Cómo funciona](https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html)** · **[Wiki](https://github.com/userf8a2c4/riftpulse-overlay/wiki)** · **[Instalación](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Instalación-en-OBS)** · **[Preguntas frecuentes](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Preguntas-frecuentes)**
 
 </div>
 
