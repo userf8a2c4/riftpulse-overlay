@@ -3,6 +3,7 @@
 **Empezar**
 - [Inicio](Home)
 - [Instalación en OBS](Instalación-en-OBS)
+- [Extensión para espectadores](Extensión-para-espectadores)
 - [Preguntas frecuentes](Preguntas-frecuentes)
 
 **El modelo**

@@ -445,6 +445,7 @@
         swings: keyMoments(3), comeback: comebackPaths(), draft: draftInfo(), lanes: L, keyPlayer: keyPlayer(L), recap: recap()} : null,
       series: seriesNow(), h2h: M ? h2hFor(bt.code, rt.code) : null, maps: seriesMaps(),
       demo: DEMO && DEMO.cur ? {blue: DEMO.cur.blue, red: DEMO.cur.red, date: DEMO.cur.date, block: DEMO.cur.block, vel: DEMO.vel} : null,
+      follow: FOLLOW ? {matchId: FOLLOW.matchId, juego: FOLLOW.juego} : null,
       blueCode: blueCode, redCode: redCode, delay: delay, precision: PRECISION, next: NEXTM, at: Date.now()
     };
   }
@@ -600,17 +601,21 @@
   }
   RiftEngine.identify = async function (o) {
     await loadSchedule();
-    var now = Date.now(), tags = (o.tags || []).map(function (t) { return String(t || '').replace(/[^A-Z0-9]/gi, '').toUpperCase(); });
-    var recent = matchList().filter(function (x) { return x.state !== 'unstarted' && now - Date.parse(x.start) < 6 * 86400e3 && x.teams[0].code && x.teams[1].code; });
+    // o.sig = [{CODIGO: parecido}, {...}] (izquierda y derecha del HUD); o.tags = [izq, der] como texto, si no hay puntajes
+    var tags = (o.tags || []).map(function (t) { return String(t || '').replace(/[^A-Z0-9]/gi, '').toUpperCase(); });
+    var sig = o.sig || null, top = sig ? sig.map(function (m) { var v = 0; for (var k in m) v = Math.max(v, m[k]); return v; }) : null;
+    var parece = function (lado, code) {  // 0 = igual a lo mejor leído de ese lado; más alto = menos parecido
+      if (sig) return sig[lado] && code in sig[lado] ? Math.max(0, top[lado] - sig[lado][code]) * 4 : 0;
+      return tags[lado] ? 3 * (1 - tagSim(tags[lado], code)) : 0;
+    };
+    // todos los partidos del Mundial ya empezados (un VOD puede ser de cualquier día del torneo)
+    var recent = matchList().filter(function (x) { return x.state !== 'unstarted' && x.teams[0].code && x.teams[1].code; });
     recent.forEach(function (x) {
       var a = x.teams[0].code, b = x.teams[1].code;
-      x.tagScore = tags.filter(Boolean).length ? Math.max(tagSim(tags[0], a) + tagSim(tags[1], b), tagSim(tags[0], b) + tagSim(tags[1], a)) / 2 : 0;
+      x.tagScore = -Math.min(parece(0, a) + parece(1, b), parece(0, b) + parece(1, a));
     });
-    var cands = recent.filter(function (x) { return x.tagScore >= 0.5; });
-    if (!cands.length) cands = recent.slice();  // sin equipos legibles: se decide por el marcador
-    cands.sort(function (x, y) { return (y.tagScore - x.tagScore) || (x.state === 'inProgress' ? -1 : 1) || (x.start < y.start ? 1 : -1); });
-    cands = cands.slice(0, 8);
-    var best = null;
+    var cands = recent.slice().sort(function (x, y) { return (y.tagScore - x.tagScore) || (x.state === 'inProgress' ? -1 : 1) || (x.start < y.start ? 1 : -1); }).slice(0, 12);
+    var all = [];
     for (var i = 0; i < cands.length; i++) {
       var c = cands[i], ev = EVD[c.id];
       if (!ev) { try { ev = EVD[c.id] = (await api('getEventDetails', {id: c.id})).event; } catch (e) { continue; } }
@@ -626,13 +631,19 @@
         var cb = codeOf('blue'), cr = codeOf('red');
         // en el HUD de la transmisión el equipo azul va a la izquierda
         var sc = 0;
-        if (tags[0] || tags[1]) sc += 3 * (2 - tagSim(tags[0], cb) - tagSim(tags[1], cr));
+        sc += parece(0, cb) + parece(1, cr);
         if (o.kills) sc += Math.abs(f.blueTeam.totalKills - o.kills[0]) + Math.abs(f.redTeam.totalKills - o.kills[1]);
         if (o.gold) sc += 2 * (Math.abs(f.blueTeam.totalGold / 1000 - o.gold[0]) + Math.abs(f.redTeam.totalGold / 1000 - o.gold[1]));
         if (gm.state === 'inProgress') sc -= 0.5;
-        if (!best || sc < best.score) best = {matchId: c.id, juego: k + 1, codes: [cb, cr], score: sc, live: gm.state === 'inProgress'};
+        var champs = function (side) { return ((gi.meta[side + 'TeamMetadata'] || {}).participantMetadata || []).map(function (p) { return p.championId; }); };
+        all.push({matchId: c.id, juego: k + 1, gameId: gm.id, codes: [cb, cr], score: sc, live: gm.state === 'inProgress', champs: {blue: champs('blue'), red: champs('red')}});
       }
     }
+    if (!all.length) return null;
+    all.sort(function (a, b) { return a.score - b.score; });
+    var best = all[0];
+    best.alts = all.slice(1, 6);  // los más parecidos, para desempatar (por ejemplo, con los campeones en pantalla)
+    best.revisados = all.length;
     return best;
   };
 
@@ -641,6 +652,7 @@
   var FOLLOW = null;
   RiftEngine.follow = async function (o) {
     if (!o) { if (FOLLOW) { FOLLOW = null; return this.live(); } return; }
+    if (DEMO) { clearTimeout(DEMO.next); DEMO = null; }  // lo que se ve en el video manda sobre la demo
     var gtAt = function () { return Math.max(0, o.gt + (o.playing ? (Date.now() - o.at) / 1000 * (o.speed || 1) : 0)); };
     var same = FOLLOW && FOLLOW.matchId === o.matchId && FOLLOW.juego === o.juego && G && G.start;
     var back = same && gtAt() < G.gt - 5;  // hacia atrás hay que rehacer el estado desde el inicio
@@ -789,7 +801,7 @@
     SCH.loading = (async function () {
       try {
         var evs = [], tok = null;
-        for (var n = 0; n < 3; n++) {
+        for (var n = 0; n < 5; n++) {
           var params = {leagueId: WORLDS}; if (tok) params.pageToken = tok;
           var d = await api('getSchedule', params);
           evs = evs.concat(d.schedule.events || []);
