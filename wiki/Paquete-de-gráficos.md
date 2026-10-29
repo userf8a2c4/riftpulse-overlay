@@ -20,6 +20,8 @@ Más allá del lower-third, el overlay ofrece **varias piezas** que producción 
 
 <p align="center"><img src="https://raw.githubusercontent.com/userf8a2c4/riftpulse-overlay/main/docs/img/piezas-casters.png" width="480" alt="Piezas serie, remontada, duelos y resumen"><br><sub>serie · remontada · duelos · recap (datos simulados)</sub></p>
 
+<p align="center"><img src="https://raw.githubusercontent.com/userf8a2c4/riftpulse-overlay/main/docs/img/cuadro.png" width="520" alt="Cuadro de eliminatorias"> <img src="https://raw.githubusercontent.com/userf8a2c4/riftpulse-overlay/main/docs/img/predicciones.png" width="620" alt="Predicciones del stream"><br><sub>cuadro · predicciones (datos de ejemplo)</sub></p>
+
 ## Cómo usarlas
 - Cada vista es un **Browser Source** aparte (1920 × 1080, transparente).
 - Ponlas en escenas distintas y conmuta según el momento de la transmisión.

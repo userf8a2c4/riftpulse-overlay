@@ -25,6 +25,7 @@ RiftPulse estima **en tiempo real** la probabilidad de victoria de cada equipo d
 - 🎬 **[Overlay para OBS](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Paquete-de-gráficos)** — barra en vivo y piezas conmutables: serie, duelos por línea, alerta de giro, qué necesita el que va abajo y resumen al terminar cada juego.
 - 🎙 **[Mesa de análisis](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Mesa-de-análisis)** — segunda pantalla para casters: el porqué, giros clave, duelos, serie, draft y **frases listas para comentar**.
 - 🎚 **[Control de producción](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Control-de-producción)** — enciende y apaga piezas y lanza alertas sin recargar.
+- 🏆 **[Predicciones del stream y cuadro en vivo](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Control-de-producción)** — los picks de cada integrante con aciertos automáticos, y las eliminatorias del Mundial en tiempo real.
 - 🎯 **[Precisión a la vista](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Precisión-y-pruebas)** — 62 % antes del juego, **75 % al min 15** y 84 % al min 25, sobre 589 juegos que el modelo no vio.
 
 ## Instalar en OBS
