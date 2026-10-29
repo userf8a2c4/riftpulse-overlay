@@ -5,6 +5,7 @@ retratos de campeones (colores planos). Así se prueba el lector sin usar imáge
 
   vod.webm   80 s: juego 1 de 4:20 a 5:09 (con 10 s de «repetición» sin marcador), luego el juego 2 desde 0:05
   desk.webm  60 s: juego 1 desde 4:20, con 25 s de desk sin marcador en el medio
+  clip.webm  60 s: 15 s de un juego ya jugado (juego 1 desde 4:20), como un clip en la previa, y después el desk
   correr.webm 40 s: juego 2 corriendo desde 16:58, con marcador 2–3
 """
 import os, random, subprocess, shutil
@@ -87,5 +88,6 @@ if __name__ == '__main__':
     video('vod.webm', vod)
     # desk.webm 60 s: juego 1 desde 4:20; de 20 s a 45 s el desk (sin marcador); luego el juego sigue en 4:45
     video('desk.webm', [cuadro(260 + t, oro(260 + t), oro(260 + t) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, con_hud=not (20 <= t < 45)) for t in range(60)])
+    video('clip.webm', [cuadro(260 + t, oro(260 + t), oro(260 + t) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, con_hud=t < 15) for t in range(60)])
     video('correr.webm', [cuadro(1018 + t, 28.7, 29.7, 2, 3, {'blue': 'C', 'red': 'D'}) for t in range(40)])
     print('Videos listos en', GEN)

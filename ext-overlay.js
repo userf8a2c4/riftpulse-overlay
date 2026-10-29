@@ -487,7 +487,13 @@
     dmgEl.classList.add('show');
     clearTimeout(fightTimer); fightTimer = setTimeout(function () { dmgEl.classList.remove('show'); }, 8500);
   }
-  function render(s) { render0(s); tarjetas(body.querySelector('.wait') ? null : s); }
+  function render(s) {
+    render0(s);
+    // sin juego a la vista (sincronizando, desk, publicidad) no queda ningún panel del juego en pantalla
+    var quieto = !!(body.querySelector('.wait') || wEl.classList.contains('chico'));
+    tarjetas(quieto ? null : s);
+    if (quieto) { if (typeof tlEl !== 'undefined' && tlEl) tlEl.classList.remove('on'); dmgEl.classList.remove('show'); momEl.classList.remove('show'); }
+  }
   function render0(s) {
     LAST = s;
     if (s.match && window.RPUI) RPUI.colores(s.match.blue.code, s.match.red.code, host);
@@ -768,6 +774,10 @@
     var d = AS.id ? {matchId: AS.id.matchId, juego: AS.id.juego, gameId: AS.id.gameId, codes: AS.id.codes, gt: AS.off != null ? AS.off + v.currentTime : null, off: AS.off != null ? AS.off : null, playing: !v.paused, vod: esVod(), at: Date.now()} : null;
     try { if (chrome.storage && chrome.storage.local) chrome.storage.local.set({rp_pantalla: d}); else chrome.runtime.sendMessage({type: 'rp-pantalla', data: d}, function () { void chrome.runtime.lastError; }); } catch (e) {}
   }
+  function soltar() {
+    AS.id = null; AS.off = null; AS.lect = []; AS.contra = []; AS.trasSalto = false; AS.playing = null; AS.pend = null;
+    R.follow(null); publicar();
+  }
   // atar el motor al video: minuto = desfase + posición del video
   function seguir(v) {
     if (!AS.id || AS.off == null || !v) return;
@@ -874,6 +884,10 @@
       if (AS.id && AS.off != null) publicar();  // el panel recibe el minuto siempre, se vea o no el reloj
       if (!vars.length) {
         if (++AS.fallas >= 5) AS.zona = null;
+        // el juego no vuelve (fue una repetición o un clip en la previa, o terminó): se suelta y se vuelve al vivo.
+        // un clip de un partido que no se juega ahora, en una transmisión en vivo, se suelta antes
+        var limite = !esVod() && AS.id && !AS.id.live ? 25000 : 90000;
+        if (AS.id && AS.visto && Date.now() - AS.visto > limite) { soltar(); asEstado('buscando el reloj del juego…'); return; }
         asEstado(AS.id ? 'sincronizado · ' + AS.id.codes.join(' vs ') + ' · ' + mmss(AS.off + ct) + ' (reloj tapado)' : 'buscando el reloj del juego…', !!AS.id);
         seguir(v); return;
       }

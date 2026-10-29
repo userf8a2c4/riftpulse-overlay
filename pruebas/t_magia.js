@@ -29,6 +29,27 @@ module.exports = async function () {
   const despues = (await est()).ct;
   ok = chequear('en el VOD, «−10 s» de la línea de tiempo salta el video', hay && antes - despues >= 8 && antes - despues <= 12, hay ? (antes - despues).toFixed(1) + ' s hacia atrás' : 'sin botón') && ok;
   await ctx.close();
+  // un clip de un partido ya jugado en la previa del vivo: cuando vuelve el desk no queda nada de ese partido
+  const c1 = await b.newContext({viewport: {width: 1500, height: 900}}); await montar(c1, {video: 'clip.webm'});
+  const q = await c1.newPage(); q.on('pageerror', e => console.log('    error de página:', e.message));
+  await q.goto('https://www.twitch.tv/riotgames');
+  await q.evaluate(() => { const v = document.getElementById('v'); return new Promise(r => { v.addEventListener('loadeddata', r, {once: true}); v.load(); }); });
+  await q.evaluate(() => { window.RP_DEBUG = true; document.getElementById('v').play(); });
+  for (const f of ['engine.js', 'ext-overlay.js']) await q.addScriptTag({content: fs.readFileSync(path.join(RAIZ, f), 'utf8')});
+  const eq = () => q.evaluate(() => { const sh = document.getElementById('rp-overlay-host').shadowRoot, c = sh.getElementById('cards'); return {chico: sh.getElementById('w').classList.contains('chico'), body: sh.getElementById('body').textContent, cards: c ? c.textContent.trim() : '', ct: document.getElementById('v').currentTime}; });
+  let sinc = false, chicoLimpio = null, suelta = null;
+  for (let i = 0; i < 58; i++) {
+    await q.waitForTimeout(1000); const e = await eq();
+    if (/IG/.test(e.body) && e.ct < 15) sinc = true;
+    if (e.chico && chicoLimpio == null) chicoLimpio = !e.cards;
+    if (e.ct > 15 && !e.chico && !/IG|LYON/.test(e.body) && suelta == null) suelta = e.ct;
+    if (suelta != null && e.ct > suelta + 3) break;
+  }
+  const fin = await eq();
+  ok = chequear('clip en la previa: se sincroniza con el partido del clip', sinc) && ok;
+  ok = chequear('al volver el desk, la pastilla no deja paneles del clip', chicoLimpio === true, chicoLimpio == null ? 'no se contrajo' : chicoLimpio ? 'sin paneles' : 'quedaron paneles del clip') && ok;
+  ok = chequear('sin reloj ~25 s, suelta el partido del clip y vuelve al vivo', suelta != null && suelta <= 46 && !/IG|LYON/.test(fin.body + fin.cards), suelta != null ? 'a los ' + suelta.toFixed(0) + ' s · ' + fin.body.slice(0, 50) : fin.body.slice(0, 60)) && ok;
+  await c1.close();
   // modo sin spoilers en la app (mirando el VOD de IG vs LYON)
   const c2 = await b.newContext({viewport: {width: 1200, height: 900}}); await montar(c2);
   const a = await c2.newPage(); a.on('pageerror', () => {}); await a.goto(BASE + 'app.html'); await a.waitForTimeout(2500);
