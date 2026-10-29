@@ -271,6 +271,8 @@
     get delay() { return delay; },
     setDelay: function (sec) { delay = Math.max(0, Math.round(sec)); try { localStorage.setItem('rp_retraso', delay); } catch (e) {} emit(); },
     nudge: function (sec) { this.setDelay(delay + sec); },
+    // clavar el overlay al minuto del juego que se ve en pantalla (sincronía exacta en un paso)
+    syncTo: function (secs) { if (!G || !G.start || REPLAY) return false; this.setDelay((now() - G.start - G.paused) / 1000 - secs); return true; },
     onUpdate: function (fn) { if (typeof fn === 'function') { subs.push(fn); try { fn(snapshot()); } catch (e) {} } return function () { subs = subs.filter(function (f) { return f !== fn; }); }; },
     findLive: findLive,
     // arranca: busca el partido en vivo, lo carga y sigue el feed cada 2 s

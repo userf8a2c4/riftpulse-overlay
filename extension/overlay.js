@@ -80,13 +80,18 @@
   .dcol.b .dbar>div{background:linear-gradient(90deg,#2f7fe0,#4aa3ff)}.dcol.r .dbar>div{background:linear-gradient(90deg,#c3506a,#ff5a5f)}\
   .dcol.b .dn{color:#7cc0ff}.dcol.r .dn{color:#ff8a8f}\
   .dp{font-size:10.5px;font-variant-numeric:tabular-nums;color:#aeb9cf;width:30px;text-align:right;flex:none}\
+  .syncg{display:flex;align-items:center;gap:3px;font-size:9.5px;color:#8b97b0;border-left:1px solid rgba(120,150,200,.25);padding-left:6px;margin-left:2px}\
+  .syncg input{width:42px;height:18px;background:rgba(20,28,44,.7);border:1px solid rgba(120,150,200,.3);border-radius:5px;color:#e8edf7;font:inherit;font-size:11px;text-align:center;padding:0 3px}\
+  .syncg input:focus{outline:none;border-color:#4aa3ff}.syncg input.bad{border-color:#ff5a5f}\
+  .syncg .gt{font-variant-numeric:tabular-nums;color:#aab6cc;font-weight:700}\
   ';
 
   var LOGO = '<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="rplg" x1="8" y1="40" x2="56" y2="26" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4aa3ff"/><stop offset=".5" stop-color="#9ab0e6"/><stop offset="1" stop-color="#ff5a5f"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="15" fill="#0d1320" stroke="#2b3c62" stroke-width="3"/><path d="M10 35 H21 L25 35 L30 17 L36 49 L40 35 H54" fill="none" stroke="url(#rplg)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   sh.innerHTML = '<style>' + CSS + '</style><div class="w" id="w"><div class="mom" id="mom"></div><div class="dmg" id="dmg"></div><div id="body" style="display:inline-flex"></div>' +
     '<div class="ctl" id="ctl"><span class="chip" data-ext="obj">objetivo</span><span class="chip" data-ext="pg">trayectoria</span>' +
-    '<button class="ic" id="posbtn" title="arriba/abajo">↑↓</button><button class="ic" data-d="-5" title="atrasar">−</button><button class="ic" data-d="5" title="adelantar">+</button></div></div>';
+    '<button class="ic" id="posbtn" title="arriba/abajo">↑↓</button><button class="ic" data-d="-5" title="atrasar">−</button><button class="ic" data-d="5" title="adelantar">+</button>' +
+    '<span class="syncg" title="Escribe el minuto que ves en el stream y pulsa ⟲ (o Enter) para clavar el overlay a ese momento">ves <input id="scm" placeholder="mm:ss" maxlength="5"><button class="ic" id="syncb" title="sincronizar al minuto que ves">⟲</button> va <span class="gt" id="gtnow">—</span></span></div></div>';
   var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom'), dmgEl = sh.getElementById('dmg');
 
   function syncChips() { ctl.querySelectorAll('.chip[data-ext]').forEach(function (c) { c.classList.toggle('on', EXT.indexOf(c.getAttribute('data-ext')) >= 0); }); }
@@ -95,6 +100,17 @@
   ctl.querySelectorAll('.chip[data-ext]').forEach(function (c) { c.addEventListener('mousedown', function (e) { e.stopPropagation(); }); c.addEventListener('click', function (e) { e.stopPropagation(); var k = c.getAttribute('data-ext'), i = EXT.indexOf(k); if (i >= 0) EXT.splice(i, 1); else EXT.push(k); ls('rp_ext6', JSON.stringify(EXT)); syncChips(); if (LAST) render(LAST); }); });
   sh.getElementById('posbtn').addEventListener('click', function (e) { e.stopPropagation(); POS = POS === 'top' ? 'bottom' : 'top'; XY = null; ls('rp_xy6', 'null'); ls('rp_pos6', POS); place(); });
   ctl.querySelectorAll('button[data-d]').forEach(function (b) { b.addEventListener('mousedown', function (e) { e.stopPropagation(); }); b.addEventListener('click', function (e) { e.stopPropagation(); R.nudge(+b.getAttribute('data-d')); }); });
+  var scmEl = sh.getElementById('scm'), gtnowEl = sh.getElementById('gtnow');
+  function doSync() {
+    var m = (scmEl.value || '').trim().match(/^(\d{1,2})(?::([0-5]?\d))?$/);
+    var ok = !!m && R.syncTo(+m[1] * 60 + (+m[2] || 0));
+    scmEl.classList.toggle('bad', !ok); if (ok) { scmEl.value = ''; scmEl.blur(); }
+  }
+  sh.getElementById('syncb').addEventListener('mousedown', function (e) { e.stopPropagation(); });
+  sh.getElementById('syncb').addEventListener('click', function (e) { e.stopPropagation(); doSync(); });
+  scmEl.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+  scmEl.addEventListener('keydown', function (e) { e.stopPropagation(); if (e.key === 'Enter') doSync(); });
+  scmEl.addEventListener('input', function () { scmEl.classList.remove('bad'); });
 
   (function () { var sx, sy, ox, oy, on = false;
     wEl.addEventListener('mousedown', function (e) { if (e.target.closest('.ctl')) return; on = true; wEl.classList.add('drag'); var r = host.getBoundingClientRect(); sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top; e.preventDefault(); });
@@ -130,6 +146,7 @@
   }
   function render(s) {
     LAST = s;
+    gtnowEl.textContent = s.game && s.game.pBlue != null ? mmss(s.game.gt) : '—';
     if (!s.match) {
       if (s.next) { body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div>' +
         '<div class="seg next"><span class="sl">Próximo partido</span><span class="vs"><span class="b">' + esc(s.next.blue) + '</span> vs <span class="r">' + esc(s.next.red) + '</span></span></div>'; }
