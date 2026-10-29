@@ -450,7 +450,7 @@
   function emit() { var s = snapshot(); for (var i = 0; i < subs.length; i++) { try { subs[i](s); } catch (e) {} } }
 
   // ---------- API pública ----------
-  var loopId = null, liveId = null, running = false;
+  var loopId = null, liveId = null, running = false, RUNGEN = 0;
   var RiftEngine = {
     get state() { return snapshot(); },
     get delay() { return delay; },
@@ -463,7 +463,7 @@
     // arranca: busca el partido en vivo, lo carga y sigue el feed cada 2 s
     start: async function () {
       if (running) return; running = true;
-      var self = this;
+      var self = this, gen = ++RUNGEN;
       async function sync() {
         try {
           var evt = await findLive();
@@ -473,10 +473,11 @@
         } catch (e) {}
       }
       await sync();
+      if (gen !== RUNGEN) return;  // mientras esperaba, se pasó a una repetición: no pisarla con el vivo
       liveId = setInterval(sync, 30000);
       loopId = setInterval(function () { tickWindow().catch(function () {}); }, 2000);
     },
-    stop: function () { running = false; if (loopId) clearInterval(loopId); if (liveId) clearInterval(liveId); loopId = liveId = null; },
+    stop: function () { running = false; RUNGEN++; if (loopId) clearInterval(loopId); if (liveId) clearInterval(liveId); loopId = liveId = null; },
     // ---------- modo repetición (para probar sobre un VOD) ----------
     // lista de partidos de Worlds ya jugados, para elegir cuál repetir
     recentGames: async function () {
@@ -534,10 +535,83 @@
     await demoNext();
     return true;
   };
+  // ---------- identificar qué juego se ve en el video (para la sincronía automática) ----------
+  // o = {gt (s del reloj del juego), tags: [izq, der], gold: [izq, der] en miles | null, kills: [izq, der] | null}
+  // Compara contra los datos oficiales de cada juego reciente en ese minuto. Devuelve {matchId, juego, codes, score} o null.
+  function lev(a, b) {
+    var d = [], i, j;
+    for (i = 0; i <= a.length; i++) d[i] = [i];
+    for (j = 1; j <= b.length; j++) d[0][j] = j;
+    for (i = 1; i <= a.length; i++) for (j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[a.length][b.length];
+  }
+  var tagSim = function (t, c) { t = String(t || '').toUpperCase(); c = String(c || ''); if (!t || !c) return 0; return 1 - lev(t, c) / Math.max(t.length, c.length); };
+  var GINFO = {}, EVD = {};
+  async function gameInfo(id) {
+    if (GINFO[id]) return GINFO[id];
+    var w = await feed('window', id);
+    if (!w || !w.frames || !w.frames.length) return null;
+    return (GINFO[id] = {start: Date.parse(w.frames[0].rfc460Timestamp), meta: w.gameMetadata});
+  }
+  RiftEngine.identify = async function (o) {
+    await loadSchedule();
+    var now = Date.now(), tags = (o.tags || []).map(function (t) { return String(t || '').replace(/[^A-Z0-9]/gi, '').toUpperCase(); });
+    var recent = matchList().filter(function (x) { return x.state !== 'unstarted' && now - Date.parse(x.start) < 6 * 86400e3 && x.teams[0].code && x.teams[1].code; });
+    recent.forEach(function (x) {
+      var a = x.teams[0].code, b = x.teams[1].code;
+      x.tagScore = tags.filter(Boolean).length ? Math.max(tagSim(tags[0], a) + tagSim(tags[1], b), tagSim(tags[0], b) + tagSim(tags[1], a)) / 2 : 0;
+    });
+    var cands = recent.filter(function (x) { return x.tagScore >= 0.5; });
+    if (!cands.length) cands = recent.slice();  // sin equipos legibles: se decide por el marcador
+    cands.sort(function (x, y) { return (y.tagScore - x.tagScore) || (x.state === 'inProgress' ? -1 : 1) || (x.start < y.start ? 1 : -1); });
+    cands = cands.slice(0, 8);
+    var best = null;
+    for (var i = 0; i < cands.length; i++) {
+      var c = cands[i], ev = EVD[c.id];
+      if (!ev) { try { ev = EVD[c.id] = (await api('getEventDetails', {id: c.id})).event; } catch (e) { continue; } }
+      var games = (ev.match.games || []);
+      for (var k = 0; k < games.length; k++) {
+        var gm = games[k];
+        if (gm.state !== 'completed' && gm.state !== 'inProgress') continue;
+        var gi = await gameInfo(gm.id); if (!gi || !gi.meta) continue;
+        var t = gi.start + o.gt * 1000, w = await feed('window', gm.id, t), f = w && lastBefore(w.frames, t);
+        if (!f) continue;
+        var idOf = function (side) { return gi.meta[side + 'TeamMetadata'].esportsTeamId; };
+        var codeOf = function (side) { var tm = ev.match.teams.filter(function (x) { return x.id === idOf(side); })[0]; return tm ? tm.code : null; };
+        var cb = codeOf('blue'), cr = codeOf('red');
+        // en el HUD de la transmisión el equipo azul va a la izquierda
+        var sc = 0;
+        if (tags[0] || tags[1]) sc += 3 * (2 - tagSim(tags[0], cb) - tagSim(tags[1], cr));
+        if (o.kills) sc += Math.abs(f.blueTeam.totalKills - o.kills[0]) + Math.abs(f.redTeam.totalKills - o.kills[1]);
+        if (o.gold) sc += 2 * (Math.abs(f.blueTeam.totalGold / 1000 - o.gold[0]) + Math.abs(f.redTeam.totalGold / 1000 - o.gold[1]));
+        if (gm.state === 'inProgress') sc -= 0.5;
+        if (!best || sc < best.score) best = {matchId: c.id, juego: k + 1, codes: [cb, cr], score: sc, live: gm.state === 'inProgress'};
+      }
+    }
+    return best;
+  };
+
+  // seguir una repetición que se mira en otro lado (el panel de la app): mismo juego, mismo minuto, pausa y velocidad.
+  // o = {matchId, juego, gt, playing, speed, at}; null vuelve al vivo.
+  var FOLLOW = null;
+  RiftEngine.follow = async function (o) {
+    if (!o) { if (FOLLOW) { FOLLOW = null; return this.live(); } return; }
+    var gtAt = function () { return Math.max(0, o.gt + (o.playing ? (Date.now() - o.at) / 1000 * (o.speed || 1) : 0)); };
+    var same = FOLLOW && FOLLOW.matchId === o.matchId && FOLLOW.juego === o.juego && G && G.start;
+    var back = same && gtAt() < G.gt - 5;  // hacia atrás hay que rehacer el estado desde el inicio
+    FOLLOW = o;
+    if (!same || back) {
+      await this.replay(o.matchId, o.juego, Math.max(0.1, gtAt() / 60), 1);
+      if (FOLLOW !== o) return;
+    }
+    if (!G || !G.start) return;
+    REPLAY = {base: G.start + G.paused + gtAt() * 1000, real: Date.now(), vel: o.playing ? (o.speed || 1) : 0};
+    emit();
+  };
   // volver de la demo (o de una repetición) al partido en vivo
   RiftEngine.live = function () {
     if (DEMO) clearTimeout(DEMO.next);
-    DEMO = null; REPLAY = null; M = null; G = null;
+    DEMO = null; REPLAY = null; FOLLOW = null; M = null; G = null;
     this.stop();
     return this.start();
   };
