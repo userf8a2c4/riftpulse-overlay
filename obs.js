@@ -17,23 +17,29 @@
   var R = window.RiftEngine, Q = new URLSearchParams(location.search);
   var VIEW = (Q.get('view') || 'bar').toLowerCase();
   var SCALE = Math.max(0.6, Math.min(2.4, parseFloat(Q.get('scale') || '1') || 1));
+  // marca del canal: ?accent=ff8800 (color de acento), ?logo=https://… (logo propio), ?brand=0 (sin marca ni precisión), ?safe=1 (márgenes amplios)
+  var ACC = (function () { var a = (Q.get('accent') || '').replace('#', ''); return /^[0-9a-f]{3}([0-9a-f]{3})?$/i.test(a) ? '#' + a : '#f2c14e'; })();
+  var LOGO_URL = (function () { var u = Q.get('logo') || ''; return /^https:\/\//i.test(u) ? u : ''; })();
+  var BRAND = Q.get('brand') !== '0', SAFE = Q.get('safe') === '1';
 
   // ---------- config (vista bar): defaults <- URL <- control ----------
   var cfg = {
     modules: (Q.get('modules') || 'prob,pregame,momentum,timers,brand').split(',').map(function (s) { return s.trim(); }),
     pos: (Q.get('pos') === 'top' ? 'top' : 'bottom'),
     hidden: false,
-    auto: {remontada: true, recap: true}  // piezas que aparecen solas (se apagan desde el control)
+    auto: {remontada: true, recap: true},  // piezas que aparecen solas (se apagan desde el control)
+    hideAll: false                         // botón de emergencia del control: oculta todas las piezas
   };
-  try { var sv = JSON.parse(localStorage.getItem('rp_ctrl') || 'null'); if (sv && VIEW === 'bar') { if (sv.modules) cfg.modules = sv.modules; if (sv.pos) cfg.pos = sv.pos; if (sv.hidden != null) cfg.hidden = sv.hidden; } if (sv && sv.auto) cfg.auto = sv.auto; } catch (e) {}
+  try { var sv = JSON.parse(localStorage.getItem('rp_ctrl') || 'null'); if (sv && VIEW === 'bar') { if (sv.modules) cfg.modules = sv.modules; if (sv.pos) cfg.pos = sv.pos; if (sv.hidden != null) cfg.hidden = sv.hidden; } if (sv && sv.auto) cfg.auto = sv.auto; if (sv && sv.hideAll != null) cfg.hideAll = sv.hideAll; } catch (e) {}
+  if (!BRAND) cfg.modules = cfg.modules.filter(function (m) { return m !== 'brand'; });
   function has(m) { return cfg.modules.indexOf(m) >= 0; }
 
   var S = SCALE;
-  var LOGO = '<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="rpog" x1="8" y1="40" x2="56" y2="26" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4aa3ff"/><stop offset=".5" stop-color="#9ab0e6"/><stop offset="1" stop-color="#ff5a5f"/></linearGradient></defs><rect x="3" y="3" width="58" height="58" rx="16" fill="#0d1320" stroke="#2b3c62" stroke-width="2"/><path d="M10 35 H21 L25 35 L30 17 L36 49 L40 35 H54" fill="none" stroke="url(#rpog)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="30" cy="17" r="3.4" fill="#fff"/></svg>';
+  var LOGO = LOGO_URL ? '<img class="logo" src="' + LOGO_URL.replace(/"/g, '') + '" alt="" style="object-fit:contain">' : '<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="rpog" x1="8" y1="40" x2="56" y2="26" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4aa3ff"/><stop offset=".5" stop-color="#9ab0e6"/><stop offset="1" stop-color="#ff5a5f"/></linearGradient></defs><rect x="3" y="3" width="58" height="58" rx="16" fill="#0d1320" stroke="#2b3c62" stroke-width="2"/><path d="M10 35 H21 L25 35 L30 17 L36 49 L40 35 H54" fill="none" stroke="url(#rpog)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="30" cy="17" r="3.4" fill="#fff"/></svg>';
 
   // ---------- estilos ----------
   var css = '\
-  .rp-ovl{position:fixed;display:flex;flex-direction:column;gap:14px;padding:28px;pointer-events:none;font-size:' + (16 * S) + 'px;font-family:Inter,system-ui,sans-serif;color:#eef3fb}\
+  .rp-ovl{position:fixed;display:flex;flex-direction:column;gap:14px;padding:' + (SAFE ? '54px 96px 84px' : '28px') + ';pointer-events:none;font-size:' + (16 * S) + 'px;font-family:Inter,system-ui,sans-serif;color:#eef3fb}\
   .rp-ovl.bottom{left:0;right:0;bottom:0;align-items:center;justify-content:flex-end}\
   .rp-ovl.top{left:0;right:0;top:0;align-items:center}\
   .rp-ovl.tl{top:0;left:0;align-items:flex-start}\
@@ -198,6 +204,11 @@
   @keyframes rpin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}\
   .rp-rc ul{margin:0;padding-left:' + (18 * S) + 'px;font-size:' + (15 * S) + 'px;line-height:1.6}\
   ';
+  css += '.rp-fd{display:inline-flex;align-items:center;gap:' + (7 * S) + 'px;align-self:center;font-family:Oswald,sans-serif;font-size:' + (12 * S) + 'px;letter-spacing:1.4px;text-transform:uppercase;padding:' + (4 * S) + 'px ' + (11 * S) + 'px;border-radius:3px;background:rgba(6,12,28,.92);border:1px solid rgba(150,180,230,.3);color:#cdd7ea}' +
+    '.rp-fd i{width:' + (8 * S) + 'px;height:' + (8 * S) + 'px;border-radius:50%;background:#f2c14e;display:inline-block}.rp-fd.caido i{background:#ff5a5f}.rp-fd.demo{color:#f2c14e;border-color:rgba(242,193,78,.6)}.rp-fd.demo i{background:#f2c14e}' +
+    '.rp-ovl.allhide{display:none}';
+  css = css.split('#f2c14e').join(ACC).split('242,193,78').join(hexRgb(ACC));
+  function hexRgb(h) { h = h.replace('#', ''); if (h.length === 3) h = h.replace(/(.)/g, '$1$1'); var n = parseInt(h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(','); }
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
   // ---------- helpers ----------
@@ -219,14 +230,24 @@
   if (VIEW === 'bar') { main.className = 'rp-bar'; if (cfg.pos === 'top') { ovl.appendChild(main); ovl.appendChild(callout); } else { ovl.appendChild(callout); ovl.appendChild(main); } }
   else if (VIEW === 'alert') { ovl.appendChild(callout); }
   else { ovl.appendChild(main); }
+  var fd = document.createElement('div'); fd.className = 'rp-fd'; fd.style.display = 'none';
+  if (VIEW !== 'alert') { if (cfg.pos === 'top' && VIEW === 'bar') ovl.appendChild(fd); else ovl.insertBefore(fd, ovl.firstChild); }
   document.body.appendChild(ovl);
-  function applyHidden() { ovl.classList.toggle('hide', !!cfg.hidden); }
+  function applyHidden() { ovl.classList.toggle('hide', !!cfg.hidden && VIEW === 'bar'); ovl.classList.toggle('allhide', !!cfg.hideAll); }
+  // estado de los datos: nunca se borra la última predicción; se avisa con una insignia discreta
+  function feedBadge(s) {
+    var f = s.feed || {}, ver = f.estado === 'retrasado' || f.estado === 'caido' || f.estado === 'demo' || f.estado === 'pausa';
+    if (!s.match && f.estado !== 'caido') ver = false;  // sin partido las piezas ya están ocultas
+    fd.style.display = ver && VIEW !== 'alert' ? '' : 'none';
+    if (ver) { fd.className = 'rp-fd ' + f.estado; fd.innerHTML = '<i></i>' + esc(f.txt); }
+  }
   applyHidden();
 
   // ---------- render por vista ----------
   var hist = [], lastCallout = 0;
 
-  function render(s) {
+  function render(s) { applyHidden(); feedBadge(s); render0(s); }
+  function render0(s) {
     if (VIEW === 'bar') return renderBar(s);
     if (VIEW === 'big') return renderBig(s);
     if (VIEW === 'keys') return renderKeys(s);
@@ -242,12 +263,13 @@
   }
 
   function brandHTML(s) {
-    var tr = s.demo ? '<div class="rp-bs" style="color:#f2c14e">DEMO · partido real</div>' : (has('brand') && s.precision) ? '<div class="rp-bs">' + Math.round(s.precision.acc15 * 100) + '% de acierto</div>' : '';
+    if (!has('brand')) return '';
+    var g = s.game, tr = s.demo ? '<div class="rp-bs">DEMO · partido ya jugado</div>' : g && g.acc != null ? '<div class="rp-bs">acierta ' + Math.round(g.acc * 100) + '% al min ' + Math.floor(g.gt / 60) + '</div>' : s.precision ? '<div class="rp-bs">' + Math.round(s.precision.acc15 * 100) + '% de acierto al min 15</div>' : '';
     return '<div class="rp-brand">' + LOGO + '<div><div class="rp-bn">RiftPulse</div>' + tr + '</div></div>';
   }
 
   function renderBar(s) {
-    ovl.className = 'rp-ovl ' + cfg.pos; applyHidden();
+    ovl.className = 'rp-ovl ' + cfg.pos + (SAFE ? ' safe' : ''); applyHidden();
     if (!s.match) { main.style.display = 'none'; return; }
     main.style.display = 'flex';
     var m = s.match, g = s.game, core, side = '';
@@ -304,7 +326,8 @@
     main.innerHTML = LOGO + '<div class="h">Serie · Bo' + se.bo + '<b><span class="b">' + esc(m.blue.code) + '</span> ' + se.score[0] + '–' + se.score[1] + ' <span class="r">' + esc(m.red.code) + '</span></b></div>' +
       '<div class="if"><span class="k">ahora</span><span class="v"><span class="b">' + pct(se.pNow) + '</span> · <span class="r">' + pct(1 - se.pNow) + '</span></span></div>' +
       '<div class="if"><span class="k">si gana ' + esc(m.blue.code) + ' este juego</span><span class="v b">' + pct(se.ifBlue) + '</span></div>' +
-      '<div class="if"><span class="k">si gana ' + esc(m.red.code) + ' este juego</span><span class="v r">' + pct(1 - se.ifRed) + '</span></div>';
+      '<div class="if"><span class="k">si gana ' + esc(m.red.code) + ' este juego</span><span class="v r">' + pct(1 - se.ifRed) + '</span></div>' +
+      (se.metodo ? '<div class="if" style="opacity:.7"><span class="k" style="text-transform:none;letter-spacing:.3px">' + esc(se.metodo) + ' · no es certeza</span></div>' : '');
   }
 
   function renderDuelos(s) {
@@ -319,9 +342,12 @@
   }
 
   // Aparece sola cuando un equipo pasa del 65 % (si el control no la apagó).
+  var remOn = false;
   function renderRemontada(s) {
     var c = s.game && s.game.comeback;
-    if (!s.match || !c || c.p > 0.35 || !cfg.auto.remontada) { if (main.innerHTML) card(false); else main.style.display = 'none'; return; }
+    // histéresis: aparece cuando el que va abajo baja de 35 % y se va recién cuando sube de 40 % (sin parpadeo)
+    if (c && c.p <= 0.35) remOn = true; else if (!c || c.p > 0.40) remOn = false;
+    if (!s.match || !c || !remOn || !cfg.auto.remontada) { if (main.innerHTML) card(false); else main.style.display = 'none'; return; }
     card(true);
     var x = c.paths[0];
     main.innerHTML = '<div class="t">' + LOGO + 'Para remontar</div><div class="rp-cb"><b class="' + sc(c.side) + '">' + esc(c.code) + '</b> está en ' + pct(c.p) + '. ' +
@@ -333,7 +359,7 @@
   var recapShown = {}, recapUntil = 0;
   function renderRecap(s) {
     var g = s.game, r = g && g.recap;
-    if (r && cfg.auto.recap && !recapShown[g.id]) { recapShown[g.id] = true; recapUntil = Date.now() + 25000; setTimeout(function () { if (R.state) render(R.state); }, 25100); }
+    if (r && cfg.auto.recap && !recapShown[g.id]) { recapShown[g.id] = true; recapUntil = Date.now() + 20000; setTimeout(function () { if (R.state) render(R.state); }, 20100); }
     if (!r || Date.now() > recapUntil) { if (main.innerHTML) card(false); else main.style.display = 'none'; return; }
     card(true); main.classList.add('rp-rc');
     var m = s.match, sm = g.samples, t0 = sm[0].gt, span = Math.max(1, sm[sm.length - 1].gt - t0), wc = r.win === 'blue' ? '#7cc0ff' : '#ff8a8f';
@@ -453,10 +479,17 @@
     }
     if (o.auto) cfg.auto = o.auto;
     if (o.pred) PRED = o.pred;
-    if (o.showRecap && VIEW === 'recap') { recapUntil = Date.now() + 25000; setTimeout(function () { if (R.state) render(R.state); }, 25100); }
+    if (o.showRecap && VIEW === 'recap') { recapUntil = Date.now() + 20000; setTimeout(function () { if (R.state) render(R.state); }, 20100); }
+    if (o.hideRecap && VIEW === 'recap') recapUntil = 0;   // producción lo cortó: no vuelve en este juego
+    if (o.hideAll != null) cfg.hideAll = o.hideAll;
+    if (o.delay != null && isFinite(o.delay)) R.setDelay(o.delay);
     if (R.state) render(R.state);
   }
-  try { var bc = new BroadcastChannel('riftpulse-ctrl'); bc.onmessage = function (e) { applyCtrl(e.data); }; } catch (e) {}
+  // el control pregunta qué piezas están abiertas: cada una responde con su vista y el estado de los datos
+  try { var bc = new BroadcastChannel('riftpulse-ctrl'); bc.onmessage = function (e) {
+    if (e.data && e.data.ping) { var st = R.state; bc.postMessage({pong: VIEW, feed: st && st.feed, delay: R.delay}); return; }
+    if (e.data && e.data.pong) return;
+    applyCtrl(e.data); }; } catch (e) {}
   window.addEventListener('storage', function (e) {
     if (e.key === 'rp_ctrl') { try { applyCtrl(JSON.parse(e.newValue || 'null')); } catch (x) {} }
     if (e.key === 'rp_pred') { try { applyCtrl({pred: JSON.parse(e.newValue || 'null')}); } catch (x) {} }

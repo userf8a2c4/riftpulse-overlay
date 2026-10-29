@@ -15,6 +15,7 @@
 - [Mesa de análisis](Mesa-de-análisis)
 - [Paquete de gráficos](Paquete-de-gráficos)
 - [Control de producción](Control-de-producción)
+- [Al aire sin sorpresas](Al-aire-sin-sorpresas)
 
 **Del proyecto**
 - [Cumplimiento y datos](Cumplimiento-y-datos)

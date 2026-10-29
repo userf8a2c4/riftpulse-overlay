@@ -61,6 +61,19 @@
 <body>
   <div class="top"><img src="logo.svg" alt="RiftPulse"><div><h1>Control de producción</h1><div class="sub">controla el overlay en vivo</div></div></div>
 
+  <div class="grp"><h2>Estado</h2>
+    <div class="row"><span>Datos del partido</span><b id="stFeed">—</b></div>
+    <div class="row"><span>Piezas abiertas en OBS</span><b id="stPiezas">buscando…</b></div>
+    <div class="row"><span>Última orden</span><b id="stOrden">—</b></div>
+    <button class="btn" id="panic" style="background:linear-gradient(180deg,#ff6676,#c93a52);color:#fff;border-color:#ff4d5e;font-size:15px;padding:12px">🚨 Ocultar todo</button>
+  </div>
+
+  <div class="grp"><h2>Retraso frente al stream</h2>
+    <div class="row"><span>Retraso aplicado</span><b id="dlyV">—</b></div>
+    <div class="seg" id="dlyB" style="flex-wrap:wrap"><button data-d="-10">−10</button><button data-d="-5">−5</button><button data-d="-1">−1</button><button data-d="1">+1</button><button data-d="5">+5</button><button data-d="10">+10</button></div>
+    <div class="note">Cada co-stream tiene su retraso. Ajustalo hasta que una kill aparezca en el overlay al mismo tiempo que en el video. También se puede fijar en la URL: <b>?delay=42</b>. Queda guardado.</div>
+  </div>
+
   <div class="grp"><h2>Módulos</h2>
     <div class="row"><span>Probabilidad</span><label class="sw"><input type="checkbox" data-m="prob" checked disabled><span class="sl"></span></label></div>
     <div class="row"><span>Pronóstico (previa)</span><label class="sw"><input type="checkbox" data-m="pregame" checked><span class="sl"></span></label></div>
@@ -70,7 +83,7 @@
   </div>
 
   <div class="grp"><h2>Posición</h2>
-    <div class="seg"><button data-pos="bottom" class="on">Abajo</button><button data-pos="top">Arriba</button></div>
+    <div class="seg" id="posSeg"><button data-pos="bottom" class="on">Abajo</button><button data-pos="top">Arriba</button></div>
   </div>
 
   <div class="grp"><h2>Piezas automáticas</h2>
@@ -81,6 +94,7 @@
   <div class="grp"><h2>Acciones</h2>
     <button class="btn alert" id="alert">⚡ Disparar alerta de prueba</button>
     <button class="btn hide" id="recap">🏁 Mostrar resumen del juego</button>
+    <button class="btn hide" id="recapOff">✋ Cortar el resumen</button>
     <button class="btn hide" id="hide">Ocultar overlay</button>
   </div>
 
@@ -100,34 +114,55 @@
 <script src="engine.js"></script>
 <script>
   var bc; try { bc = new BroadcastChannel('riftpulse-ctrl'); } catch (e) {}
-  var hidden = false;
+  var hidden = false, hideAll = false;
   function state(){
     var mods = Array.prototype.map.call(document.querySelectorAll('input[data-m]'), function(i){ return i.checked ? i.getAttribute('data-m') : null; }).filter(Boolean);
-    var pos = document.querySelector('.seg button.on').getAttribute('data-pos');
+    var pos = document.querySelector('#posSeg button.on').getAttribute('data-pos');
     var auto = {}; document.querySelectorAll('input[data-a]').forEach(function(i){ auto[i.getAttribute('data-a')] = i.checked; });
-    return { modules: mods, pos: pos, hidden: hidden, auto: auto };
+    return { modules: mods, pos: pos, hidden: hidden, auto: auto, hideAll: hideAll };
   }
   function send(extra){
     var s = state(); if (extra) for (var k in extra) s[k] = extra[k];
     try { localStorage.setItem('rp_ctrl', JSON.stringify(state())); } catch(e){}  // persiste sin testAlert
     if (bc) bc.postMessage(s);
     msg('Aplicado ✓');
+    var k = extra ? Object.keys(extra)[0] : 'ajustes';
+    document.getElementById('stOrden').textContent = ({showRecap: 'mostrar resumen', hideRecap: 'cortar resumen', testAlert: 'alerta de prueba', delay: 'retraso', hideAll: hideAll ? 'ocultar todo' : 'mostrar todo'}[k] || 'ajustes') + ' · ' + new Date().toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
   }
   function msg(t){ var m=document.getElementById('msg'); m.textContent=t; m.className='note ok'; setTimeout(function(){m.textContent='';m.className='note';},1500); }
 
   document.querySelectorAll('input[data-m],input[data-a]').forEach(function(i){ i.addEventListener('change', function(){ send(); }); });
   document.getElementById('recap').addEventListener('click', function(){ send({ showRecap: true }); });
-  document.querySelectorAll('.seg button').forEach(function(b){ b.addEventListener('click', function(){
-    document.querySelectorAll('.seg button').forEach(function(x){x.classList.remove('on');}); b.classList.add('on'); send(); }); });
+  document.querySelectorAll('#posSeg button').forEach(function(b){ b.addEventListener('click', function(){
+    document.querySelectorAll('#posSeg button').forEach(function(x){x.classList.remove('on');}); b.classList.add('on'); send(); }); });
+  document.getElementById('recapOff').addEventListener('click', function(){ send({ hideRecap: true }); });
+  var panic = document.getElementById('panic');
+  function panicLbl(){ panic.textContent = hideAll ? '👁 Mostrar todo de nuevo' : '🚨 Ocultar todo'; }
+  panic.addEventListener('click', function(){ hideAll = !hideAll; panicLbl(); send({ hideAll: hideAll }); });
+  // retraso: el mismo valor que usan las piezas (misma página de origen = mismo almacenamiento)
+  function dlyShow(){ document.getElementById('dlyV').textContent = RiftEngine.delay + ' s'; }
+  document.getElementById('dlyB').addEventListener('click', function(e){ var b = e.target.closest('[data-d]'); if (!b) return;
+    RiftEngine.nudge(+b.getAttribute('data-d')); dlyShow(); send({ delay: RiftEngine.delay }); });
+  dlyShow();
+  // estado: el motor de esta página mira el mismo feed; las piezas abiertas responden al «ping»
+  var PZ = {};
+  if (bc) bc.addEventListener('message', function(e){ if (e.data && e.data.pong) { PZ[e.data.pong] = Date.now(); } });
+  setInterval(function(){ if (bc) bc.postMessage({ ping: 1 });
+    var vivas = Object.keys(PZ).filter(function(k){ return Date.now() - PZ[k] < 12000; });
+    document.getElementById('stPiezas').textContent = vivas.length ? vivas.join(', ') : 'ninguna (¿misma URL de origen?)'; }, 4000);
+  RiftEngine.onUpdate(function(s){ var f = s.feed || {}, el = document.getElementById('stFeed');
+    el.textContent = f.txt || '—'; el.style.color = f.estado === 'ok' ? 'var(--ok)' : f.estado === 'caido' ? '#ff6b70' : '#f2c14e'; });
+  RiftEngine.start();
   document.getElementById('alert').addEventListener('click', function(){ send({ testAlert: true }); });
   document.getElementById('hide').addEventListener('click', function(){ hidden=!hidden; this.textContent = hidden ? 'Mostrar overlay' : 'Ocultar overlay'; send(); });
 
   // cargar estado guardado
   try { var sv = JSON.parse(localStorage.getItem('rp_ctrl')||'null'); if (sv){
     document.querySelectorAll('input[data-m]').forEach(function(i){ if(i.disabled) return; i.checked = sv.modules ? sv.modules.indexOf(i.getAttribute('data-m'))>=0 : i.checked; });
-    if (sv.pos){ document.querySelectorAll('.seg button').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-pos')===sv.pos); }); }
+    if (sv.pos){ document.querySelectorAll('#posSeg button').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-pos')===sv.pos); }); }
     if (sv.auto) document.querySelectorAll('input[data-a]').forEach(function(i){ var k=i.getAttribute('data-a'); if (sv.auto[k]!=null) i.checked = sv.auto[k]; });
     hidden = !!sv.hidden; document.getElementById('hide').textContent = hidden ? 'Mostrar overlay' : 'Ocultar overlay';
+    hideAll = !!sv.hideAll; panicLbl();
   }} catch(e){}
 
   // ---------- predicciones del stream ----------

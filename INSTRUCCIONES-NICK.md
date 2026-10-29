@@ -33,7 +33,7 @@ No es un número inventado: es un modelo entrenado con más de 2.200 juegos prof
 
 Si lo probás un rato en una partida y me contás qué te gustó y qué no, ya me ayudás muchísimo. Y si te convence y te dan ganas de mostrarlo en el stream, para mí sería enorme.
 
-Si querés, **lo adapto a vos**: los colores de tu canal o del SoloBoom, tu logo, o la pieza que se te ocurra que le falta.
+Ya podés ponerle **los colores de tu canal o del SoloBoom y tu logo** con solo agregarlos a la URL (`&accent=` y `&logo=`). Y si se te ocurre una pieza que le falta, la hago.
 
 ## Para que estés tranquilo
 

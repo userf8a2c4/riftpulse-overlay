@@ -68,6 +68,10 @@
   <div class="url" id="url">…</div>
   <div class="pvnote" id="msg" style="min-height:18px"></div>
 
+  <h2>Escenas listas (presets)</h2>
+  <div class="presets" id="presets"></div>
+  <div class="pvnote" style="text-align:left">A cualquier URL se le puede agregar: <code>&delay=42</code> (tu retraso en segundos), <code>&accent=ff8800</code> (tu color), <code>&logo=https://…</code> (tu logo), <code>&safe=1</code> (márgenes amplios) y <code>&brand=0</code> (sin marca). Todos los parámetros, en la <a href="https://github.com/userf8a2c4/riftpulse-overlay/wiki/Paquete-de-gráficos" style="color:#9fd0ff">wiki</a>.</div>
+
   <h2>Añadirlo en 3 pasos</h2>
   <ol>
     <li>Copia la URL de arriba.</li>
@@ -145,6 +149,22 @@
       navigator.clipboard.writeText(u).then(function(){ msg('Copiada la vista "'+v[1]+'": '+u); }, function(){ msg(u); }); });
     pack.appendChild(b);
   });
+</script>
+<style>.presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}.presets .ps{background:rgba(13,24,48,.8);border:1px solid rgba(150,180,230,.17);border-radius:6px;padding:12px 14px}.presets .ps b{display:block;margin-bottom:3px}.presets .ps span{display:block;color:#8fa0c2;font-size:13px;margin-bottom:8px}.presets .ps button{font:600 13px Inter,sans-serif;padding:6px 12px;border-radius:4px;cursor:pointer;background:linear-gradient(180deg,#5cb0ff,#2f7fe0);border:0;color:#04101f}</style>
+<script>
+(function(){
+  var base = location.origin + location.pathname.replace(/[^/]*$/, '');
+  var P = [['Solo barra (lower-third)', 'Probabilidad, timers y marca, abajo.', 'overlay.html?view=bar&modules=prob,timers,brand&pos=bottom'],
+    ['Alertas de giro', 'Escena aparte: aparece sola cuando el juego da vuelta.', 'overlay.html?view=alert'],
+    ['Entre mapas: la serie', 'Probabilidad de la serie y qué pasa si gana cada uno.', 'overlay.html?view=serie'],
+    ['Cierre de juego', 'Resumen al terminar (o desde el control).', 'overlay.html?view=recap'],
+    ['Predicciones del stream', 'Los picks de tu equipo, cargados desde el control.', 'overlay.html?view=predicciones'],
+    ['Cuadro del Mundial', 'Eliminatorias en vivo.', 'overlay.html?view=cuadro']];
+  var box = document.getElementById('presets'); if (!box) return;
+  box.innerHTML = P.map(function(p, i){ return '<div class="ps"><b>' + p[0] + '</b><span>' + p[1] + '</span><button data-i="' + i + '">📋 Copiar URL</button></div>'; }).join('');
+  box.addEventListener('click', function(e){ var b = e.target.closest('button[data-i]'); if (!b) return; var u = base + P[+b.dataset.i][2];
+    navigator.clipboard.writeText(u).then(function(){ b.textContent = '✓ Copiada'; setTimeout(function(){ b.textContent = '📋 Copiar URL'; }, 1500); }, function(){ prompt('Copiá la URL:', u); }); });
+})();
 </script>
 </body>
 </html>

@@ -19,6 +19,9 @@
   .top h1{font-family:var(--ffd);font-size:18px;margin:0;letter-spacing:.5px}
   .top .sub{color:var(--muted);font-size:12px}
   .live{margin-left:auto;font-family:var(--ffd);font-size:12px;font-weight:700;letter-spacing:.6px;color:#ff6b70;background:#2a0d12;border:1px solid #7a1f26;border-radius:99px;padding:5px 12px}
+  .fdst{margin-left:auto;font-size:12px;color:var(--muted);text-align:right;line-height:1.35}.fdst b{color:#eef3fb}.fdst .warn{color:#f2c14e}.fdst .down{color:#ff6b70}
+  .cmpb{background:rgba(13,24,48,.8);border:1px solid var(--line);color:var(--text);border-radius:4px;padding:6px 12px;font:600 12px Inter,sans-serif;cursor:pointer}.cmpb.on{background:linear-gradient(180deg,var(--gold-soft,#efdfba),var(--gold-2,#cfb47d));color:#0b1220}
+  .tk{display:flex;gap:10px;align-items:flex-start}.tk>span{flex:1}.tkc{flex:none;background:rgba(13,24,48,.8);border:1px solid var(--line);color:var(--text);border-radius:4px;padding:3px 9px;font-size:12px;cursor:pointer}.tkc.ok{color:#3ddc97;border-color:#3ddc97}
   .live.off{color:var(--muted);background:var(--s3);border-color:var(--line2)}
   .grid{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}
   @media(max-width:820px){.grid{grid-template-columns:1fr}}
@@ -154,7 +157,9 @@
   <div class="top">
     <img src="logo.svg" alt="RiftPulse">
     <div><h1>Mesa de análisis</h1><div class="sub">RiftPulse · pronóstico en vivo para comentar el Mundial</div></div>
-    <span class="live off" id="live">SIN PARTIDO</span>
+    <span class="fdst" id="fdst"></span>
+    <button class="cmpb" id="cmpb" title="Solo lo esencial para comentar en vivo">Modo compacto</button>
+    <span class="live off" id="live" style="margin-left:0">SIN PARTIDO</span>
   </div>
 
   <div id="content"><div class="card"><div class="empty">Buscando un partido del Mundial en vivo…</div></div></div>
@@ -237,7 +242,9 @@
   // frases y resumen salen del motor (mismos textos que el centro de mando)
   function recapLines(s){ return R.recapLines(s); }
   function recapPNG(s){ return R.recapPNG(s); }
-  function talkingPoints(s){ return R.talk(s).map(function(t,i){ return '<div class="tk"><span><b>'+(i+1)+'.</b> '+t.html+'</span></div>'; }).join(''); }
+  var TALK=[], COPIADO=null;
+  function talkingPoints(s,max){ TALK=R.talk(s).slice(0,max||6); return TALK.map(function(t,i){ return '<div class="tk"><span><b>'+(i+1)+'.</b> '+t.html+'</span><button class="tkc'+(COPIADO===i?' ok':'')+'" data-cp="'+i+'">'+(COPIADO===i?'✓':'Copiar')+'</button></div>'; }).join(''); }
+  var CMP = (function(){ try { return localStorage.getItem('rp_mesa_cmp')==='1'; } catch(e){ return false; } })();
   // ---------- campeones (Data Dragon, oficial de Riot) ----------
   var DDV=null; fetch('https://ddragon.leagueoflegends.com/api/versions.json').then(function(r){return r.json();}).then(function(v){ DDV=v[0]; if(LAST) render(LAST); }).catch(function(){});
   function champImg(id){ return DDV&&id?'<img src="https://ddragon.leagueoflegends.com/cdn/'+DDV+'/img/champion/'+encodeURIComponent(id)+'.png" alt="" loading="lazy">':''; }
@@ -386,6 +393,8 @@
     // precisión al pie (siempre)
     if (s.precision) precPill.textContent = s.precision.acc15*100|0 ? Math.round(s.precision.acc15*100)+'% de acierto al min 15 ('+s.precision.juegos+' juegos de prueba)' : '—';
 
+    var f=s.feed||{}, fdEl=document.getElementById('fdst');
+    fdEl.innerHTML='Datos: <b class="'+(f.estado==='caido'?'down':f.estado==='retrasado'||f.estado==='pausa'?'warn':'')+'">'+esc(f.txt||'—')+'</b><br>Retraso aplicado: <b>'+(s.follow||s.demo?'—':R.delay+' s')+'</b>';
     if (!s.match){ liveEl.textContent='SIN PARTIDO'; liveEl.className='live off';
       content.innerHTML='<div class="card"><div class="empty">Buscando un partido del Mundial en vivo…</div></div>'; return; }
     var m=s.match, g=s.game;
@@ -412,6 +421,20 @@
     }
     var evs=(g.events||[]).slice().reverse().map(function(e){ return '<li><span class="t">'+mmss(e.gt)+'</span>'+esc(e.txt)+'</li>'; }).join('') || '<li style="color:#8b97b0">Sin eventos aún.</li>';
 
+    if (CMP){  // modo compacto: solo lo esencial para comentar en vivo
+      var k=g.keyPlayer, im=g.impact;
+      content.innerHTML='<div class="grid">'+
+        '<div class="card"><div class="sc"><span class="tc b">'+esc(m.blue.code)+'</span><span class="vs">'+mmss(g.gt)+'</span><span class="tc r">'+esc(m.red.code)+'</span></div>'+
+          '<div class="bigp"><span class="n" style="color:'+(lead?'#7cc0ff':'#ff8a8f')+'">'+(lead?pb:pr)+'%</span><span class="who">a favor de '+esc(lead?m.blue.code:m.red.code)+'</span></div>'+
+          '<div class="pbar"><div class="pb" style="width:'+Math.min(85,Math.max(pb,15))+'%">'+pb+'%</div><div class="pr" style="width:'+Math.min(85,Math.max(pr,15))+'%">'+pr+'%</div></div>'+
+          '<ul class="rz" style="margin-top:12px">'+(g.reasons||[]).slice(0,3).map(function(x){ var b=x.z>=0; return '<li><span class="dot '+(b?'b':'r')+'"></span><span>'+esc(x.txt)+'</span><span class="w">'+(b?m.blue.code:m.red.code)+'</span></li>'; }).join('')+'</ul></div>'+
+        '<div class="card"><h2>Ahora</h2><div class="tms">'+tms+'</div>'+
+          (im?'<div class="delta" style="margin-top:10px">Próx. '+esc(im.obj)+': si lo toma <b class="b">'+esc(m.blue.code)+'</b> '+(im.blue>=0?'+':'')+im.blue+' pts · <b class="r">'+esc(m.red.code)+'</b> '+(im.red>=0?'+':'')+im.red+' pts</div>':'')+
+          (k?'<div class="delta" style="margin-top:8px">⭐ Jugador clave: <b>'+esc(k.name)+'</b> ('+esc(k.code)+', '+esc(k.champ)+') · '+Math.round(k.share*100)+'% del daño</div>':'')+'</div>'+
+        '<div class="card talk"><h2>Para comentar</h2>'+talkingPoints(s,5)+'</div>'+
+      '</div>';
+      return;
+    }
     content.innerHTML =
       '<div class="grid">'+(g.recap?recapCard(s):'')+
         '<div class="card">'+
@@ -439,7 +462,10 @@
 
   if (!R){ content.innerHTML='<div class="card"><div class="empty">No cargó el motor (engine.js).</div></div>'; return; }
   var LAST=null;
+  var cmpb=document.getElementById('cmpb'); cmpb.classList.toggle('on',CMP);
+  cmpb.addEventListener('click',function(){ CMP=!CMP; cmpb.classList.toggle('on',CMP); try{ localStorage.setItem('rp_mesa_cmp',CMP?'1':'0'); }catch(e){} if (LAST) render(LAST); });
   content.addEventListener('click',function(e){
+    var cp=e.target.closest('[data-cp]'); if (cp){ var t=TALK[+cp.getAttribute('data-cp')]; if (t){ var i=+cp.getAttribute('data-cp'), fin=function(){ COPIADO=i; if (LAST) render(LAST); setTimeout(function(){ COPIADO=null; if (LAST) render(LAST); },1500); }; navigator.clipboard.writeText(t.text).then(fin,fin); } return; }
     var pt=e.target.closest('[data-pt]'); if (pt){ RSEL=pt.getAttribute('data-pt'); if (LAST) render(LAST); return; }
     var b=e.target.closest('[data-act="png"]'); if (!b || !LAST || !LAST.game || !LAST.game.recap) return;
     var a=document.createElement('a'); a.href=recapPNG(LAST); a.download='riftpulse-'+LAST.game.recap.code+'-juego'+(LAST.match.gameNo||'')+'.png'; a.click();

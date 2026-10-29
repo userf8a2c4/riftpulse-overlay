@@ -13,8 +13,8 @@ Más allá del lower-third, el overlay ofrece **varias piezas** que producción 
 | `keys` | `overlay.html?view=keys` | Claves del momento (los factores top) |
 | `serie` | `overlay.html?view=serie` | Franja de la serie: probabilidad ahora y si gana cada equipo este juego |
 | `duelos` | `overlay.html?view=duelos` | Duelos por línea (oro) y jugador clave |
-| `remontada` | `overlay.html?view=remontada` | Qué necesita el que va abajo para volver al 50 %. **Aparece sola** cuando un equipo pasa del 65 % |
-| `recap` | `overlay.html?view=recap` | Resumen del juego. **Aparece solo** ~25 s al terminar cada juego |
+| `remontada` | `overlay.html?view=remontada` | Qué necesita el que va abajo para volver al 50 %. **Aparece sola** cuando un equipo pasa del 65 % y se va recién cuando baja del 60 % (sin parpadeo) |
+| `recap` | `overlay.html?view=recap` | Resumen del juego. **Aparece solo** 20 s al terminar cada juego (se corta desde el control y no vuelve en ese juego) |
 | `predicciones` | `overlay.html?view=predicciones` | **Predicciones del stream**: los picks de cada integrante para un día o una fase completa, con foto, aciertos automáticos y marcador. Se cargan desde el [Control de producción](Control-de-producción) |
 | `cuadro` | `overlay.html?view=cuadro` | Cuadro de eliminatorias del Mundial en vivo (cuartos → semis → final): marcador de cada serie, la que se está jugando y quién puede llegar a cada llave |
 
@@ -35,7 +35,29 @@ Más allá del lower-third, el overlay ofrece **varias piezas** que producción 
 | `?pos=` | `bottom` (por defecto) o `top` (vista `bar`) |
 | `?scale=` | tamaño, p. ej. `1.2` (de 0.6 a 2.4) |
 | `?modules=` | qué muestra la barra: `prob,pregame,momentum,timers,brand` |
-| `?demo` | reproduce un **partido real del Mundial ya jugado**, acelerado (×8; `?demo=4` para ×4). Sirve para probar o mostrar el overlay cuando no hay partido en vivo |
+| `?demo` | reproduce un **partido real del Mundial ya jugado**, acelerado (×8; `?demo=4` para ×4). Siempre lleva la insignia **DEMO**: no se confunde con el vivo |
+| `?delay=` | tu retraso frente al feed, en segundos (p. ej. `42`). Queda guardado. Ver [Al aire sin sorpresas](Al-aire-sin-sorpresas) |
+| `?accent=` | color de acento sin `#` (p. ej. `ff8800`). Por defecto, el dorado de RiftPulse |
+| `?logo=` | URL `https://` de tu logo, en lugar del de RiftPulse |
+| `?brand=0` | sin marca ni precisión en la barra |
+| `?safe=1` | márgenes amplios para no chocar con los elementos de Twitch o Kick |
+| `?stale=` | segundos sin datos nuevos para avisar «Datos retrasados» (por defecto `25`) |
+
+### Escenas listas (presets)
+| Para | URL |
+|---|---|
+| Solo la barra (lower-third) | `overlay.html?view=bar&modules=prob,timers,brand&pos=bottom` |
+| Alertas de giro (escena aparte) | `overlay.html?view=alert` |
+| Entre mapas: la serie | `overlay.html?view=serie` |
+| Cierre de juego | `overlay.html?view=recap` |
+| Predicciones del stream | `overlay.html?view=predicciones` |
+| Cuadro del Mundial | `overlay.html?view=cuadro` |
+
+Todas se copian con un clic desde la [página](https://userf8a2c4.github.io/riftpulse-overlay/) y desde **Mando** en el panel de la extensión.
+
+### Alertas automáticas
+- **Alerta de giro:** cuando la probabilidad se mueve **12 puntos o más en ~40 s**. Entre una alerta y la siguiente pasan al menos **18 s**. Muestra el equipo, los puntos y la causa (Barón, dragón, inhibidor).
+- **Serie:** los mapas que faltan se estiman con la **fuerza de cada equipo (Elo)**; la pieza dice qué método usó. No es certeza.
 
 Se pueden mezclar: `overlay.html?view=bar&pos=top&scale=1.1`. Sin parámetros, ya funciona.
 
