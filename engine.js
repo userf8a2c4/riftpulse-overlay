@@ -964,7 +964,7 @@
   // decidir(s) devuelve {pieza, clave, hasta} o null. Nunca dos piezas grandes a la vez y siempre un respiro entre una y otra.
   RiftEngine.crearDirector = function (nivel) {
     var D = {nivel: nivel || 'estandar', actual: null, libreDesde: 0, visto: {}, hist: [], ultimoGiro: 0, ultimoShow: -1e9, log: []};
-    var N = function () { return {minimo: 0, estandar: 1, show: 2}[D.nivel] || 1; };
+    var N = function () { var n = {minimo: 0, estandar: 1, show: 2}[D.nivel]; return n == null ? 1 : n; };
     function poner(pieza, clave, seg, datos) {
       var ahora = Date.now(); D.visto[clave] = true;
       D.actual = {pieza: pieza, clave: clave, desde: ahora, hasta: ahora + seg * 1000, datos: datos || null};
@@ -973,6 +973,7 @@
     }
     D.decidir = function (s) {
       var ahora = Date.now(), g = s && s.game;
+      if (D.actual && D.actual.datos && D.actual.datos.manual && ahora < D.actual.hasta) return D.actual;  // lo pedido a mano manda
       if (!g || g.pBlue == null) { D.actual = null; return null; }
       D.hist.push({t: ahora, p: g.pBlue}); D.hist = D.hist.filter(function (x) { return ahora - x.t <= 90000; });
       if (D.actual && ahora < D.actual.hasta) return D.actual;
@@ -992,15 +993,22 @@
       var t = g.timers || {}, ob = t.dragon && t.dragon.at > g.gt ? {k: t.dragon.elder ? 'Ancestral' : 'Dragón', at: t.dragon.at} : null;
       if (t.baron && t.baron.at > g.gt && (!ob || t.baron.at < ob.at)) ob = {k: 'Barón', at: t.baron.at};
       if (N() >= 1 && ob && ob.at - g.gt <= 60 && !D.visto['obj' + ob.k + Math.round(ob.at)]) return poner('objetivo', 'obj' + ob.k + Math.round(ob.at), Math.min(20, Math.max(8, ob.at - g.gt)), {txt: ob.k});
-      // 5) nivel show: el oro o los duelos cada ~4 min de juego
+      // 5) un equipo muy abajo (30 % o menos, desde el min 10): qué necesita para volver
+      var cb = g.comeback;
+      if (N() >= 1 && cb && cb.p <= 0.30 && g.gt >= 600 && cb.paths && cb.paths[0] && !D.visto['rem' + g.id + cb.side]) return poner('remontada', 'rem' + g.id + cb.side, 12, {txt: cb.code + ' ' + Math.round(cb.p * 100) + '%'});
+      // 6) nivel show: el oro o los duelos cada ~4 min de juego
       if (N() >= 2 && g.gt - D.ultimoShow >= 240 && g.gt > 300) { D.ultimoShow = g.gt; var dd = Math.floor(g.gt / 240) % 2 ? 'duelos' : 'oro'; return poner(dd, dd + Math.round(g.gt), 12, {txt: dd}); }
       return null;
     };
     D.saltar = function () { if (D.actual) { D.actual.hasta = 0; } };
+    // pedir una pieza a mano (atajos del control): reemplaza a la actual y dura seg segundos
+    D.forzar = function (pieza, seg) { D.libreDesde = 0; return poner(pieza, 'man' + pieza + Date.now(), seg || 15, {txt: 'a mano', manual: true}); };
+    D.setNivel = function (n) { if ({minimo: 1, estandar: 1, show: 1}[n]) D.nivel = n; };
     D.retener = function (seg) { if (D.actual) D.actual.hasta = Date.now() + (seg || 30) * 1000; };
     return D;
   };
   RiftEngine.aprenderColor = aprenderColor;
+  RiftEngine.paleta = function (hex) { var c = hex2rgb(hex); return c ? variantes(c) : null; };  // las variantes de un color cualquiera (tema «Mi canal»)
   RiftEngine.colorConocido = function (code) { return TEAMCOL[code] || null; };
   RiftEngine.contraste = function (h1, h2) { return contraste(hex2rgb(h1), hex2rgb(h2)); };
   // el estado de los datos cambia aunque no lleguen datos: se avisa cada 5 s

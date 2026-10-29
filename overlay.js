@@ -484,7 +484,7 @@
   // lo que se ve en pantalla, para el centro de mando del panel
   function publicar() {
     var v = video() || {};
-    var d = AS.id ? {matchId: AS.id.matchId, juego: AS.id.juego, gameId: AS.id.gameId, codes: AS.id.codes, gt: AS.off != null ? AS.off + v.currentTime : null, playing: !v.paused, vod: esVod(), at: Date.now()} : null;
+    var d = AS.id ? {matchId: AS.id.matchId, juego: AS.id.juego, gameId: AS.id.gameId, codes: AS.id.codes, gt: AS.off != null ? AS.off + v.currentTime : null, off: AS.off != null ? AS.off : null, playing: !v.paused, vod: esVod(), at: Date.now()} : null;
     try { if (chrome.storage && chrome.storage.local) chrome.storage.local.set({rp_pantalla: d}); else chrome.runtime.sendMessage({type: 'rp-pantalla', data: d}, function () { void chrome.runtime.lastError; }); } catch (e) {}
   }
   // atar el motor al video: minuto = desfase + posición del video

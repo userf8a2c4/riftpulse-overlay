@@ -3028,8 +3028,40 @@ function renderMando() {
     <a class="mx-btn" href="https://x.com/intent/post?text=${encodeURIComponent(post)}" target="_blank" rel="noopener" style="text-decoration:none">Publicar en X</a>
     <button class="mx-btn gold" data-mx="png"${g.recap ? '' : ' disabled title="Disponible al terminar el juego"'}>⬇ Imagen del resumen</button></div>
     <div class="mx-row" style="margin-top:6px"><button class="mx-btn${MX.copied === 'tw' ? ' on' : ''}" data-mx="cp" data-k="tw" title="Título y opciones listos para una predicción de Twitch">${MX.copied === 'tw' ? '✓ Copiado' : '🎲 Predicción de Twitch'}</button></div>
+    ${mxMomentosHTML(s)}
     <div class="mx-scroll" style="margin-top:10px"><div class="mx-post">${esc(post)}</div>
     <div class="mx-note">${g.recap ? 'El juego terminó: el post y la imagen resumen quién ganó, el giro decisivo y el jugador clave.' : 'Se actualiza solo con el partido. Al terminar el juego se habilita la imagen del resumen.'}</div></div>`;
+}
+// momentos para editores: los giros y jugadas clave del juego, con el minuto del juego y, si se sigue un VOD, el segundo exacto del video
+const hms = t => { t = Math.max(0, Math.round(t)); const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), x = t % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
+function mxMomentos(s) {
+  const g = s.game, m = s.match, out = [];
+  (g.swings || []).filter(x => Math.abs(x.d) >= 0.09).forEach(x => out.push({gt: x.a, txt: `${x.code} +${Math.round(Math.abs(x.d) * 100)} puntos (${x.cause})`, side: x.side, peso: 2}));
+  (g.events || []).filter(e => ['baron', 'elder', 'inhib'].includes(e.kind) || (e.kind === 'fight' && (d => !!d && Math.abs(d[1] - d[2]) >= 2)(String(e.txt).match(/(\d+)\s*–\s*(\d+)/))))
+    .forEach(e => out.push({gt: e.gt, txt: e.txt, side: e.side, peso: 1}));
+  if (g.ended && g.recap) out.push({gt: g.gt, txt: `${g.recap.code} gana el juego`, side: g.recap.win, peso: 3});
+  out.sort((a, b) => a.gt - b.gt);
+  const lim = [];  // dos momentos a menos de 20 s: queda el más importante
+  out.forEach(x => { const p = lim[lim.length - 1]; if (p && x.gt - p.gt < 20) { if (x.peso > p.peso) lim[lim.length - 1] = x; } else lim.push(x); });
+  const pan = EXTST.pantalla, vod = s.follow && pan && pan.vod && pan.off != null && pan.matchId === m.id ? pan.off : null;
+  lim.forEach(x => { x.vt = vod != null ? x.gt - vod : null; });
+  return {lista: lim, off: vod, juego: m.gameNo};
+}
+function mxMomentosHTML(s) {
+  const M = mxMomentos(s), L = M.lista, m = s.match;
+  if (!L.length) return '<div class="mx-sub">Momentos para editores</div><div class="mx-note" style="margin-top:0">Aparecen solos con los giros, los Barones, los inhibidores y las peleas grandes del juego.</div>';
+  const linea = x => (x.vt != null ? hms(x.vt) + ' · ' : '') + 'min ' + mmss(x.gt) + ' · ' + x.txt.replace(/<[^>]+>/g, '');
+  MX.momentos = `${m.blue.code} vs ${m.red.code}${M.juego ? ' · juego ' + M.juego : ''} · momentos clave (RiftPulse)\n` + L.map(linea).join('\n');
+  // capítulos de YouTube: empiezan en 0:00, en orden y con 10 s o más entre uno y otro
+  if (M.off != null) {
+    const caps = [{t: 0, txt: 'Previa'}, {t: Math.max(1, -M.off), txt: `Empieza el juego${M.juego ? ' ' + M.juego : ''}`}].concat(L.map(x => ({t: x.vt, txt: x.txt.replace(/<[^>]+>/g, '')})));
+    const ok = []; caps.forEach(c => { if (c.t >= 0 && (!ok.length || c.t - ok[ok.length - 1].t >= 10)) ok.push(c); });
+    MX.capitulos = ok.length >= 3 ? ok.map(c => hms(c.t) + ' ' + c.txt).join('\n') : null;
+  } else MX.capitulos = null;
+  return `<div class="mx-sub">Momentos para editores${M.off != null ? ' · con el minuto de tu VOD' : ''}</div>
+    <ul class="mx-list" style="margin-top:0">${L.map(x => `<li><span class="t">${x.vt != null ? hms(x.vt) : mmss(x.gt)}</span><span>${x.vt != null ? `<span class="pm">min ${mmss(x.gt)} · </span>` : ''}<b class="${mxSc(x.side)}">${esc(x.txt.replace(/<[^>]+>/g, ''))}</b></span></li>`).join('')}</ul>
+    <div class="mx-row" style="margin-top:6px"><button class="mx-btn${MX.copied === 'mom' ? ' on' : ''}" data-mx="cp" data-k="mom">${MX.copied === 'mom' ? '✓ Copiado' : '📋 Lista para el editor'}</button>${MX.capitulos ? `<button class="mx-btn${MX.copied === 'cap' ? ' on' : ''}" data-mx="cp" data-k="cap" title="Pegalo en la descripción del video de YouTube">${MX.copied === 'cap' ? '✓ Copiado' : '▶ Capítulos de YouTube'}</button>` : ''}</div>
+    ${M.off == null ? '<div class="mx-note">Con un VOD abierto y el panel siguiendo el video, cada momento trae también el segundo exacto del video y se habilitan los capítulos de YouTube.</div>' : ''}`;
 }
 // controles del overlay del stream (no se redibujan con cada dato, para no perder lo que se escribe)
 function renderMxOv() {
@@ -3050,7 +3082,7 @@ function renderMxOv() {
     <div class="mx-note">${ext ? (MX.msg || 'Los cambios se aplican al instante en el overlay de Twitch o lolesports. Con «auto-sync» encendido no hace falta clavar el minuto: el overlay lee el reloj del video.') : 'Estos controles mueven el overlay de la extensión sobre Twitch o lolesports. Ábralos desde el panel lateral de la extensión.'}</div></div>`;
 }
 function renderMxObs() {
-  const items = [['Preset · solo barra (lower-third)', 'overlay.html?view=bar&modules=prob,timers,brand&pos=bottom'], ['Preset · alertas de giro (escena aparte)', 'overlay.html?view=alert'], ['Preset · entre mapas (serie)', 'overlay.html?view=serie'], ['Preset · cierre de juego (resumen)', 'overlay.html?view=recap'],
+  const items = [['Director automático (recomendado · una sola URL)', 'overlay.html?view=auto'], ['Preset · solo barra (lower-third)', 'overlay.html?view=bar&modules=prob,timers,brand&pos=bottom'], ['Preset · alertas de giro (escena aparte)', 'overlay.html?view=alert'], ['Preset · entre mapas (serie)', 'overlay.html?view=serie'], ['Preset · cierre de juego (resumen)', 'overlay.html?view=recap'],
     ['Barra en vivo (completa)', 'overlay.html'], ['Serie', 'overlay.html?view=serie'], ['Duelos por línea', 'overlay.html?view=duelos'], ['Para remontar (sola)', 'overlay.html?view=remontada'],
     ['Resumen del juego (solo)', 'overlay.html?view=recap'], ['Cuadro de eliminatorias', 'overlay.html?view=cuadro'], ['Predicciones del stream', 'overlay.html?view=predicciones'], ['Claves del momento', 'overlay.html?view=keys'], ['Alerta de giro', 'overlay.html?view=alert'], ['Mesa de análisis', 'analista.html'], ['Control de producción (dock)', 'control.html']];
   MX.obsAll = items.map(([l, u]) => l + ': ' + OBS_BASE + u).join('\n');
@@ -3067,7 +3099,7 @@ $('#vistaMando').addEventListener('click', e => {
   if (a === 'live') { RiftEngine.live(); return; }
   if (a === 'seguir') { EXTST.seguir = !EXTST.seguir; store('mxSeguir', EXTST.seguir ? '1' : '0'); seguirVideo(); renderMando(); return; }
   if (a === 'cp') {
-    const text = k === 'all' ? (MX.talk || []).map((t, i) => (i + 1) + '. ' + t.text).join('\n') : k === 'post' ? MX.post : k === 'clip' ? MX.clip : k === 'tw' ? MX.tw : k === 'obsall' ? MX.obsAll : k[0] === 'o' ? b.dataset.u : ((MX.talk || [])[+k.slice(1)] || {}).text;
+    const text = k === 'all' ? (MX.talk || []).map((t, i) => (i + 1) + '. ' + t.text).join('\n') : k === 'post' ? MX.post : k === 'clip' ? MX.clip : k === 'tw' ? MX.tw : k === 'obsall' ? MX.obsAll : k === 'mom' ? MX.momentos : k === 'cap' ? MX.capitulos : k[0] === 'o' ? b.dataset.u : ((MX.talk || [])[+k.slice(1)] || {}).text;
     if (text) mxCopy(k, text); return;
   }
   if (a === 'png') { const u = RiftEngine.recapPNG(MX.s); if (u) { const l = document.createElement('a'); l.href = u; l.download = 'riftpulse-resumen.png'; l.click(); } return; }
