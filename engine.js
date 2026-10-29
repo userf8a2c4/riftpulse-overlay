@@ -22,6 +22,13 @@
   var MODELO = {"pre":{"w":[0.2099,0.8968,0.394,-0.1526,0.0837]},"min":{"10":[0.2402,0.8476,0.6668,-0.224,-0.2233,0.0,0.0968,0.3321,0.0,0.0,0.0,0.0779],"15":[0.2933,0.7776,0.4647,0.082,-0.0205,0.0,0.0,0.3271,0.0,0.0,0.0,0.1124],"20":[0.3102,0.6405,0.4355,0.0788,-0.0542,0.0012,0.0,0.3674,0.0,0.014,0.0,0.2169],"25":[0.3222,0.5485,0.3853,0.2027,-0.0673,-0.0616,0.2451,0.4423,-0.0819,-0.2113,0.015,0.274]},"juegos":2247};
   // Precisión verificada (backtest: 589 juegos que el modelo NO vio, ago–oct 2026). Mismo dato que la app.
   var PRECISION = {acc10: 0.6842, acc15: 0.7453, acc20: 0.7857, brier15: 0.1729, juegos: 589};
+  // acierto medido según el minuto del juego (589 juegos que el modelo no vio): antes del juego 62 %, min 25 84 %
+  function accAt(gt) {
+    var pts = [[0, 0.62], [600, PRECISION.acc10], [900, PRECISION.acc15], [1200, PRECISION.acc20], [1500, 0.84]], m = (gt || 0);
+    if (m >= 1500) return 0.84;
+    for (var i = 1; i < pts.length; i++) if (m <= pts[i][0]) { var a = pts[i - 1], b = pts[i]; return a[1] + (b[1] - a[1]) * (m - a[0]) / (b[0] - a[0]); }
+    return 0.84;
+  }
 
   // ---------- helpers ----------
   var k1 = function (g) { return (g / 1000).toFixed(1) + 'k'; };
@@ -182,8 +189,9 @@
     // preferir Worlds; si no, el primero
     return events.find(function (e) { return e.league && e.league.slug === 'worlds'; }) || events[0] || null;
   }
-  async function loadEvent(id) {
+  async function loadEvent(id, gen) {
     var d = await api('getEventDetails', {id: id});
+    if (gen != null && gen !== RUNGEN) return null;  // mientras esperaba se pasó a otro juego (repetición o video): no pisarlo
     var e = d.event;
     M = {id: id, league: e.league, strategy: e.match.strategy, teams: e.match.teams, games: e.match.games};
     if (M.teams.length === 2) loadH2H(M.teams[0].code, M.teams[1].code).catch(function () {});
@@ -437,7 +445,7 @@
         blue: {code: bt.code, img: https(bt.image || ''), wins: REPLAY ? null : (bt.result || {}).gameWins},
         red: {code: rt.code, img: https(rt.image || ''), wins: REPLAY ? null : (rt.result || {}).gameWins}} : null,
       game: G ? {id: G.id, gt: G.gt, state: G.last ? G.last.gameState : null, ended: !!G.ended,
-        waiting: !!G.waiting, pBlue: G.wp ? G.wp.p : null,
+        waiting: !!G.waiting, pBlue: G.wp ? G.wp.p : null, acc: accAt(G.gt),
         reasons: G.wp ? G.wp.parts : [], events: G.events.slice(-8), timers: G.t,
         stats: G.last ? {blue: tstat(G.last.blueTeam), red: tstat(G.last.redTeam)} : null,
         samples: G.samples ? G.samples.slice() : [], impact: impactNext(),
@@ -469,8 +477,9 @@
       async function sync() {
         try {
           var evt = await findLive();
-          if (evt && (!M || M.id !== evt.id)) { var g = await loadEvent(evt.id); if (g) await startGame(g.id); }
-          else if (evt && M && (!G || G.ended)) { var g2 = await loadEvent(evt.id); if (g2 && (!G || g2.id !== G.id)) await startGame(g2.id); }
+          if (gen !== RUNGEN) return;  // ya no se sigue el vivo (repetición o video): no tocar nada
+          if (evt && (!M || M.id !== evt.id)) { var g = await loadEvent(evt.id, gen); if (g && gen === RUNGEN) await startGame(g.id); }
+          else if (evt && M && (!G || G.ended)) { var g2 = await loadEvent(evt.id, gen); if (g2 && gen === RUNGEN && (!G || g2.id !== G.id)) await startGame(g2.id); }
           else if (!evt) { M = null; G = null; try { NEXTM = await upcoming(); } catch (e) {} emit(); }
         } catch (e) {}
       }
@@ -495,7 +504,7 @@
     },
     // reproduce un juego ya jugado desde el minuto `min`, acelerado `vel` veces
     replay: async function (eventId, juego, min, vel) {
-      this.stop(); running = true; REPLAY = null; M = null; G = null;
+      this.stop(); running = true; REPLAY = null; M = null; G = null; GEN++;  // invalida cualquier carga del vivo en curso
       var d = await api('getEventDetails', {id: eventId}); var e = d.event;
       M = {id: eventId, league: e.league, strategy: e.match.strategy, teams: e.match.teams, games: e.match.games};
       if (M.teams.length === 2) loadH2H(M.teams[0].code, M.teams[1].code).catch(function () {});
@@ -859,5 +868,6 @@
 
   RiftEngine.MODELO = MODELO;       // fuente única de los pesos del modelo (la app los lee de aquí)
   RiftEngine.PRECISION = PRECISION;
+  RiftEngine.accAt = accAt;
   root.RiftEngine = RiftEngine;
 })(typeof window !== 'undefined' ? window : this);

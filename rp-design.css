@@ -118,3 +118,9 @@ footer{border-top-color:var(--line) !important}
 .inicio .foot{height:auto;min-height:158px}
 .inicio .card>*{flex-shrink:0}
 .ini-go{font-family:var(--ffd);letter-spacing:1.2px;text-transform:uppercase;border-radius:4px}
+
+/* ---------- legibilidad: ningún texto por debajo de 12 px ---------- */
+.pm,.note,.mx-note,.mx-sub,.badge,.mx-badge,.brand-s,.brand-p,.k,.cmp-l,.pk2,.u,.fs-day,.sub,.card-help,footer,small,.fs-m .sc small,.br-mh,.br-p,.dg-r,.lg{font-size:max(12px,1em) !important}
+.mx-obs .u,.pm,.note,.mx-note{font-size:12px !important}
+.badge,.mx-badge,.mx-sub,.fs-day,.br-mh{font-size:12px !important;letter-spacing:.9px}
+.ini-bar .pb,.ini-bar .pr,.pb,.pr{font-size:12px !important}
