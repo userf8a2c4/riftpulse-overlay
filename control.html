@@ -55,6 +55,21 @@
   .pk button{font-family:var(--ffd);font-size:12px;font-weight:700;min-width:56px;padding:5px 8px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer}
   .pk button.on{background:linear-gradient(180deg,var(--blue),var(--blue2));color:var(--team-a-ink);border-color:var(--blue)}
   .pk button.ok{border-color:var(--ok)}.pk button.no{opacity:.5}
+  /* director automático */
+  .dz{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px}
+  .dz button{position:relative;height:40px;display:flex;align-items:center;gap:8px;padding:0 10px;text-align:left;font:600 13px var(--ff);border-radius:8px;border:1px solid var(--line-strong);background:var(--g2);color:var(--text);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dz button:hover{border-color:var(--signal)}
+  .dz button.on{border-color:var(--signal);box-shadow:inset 0 0 0 1px var(--signal)}
+  kbd{flex:none;display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 4px;border-radius:5px;border:1px solid var(--line-strong);background:var(--g0);font:700 12px var(--ffm);color:var(--muted)}
+  .dnow{display:flex;align-items:center;gap:10px;height:46px;padding:0 12px;margin-top:8px;border-radius:10px;background:var(--g0);border:1px solid var(--line)}
+  .dnow i{width:8px;height:8px;border-radius:50%;background:var(--text-dim);flex:none}.dnow.on i{background:var(--signal);box-shadow:0 0 10px var(--signal)}
+  .dnow b{font-family:var(--ffd);font-size:16px;letter-spacing:.4px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dnow span{font:700 13px var(--ffm);color:var(--muted)}
+  .dlog{list-style:none;margin:8px 0 0;padding:0;max-height:168px;overflow:auto}
+  .dlog li{display:flex;gap:10px;align-items:center;height:28px;border-top:1px solid var(--line-2);font-size:13px}
+  .dlog li:first-child{border-top:0}
+  .dlog .h{font:500 12px var(--ffm);color:var(--muted);flex:none}
+  .dlog .m{font-size:12px;color:var(--muted);margin-left:auto}
 </style>
 <link rel="stylesheet" href="rp-design.css">
 </head>
@@ -66,6 +81,15 @@
     <div class="row"><span>Piezas abiertas en OBS</span><b id="stPiezas">buscando…</b></div>
     <div class="row"><span>Última orden</span><b id="stOrden">—</b></div>
     <button class="btn" id="panic" style="background:linear-gradient(180deg,var(--team-b),var(--team-b-2));color:#fff;border-color:var(--team-b);font-size:15px;padding:12px">🚨 Ocultar todo</button>
+  </div>
+
+  <div class="grp" id="dirG"><h2>Director automático</h2>
+    <div class="seg" id="dirSeg"><button data-n="minimo">Mínimo</button><button data-n="estandar" class="on">Estándar</button><button data-n="show">Show</button></div>
+    <div class="dnow" id="dirNow"><i></i><b id="dirAhora">Sin la pieza del director abierta</b><span id="dirResta"></span></div>
+    <div class="dz"><button id="dirSaltar"><kbd>0</kbd>Saltar la pieza</button><button id="dirRetener"><kbd>R</kbd>Retener 30 s</button></div>
+    <div class="dz" id="dirPiezas"></div>
+    <ul class="dlog" id="dirLog"></ul>
+    <div class="note">En OBS alcanza con <b>una sola Browser Source</b>: <b>overlay.html?view=auto</b>. Muestra siempre la barra y, en cada momento, la pieza que aporta: el impacto antes del dragón o el Barón, el daño tras una pelea, la alerta en un giro, qué necesita el que va abajo, el resumen al terminar y la serie entre juegos. Nunca dos piezas grandes a la vez. Atajos con este panel enfocado: <b>1–8</b> piden una pieza, <b>0</b> la quita, <b>R</b> la retiene y <b>H</b> oculta todo.</div>
   </div>
 
   <div class="grp"><h2>Retraso frente al stream</h2>
@@ -115,12 +139,12 @@
 <script src="rp-ui.js"></script>
 <script>
   var bc; try { bc = new BroadcastChannel('riftpulse-ctrl'); } catch (e) {}
-  var hidden = false, hideAll = false;
+  var hidden = false, hideAll = false, dirNivel = 'estandar';
   function state(){
     var mods = Array.prototype.map.call(document.querySelectorAll('input[data-m]'), function(i){ return i.checked ? i.getAttribute('data-m') : null; }).filter(Boolean);
     var pos = document.querySelector('#posSeg button.on').getAttribute('data-pos');
     var auto = {}; document.querySelectorAll('input[data-a]').forEach(function(i){ auto[i.getAttribute('data-a')] = i.checked; });
-    return { modules: mods, pos: pos, hidden: hidden, auto: auto, hideAll: hideAll };
+    return { modules: mods, pos: pos, hidden: hidden, auto: auto, hideAll: hideAll, director: dirNivel };
   }
   function send(extra){
     var s = state(); if (extra) for (var k in extra) s[k] = extra[k];
@@ -128,7 +152,7 @@
     if (bc) bc.postMessage(s);
     msg('Aplicado ✓');
     var k = extra ? Object.keys(extra)[0] : 'ajustes';
-    document.getElementById('stOrden').textContent = ({showRecap: 'mostrar resumen', hideRecap: 'cortar resumen', testAlert: 'alerta de prueba', delay: 'retraso', hideAll: hideAll ? 'ocultar todo' : 'mostrar todo'}[k] || 'ajustes') + ' · ' + new Date().toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+    document.getElementById('stOrden').textContent = ({dirAtajo: 'pieza a mano', dirSaltar: 'saltar pieza', dirRetener: 'retener pieza', director: 'nivel del director', showRecap: 'mostrar resumen', hideRecap: 'cortar resumen', testAlert: 'alerta de prueba', delay: 'retraso', hideAll: hideAll ? 'ocultar todo' : 'mostrar todo'}[k] || 'ajustes') + ' · ' + new Date().toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
   }
   function msg(t){ var m=document.getElementById('msg'); m.textContent=t; m.className='note ok'; setTimeout(function(){m.textContent='';m.className='note';},1500); }
 
@@ -157,6 +181,37 @@
   document.getElementById('alert').addEventListener('click', function(){ send({ testAlert: true }); });
   document.getElementById('hide').addEventListener('click', function(){ hidden=!hidden; this.textContent = hidden ? 'Mostrar overlay' : 'Ocultar overlay'; send(); });
 
+  // ---------- director automático ----------
+  var PIEZAS = {objetivo: 'Impacto del objetivo', pelea: 'Daño de la pelea', oro: 'Diferencia de oro', duelos: 'Duelos por línea', serie: 'Serie', resumen: 'Resumen del juego', claves: 'Claves del momento', remontada: 'Para remontar', giro: 'Alerta de giro'};
+  var ATAJOS = ['objetivo', 'pelea', 'oro', 'duelos', 'serie', 'resumen', 'claves', 'remontada'], DIRV = null, DIRAT = 0;
+  document.getElementById('dirPiezas').innerHTML = ATAJOS.map(function(p, i){ return '<button data-k="' + (i + 1) + '"><kbd>' + (i + 1) + '</kbd>' + PIEZAS[p] + '</button>'; }).join('');
+  function dirSegPaint(){ document.querySelectorAll('#dirSeg button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-n') === dirNivel); }); }
+  document.getElementById('dirSeg').addEventListener('click', function(e){ var b = e.target.closest('[data-n]'); if (!b) return; dirNivel = b.getAttribute('data-n'); dirSegPaint(); send({director: dirNivel}); });
+  function dirAtajo(k){
+    k = String(k).toLowerCase();
+    if (k === 'h') { panic.click(); return true; }
+    if (k === '0' || k === 'escape') { send({dirSaltar: Date.now()}); return true; }
+    if (k === 'r') { send({dirRetener: 30}); return true; }
+    if (/^[1-8]$/.test(k)) { send({dirAtajo: k}); return true; }
+    return false;
+  }
+  document.getElementById('dirPiezas').addEventListener('click', function(e){ var b = e.target.closest('[data-k]'); if (b) dirAtajo(b.getAttribute('data-k')); });
+  document.getElementById('dirSaltar').addEventListener('click', function(){ dirAtajo('0'); });
+  document.getElementById('dirRetener').addEventListener('click', function(){ dirAtajo('r'); });
+  document.addEventListener('keydown', function(e){ if (e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return; if (dirAtajo(e.key)) e.preventDefault(); });
+  function hora(t){ return new Date(t).toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit', second: '2-digit'}); }
+  function dirPaint(){
+    var now = document.getElementById('dirNow'), vivo = DIRV && Date.now() - DIRAT < 15000, a = vivo && DIRV.actual;
+    now.classList.toggle('on', !!(a && a.visible));
+    document.getElementById('dirAhora').textContent = !vivo ? 'Sin la pieza del director abierta (overlay.html?view=auto)' : a ? (PIEZAS[a.pieza] || a.pieza) + (a.manual ? ' · a mano' : '') + (a.visible ? '' : ' · sin datos') : 'Solo la barra';
+    document.getElementById('dirResta').textContent = a ? a.resta + ' s' : '';
+    document.querySelectorAll('#dirPiezas button').forEach(function(b){ b.classList.toggle('on', !!(a && ATAJOS[+b.getAttribute('data-k') - 1] === a.pieza)); });
+    document.getElementById('dirLog').innerHTML = vivo && DIRV.log.length ? DIRV.log.map(function(x){ return '<li><span class="h">' + hora(x.at) + '</span><b>' + escH(PIEZAS[x.pieza] || x.pieza) + '</b><span class="m">' + escH(x.txt) + '</span></li>'; }).join('') : '<li><span class="m" style="margin:0">Acá queda lo que mostró el director y cuándo.</span></li>';
+    if (vivo && DIRV.nivel && DIRV.nivel !== dirNivel && !document.hidden) { dirNivel = DIRV.nivel; dirSegPaint(); }
+  }
+  if (bc) bc.addEventListener('message', function(e){ if (e.data && e.data.dir) { DIRV = e.data.dir; DIRAT = Date.now(); dirPaint(); } });
+  setInterval(dirPaint, 1000);
+
   // cargar estado guardado
   try { var sv = JSON.parse(localStorage.getItem('rp_ctrl')||'null'); if (sv){
     document.querySelectorAll('input[data-m]').forEach(function(i){ if(i.disabled) return; i.checked = sv.modules ? sv.modules.indexOf(i.getAttribute('data-m'))>=0 : i.checked; });
@@ -164,6 +219,7 @@
     if (sv.auto) document.querySelectorAll('input[data-a]').forEach(function(i){ var k=i.getAttribute('data-a'); if (sv.auto[k]!=null) i.checked = sv.auto[k]; });
     hidden = !!sv.hidden; document.getElementById('hide').textContent = hidden ? 'Mostrar overlay' : 'Ocultar overlay';
     hideAll = !!sv.hideAll; panicLbl();
+    if (sv.director) { dirNivel = sv.director; dirSegPaint(); }
   }} catch(e){}
 
   // ---------- predicciones del stream ----------

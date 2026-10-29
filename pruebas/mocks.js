@@ -15,6 +15,16 @@ const frame = (t, id) => {
   const tm = i => ({totalGold: Math.round(2500 + gt * 26.5 + (i ? 60 : 0)), totalKills: Math.round(k[i] * f), towers: 0, inhibitors: 0, barons: 0, dragons: [], participants: []});
   return {rfc460Timestamp: new Date(t).toISOString(), gameState: 'in_game', blueTeam: tm(0), redTeam: tm(1)};
 };
+// detalles por jugador (oro, nivel, KDA, daño): números fijos que crecen con el minuto
+const DSH = [0.24, 0.16, 0.3, 0.22, 0.08];
+const detalle = (t, id) => {
+  const gs = GAMES[id], gt = Math.max(0, (t - gs.start) / 1000), k = KILLS[id], f = Math.min(1, Math.max(0, (gt - 200) / 818));
+  const participants = [];
+  for (let i = 0; i < 10; i++) { const r = i % 5, lado = i < 5 ? 0 : 1;
+    participants.push({participantId: i + 1, level: Math.min(18, 1 + Math.floor(gt / 95)), kills: Math.round(k[lado] * f * [0.2, 0.2, 0.3, 0.3, 0][r]), deaths: Math.round(k[1 - lado] * f * 0.2), assists: Math.round(k[lado] * f * 0.5),
+      creepScore: Math.round(gt / 60 * [7.5, 5.5, 8, 8.5, 1][r]), totalGoldEarned: Math.round(500 + gt * [6.4, 5.2, 6.8, 7, 4][r] + (lado ? 0 : 40) * r), championDamageShare: DSH[(r + lado) % 5], killParticipation: 0.5 + r * 0.05}); }
+  return {rfc460Timestamp: new Date(t).toISOString(), participants};
+};
 const ev = (id, st, start, a, b, games, bloque) => ({type: 'match', startTime: new Date(start).toISOString(), blockName: bloque || 'Fase Suiza', state: st, league: {name: 'Worlds', slug: 'worlds'}, match: {id, strategy: {count: games.length}, teams: [a, b], games}});
 const tm = (id, code, w) => ({id, code, name: code, result: {gameWins: w}});
 const EVS = {
@@ -38,7 +48,12 @@ async function montar(ctx, o) {
       if (!gs) return r.fulfill({status: 204, headers: HDR, body: ''});
       let t = s ? Date.parse(s) : gs.start; if (st.modo === 'congelado' && s) t = Math.min(t, st.cong);
       return r.fulfill({contentType: 'application/json', headers: HDR, body: JSON.stringify({gameMetadata: gs.meta, frames: s ? [frame(t, id), frame(t + 5000, id), frame(t + 9000, id)] : [frame(gs.start, id)]})});
-    } else if (/\/details\//.test(u.pathname)) return r.fulfill({status: 204, headers: HDR, body: ''});
+    } else if (/\/details\//.test(u.pathname)) {
+      const id = u.pathname.split('/').pop(), gs = GAMES[id], s = u.searchParams.get('startingTime');
+      if (!gs || !s) return r.fulfill({status: 204, headers: HDR, body: ''});
+      let t = Date.parse(s); if (st.modo === 'congelado') t = Math.min(t, st.cong);
+      return r.fulfill({contentType: 'application/json', headers: HDR, body: JSON.stringify({frames: [detalle(t, id), detalle(t + 5000, id)]})});
+    }
     r.fulfill({contentType: 'application/json', headers: HDR, body: JSON.stringify({data})});
   });
   await ctx.route(/ddragon/, r => {

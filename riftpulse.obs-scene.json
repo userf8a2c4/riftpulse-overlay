@@ -2,7 +2,9 @@
   "current_scene": "RiftPulse",
   "current_program_scene": "RiftPulse",
   "scene_order": [
-    { "name": "RiftPulse" }
+    {
+      "name": "RiftPulse"
+    }
   ],
   "name": "RiftPulse",
   "sources": [
@@ -13,17 +15,72 @@
       "versioned_id": "scene",
       "settings": {
         "custom_size": false,
+        "id_counter": 3,
         "items": [
           {
-            "name": "RiftPulse Overlay",
+            "name": "RiftPulse · Director",
             "source_uuid": "",
             "visible": true,
             "locked": false,
-            "pos": { "x": 0, "y": 0 },
-            "scale": { "x": 1.0, "y": 1.0 },
+            "id": 1,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0
+            },
             "align": 5,
             "bounds_type": 0,
-            "bounds": { "x": 0.0, "y": 0.0 },
+            "bounds": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "rot": 0.0
+          },
+          {
+            "name": "RiftPulse · Predicciones del stream",
+            "source_uuid": "",
+            "visible": false,
+            "locked": false,
+            "id": 2,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0
+            },
+            "align": 5,
+            "bounds_type": 0,
+            "bounds": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "rot": 0.0
+          },
+          {
+            "name": "RiftPulse · Cuadro del Mundial",
+            "source_uuid": "",
+            "visible": false,
+            "locked": false,
+            "id": 3,
+            "pos": {
+              "x": 0,
+              "y": 0
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0
+            },
+            "align": 5,
+            "bounds_type": 0,
+            "bounds": {
+              "x": 0.0,
+              "y": 0.0
+            },
             "rot": 0.0
           }
         ]
@@ -31,15 +88,47 @@
     },
     {
       "prev_ver": 503447557,
-      "name": "RiftPulse Overlay",
+      "name": "RiftPulse · Director",
       "id": "browser_source",
       "versioned_id": "browser_source",
       "settings": {
-        "url": "https://userf8a2c4.github.io/riftpulse-overlay/overlay.html",
+        "url": "https://userf8a2c4.github.io/riftpulse-overlay/overlay.html?view=auto",
         "width": 1920,
         "height": 1080,
         "reroute_audio": false,
-        "css": ""
+        "css": "",
+        "shutdown": false,
+        "restart_when_active": false
+      }
+    },
+    {
+      "prev_ver": 503447557,
+      "name": "RiftPulse · Predicciones del stream",
+      "id": "browser_source",
+      "versioned_id": "browser_source",
+      "settings": {
+        "url": "https://userf8a2c4.github.io/riftpulse-overlay/overlay.html?view=predicciones",
+        "width": 1920,
+        "height": 1080,
+        "reroute_audio": false,
+        "css": "",
+        "shutdown": false,
+        "restart_when_active": false
+      }
+    },
+    {
+      "prev_ver": 503447557,
+      "name": "RiftPulse · Cuadro del Mundial",
+      "id": "browser_source",
+      "versioned_id": "browser_source",
+      "settings": {
+        "url": "https://userf8a2c4.github.io/riftpulse-overlay/overlay.html?view=cuadro",
+        "width": 1920,
+        "height": 1080,
+        "reroute_audio": false,
+        "css": "",
+        "shutdown": false,
+        "restart_when_active": false
       }
     }
   ]

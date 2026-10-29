@@ -13,7 +13,15 @@
     var R = window.RiftEngine; if (!R || !R.colores) return RPC;
     var key = codeA + '|' + codeB + '|' + (el ? 'el' : 'doc');
     if (key === ultimo && !el) return RPC;
-    var c = R.colores(codeA, codeB), t = (el || document.documentElement).style;
+    var c = RP.tema === 'canal' && R.paleta ? {a: R.paleta(RP.acento || '#C8FF3E'), b: R.paleta('#AEB6C4')} : R.colores(codeA, codeB);
+    aplicar(c, el);
+    RPC.codes = [codeA, codeB]; if (!el) ultimo = key;
+    return RPC;
+  };
+  // tema «Mi canal» (piezas de OBS con &tema=canal): los dos lados toman el color del canal y un gris claro
+  RP.tema = 'equipos'; RP.acento = null;
+  function aplicar(c, el) {
+    var t = (el || document.documentElement).style;
     [['a', c.a], ['b', c.b]].forEach(function (p) {
       var k = p[0], v = p[1], pre = '--team-' + k;
       t.setProperty(pre, v.main); t.setProperty(pre + '-2', v.dark); t.setProperty(pre + '-hi', v.hi); t.setProperty(pre + '-ink', v.ink); t.setProperty(pre + '-rgb', v.rgb); t.setProperty(pre + '-txt', v.txt);
@@ -21,9 +29,7 @@
     });
     // la señal del tema activo (en modo claro es más oscura, para que se vea sobre blanco)
     try { var sg = getComputedStyle(document.documentElement).getPropertyValue('--signal').trim(); if (sg) RPC.s = sg; } catch (e) {}
-    RPC.codes = [codeA, codeB]; if (!el) ultimo = key;
-    return RPC;
-  };
+  }
   // números que se animan al cambiar: <span data-rpn="clave">57</span> (después de cada render se llama RP.numeros(raiz))
   var PREV = {}, ANIM = {};
   var quieto = function () { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };

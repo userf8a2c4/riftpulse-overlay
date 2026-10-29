@@ -7,6 +7,8 @@
      remontada (aparece sola cuando un equipo pasa del 65 %) · recap (resumen al terminar el juego)
      cuadro (eliminatorias del Mundial en vivo: cuartos → semis → final)
      predicciones (picks de los integrantes del stream, cargados desde control.html, con aciertos automáticos)
+     auto (director: la barra siempre y, en cada momento, la pieza que aporta: objetivo, pelea, giro, remontada, resumen, serie)
+   Director: &director=minimo|estandar|show · tema: &tema=equipos|canal|minimal · pieza grande arriba a la izquierda o derecha: &stage=tl|tr
    La vista "bar" además obedece al panel de control (control.html) en vivo por
    BroadcastChannel + localStorage (ambos dentro de OBS comparten navegador).
    Nota: el pronóstico previo (Elo) y "lo predijimos" requieren portar el Elo al motor;
@@ -21,6 +23,11 @@
   var ACC = (function () { var a = (Q.get('accent') || '').replace('#', ''); return /^[0-9a-f]{3}([0-9a-f]{3})?$/i.test(a) ? '#' + a : null; })();
   var LOGO_URL = (function () { var u = Q.get('logo') || ''; return /^https:\/\//i.test(u) ? u : ''; })();
   var BRAND = Q.get('brand') !== '0', SAFE = Q.get('safe') === '1';
+  // tema: «equipos» (colores de cada equipo, por defecto), «canal» (el color del canal con ?accent=) o «minimal» (plano, sin marca)
+  var TEMA = ({equipos: 1, canal: 1, minimal: 1}[(Q.get('tema') || '').toLowerCase()]) ? Q.get('tema').toLowerCase() : 'equipos';
+  if (TEMA === 'minimal') BRAND = false;
+  if (window.RPUI && TEMA === 'canal') { RPUI.tema = 'canal'; RPUI.acento = ACC; }
+  var BARRA = VIEW === 'bar' || VIEW === 'auto';  // vistas con la barra que obedece al control
 
   // ---------- config (vista bar): defaults <- URL <- control ----------
   var cfg = {
@@ -30,7 +37,7 @@
     auto: {remontada: true, recap: true},  // piezas que aparecen solas (se apagan desde el control)
     hideAll: false                         // botón de emergencia del control: oculta todas las piezas
   };
-  try { var sv = JSON.parse(localStorage.getItem('rp_ctrl') || 'null'); if (sv && VIEW === 'bar') { if (sv.modules) cfg.modules = sv.modules; if (sv.pos) cfg.pos = sv.pos; if (sv.hidden != null) cfg.hidden = sv.hidden; } if (sv && sv.auto) cfg.auto = sv.auto; if (sv && sv.hideAll != null) cfg.hideAll = sv.hideAll; } catch (e) {}
+  try { var sv = JSON.parse(localStorage.getItem('rp_ctrl') || 'null'); if (sv && BARRA) { if (sv.modules) cfg.modules = sv.modules; if (sv.pos) cfg.pos = sv.pos; if (sv.hidden != null) cfg.hidden = sv.hidden; } if (sv && sv.auto) cfg.auto = sv.auto; if (sv && sv.hideAll != null) cfg.hideAll = sv.hideAll; if (sv && sv.director) cfg.director = sv.director; } catch (e) {}
   if (!BRAND) cfg.modules = cfg.modules.filter(function (m) { return m !== 'brand'; });
   function has(m) { return cfg.modules.indexOf(m) >= 0; }
 
@@ -227,6 +234,27 @@
   css += '.rp-fd{display:inline-flex;align-items:center;gap:' + (7 * S) + 'px;align-self:center;font-family:Saira Condensed,sans-serif;font-size:' + (12 * S) + 'px;letter-spacing:1.4px;text-transform:uppercase;padding:' + (4 * S) + 'px ' + (11 * S) + 'px;border-radius:3px;background:rgba(var(--g0-rgb),.92);border:1px solid rgba(var(--line-rgb),0.165);color:var(--text)}' +
     '.rp-fd i{width:' + (8 * S) + 'px;height:' + (8 * S) + 'px;border-radius:50%;background:var(--signal);display:inline-block}.rp-fd.caido i{background:var(--team-b)}.rp-fd.demo{color:var(--signal);border-color:rgba(var(--signal-rgb),.6)}.rp-fd.demo i{background:var(--signal)}' +
     '.rp-ovl.allhide{display:none}';
+  // ---------- director (view=auto): la barra abajo y una sola pieza grande en una esquina ----------
+  var M0 = SAFE ? 54 : 28, M1 = SAFE ? 96 : 28;
+  css += '.rp-ovl.auto{inset:0;display:block;padding:0}' +
+    '.rp-low{position:absolute;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:' + (14 * S) + 'px;padding:' + M0 + 'px ' + M1 + 'px}' +
+    '.rp-low.bottom{bottom:0;justify-content:flex-end;padding-bottom:' + (SAFE ? 84 : 28) + 'px}.rp-low.top{top:0;flex-direction:column-reverse}' +
+    '.rp-stage{position:absolute;top:' + M0 + 'px;left:' + M1 + 'px;opacity:0;transform:translateX(' + (-18 * S) + 'px);transition:opacity .5s cubic-bezier(.16,1,.3,1),transform .5s cubic-bezier(.16,1,.3,1)}' +
+    '.rp-stage.tr{left:auto;right:' + M1 + 'px;transform:translateX(' + (18 * S) + 'px)}.rp-stage.on{opacity:1;transform:none}' +
+    '.rp-stage .rp-ln{width:100%}.rp-stage .rp-card{min-width:' + (420 * S) + 'px;max-width:' + (620 * S) + 'px}' +
+    '.rp-ir{display:flex;align-items:baseline;justify-content:space-between;gap:' + (28 * S) + 'px;padding:' + (6 * S) + 'px 0;border-top:1px solid rgba(var(--line-rgb),.07);font-size:' + (16 * S) + 'px}.rp-ir:first-of-type{border-top:0}' +
+    '.rp-ir .big{font-family:Saira Condensed,sans-serif;font-weight:800;font-size:' + (36 * S) + 'px;line-height:1;font-variant-numeric:tabular-nums}.rp-ir .big small{font-size:.45em;color:var(--muted);margin-left:3px}' +
+    '.rp-in{font-size:' + (14 * S) + 'px;color:var(--muted);margin-top:' + (8 * S) + 'px;line-height:1.45}.rp-in b{color:var(--text)}' +
+    '.rp-fh{font-family:Saira Condensed,sans-serif;font-weight:800;font-size:' + (30 * S) + 'px;letter-spacing:.5px;line-height:1;margin-bottom:' + (12 * S) + 'px}' +
+    '.rp-dc{display:grid;grid-template-columns:1fr 1fr;gap:' + (4 * S) + 'px ' + (24 * S) + 'px}' +
+    '.rp-dr{display:grid;grid-template-columns:' + (92 * S) + 'px 1fr ' + (40 * S) + 'px;align-items:center;gap:' + (8 * S) + 'px;font-size:' + (14 * S) + 'px}' +
+    '.rp-dr .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rp-dr .pc{text-align:right;font-family:JetBrains Mono,monospace;font-size:' + (12 * S) + 'px;color:var(--muted)}' +
+    '.rp-dr .br{height:' + (8 * S) + 'px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden}.rp-dr .br i{display:block;height:100%;background:var(--team-a)}.rp-dc .r .rp-dr .br i{background:var(--team-b)}' +
+    '.rp-gold svg{display:block;width:' + (540 * S) + 'px;height:' + (120 * S) + 'px}.rp-gold .lg{display:flex;justify-content:space-between;font-family:JetBrains Mono,monospace;font-size:' + (12 * S) + 'px;color:var(--muted);margin-top:' + (4 * S) + 'px}' +
+    '.rp-card .t .tag{margin-left:auto;color:var(--muted);letter-spacing:1px;font-family:JetBrains Mono,monospace;font-size:' + (12 * S) + 'px}';
+  // tema «minimal»: superficies planas, sin brillo ni filo de color
+  if (TEMA === 'minimal') css += '.rp-bar,.rp-big,.rp-keys,.rp-obj,.rp-card,.rp-ser,.rp-callout{box-shadow:none !important;backdrop-filter:none !important;background:rgba(var(--g0-rgb),.88) !important;border-color:rgba(var(--line-rgb),.08) !important}' +
+    '.rp-bar::after,.rp-big::after,.rp-keys::after,.rp-obj::after,.rp-card::after,.rp-ser::after{display:none !important}.rp-card .t{color:var(--muted) !important}.rp-team .code{padding:' + (4 * S) + 'px ' + (8 * S) + 'px !important;font-size:' + (18 * S) + 'px !important}.rp-team .pct{font-size:' + (28 * S) + 'px !important}';
   // ?accent=: el color de señal pasa a ser el del canal
   if (ACC) { var rt = document.documentElement.style; rt.setProperty('--signal', ACC); rt.setProperty('--signal-rgb', hexRgb(ACC)); RPC.s = ACC; }
   function hexRgb(h) { h = h.replace('#', ''); if (h.length === 3) h = h.replace(/(.)/g, '$1$1'); var n = parseInt(h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(','); }
@@ -243,18 +271,23 @@
   }
 
   // ---------- contenedor ----------
-  var posClass = VIEW === 'bar' ? cfg.pos : VIEW === 'alert' || VIEW === 'serie' || VIEW === 'remontada' ? 'tc' : VIEW === 'recap' || VIEW === 'cuadro' || VIEW === 'predicciones' ? 'mid'
+  var posClass = VIEW === 'auto' ? 'auto' : VIEW === 'bar' ? cfg.pos : VIEW === 'alert' || VIEW === 'serie' || VIEW === 'remontada' ? 'tc' : VIEW === 'recap' || VIEW === 'cuadro' || VIEW === 'predicciones' ? 'mid'
     : VIEW === 'objectives' || VIEW === 'big' || VIEW === 'keys' || VIEW === 'duelos' ? 'tl' : 'bottom';
   var ovl = document.createElement('div'); ovl.className = 'rp-ovl ' + posClass;
   var callout = document.createElement('div'); callout.className = 'rp-callout';
-  var main = document.createElement('div');
-  if (VIEW === 'bar') { main.className = 'rp-bar'; if (cfg.pos === 'top') { ovl.appendChild(main); ovl.appendChild(callout); } else { ovl.appendChild(callout); ovl.appendChild(main); } }
+  var main = document.createElement('div'), low = null, stage = null;
+  if (VIEW === 'auto') {
+    main.className = 'rp-bar'; low = document.createElement('div'); low.className = 'rp-low ' + cfg.pos; low.appendChild(callout); low.appendChild(main);
+    stage = document.createElement('div'); stage.className = 'rp-stage' + (Q.get('stage') === 'tr' ? ' tr' : ''); ovl.appendChild(stage); ovl.appendChild(low);
+  }
+  else if (VIEW === 'bar') { main.className = 'rp-bar'; if (cfg.pos === 'top') { ovl.appendChild(main); ovl.appendChild(callout); } else { ovl.appendChild(callout); ovl.appendChild(main); } }
   else if (VIEW === 'alert') { ovl.appendChild(callout); }
   else { ovl.appendChild(main); }
   var fd = document.createElement('div'); fd.className = 'rp-fd'; fd.style.display = 'none';
-  if (VIEW !== 'alert') { if (cfg.pos === 'top' && VIEW === 'bar') ovl.appendChild(fd); else ovl.insertBefore(fd, ovl.firstChild); }
+  if (VIEW === 'auto') low.insertBefore(fd, low.firstChild);
+  else if (VIEW !== 'alert') { if (cfg.pos === 'top' && VIEW === 'bar') ovl.appendChild(fd); else ovl.insertBefore(fd, ovl.firstChild); }
   document.body.appendChild(ovl);
-  function applyHidden() { ovl.classList.toggle('hide', !!cfg.hidden && VIEW === 'bar'); ovl.classList.toggle('allhide', !!cfg.hideAll); }
+  function applyHidden() { ovl.classList.toggle('hide', !!cfg.hidden && BARRA); ovl.classList.toggle('allhide', !!cfg.hideAll); }
   // estado de los datos: nunca se borra la última predicción; se avisa con una insignia discreta
   function feedBadge(s) {
     var f = s.feed || {}, ver = f.estado === 'retrasado' || f.estado === 'caido' || f.estado === 'demo' || f.estado === 'pausa';
@@ -271,6 +304,7 @@
   function render(s) { if (s.match && window.RPUI) RPUI.colores(s.match.blue.code, s.match.red.code); applyHidden(); feedBadge(s); render0(s); if (window.RPUI) RPUI.numeros(document.body); }
   function render0(s) {
     if (VIEW === 'bar') return renderBar(s);
+    if (VIEW === 'auto') return renderAuto(s);
     if (VIEW === 'big') return renderBig(s);
     if (VIEW === 'keys') return renderKeys(s);
     if (VIEW === 'objectives') return renderObj(s);
@@ -291,7 +325,7 @@
   }
 
   function renderBar(s) {
-    ovl.className = 'rp-ovl ' + cfg.pos + (SAFE ? ' safe' : ''); applyHidden();
+    if (VIEW === 'auto') low.className = 'rp-low ' + cfg.pos; else ovl.className = 'rp-ovl ' + cfg.pos + (SAFE ? ' safe' : ''); applyHidden();
     if (!s.match) { main.style.display = 'none'; return; }
     main.style.display = 'flex';
     var m = s.match, g = s.game, core, side = '';
@@ -303,7 +337,7 @@
       if (has('timers')) { var o = nextObj(g.timers, g.gt);
         side = '<div class="rp-side"><span class="rp-gt">' + mmss(g.gt) + '</span>' + (o ? '<div class="rp-tm"><span class="v">' + o.v + '</span><span class="k">' + o.k + '</span></div>' : '') + '</div>'; }
       main.innerHTML = brandHTML(s) + core + side;
-      if (has('momentum')) { hist.push({t: Date.now(), p: g.pBlue}); checkMomentum(s); }
+      if (has('momentum') && VIEW !== 'auto') { hist.push({t: Date.now(), p: g.pBlue}); checkMomentum(s); }
     } else if (has('pregame')) {
       main.innerHTML = brandHTML(s) + '<div class="rp-core"><span class="rp-tc b">' + esc(m.blue.code) + '</span><span class="rp-gt">vs</span><span class="rp-tc r">' + esc(m.red.code) + '</span></div>';
     } else { main.style.display = 'none'; }
@@ -343,8 +377,11 @@
     var se = s.series;
     if (!s.match || !se || se.bo < 2) { main.style.display = 'none'; return; }
     main.style.display = 'flex'; main.className = 'rp-ser';
-    var m = s.match;
-    main.innerHTML = LOGO + '<div class="h">Serie · Bo' + se.bo + '<b><span class="b">' + esc(m.blue.code) + '</span> ' + se.score[0] + '–' + se.score[1] + ' <span class="r">' + esc(m.red.code) + '</span></b></div>' +
+    main.innerHTML = serieHTML(s);
+  }
+  function serieHTML(s) {
+    var se = s.series, m = s.match;
+    return LOGO + '<div class="h">Serie · Bo' + se.bo + '<b><span class="b">' + esc(m.blue.code) + '</span> ' + se.score[0] + '–' + se.score[1] + ' <span class="r">' + esc(m.red.code) + '</span></b></div>' +
       '<div class="if"><span class="k">ahora</span><span class="v"><span class="b">' + pct(se.pNow) + '</span> · <span class="r">' + pct(1 - se.pNow) + '</span></span></div>' +
       '<div class="if"><span class="k">si gana ' + esc(m.blue.code) + ' este juego</span><span class="v b">' + pct(se.ifBlue) + '</span></div>' +
       '<div class="if"><span class="k">si gana ' + esc(m.red.code) + ' este juego</span><span class="v r">' + pct(1 - se.ifRed) + '</span></div>' +
@@ -355,10 +392,14 @@
     var g = s.game, L = g && g.lanes;
     if (!s.match || !L || !L.length) { main.style.display = 'none'; return; }
     card(true);
+    main.innerHTML = duelosHTML(s);
+  }
+  function duelosHTML(s) {
+    var g = s.game, L = g.lanes;
     var rows = L.map(function (l) { var up = l.gd >= 0;
       return '<tr><td class="rl">' + esc(l.label) + '</td><td class="b">' + esc(l.blue.name) + '</td><td class="df ' + (up ? 'b' : 'r') + '">' + (up ? '◀ ' : '') + k1(l.gd) + (up ? '' : ' ▶') + '</td><td class="rt r">' + esc(l.red.name) + '</td></tr>'; }).join('');
     var k = g.keyPlayer;
-    main.innerHTML = '<div class="t">' + LOGO + 'Duelos por línea · oro</div><table class="rp-ln">' + rows + '</table>' +
+    return '<div class="t">' + LOGO + 'Duelos por línea · oro</div><table class="rp-ln">' + rows + '</table>' +
       (k ? '<div class="rp-kp">⭐ <span class="g">' + esc(k.name) + '</span> (' + esc(k.champ) + ') · ' + (k.gd >= 0 ? '+' : '−') + k1(k.gd) + ' sobre ' + esc(k.vs) + ' · ' + Math.round(k.share * 100) + '% del daño</div>' : '');
   }
 
@@ -383,14 +424,17 @@
     if (r && cfg.auto.recap && !recapShown[g.id]) { recapShown[g.id] = true; recapUntil = Date.now() + 20000; setTimeout(function () { if (R.state) render(R.state); }, 20100); }
     if (!r || Date.now() > recapUntil) { if (main.innerHTML) card(false); else main.style.display = 'none'; return; }
     card(true); main.classList.add('rp-rc');
-    var m = s.match, sm = g.samples, t0 = sm[0].gt, span = Math.max(1, sm[sm.length - 1].gt - t0), wc = r.win === 'blue' ? RPC.atxt : RPC.btxt;
+    main.innerHTML = recapHTML(s);
+  }
+  function recapHTML(s) {
+    var g = s.game, r = g.recap, m = s.match, sm = g.samples, t0 = sm[0].gt, span = Math.max(1, sm[sm.length - 1].gt - t0), wc = r.win === 'blue' ? RPC.atxt : RPC.btxt;
     var d = 'M' + sm.map(function (p) { var v = r.win === 'blue' ? p.p : 1 - p.p; return ((p.gt - t0) / span * 600).toFixed(1) + ' ' + (66 - v * 62).toFixed(1); }).join(' L');
     var li = [];
     if (r.comeback) li.push('¡Remontada! Estuvo al <b>' + pct(r.low.p) + '</b> en el min ' + mmss(r.low.gt) + '.');
     if (r.swing) li.push('Giro decisivo: min ' + mmss(r.swing.a) + '–' + mmss(r.swing.b) + ', <b>+' + Math.round(Math.abs(r.swing.d) * 100) + ' pts</b> (' + esc(r.swing.cause) + ').');
     if (r.key) li.push('Jugador clave: <b>' + esc(r.key.name) + '</b> (' + esc(r.key.champ) + ') · ' + r.key.k + '/' + r.key.d + '/' + r.key.a + ' · ' + Math.round(r.key.share * 100) + '% del daño.');
     if (r.stats) { var w = r.stats[r.win], l = r.stats[r.win === 'blue' ? 'red' : 'blue']; li.push('Kills ' + w.kills + '–' + l.kills + ' · torres ' + w.towers + '–' + l.towers + ' · dragones ' + w.dragons + '–' + l.dragons + '.'); }
-    main.innerHTML = '<div class="t">' + LOGO + 'RiftPulse · fin del juego' + (m.gameNo ? ' ' + m.gameNo : '') + '</div>' +
+    return '<div class="t">' + LOGO + 'RiftPulse · fin del juego' + (m.gameNo ? ' ' + m.gameNo : '') + '</div>' +
       '<div class="ttl ' + sc(r.win) + '">' + esc(r.code) + ' gana</div><div class="sub">vs ' + esc(r.lose) + ' · ' + mmss(r.dur) + '</div>' +
       '<svg viewBox="0 0 600 70" preserveAspectRatio="none"><line x1="0" y1="35" x2="600" y2="35" stroke="#2a2f3a" stroke-dasharray="5 5"/><path d="' + d + '" fill="none" stroke="' + wc + '" stroke-width="3" vector-effect="non-scaling-stroke"/></svg>' +
       '<ul>' + li.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>';
@@ -476,6 +520,82 @@
     main.innerHTML = h;
   }
 
+  // ---------- director (view=auto): decide qué pieza mostrar; nunca dos piezas grandes a la vez ----------
+  var DIR = VIEW === 'auto' && R.crearDirector ? R.crearDirector(Q.get('director') || cfg.director || 'estandar') : null;
+  if (DIR && Q.get('director')) DIR.fijoURL = true;
+  // atajos (control o esta misma página): 1–8 piden una pieza, 0 la quita, R la retiene 30 s, H oculta todo
+  var ATAJOS = {'1': 'objetivo', '2': 'pelea', '3': 'oro', '4': 'duelos', '5': 'serie', '6': 'resumen', '7': 'claves', '8': 'remontada'};
+  var stCur = '', giroVisto = '', dirSig = '';
+  function tarjeta(t, cuerpo, tag) { return '<div class="rp-card"><div class="t">' + LOGO + esc(t) + (tag ? '<span class="tag">' + tag + '</span>' : '') + '</div>' + cuerpo + '</div>'; }
+  function piezaHTML(p, s) {
+    var g = s.game || {}, m = s.match, pts = function (v) { return (v >= 0 ? '+' : '−') + Math.abs(v) + '<small>pts</small>'; };
+    if (p === 'objetivo') { var im = g.impact; if (!im) return '';
+      return tarjeta('Impacto · próx. ' + im.obj, '<div class="rp-ir"><span>Si lo toma <b class="b">' + esc(m.blue.code) + '</b></span><span class="big b">' + pts(im.blue) + '</span></div>' +
+        '<div class="rp-ir"><span>Si lo toma <b class="r">' + esc(m.red.code) + '</b></span><span class="big r">' + pts(im.red) + '</span></div>' +
+        '<div class="rp-in">Cuánto mueve la probabilidad de ganar este juego, según el modelo de RiftPulse.</div>', 'en ' + mmss(Math.max(0, im.at - g.gt))); }
+    if (p === 'pelea') { var L = g.lanes, ev = (g.events || []).filter(function (e) { return e.kind === 'fight'; }).slice(-1)[0]; if (!L || !L.length) return '';
+      var col = function (side) { return '<div class="' + sc(side) + '">' + L.map(function (l) { var x = l[side]; return '<div class="rp-dr"><span class="nm">' + esc(x.name) + '</span><span class="br"><i style="width:' + Math.round((x.share || 0) * 100 / 0.4) + '%"></i></span><span class="pc">' + Math.round((x.share || 0) * 100) + '%</span></div>'; }).join('') + '</div>'; };
+      var fw = ev && ev.side;
+      return tarjeta('Pelea' + (ev ? ' · min ' + mmss(ev.gt) : ''), (ev ? '<div class="rp-fh ' + sc(fw) + '">' + esc(ev.txt.replace(/^Pelea:\s*/, '')) + '</div>' : '') +
+        '<div class="rp-dc">' + col('blue') + col('red') + '</div><div class="rp-in">Daño a campeones en todo el juego · % de su equipo.</div>'); }
+    if (p === 'oro') { var sm = (g.samples || []).filter(function (x) { return x.diff != null; }); if (sm.length < 2) return '';
+      var W = 540, H = 120, t0 = sm[0].gt, span = Math.max(60, sm[sm.length - 1].gt - t0), mx = Math.max(1500, Math.max.apply(null, sm.map(function (x) { return Math.abs(x.diff); }))) * 1.1;
+      var X = function (t) { return (t - t0) / span * W; }, Y = function (d) { return H / 2 - d / mx * (H / 2 - 4); };
+      var line = sm.map(function (x, i) { return (i ? 'L' : 'M') + X(x.gt).toFixed(1) + ' ' + Y(x.diff).toFixed(1); }).join(' ');
+      var area = line + ' L' + X(sm[sm.length - 1].gt).toFixed(1) + ' ' + H / 2 + ' L0 ' + H / 2 + ' Z', d = sm[sm.length - 1].diff;
+      return '<div class="rp-card rp-gold"><div class="t">' + LOGO + 'Diferencia de oro<span class="tag ' + (d >= 0 ? 'b' : 'r') + '" style="font-family:Saira Condensed,sans-serif;font-size:1.3em;letter-spacing:1px">' + esc(d >= 0 ? m.blue.code : m.red.code) + ' +' + k1(d) + '</span></div>' +
+        '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none"><defs><linearGradient id="rpog2" x1="0" y1="0" x2="0" y2="' + H + '" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="' + RPC.a + '" stop-opacity=".6"/><stop offset=".5" stop-color="' + RPC.a + '" stop-opacity=".05"/><stop offset=".5" stop-color="' + RPC.b + '" stop-opacity=".05"/><stop offset="1" stop-color="' + RPC.b + '" stop-opacity=".6"/></linearGradient></defs>' +
+        '<line x1="0" y1="' + H / 2 + '" x2="' + W + '" y2="' + H / 2 + '" stroke="#2a2f3a" stroke-dasharray="4 4"/><path d="' + area + '" fill="url(#rpog2)"/><path d="' + line + '" fill="none" stroke="#f2f4f7" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>' +
+        '<div class="lg"><span>' + mmss(t0) + '</span><span>' + mmss(g.gt) + '</span></div></div>'; }
+    if (p === 'duelos') return g.lanes && g.lanes.length ? '<div class="rp-card">' + duelosHTML(s) + '</div>' : '';
+    if (p === 'serie') return s.series && s.series.bo >= 2 ? '<div class="rp-ser">' + serieHTML(s) + '</div>' : '';
+    if (p === 'resumen') return g.recap && g.samples && g.samples.length ? '<div class="rp-card rp-rc">' + recapHTML(s) + '</div>' : '';
+    if (p === 'claves') { var rs = g.reasons; if (!rs || !rs.length) return '';
+      return '<div class="rp-keys"><div class="t">' + LOGO + 'Claves del momento</div><ul>' + rs.slice(0, 4).map(function (x) { var b = x.z >= 0; return '<li><span class="d ' + (b ? 'b' : 'r') + '"></span>' + esc(x.txt) + ' <span style="color:var(--muted);margin-left:auto;font-size:.8em">' + esc(b ? m.blue.code : m.red.code) + '</span></li>'; }).join('') + '</ul></div>'; }
+    if (p === 'remontada') { var c = g.comeback; if (!c || !c.paths || !c.paths[0]) return ''; var x = c.paths[0];
+      return tarjeta('Para remontar', '<div class="rp-cb"><b class="' + sc(c.side) + '">' + esc(c.code) + '</b> está en ' + pct(c.p) + '. ' +
+        (c.reached ? 'Necesita <b>' + esc(x.txt) + '</b> para volver al <span class="p ' + sc(c.side) + '">' + pct(x.p) + '</span>.' : 'Lo que más lo acerca: <b>' + esc(x.txt) + '</b> → <span class="p ' + sc(c.side) + '">' + pct(x.p) + '</span>.') +
+        '</div><div class="note">Simulado con el modelo de RiftPulse sobre el estado actual del juego.</div>'); }
+    return '';
+  }
+  function renderAuto(s) {
+    renderBar(s);
+    var d = DIR && !cfg.hideAll && s.match ? DIR.decidir(s) : null, g = s.game, html = '', key = '';
+    if (d && d.pieza === 'giro') {  // el giro va en la alerta, sobre la barra
+      if (giroVisto !== d.clave) { giroVisto = d.clave;
+        var ev = (g.events || []).filter(function (e) { return ['baron', 'elder', 'dragon', 'inhib', 'fight'].indexOf(e.kind) >= 0 && g.gt - e.gt <= 60; }).slice(-1)[0];
+        showCallout('<span class="zap">⚡</span><span class="cc ' + sc(d.datos.side) + '">' + esc(d.datos.side === 'blue' ? s.match.blue.code : s.match.red.code) + ' +' + Math.abs(d.datos.d) + ' pts</span>' + (ev ? ' · ' + esc(ev.txt) : '')); }
+    } else if (d) { html = piezaHTML(d.pieza, s); key = d.clave; }
+    // entre juegos (o antes del primero): la serie, con la previa del modelo
+    if (!html && !d && s.match && (!g || g.pBlue == null || g.ended) && !cfg.hideAll) { html = piezaHTML('serie', s); key = 'serie' + (s.match.id || ''); }
+    if (!html) { if (stCur) { stCur = ''; stage.classList.remove('on'); } }
+    else if (key !== stCur) {
+      stCur = key; stage.classList.remove('on'); stage.innerHTML = html; void stage.offsetWidth; stage.classList.add('on');
+    } else stage.innerHTML = html;
+    reportarDir(d, !!html);
+  }
+  // el control ve qué decidió el director (línea de tiempo) por el mismo canal
+  function reportarDir(d, visible) {
+    if (!DIR || !bc) return;
+    var a = DIR.actual, o = {nivel: DIR.nivel, actual: a ? {pieza: a.pieza, resta: Math.max(0, Math.round((a.hasta - Date.now()) / 1000)), manual: !!(a.datos && a.datos.manual), visible: visible || a.pieza === 'giro'} : null,
+      log: DIR.log.slice(0, 12).map(function (x) { return {pieza: x.pieza, at: x.at, txt: x.txt || ''}; })};
+    var sig = JSON.stringify(o); if (sig === dirSig) return; dirSig = sig;
+    try { bc.postMessage({dir: o}); } catch (e) {}
+  }
+  function atajo(k) {
+    if (!DIR) return false;
+    k = String(k).toLowerCase();
+    if (ATAJOS[k]) { DIR.forzar(ATAJOS[k], 15); return true; }
+    if (k === '0' || k === 'escape') { DIR.saltar(); return true; }
+    if (k === 'r') { DIR.retener(30); return true; }
+    if (k === 'h') { cfg.hideAll = !cfg.hideAll; return true; }
+    return false;
+  }
+  if (VIEW === 'auto') {
+    document.addEventListener('keydown', function (e) { if (atajo(e.key) && R.state) render(R.state); });
+    setInterval(function () { if (R.state) render(R.state); }, 1000);  // las piezas entran y salen a tiempo aunque no lleguen datos
+  }
+
   function showCallout(html) { callout.innerHTML = html; callout.classList.add('show'); setTimeout(function () { callout.classList.remove('show'); }, 7000); }
   function checkMomentum(s) {
     var now = Date.now(); hist = hist.filter(function (x) { return now - x.t <= 90000; });
@@ -492,7 +612,13 @@
   // ---------- panel de control: la vista bar obedece módulos/posición; remontada y recap, sus interruptores ----------
   function applyCtrl(o) {
     if (!o) return;
-    if (VIEW === 'bar') {
+    if (DIR) {
+      if (o.director && !DIR.fijoURL) DIR.setNivel(o.director);
+      if (o.dirAtajo != null) atajo(o.dirAtajo);
+      if (o.dirSaltar) DIR.saltar();
+      if (o.dirRetener) DIR.retener(o.dirRetener);
+    }
+    if (BARRA) {
       if (o.modules) cfg.modules = o.modules;
       if (o.pos) cfg.pos = o.pos;
       if (o.hidden != null) cfg.hidden = o.hidden;
@@ -508,8 +634,8 @@
   }
   // el control pregunta qué piezas están abiertas: cada una responde con su vista y el estado de los datos
   try { var bc = new BroadcastChannel('riftpulse-ctrl'); bc.onmessage = function (e) {
-    if (e.data && e.data.ping) { var st = R.state; bc.postMessage({pong: VIEW, feed: st && st.feed, delay: R.delay}); return; }
-    if (e.data && e.data.pong) return;
+    if (e.data && e.data.ping) { var st = R.state; bc.postMessage({pong: VIEW, feed: st && st.feed, delay: R.delay}); dirSig = ''; return; }
+    if (e.data && (e.data.pong || e.data.dir)) return;
     applyCtrl(e.data); }; } catch (e) {}
   window.addEventListener('storage', function (e) {
     if (e.key === 'rp_ctrl') { try { applyCtrl(JSON.parse(e.newValue || 'null')); } catch (x) {} }

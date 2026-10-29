@@ -52,7 +52,7 @@
 <div class="wrap">
   <header><img src="logo.svg" alt="RiftPulse"><div><h1>RiftPulse para streamers</h1><div class="sub">Overlay de predicción en vivo para tu co-stream del Mundial</div></div></header>
 
-  <p class="lead">Un <b>overlay gratuito</b> para OBS que muestra, sobre tu transmisión, la <b>probabilidad de victoria en vivo</b> de cada equipo, el pronóstico previo, los giros de momentum y los próximos objetivos — con la <b>precisión del modelo a la vista</b>. Se instala pegando <b>una sola URL</b>. Cero configuración.</p>
+  <p class="lead">Un <b>overlay gratuito</b> para OBS que muestra, sobre tu transmisión, la <b>probabilidad de victoria en vivo</b> de cada equipo, en <b>sus colores</b>, con la <b>precisión del modelo a la vista</b>. Se instala pegando <b>una sola URL</b> y <b>RiftPulse decide qué mostrar</b> en cada momento: el impacto antes del dragón o el Barón, el daño tras una pelea, la alerta en un giro, qué necesita el que va abajo, el resumen al terminar y la serie entre juegos. Cero configuración.</p>
 
   <div class="preview"><div class="tagfake">TU GAMEPLAY / CO-STREAM</div><iframe src="overlay.html?demo" title="Demo del overlay" scrolling="no"></iframe></div>
   <div class="pvnote">Demo con un <b>partido real del Mundial ya jugado</b>, acelerado. En OBS se ve igual pero con el partido en vivo, sobre tu transmisión y con fondo transparente.</div>
@@ -65,6 +65,7 @@
   <div class="cta">
     <button class="btn primary" id="copy">📋 Copiar URL del overlay</button>
     <button class="btn" id="scene">⬇ Descargar escena de OBS</button>
+    <button class="btn" id="copyCtl">🎚 Copiar URL del control (dock)</button>
   </div>
   <div class="url" id="url">…</div>
   <div class="pvnote" id="msg" style="min-height:18px"></div>
@@ -79,7 +80,7 @@
     <li>En OBS: <b>+ (Fuentes) → Navegador / Browser Source</b> → pega la URL, pon <code>1920 × 1080</code>.</li>
     <li>Acepta. Aparece el overlay con fondo transparente. Colócalo donde quieras.</li>
   </ol>
-  <p class="pvnote" style="text-align:left">¿Prefieres aún más rápido? Usa <b>⬇ Descargar escena de OBS</b> y en OBS haz <b>Escena → Importar</b>: trae el Browser Source ya puesto (OBS 28+).</p>
+  <p class="pvnote" style="text-align:left">¿Prefieres aún más rápido? Usa <b>⬇ Descargar escena de OBS</b> y en OBS haz <b>Colección de escenas → Importar</b> (OBS 28+): trae la escena «RiftPulse» con el director ya puesto y, ocultas, las predicciones del stream y el cuadro del Mundial para prenderlas con un clic. Para manejarlo en vivo, sumá el control como dock: <b>Docks → Docks de navegador personalizados</b> y pegá la URL de <b>🎚 Copiar URL del control</b>.</p>
 
   <h2>Qué muestra</h2>
   <div class="feat">
@@ -100,7 +101,7 @@
   <div id="packurls" class="cta" style="gap:8px"></div>
 
   <h2>Ajustes (opcional, por URL)</h2>
-  <p class="pvnote" style="text-align:left">Añade parámetros a la URL: <code>?pos=top</code> (arriba), <code>?scale=1.2</code> (más grande), <code>?modules=prob,timers</code> (elige qué mostrar). Sin parámetros, ya funciona.</p>
+  <p class="pvnote" style="text-align:left">Añade parámetros a la URL: <code>&director=minimo</code>, <code>estandar</code> o <code>show</code> (cuánto muestra solo), <code>&tema=equipos</code>, <code>canal</code> (con <code>&accent=</code>, tus colores) o <code>minimal</code>, <code>&stage=tr</code> (la pieza grande arriba a la derecha), <code>&pos=top</code> (la barra arriba), <code>&scale=1.2</code> (más grande) y <code>&modules=prob,timers</code> (qué lleva la barra). Sin parámetros, ya funciona.</p>
 
   <footer>
     <p>RiftPulse no está avalado por Riot Games y no refleja sus opiniones. League of Legends y Riot Games son marcas de Riot Games, Inc. © Riot Games, Inc. Es una herramienta de pronóstico y análisis, sin fines de apuestas.</p>
@@ -109,40 +110,40 @@
 </div>
 
 <script>
-  var OVERLAY_URL = location.origin + location.pathname.replace(/[^/]*$/, '') + 'overlay.html';
-  document.getElementById('url').textContent = OVERLAY_URL;
+  var BASE_URL = location.origin + location.pathname.replace(/[^/]*$/, ''), OVERLAY_URL = BASE_URL + 'overlay.html', AUTO_URL = OVERLAY_URL + '?view=auto', CTRL_URL = BASE_URL + 'control.html';
+  document.getElementById('url').textContent = AUTO_URL;
   function msg(t){ var m=document.getElementById('msg'); m.textContent=t; m.className='pvnote ok'; setTimeout(function(){m.textContent='';},3000); }
 
   document.getElementById('copy').addEventListener('click', function(){
-    navigator.clipboard.writeText(OVERLAY_URL).then(function(){ msg('¡URL copiada! Pégala en un Browser Source de OBS.'); },
-      function(){ msg('Copia manual: ' + OVERLAY_URL); });
+    navigator.clipboard.writeText(AUTO_URL).then(function(){ msg('¡URL copiada! Pégala en un Browser Source de OBS.'); },
+      function(){ msg('Copia manual: ' + AUTO_URL); });
+  });
+  document.getElementById('copyCtl').addEventListener('click', function(){
+    navigator.clipboard.writeText(CTRL_URL).then(function(){ msg('URL del control copiada: pégala en OBS → Docks → Docks de navegador personalizados.'); },
+      function(){ msg('Copia manual: ' + CTRL_URL); });
   });
 
-  function buildScene(url){
-    // Colección de escena mínima para OBS 28+: una escena con un Browser Source 1920x1080.
+  function buildScene(base){
+    // Colección de escenas para OBS 28+: la escena «RiftPulse» con el director (visible) y dos piezas ocultas para prender a mano.
+    var piezas = [['RiftPulse · Director', 'overlay.html?view=auto', true], ['RiftPulse · Predicciones del stream', 'overlay.html?view=predicciones', false], ['RiftPulse · Cuadro del Mundial', 'overlay.html?view=cuadro', false]];
+    var item = function (p, i) { return { name: p[0], source_uuid: '', visible: p[2], locked: false, id: i + 1, pos: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, align: 5, bounds_type: 0, bounds: { x: 0, y: 0 }, rot: 0 }; };
     return {
       current_scene: "RiftPulse", current_program_scene: "RiftPulse",
       scene_order: [{ name: "RiftPulse" }], name: "RiftPulse",
-      sources: [
-        { prev_ver: 503447557, name: "RiftPulse", id: "scene", versioned_id: "scene",
-          settings: { custom_size: false, items: [
-            { name: "RiftPulse Overlay", source_uuid: "", visible: true, locked: false,
-              pos: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, align: 5, bounds_type: 0,
-              bounds: { x: 0, y: 0 }, rot: 0 } ] } },
-        { prev_ver: 503447557, name: "RiftPulse Overlay", id: "browser_source", versioned_id: "browser_source",
-          settings: { url: url, width: 1920, height: 1080, reroute_audio: false, css: "" } }
-      ]
+      sources: [{ prev_ver: 503447557, name: "RiftPulse", id: "scene", versioned_id: "scene", settings: { custom_size: false, id_counter: piezas.length, items: piezas.map(item) } }]
+        .concat(piezas.map(function (p) { return { prev_ver: 503447557, name: p[0], id: "browser_source", versioned_id: "browser_source",
+          settings: { url: base + p[1], width: 1920, height: 1080, reroute_audio: false, css: "", shutdown: false, restart_when_active: false } }; }))
     };
   }
   document.getElementById('scene').addEventListener('click', function(){
-    var blob = new Blob([JSON.stringify(buildScene(OVERLAY_URL), null, 2)], { type: 'application/json' });
+    var blob = new Blob([JSON.stringify(buildScene(BASE_URL), null, 2)], { type: 'application/json' });
     var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'RiftPulse.json';
     document.body.appendChild(a); a.click(); a.remove();
-    msg('Escena descargada. En OBS: Escena → Importar → elige RiftPulse.json');
+    msg('Escena descargada. En OBS: Colección de escenas → Importar → elige RiftPulse.json');
   });
 
   // botones del paquete de gráficos
-  var VISTAS = [['bar','Lower-third'],['big','Tarjeta grande'],['alert','Alerta de momentum'],['objectives','Objetivos'],['keys','Claves del momento'],['serie','Serie'],['duelos','Duelos por línea'],['remontada','Para remontar'],['recap','Resumen del juego'],['cuadro','Cuadro de eliminatorias'],['predicciones','Predicciones del stream']];
+  var VISTAS = [['auto','Director automático'],['bar','Lower-third'],['big','Tarjeta grande'],['alert','Alerta de momentum'],['objectives','Objetivos'],['keys','Claves del momento'],['serie','Serie'],['duelos','Duelos por línea'],['remontada','Para remontar'],['recap','Resumen del juego'],['cuadro','Cuadro de eliminatorias'],['predicciones','Predicciones del stream']];
   var pack = document.getElementById('packurls');
   VISTAS.forEach(function(v){
     var b = document.createElement('button'); b.className='btn'; b.textContent = v[1];
@@ -155,7 +156,8 @@
 <script>
 (function(){
   var base = location.origin + location.pathname.replace(/[^/]*$/, '');
-  var P = [['Solo barra (lower-third)', 'Probabilidad, timers y marca, abajo.', 'overlay.html?view=bar&modules=prob,timers,brand&pos=bottom'],
+  var P = [['Director automático (recomendado)', 'Una sola URL: la barra siempre y, en cada momento, la pieza que aporta.', 'overlay.html?view=auto'],
+    ['Solo barra (lower-third)', 'Probabilidad, timers y marca, abajo.', 'overlay.html?view=bar&modules=prob,timers,brand&pos=bottom'],
     ['Alertas de giro', 'Escena aparte: aparece sola cuando el juego da vuelta.', 'overlay.html?view=alert'],
     ['Entre mapas: la serie', 'Probabilidad de la serie y qué pasa si gana cada uno.', 'overlay.html?view=serie'],
     ['Cierre de juego', 'Resumen al terminar (o desde el control).', 'overlay.html?view=recap'],
