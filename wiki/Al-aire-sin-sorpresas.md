@@ -8,9 +8,9 @@ RiftPulse usa el feed público de LoL Esports. No es oficial para terceros: pued
 | Estado | Qué ves | Qué pasa |
 |---|---|---|
 | **Datos al día** | nada extra | todo normal |
-| **Datos retrasados · N s** | insignia amarilla | hace más de 25 s (configurable con `?stale=`) que no llegan datos nuevos; se mantiene el último número |
+| **Datos retrasados · N s** | insignia de aviso | hace más de 25 s (configurable con `?stale=`) que no llegan datos nuevos; se mantiene el último número |
 | **Sin datos nuevos** | insignia roja | el feed falla aunque se reintente; se mantiene el último número |
-| **Juego en pausa** | insignia amarilla | pausa técnica del juego |
+| **Juego en pausa** | insignia de aviso | pausa técnica del juego |
 | **Esperando partido** | las piezas de juego se ocultan | no hay partido en vivo; nunca se inventan números |
 | **DEMO** | insignia DEMO | modo `?demo`: un partido ya jugado, nunca confundible con el vivo |
 

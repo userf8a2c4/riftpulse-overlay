@@ -7,57 +7,57 @@
 <meta name="description" content="Cómo RiftPulse calcula la probabilidad de victoria en vivo, qué tan seguido acierta y cómo se sincroniza con el video.">
 <link rel="icon" type="image/svg+xml" href="logo.svg">
 <style>
-  :root{--bg:#050a17;--text:#eef3fb;--muted:#8fa0c2;--blue:#4aa3ff;--red:#ff4d5e;--gold:#f2c14e;--ok:#3ddc97;--line:rgba(150,180,230,.17);--line2:rgba(150,180,230,.1);--s3:#08112a}
+  :root{--s3:var(--g0)}
   *{box-sizing:border-box}
-  body{margin:0;color:var(--text);font:400 16px/1.6 Inter,system-ui,sans-serif}
+  body{margin:0;color:var(--text);font:400 16px/1.6 Inter Tight,system-ui,sans-serif}
   .wrap{max-width:1040px;margin:0 auto;padding:28px 16px 60px}
-  a{color:#9fd0ff}
+  a{color:var(--link)}
   .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
   .top img{width:40px;height:40px}
   .top .brand-t{font-size:15px}
   .top nav{margin-left:auto;display:flex;gap:14px;flex-wrap:wrap;font-size:14px}
   .hero{margin:34px 0 10px}
   .hero h1{font-size:clamp(34px,6vw,58px);margin:0}
-  .hero p{font-size:18px;color:#cdd7ea;max-width:720px;margin:12px 0 0}
+  .hero p{font-size:18px;color:var(--text);max-width:720px;margin:12px 0 0}
   section.card{padding:22px;margin-top:18px}
   .card h2{display:flex;align-items:center;gap:10px;margin:0 0 14px}
   .card h2::before{content:"";display:inline-block}
-  .lead{color:#cdd7ea;margin:0 0 14px;max-width:820px}
+  .lead{color:var(--text);margin:0 0 14px;max-width:820px}
   .pasos{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
   @media(max-width:760px){.pasos{grid-template-columns:1fr}}
   .paso{background:var(--s3);border:1px solid var(--line2);border-radius:6px;padding:16px}
-  .paso .n{font-family:Anton,Oswald,sans-serif;font-size:34px;color:var(--gold);line-height:1}
-  .paso h3{font-family:Oswald,sans-serif;font-size:17px;letter-spacing:1px;text-transform:uppercase;margin:6px 0 6px}
-  .paso p{margin:0;color:#c8d3ea;font-size:15px}
+  .paso .n{font-family:Saira Condensed,sans-serif;font-size:34px;color:var(--gold);line-height:1}
+  .paso h3{font-family:Saira Condensed,sans-serif;font-size:17px;letter-spacing:1px;text-transform:uppercase;margin:6px 0 6px}
+  .paso p{margin:0;color:var(--text);font-size:15px}
   /* simulador */
   .sim{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
   @media(max-width:820px){.sim{grid-template-columns:1fr}}
   .ctl{display:grid;gap:12px}
   .ctl label{display:grid;grid-template-columns:150px 1fr 74px;align-items:center;gap:10px;font-size:14px}
   @media(max-width:480px){.ctl label{grid-template-columns:1fr 70px}.ctl label input{grid-column:1/-1;grid-row:2}}
-  .ctl output{font-family:Oswald,sans-serif;font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+  .ctl output{font-family:Saira Condensed,sans-serif;font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
   input[type=range]{width:100%;accent-color:var(--gold)}
   .res{background:var(--s3);border:1px solid var(--line2);border-radius:6px;padding:18px}
-  .big{display:flex;justify-content:space-between;align-items:baseline;font-family:Anton,Oswald,sans-serif;font-size:44px;line-height:1}
-  .big .b{color:#6fb8ff}.big .r{color:#ff7a86}
+  .big{display:flex;justify-content:space-between;align-items:baseline;font-family:Saira Condensed,sans-serif;font-size:44px;line-height:1}
+  .big .b{color:var(--team-a-txt)}.big .r{color:var(--team-b-txt)}
   .bar{display:flex;height:30px;margin:12px 0 6px;border-radius:3px;overflow:hidden}
-  .bar .pb{background:linear-gradient(180deg,#5cb0ff,#2f7fe0);transition:width .4s}
-  .bar .pr{background:linear-gradient(180deg,#ff6676,#c93a52);transition:width .4s;flex:1}
+  .bar .pb{background:linear-gradient(180deg,var(--team-a),var(--team-a-2));transition:width .4s}
+  .bar .pr{background:linear-gradient(180deg,var(--team-b),var(--team-b-2));transition:width .4s;flex:1}
   .parts{margin-top:14px}
   .pt{display:grid;grid-template-columns:120px 1fr 56px;gap:8px;align-items:center;font-size:13.5px;padding:3px 0}
-  .pt .tr{height:10px;background:rgba(150,180,230,.1);position:relative;border-radius:2px}
+  .pt .tr{height:10px;background:rgba(var(--line-rgb),0.055);position:relative;border-radius:2px}
   .pt .tr i{position:absolute;top:0;bottom:0;border-radius:2px}
   .pt .v{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
-  .mid{position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:rgba(150,180,230,.35)}
+  .mid{position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:rgba(var(--line-rgb),0.193)}
   .presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
-  .presets button{background:rgba(13,24,48,.8);border:1px solid var(--line);color:var(--text);border-radius:4px;padding:6px 10px;font:600 13px Inter,sans-serif;cursor:pointer}
+  .presets button{background:rgba(var(--g1-rgb),.8);border:1px solid var(--line);color:var(--text);border-radius:4px;padding:6px 10px;font:600 13px Inter Tight,sans-serif;cursor:pointer}
   .presets button:hover{border-color:var(--gold)}
   .note{color:var(--muted);font-size:13.5px;margin-top:10px}
   /* variables */
   .vars{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
   .var{background:var(--s3);border:1px solid var(--line2);border-radius:6px;padding:12px 14px}
-  .var b{font-family:Oswald,sans-serif;letter-spacing:.6px;font-size:16px}
-  .var p{margin:4px 0 0;color:#c8d3ea;font-size:14px}
+  .var b{font-family:Saira Condensed,sans-serif;letter-spacing:.6px;font-size:16px}
+  .var p{margin:4px 0 0;color:var(--text);font-size:14px}
   /* precisión */
   .prec{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:22px;align-items:center}
   @media(max-width:820px){.prec{grid-template-columns:1fr}}
@@ -65,13 +65,13 @@
   table{width:100%;border-collapse:collapse;font-size:15px}
   th,td{padding:8px 6px;border-bottom:1px solid var(--line2);text-align:left}
   th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.8px}
-  td.n{font-family:Oswald,sans-serif;font-weight:600;font-variant-numeric:tabular-nums}
+  td.n{font-family:Saira Condensed,sans-serif;font-weight:600;font-variant-numeric:tabular-nums}
   tr.hl td{color:var(--gold)}
-  ul.lista{margin:0;padding-left:20px;color:#cdd7ea}
+  ul.lista{margin:0;padding-left:20px;color:var(--text)}
   ul.lista li{margin:6px 0}
   .dos{display:grid;grid-template-columns:1fr 1fr;gap:18px}
   @media(max-width:760px){.dos{grid-template-columns:1fr}}
-  .si{color:var(--ok);font-weight:700}.no{color:#ff8a95;font-weight:700}
+  .si{color:var(--ok);font-weight:700}.no{color:var(--team-b-txt);font-weight:700}
   footer{margin-top:30px;color:var(--muted);font-size:12.5px}
 </style>
 <link rel="stylesheet" href="rp-design.css">
@@ -200,6 +200,7 @@
   </footer>
 </div>
 <script src="engine.js"></script>
+<script src="rp-ui.js"></script>
 <script>
 (function () {
   'use strict';
@@ -231,7 +232,7 @@
     var mx = Math.max(0.5, Math.max.apply(null, r.parts.map(function (x) { return Math.abs(x.z); })));
     document.getElementById('parts').innerHTML = r.parts.map(function (x) {
       var w = Math.abs(x.z) / mx * 50, a = x.z >= 0;
-      return '<div class="pt"><span>' + x.txt + '</span><span class="tr"><span class="mid"></span><i style="' + (a ? 'left:50%' : 'right:50%') + ';width:' + w.toFixed(1) + '%;background:' + (a ? '#4aa3ff' : '#ff5a5f') + '"></i></span><span class="v">' + (a ? 'azul' : 'rojo') + '</span></div>';
+      return '<div class="pt"><span>' + x.txt + '</span><span class="tr"><span class="mid"></span><i style="' + (a ? 'left:50%' : 'right:50%') + ';width:' + w.toFixed(1) + '%;background:' + (a ? RPC.a : RPC.b) + '"></i></span><span class="v">' + (a ? 'azul' : 'rojo') + '</span></div>';
     }).join('') || '<div class="note">Nada empuja hacia ningún lado.</div>';
   }
   ctl.addEventListener('input', draw);
@@ -246,12 +247,12 @@
   var X = function (m) { return P + m / 30 * (W - P - 30); }, Y = function (a) { return H - 26 - (a - 0.5) / 0.4 * (H - 46); };
   var path = pts.map(function (p, i) { return (i ? 'L' : 'M') + X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1); }).join(' ');
   var g = '';
-  [0.5, 0.6, 0.7, 0.8, 0.9].forEach(function (a) { g += '<line x1="' + P + '" x2="' + (W - 10) + '" y1="' + Y(a) + '" y2="' + Y(a) + '" stroke="rgba(150,180,230,.12)"/><text x="' + (P - 6) + '" y="' + (Y(a) + 4) + '" fill="#8fa0c2" font-size="12" text-anchor="end">' + Math.round(a * 100) + '%</text>'; });
-  [0, 10, 15, 20, 25, 30].forEach(function (m) { g += '<text x="' + X(m) + '" y="' + (H - 6) + '" fill="#8fa0c2" font-size="12" text-anchor="middle">' + (m ? "min " + m : 'inicio') + '</text>'; });
-  var dots = [[0, 0.625], [10, 0.684], [15, 0.745], [20, 0.786], [25, 0.836]].map(function (p) { return '<circle cx="' + X(p[0]) + '" cy="' + Y(p[1]) + '" r="4.5" fill="#f2c14e" stroke="#050a17" stroke-width="2"/>'; }).join('');
+  [0.5, 0.6, 0.7, 0.8, 0.9].forEach(function (a) { g += '<line x1="' + P + '" x2="' + (W - 10) + '" y1="' + Y(a) + '" y2="' + Y(a) + '" stroke="rgba(220,226,236,0.066)"/><text x="' + (P - 6) + '" y="' + (Y(a) + 4) + '" fill="#9aa3b2" font-size="12" text-anchor="end">' + Math.round(a * 100) + '%</text>'; });
+  [0, 10, 15, 20, 25, 30].forEach(function (m) { g += '<text x="' + X(m) + '" y="' + (H - 6) + '" fill="#9aa3b2" font-size="12" text-anchor="middle">' + (m ? "min " + m : 'inicio') + '</text>'; });
+  var dots = [[0, 0.625], [10, 0.684], [15, 0.745], [20, 0.786], [25, 0.836]].map(function (p) { return '<circle cx="' + X(p[0]) + '" cy="' + Y(p[1]) + '" r="4.5" fill="'+RPC.s+'" stroke="#0c0e12" stroke-width="2"/>'; }).join('');
   document.getElementById('curva').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Acierto del modelo según el minuto">' + g +
-    '<line x1="' + P + '" x2="' + (W - 10) + '" y1="' + Y(0.5) + '" y2="' + Y(0.5) + '" stroke="#ff8a95" stroke-dasharray="4 4" opacity=".6"/><text x="' + (W - 12) + '" y="' + (Y(0.5) - 6) + '" fill="#ff8a95" font-size="12" text-anchor="end">una moneda</text>' +
-    '<path d="' + path + '" fill="none" stroke="#4aa3ff" stroke-width="3"/>' + dots + '</svg>';
+    '<line x1="' + P + '" x2="' + (W - 10) + '" y1="' + Y(0.5) + '" y2="' + Y(0.5) + '" stroke="'+RPC.btxt+'" stroke-dasharray="4 4" opacity=".6"/><text x="' + (W - 12) + '" y="' + (Y(0.5) - 6) + '" fill="'+RPC.btxt+'" font-size="12" text-anchor="end">una moneda</text>' +
+    '<path d="' + path + '" fill="none" stroke="'+RPC.a+'" stroke-width="3"/>' + dots + '</svg>';
 })();
 </script>
 </body>

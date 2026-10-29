@@ -6,23 +6,22 @@
 <title>RiftPulse para streamers</title>
 <link rel="icon" type="image/svg+xml" href="logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Chakra+Petch:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#0a0e16;--s1:#121a2a;--s3:#0d1320;--line:#263352;--line2:#1b2439;--text:#e8edf7;--muted:#8b97b0;
-    --blue:#4aa3ff;--blue2:#2f7fe0;--red:#ff5a5f;--ok:#3ddc97;--ff:'Inter',system-ui,sans-serif;--ffd:'Chakra Petch',var(--ff)}
+  :root{--s1:var(--g1);--s3:var(--g1)}
   *{box-sizing:border-box}
-  body{margin:0;background:radial-gradient(1200px 560px at 12% -10%,#17233d 0,rgba(23,35,61,0) 60%),radial-gradient(900px 440px at 96% -8%,#2a1620 0,rgba(42,22,32,0) 55%),var(--bg);
+  body{margin:0;background:radial-gradient(1200px 560px at 12% -10%,var(--g1) 0,rgba(var(--g1-rgb),0) 60%),radial-gradient(900px 440px at 96% -8%,var(--g1) 0,rgba(var(--g1-rgb),0) 55%),var(--bg);
     color:var(--text);font:400 16px/1.55 var(--ff);-webkit-font-smoothing:antialiased}
   .wrap{max-width:900px;margin:0 auto;padding:40px 24px 60px}
   header{display:flex;align-items:center;gap:14px;margin-bottom:8px}
   header img{width:52px;height:52px}
   h1{font-family:var(--ffd);font-size:30px;font-weight:700;letter-spacing:.5px;margin:0}
   .sub{color:var(--muted);font-size:15px;margin-top:2px}
-  .lead{font-size:17px;color:#cdd7ea;margin:18px 0 22px}
+  .lead{font-size:17px;color:var(--text);margin:18px 0 22px}
   .lead b{color:var(--text)}
   /* vista previa */
   .preview{position:relative;aspect-ratio:16/9;border-radius:16px;overflow:hidden;border:1px solid var(--line);
-    background:linear-gradient(135deg,#17251b,#1d2c3a 55%,#281820);box-shadow:0 14px 40px rgba(0,0,0,.5)}
+    background:linear-gradient(135deg,#17251b,var(--g1) 55%,#281820);box-shadow:0 14px 40px rgba(0,0,0,.5)}
   .preview .tagfake{position:absolute;top:14px;left:16px;font-family:var(--ffd);font-size:13px;color:rgba(255,255,255,.35);letter-spacing:1px}
   .preview iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent}
   .pvnote{color:var(--muted);font-size:12.5px;margin:8px 2px 0;text-align:center}
@@ -32,20 +31,22 @@
     background:var(--s1);color:var(--text);display:flex;align-items:center;gap:10px;transition:border-color .15s,transform .05s}
   a.btn{text-decoration:none;color:inherit;display:inline-block}
   .btn:hover{border-color:var(--blue)}.btn:active{transform:translateY(1px)}
-  .btn.primary{background:linear-gradient(180deg,var(--blue),var(--blue2));border-color:var(--blue);color:#06121f;box-shadow:0 6px 20px rgba(74,163,255,.3)}
-  .url{font-family:ui-monospace,Consolas,monospace;font-size:13px;color:#9fd0ff;background:var(--s3);border:1px solid var(--line2);border-radius:10px;padding:10px 14px;margin-top:10px;word-break:break-all}
+  .btn.primary{background:linear-gradient(180deg,var(--blue),var(--blue2));border-color:var(--blue);color:var(--team-a-ink);box-shadow:0 6px 20px rgba(var(--team-a-rgb),.3)}
+  .url{font-family:ui-monospace,Consolas,monospace;font-size:13px;color:var(--link);background:var(--s3);border:1px solid var(--line2);border-radius:10px;padding:10px 14px;margin-top:10px;word-break:break-all}
   .ok{color:var(--ok);font-weight:700}
   h2{font-family:var(--ffd);font-size:13px;text-transform:uppercase;letter-spacing:1.1px;color:var(--blue);margin:34px 0 12px;display:flex;align-items:center;gap:8px}
-  h2::before{content:'';width:3px;height:14px;border-radius:2px;background:linear-gradient(180deg,var(--blue),var(--blue2));box-shadow:0 0 8px rgba(74,163,255,.4)}
+  h2::before{content:'';width:3px;height:14px;border-radius:2px;background:linear-gradient(180deg,var(--blue),var(--blue2));box-shadow:0 0 8px rgba(var(--team-a-rgb),.4)}
   ol{margin:0;padding-left:22px}ol li{margin:8px 0}
   .feat{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
-  .card{background:linear-gradient(180deg,#141d30,#0f1623);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .card{background:linear-gradient(180deg,var(--g1),var(--g1));border:1px solid var(--line);border-radius:14px;padding:16px 18px}
   .card b{font-family:var(--ffd)}
-  code{background:var(--s3);border:1px solid var(--line2);border-radius:6px;padding:1px 6px;font-size:13px;color:#9fd0ff}
+  code{background:var(--s3);border:1px solid var(--line2);border-radius:6px;padding:1px 6px;font-size:13px;color:var(--link)}
   footer{border-top:1px solid var(--line);margin-top:36px;padding-top:16px;color:var(--muted);font-size:12px;line-height:1.6}
   @media(max-width:620px){.feat{grid-template-columns:1fr}h1{font-size:24px}}
 </style>
 <link rel="stylesheet" href="rp-design.css">
+<script src="engine.js"></script>
+<script src="rp-ui.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -70,7 +71,7 @@
 
   <h2>Escenas listas (presets)</h2>
   <div class="presets" id="presets"></div>
-  <div class="pvnote" style="text-align:left">A cualquier URL se le puede agregar: <code>&delay=42</code> (tu retraso en segundos), <code>&accent=ff8800</code> (tu color), <code>&logo=https://…</code> (tu logo), <code>&safe=1</code> (márgenes amplios) y <code>&brand=0</code> (sin marca). Todos los parámetros, en la <a href="https://github.com/userf8a2c4/riftpulse-overlay/wiki/Paquete-de-gráficos" style="color:#9fd0ff">wiki</a>.</div>
+  <div class="pvnote" style="text-align:left">A cualquier URL se le puede agregar: <code>&delay=42</code> (tu retraso en segundos), <code>&accent=ff8800</code> (tu color), <code>&logo=https://…</code> (tu logo), <code>&safe=1</code> (márgenes amplios) y <code>&brand=0</code> (sin marca). Todos los parámetros, en la <a href="https://github.com/userf8a2c4/riftpulse-overlay/wiki/Paquete-de-gráficos" style="color:var(--link)">wiki</a>.</div>
 
   <h2>Añadirlo en 3 pasos</h2>
   <ol>
@@ -90,9 +91,9 @@
 
   <h2>Para equipos de transmisión</h2>
   <div class="feat">
-    <div class="card"><b>🎛 Mesa de análisis</b><div class="pvnote" style="text-align:left;margin-top:4px">Segunda pantalla para casters: probabilidad, el porqué, momentum y <b>puntos listos para comentar</b>. <a href="analista.html" style="color:#9fd0ff">Abrir Mesa →</a></div></div>
+    <div class="card"><b>🎛 Mesa de análisis</b><div class="pvnote" style="text-align:left;margin-top:4px">Segunda pantalla para casters: probabilidad, el porqué, momentum y <b>puntos listos para comentar</b>. <a href="analista.html" style="color:var(--link)">Abrir Mesa →</a></div></div>
     <div class="card"><b>🎬 Paquete de gráficos</b><div class="pvnote" style="text-align:left;margin-top:4px">Varias piezas para OBS, cada una es su propia URL (Browser Source). Cópialas abajo.</div></div>
-    <div class="card"><b>🎚 Control de producción</b><div class="pvnote" style="text-align:left;margin-top:4px">Enciende/apaga módulos y dispara alertas en vivo. <a href="control.html" style="color:#9fd0ff">Abrir control →</a> · añádelo en OBS como Dock de navegador.</div></div>
+    <div class="card"><b>🎚 Control de producción</b><div class="pvnote" style="text-align:left;margin-top:4px">Enciende/apaga módulos y dispara alertas en vivo. <a href="control.html" style="color:var(--link)">Abrir control →</a> · añádelo en OBS como Dock de navegador.</div></div>
     <div class="card"><b>📊 Mismo motor</b><div class="pvnote" style="text-align:left;margin-top:4px">Todo sale del mismo modelo con <span class="ok">75% de acierto al min 15</span>. Credibilidad en cada gráfico.</div></div>
   </div>
   <p class="pvnote" style="text-align:left;margin-top:10px">Vistas del paquete (clic para copiar su URL):</p>
@@ -150,7 +151,7 @@
     pack.appendChild(b);
   });
 </script>
-<style>.presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}.presets .ps{background:rgba(13,24,48,.8);border:1px solid rgba(150,180,230,.17);border-radius:6px;padding:12px 14px}.presets .ps b{display:block;margin-bottom:3px}.presets .ps span{display:block;color:#8fa0c2;font-size:13px;margin-bottom:8px}.presets .ps button{font:600 13px Inter,sans-serif;padding:6px 12px;border-radius:4px;cursor:pointer;background:linear-gradient(180deg,#5cb0ff,#2f7fe0);border:0;color:#04101f}</style>
+<style>.presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}.presets .ps{background:rgba(var(--g1-rgb),.8);border:1px solid rgba(var(--line-rgb),0.094);border-radius:6px;padding:12px 14px}.presets .ps b{display:block;margin-bottom:3px}.presets .ps span{display:block;color:var(--muted);font-size:13px;margin-bottom:8px}.presets .ps button{font:600 13px Inter Tight,sans-serif;padding:6px 12px;border-radius:4px;cursor:pointer;background:linear-gradient(180deg,var(--team-a),var(--team-a-2));border:0;color:var(--team-a-ink)}</style>
 <script>
 (function(){
   var base = location.origin + location.pathname.replace(/[^/]*$/, '');

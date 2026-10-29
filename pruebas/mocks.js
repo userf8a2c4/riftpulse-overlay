@@ -48,7 +48,8 @@ async function montar(ctx, o) {
     if (!fs.existsSync(f)) return r.fulfill({status: 404, headers: HDR, body: ''});
     r.fulfill({contentType: 'image/png', headers: HDR, body: fs.readFileSync(f)});
   });
-  await ctx.route(/fonts\.(googleapis|gstatic)/, r => r.fulfill({status: 404, body: ''}));
+  // las tipografías reales solo para las capturas (RP_FUENTES=1); en las pruebas, sin red externa
+  await ctx.route(/fonts\.(googleapis|gstatic)/, r => process.env.RP_FUENTES ? r.continue() : r.fulfill({status: 404, body: ''}));
   await ctx.route(/userf8a2c4\.github\.io/, r => {
     const f = decodeURIComponent(new URL(r.request().url()).pathname.replace('/riftpulse-overlay/', '')) || 'index.html', fp = path.join(RAIZ, f);
     if (!fs.existsSync(fp) || fs.statSync(fp).isDirectory()) return r.fulfill({status: 404, body: ''});
