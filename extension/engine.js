@@ -618,6 +618,72 @@
   RiftEngine.recapLines = function (s) { s = s || snapshot(); return s.game && s.game.recap ? TXT.recapLines(s) : []; };
   RiftEngine.recapPNG = function (s) { s = s || snapshot(); return s.game && s.game.recap ? TXT.recapPNG(s) : null; };
 
+
+  // ---------- cuadro de eliminatorias (cuartos → semis → final) armado desde el calendario ----------
+  function koRound(e) { var b = String(e.blockName || '').toLowerCase(); return /cuartos|quarter/.test(b) ? 'qf' : /semi/.test(b) ? 'sf' : /final/.test(b) ? 'f' : null; }
+  function koSeries(e) {
+    var bo = (e.match.strategy || {}).count || 5, need = Math.ceil(bo / 2);
+    var ts = (e.match.teams || []).slice(0, 2).map(function (t) {
+      var w = (t.result || {}).gameWins || 0, known = !!t.code && t.code !== 'TBD';
+      return {code: known ? t.code : null, img: https(t.image || ''), wins: w, won: e.state === 'completed' && w >= need};
+    });
+    while (ts.length < 2) ts.push({code: null, img: '', wins: 0, won: false});
+    return {id: e.match.id, state: e.state, start: e.startTime, bo: bo, need: need, teams: ts};
+  }
+  var koEmpty = function () { return {id: null, state: 'unstarted', start: null, bo: 5, need: 3, teams: [{code: null, wins: 0}, {code: null, wins: 0}]}; };
+  function buildBracket(events) {
+    var R = {qf: [], sf: [], f: []};
+    (events || []).filter(function (e) { return e.match && koRound(e); })
+      .sort(function (a, b) { return a.startTime < b.startTime ? -1 : 1; })
+      .forEach(function (e) { R[koRound(e)].push(koSeries(e)); });
+    if (!R.qf.length && !R.sf.length && !R.f.length) return null;
+    while (R.qf.length < 4) R.qf.push(koEmpty());
+    while (R.sf.length < 2) R.sf.push(koEmpty());
+    if (!R.f.length) R.f.push(koEmpty());
+    // los cuartos se ordenan por mitad del cuadro: los dos que alimentan cada semifinal van juntos y en el lado de su equipo
+    var slots = [null, null, null, null], used = {};
+    R.sf.slice(0, 2).forEach(function (sf, i) {
+      sf.teams.forEach(function (t, j) {
+        if (!t.code) return;
+        R.qf.forEach(function (q, k) { if (!used[k] && !slots[2 * i + j] && q.teams.some(function (x) { return x.code === t.code; })) { slots[2 * i + j] = q; used[k] = 1; } });
+      });
+    });
+    R.qf.forEach(function (q, k) { if (!used[k]) slots[slots.indexOf(null)] = q; });
+    R.qf = slots;
+    // en las llaves sin definir, quiénes pueden llegar
+    var cands = function (x) {
+      if (!x) return [];
+      if (x.state === 'completed') return x.teams.filter(function (t) { return t.won; }).map(function (t) { return t.code; });
+      return x.teams.reduce(function (acc, t, j) { return acc.concat(t.code ? [t.code] : (x.from ? x.from[j] : [])); }, []);
+    };
+    R.sf.forEach(function (x, i) { x.from = [cands(R.qf[2 * i]), cands(R.qf[2 * i + 1])]; });
+    R.f.forEach(function (x) { x.from = [cands(R.sf[0]), cands(R.sf[1])]; });
+    var fin = R.f[0], ch = fin && fin.state === 'completed' ? fin.teams.filter(function (t) { return t.won; })[0] : null;
+    R.champion = ch ? ch.code : null;
+    return R;
+  }
+  var BR = {data: null, at: 0, loading: false};
+  async function loadBracket() {
+    if (BR.loading || Date.now() - BR.at < 60000) return BR.data;
+    BR.loading = true;
+    try {
+      var evs = [], tok = null;
+      for (var n = 0; n < 3; n++) {
+        var params = {leagueId: WORLDS}; if (tok) params.pageToken = tok;
+        var d = await api('getSchedule', params);
+        evs = evs.concat(d.schedule.events || []);
+        tok = d.schedule.pages && d.schedule.pages.older; if (!tok) break;
+      }
+      BR.data = buildBracket(evs); BR.at = Date.now();
+    } catch (e) {}
+    BR.loading = false;
+    emit();
+    return BR.data;
+  }
+  RiftEngine.buildBracket = buildBracket;   // la app lo usa con su propio calendario
+  RiftEngine.loadBracket = loadBracket;     // el overlay lo pide solo (se refresca cada minuto)
+  Object.defineProperty(RiftEngine, 'bracket', {get: function () { return BR.data; }});
+
   RiftEngine.MODELO = MODELO;       // fuente única de los pesos del modelo (la app los lee de aquí)
   RiftEngine.PRECISION = PRECISION;
   root.RiftEngine = RiftEngine;

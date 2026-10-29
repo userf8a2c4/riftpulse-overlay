@@ -1060,7 +1060,10 @@ function simCopa() {
   const swPend = W26.filter(e => stage(e) === 'sw' && e.state !== 'completed' && known2(e));
   let piR1 = W26.filter(e => stage(e) === 'pi' && known2(e)).slice(0, 2).map(e => e.match.teams.map(t => t.code));
   if (piR1.length < 2) piR1 = [['C9', 'KC'], ['FUR', 'MVK']];
-  const koQF = W26.filter(e => /cuartos|quarter/i.test(e.blockName || '') && known2(e)).map(e => e.match.teams.map(t => t.code));
+  // cuartos en el orden del cuadro (los que alimentan cada semifinal juntos), no en el orden en que se juegan
+  const BRQ = window.RiftEngine ? RiftEngine.buildBracket(W26) : null;
+  const koQF = BRQ && BRQ.qf.every(q => q.teams.every(t => t.code)) ? BRQ.qf.map(q => q.teams.map(t => t.code))
+    : W26.filter(e => /cuartos|quarter/i.test(e.blockName || '') && known2(e)).map(e => e.match.teams.map(t => t.code));
   const teams0 = [...new Set([...SEEDS.flat().filter(Boolean), ...piR1.flat()])];
   // El Elo crudo exagera las diferencias entre regiones y no sabe del estado de forma:
   // se encogen las distancias a la media y cada simulación agrega una variación por equipo.
@@ -1158,7 +1161,54 @@ function simCopa() {
   renderCopa();
 }
 
+// ---------- cuadro de eliminatorias en vivo (cuartos → semis → final) ----------
+// Probabilidad de que el primer equipo gane la serie: en vivo combina el juego en curso con el Elo; si no, Elo con el marcador.
+function brProb(x) {
+  const [a, b] = x.teams;
+  if (!a.code || !b.code || x.state === 'completed') return null;
+  if (x.state === 'inProgress' && M && M.id === x.id) { const o = ourProbs(); if (o && M.teams[0]) return M.teams[0].code === a.code ? o.serie : 1 - o.serie; }
+  const p = probSerie(a.code, b.code, 1);
+  if (p == null) return null;
+  const f = (u, v) => u >= x.need ? 1 : v >= x.need ? 0 : p * f(u + 1, v) + (1 - p) * f(u, v + 1);
+  return f(a.wins || 0, b.wins || 0);
+}
+function renderCuadro() {
+  const el = $('#cuadro'); if (!el) return;
+  const B = window.RiftEngine && RiftEngine.buildBracket(schedule);
+  if (!B) { el.innerHTML = '<div class="empty">El cuadro aparece cuando se definen los cuartos de final.</div>'; return; }
+  const row = t => (C.rows || []).find(r => r.t === t);
+  const logo = t => C.img[t] ? `<img src="${esc(C.img[t])}" alt="">` : '<span class="br-nl"></span>';
+  const match = (x, reach) => {
+    const p0 = brProb(x), live = x.state === 'inProgress';
+    const head = live ? `<span class="lv">● EN VIVO</span><span>Bo${x.bo}</span>` : x.state === 'completed' ? `<span>Terminada</span><span>Bo${x.bo}</span>` : `<span>${x.start ? fmtDate(x.start) : 'Por programar'}</span><span>Bo${x.bo}</span>`;
+    const team = j => {
+      const t = x.teams[j];
+      if (!t.code) {
+        const fr = (x.from && x.from[j]) || [];
+        const txt = fr.length ? fr.map(c => esc(c) + (reach && row(c) ? ` <span class="br-p">${pct(row(c)[reach])}</span>` : '')).join(' · ') : 'Por definir';
+        return `<div class="br-t tbd"><span class="br-nl"></span><span class="br-c">${txt}</span></div>`;
+      }
+      const cls = t.won ? ' won' : x.state === 'completed' ? ' lost' : '';
+      const sc = x.state !== 'unstarted' ? `<span class="br-w">${t.wins}</span>` : '';
+      const pp = p0 != null ? `<span class="br-p">${pct(j === 0 ? p0 : 1 - p0)}</span>` : '';
+      return `<div class="br-t${cls}">${logo(t.code)}<span class="br-c">${esc(t.code)}</span>${sc}${pp}</div>`;
+    };
+    return `<div class="br-m${live ? ' live' : ''}"><div class="br-mh">${head}</div>${team(0)}${team(1)}</div>`;
+  };
+  const col = (title, html) => `<div class="br-col"><div class="br-h2">${title}</div><div class="br-body">${html}</div></div>`;
+  const qf = col('Cuartos de final', `<div class="br-pair">${match(B.qf[0])}${match(B.qf[1])}</div><div class="br-pair">${match(B.qf[2])}${match(B.qf[3])}</div>`);
+  const sf = col('Semifinales', `<div class="br-pair">${match(B.sf[0], 'sf')}${match(B.sf[1], 'sf')}</div>`);
+  const fi = col('Final', match(B.f[0], 'f'));
+  const favs = (C.rows || []).filter(r => r.c > 0.005).slice(0, 4);
+  const champ = B.champion
+    ? `<div class="br-champ"><div class="tr">🏆</div>${C.img[B.champion] ? `<img src="${esc(C.img[B.champion])}" alt="" style="width:46px;height:46px;object-fit:contain">` : ''}<div class="nm">${esc(B.champion)}</div><div class="pm">Campeón del Mundial 2026</div></div>`
+    : `<div class="br-champ"><div class="tr">🏆</div><div class="pm" style="margin-bottom:6px">Favoritos al título</div>${favs.map(r => `<div class="br-fav">${logo(r.t)}<b>${esc(r.t)}</b><span class="br-p">${pct(r.c)}</span></div>`).join('') || '<div class="pm">Calculando…</div>'}</div>`;
+  el.innerHTML = `<div class="br-wrap"><div class="br">${qf}${sf}${fi}${col('Campeón', champ)}</div></div>
+    <div class="pm" style="margin-top:8px;white-space:normal">En cada serie, a la derecha: probabilidad de ganarla (Elo del sistema; si se está jugando, suma el juego en curso). En las llaves por definir: probabilidad de cada candidato de llegar ahí, según 20.000 simulaciones.</div>`;
+}
+
 function renderCopa() {
+  renderCuadro();
   renderFiab();
   if (!C.rows) return;
   const logo = (t, sz = 22) => C.img[t] ? `<img src="${esc(C.img[t])}" alt="" style="width:${sz}px;height:${sz}px;object-fit:contain;vertical-align:middle">` : '';
@@ -2003,7 +2053,7 @@ function setVista(v) {
     $('#tab' + tab).classList.toggle('on', v === vista);
   }
   store('vista', v);
-  if (v === 'copa') loadCopa();
+  if (v === 'copa') { loadCopa(); renderCuadro(); }
   if (v === 'hist') renderHistList();
   if (v === 'inicio') { loadCopa(); renderInicio(); }
   if (v === 'mando') mandoOn();
@@ -2167,7 +2217,7 @@ function renderMxOv() {
 }
 function renderMxObs() {
   const items = [['Barra en vivo', 'overlay.html'], ['Serie', 'overlay.html?view=serie'], ['Duelos por línea', 'overlay.html?view=duelos'], ['Para remontar (sola)', 'overlay.html?view=remontada'],
-    ['Resumen del juego (solo)', 'overlay.html?view=recap'], ['Claves del momento', 'overlay.html?view=keys'], ['Alerta de giro', 'overlay.html?view=alert'], ['Mesa de análisis', 'analista.html'], ['Control de producción (dock)', 'control.html']];
+    ['Resumen del juego (solo)', 'overlay.html?view=recap'], ['Cuadro de eliminatorias', 'overlay.html?view=cuadro'], ['Claves del momento', 'overlay.html?view=keys'], ['Alerta de giro', 'overlay.html?view=alert'], ['Mesa de análisis', 'analista.html'], ['Control de producción (dock)', 'control.html']];
   $('#mxObs').innerHTML = `<h2>Piezas para OBS</h2><ul class="mx-obs">${items.map(([l, u], i) => `<li><b style="flex:none">${l}</b><span class="u">${OBS_BASE}${u}</span><button class="mx-cp${MX.copied === 'o' + i ? ' ok' : ''}" data-mx="cp" data-k="o${i}" data-u="${OBS_BASE}${u}">${MX.copied === 'o' + i ? '✓' : '📋'}</button></li>`).join('')}</ul>
     <div class="mx-note">Cada pieza va como <b>Navegador</b> (Browser Source) en OBS, 1920 × 1080. Con <code>?demo</code> al final se ven con un partido real ya jugado.</div>`;
 }
@@ -2321,6 +2371,7 @@ async function pinGame(matchId, gameId) {
   setInterval(tickSchedule, 120000);
   setInterval(probeLag, 15000);
   setInterval(() => { renderHead(); renderTimers(); playerTick(); tickReloj(); }, 500);
+  setInterval(() => { if (!$('#vistaCopa').hidden) renderCuadro(); }, 2000);  // el cuadro se mueve con la serie en vivo
   setInterval(renderInicio, 2000);
   setInterval(tickNext, 60000);
   tickNext();

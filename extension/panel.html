@@ -443,6 +443,35 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
 .hx-verdict2 .hx-line{margin-top:12px}
 .hx-pt.hit .hx-pk{color:#86d9b9}.hx-pt.miss .hx-pk{color:var(--muted)}
 .hgames button .mk2.hit{color:#86d9b9}.hgames button .mk2.miss{color:var(--muted)}
+/* ---------- cuadro de eliminatorias ---------- */
+.br-wrap{overflow-x:auto;padding-bottom:4px}
+.br{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr)) minmax(160px,.85fr);gap:22px;min-width:780px}
+.br-col{display:flex;flex-direction:column}
+.br-col>.br-h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin-bottom:8px}
+.br-body{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:14px}
+.br-pair{position:relative;display:flex;flex-direction:column;justify-content:space-around;gap:14px;flex:1}
+.br-pair::after{content:'';position:absolute;right:-12px;top:25%;bottom:25%;width:12px;border:1px solid var(--line-strong);border-left:0;border-radius:0 7px 7px 0}
+.br-pair::before{content:'';position:absolute;right:-22px;top:50%;width:10px;border-top:1px solid var(--line-strong)}
+.br-m{background:var(--surface-3);border:1px solid var(--line-2);border-radius:10px;padding:7px 9px}
+.br-m.live{border-color:#7a1f26;box-shadow:0 0 0 1px rgba(255,90,95,.25),0 0 18px rgba(255,90,95,.15)}
+.br-mh{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-bottom:4px;gap:6px}
+.br-mh .lv{color:#ff6b70;font-weight:700;animation:brp 1.6s ease-in-out infinite}
+@keyframes brp{50%{opacity:.45}}
+.br-t{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:13.5px;min-width:0}
+.br-t img,.br-nl{width:20px;height:20px;object-fit:contain;flex:none}
+.br-nl{display:inline-block;border-radius:50%;background:var(--line-2)}
+.br-c{font-family:var(--ff-display);font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.br-t.tbd .br-c{font-family:inherit;font-weight:500;font-size:12px;color:var(--muted);white-space:normal}
+.br-t.won .br-c{color:var(--text)}.br-t.won .br-w{color:#3ddc97}
+.br-t.lost{opacity:.45}
+.br-w{margin-left:auto;font-family:var(--ff-display);font-weight:700;font-variant-numeric:tabular-nums}
+.br-p{margin-left:auto;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.br-w+.br-p{margin-left:8px}
+.br-champ{background:linear-gradient(180deg,rgba(242,193,78,.12),rgba(242,193,78,.03));border:1px solid rgba(242,193,78,.4);border-radius:12px;padding:12px;text-align:center}
+.br-champ .tr{font-size:26px}
+.br-champ .nm{font-family:var(--ff-display);font-weight:700;font-size:22px;margin:4px 0}
+.br-fav{display:flex;align-items:center;gap:7px;font-size:13px;padding:3px 0;text-align:left}
+.br-fav .br-p{margin-left:auto}
 /* ---------- centro de mando ---------- */
 .mx{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
 @media(max-width:900px){.mx{grid-template-columns:1fr}}
@@ -565,6 +594,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
     </div>
   </div>
   <div id="vistaCopa" hidden>
+    <section class="card" style="margin-top:12px"><h2>Cuadro de eliminatorias · en vivo</h2><p class="card-help">Cuartos, semifinales y final. Se actualiza solo: el marcador de cada serie, la que se está jugando y, para las que faltan, la probabilidad de cada equipo según el sistema.</p><div id="cuadro"><div class="empty">Cargando…</div></div></section>
     <section class="card" style="margin-top:12px"><h2>Favoritos al título</h2><p class="card-help">Probabilidad de que cada equipo gane Worlds 2026, según 20,000 simulaciones del torneo con su formato oficial.</p><div id="copaTop"><div class="empty">Calculando…</div></div></section>
     <section class="card" style="margin-top:12px"><h2>Camino de cada equipo</h2><p class="card-help">Probabilidad de llegar a cada fase del torneo. Cuanto más intenso el color, más probable.</p><div id="copa"><div class="empty">Calculando…</div></div></section>
     <section class="card" style="margin-top:12px" id="fiabCard"><h2>Fiabilidad del sistema</h2><p class="card-help">Qué tan seguido acierta el sistema, medido con partidos que no había visto.</p><div id="fiab"><div class="empty">Calculando…</div></div></section>
