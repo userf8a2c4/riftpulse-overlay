@@ -188,5 +188,5 @@
   }
 
   R.onUpdate(render);
-  R.start();
+  if (!window.RP_NO_AUTOSTART) R.start();  // en modo repetición, la página lo arranca con R.replay(...)
 })();
