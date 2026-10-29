@@ -11,6 +11,7 @@
   var API = 'https://esports-api.lolesports.com/persisted/gw/';
   var FEED = 'https://feed.lolesports.com/livestats/v1/';
   var HL = 'es-MX';
+  var WORLDS = '98767975604431411';
   var DRAG = {
     ocean: ['Océano'], mountain: ['Montaña'], infernal: ['Infernal'], cloud: ['Nube'],
     hextech: ['Hextech'], chemtech: ['Quimtech'], elder: ['Ancestral']
@@ -165,7 +166,8 @@
   var videoDelay = (function () { try { return +(localStorage.getItem('rp_retraso') || VIDEO_DEFAULT); } catch (e) { return VIDEO_DEFAULT; } })();
   var delay = videoDelay;
   var now = function () { return Date.now(); };
-  var dataTime = function () { return now() - delay * 1000; };
+  var REPLAY = null;  // modo repetición: {base, real, vel}
+  var dataTime = function () { return REPLAY ? (REPLAY.base + (Date.now() - REPLAY.real) * REPLAY.vel) : (now() - delay * 1000); };
 
   // ---------- descubrir y seguir el partido en vivo ----------
   var GEN = 0;
@@ -221,7 +223,7 @@
       var tm = f[side + 'Team'];
       if (pick.kind === 'baron') tm.barons = (tm.barons || 0) + 1;
       else tm.dragons = (tm.dragons || []).concat([pick.name === 'Ancestral' ? 'elder' : 'mountain']);
-      return winProbModelo(f, gt).p;
+      return winProb(f, gt).p;
     }
     return {obj: pick.name, at: pick.at, blue: Math.round((sim('blue') - base) * 100), red: Math.round((base - sim('red')) * 100)};
   }
@@ -269,7 +271,37 @@
       liveId = setInterval(sync, 30000);
       loopId = setInterval(function () { tickWindow().catch(function () {}); }, 2000);
     },
-    stop: function () { running = false; if (loopId) clearInterval(loopId); if (liveId) clearInterval(liveId); loopId = liveId = null; }
+    stop: function () { running = false; if (loopId) clearInterval(loopId); if (liveId) clearInterval(liveId); loopId = liveId = null; },
+    // ---------- modo repetición (para probar sobre un VOD) ----------
+    // lista de partidos de Worlds ya jugados, para elegir cuál repetir
+    recentGames: async function () {
+      var all = [], token = null;
+      for (var i = 0; i < 4; i++) {
+        var params = {leagueId: WORLDS}; if (token) params.pageToken = token;
+        var d; try { d = await api('getSchedule', params); } catch (e) { break; }
+        all = all.concat(d.schedule.events || []);
+        token = d.schedule.pages && d.schedule.pages.older; if (!token) break;
+      }
+      return all.filter(function (e) { return e.state === 'completed' && e.match && (e.match.teams || []).every(function (t) { return t.code && t.code !== 'TBD'; }); })
+        .map(function (e) { return {id: e.match.id, blue: e.match.teams[0].code, red: e.match.teams[1].code, bo: (e.match.strategy || {}).count || 1, date: e.startTime, block: e.blockName || ''}; }).reverse();
+    },
+    // reproduce un juego ya jugado desde el minuto `min`, acelerado `vel` veces
+    replay: async function (eventId, juego, min, vel) {
+      this.stop(); running = true; REPLAY = null; M = null; G = null;
+      var d = await api('getEventDetails', {id: eventId}); var e = d.event;
+      M = {id: eventId, league: e.league, strategy: e.match.strategy, teams: e.match.teams, games: e.match.games};
+      var g = M.games[(juego || 1) - 1] || M.games.find(function (x) { return x.state !== 'unstarted'; });
+      if (!g) { emit(); return; }
+      var w0; try { w0 = await feed('window', g.id); } catch (ex) { w0 = null; }
+      if (!w0 || !w0.frames || !w0.frames.length) { emit(); return; }
+      G = newGame(g.id); G.meta = w0.gameMetadata; G.start = Date.parse(w0.frames[0].rfc460Timestamp); G.waiting = false; G.loading = false;
+      processFrame(w0.frames[0]);
+      var startMs = G.start + Math.max(0.1, (min == null ? 8 : min)) * 60000;
+      for (var t = G.start + 30000; t < startMs; t += 30000) { try { var w = await feed('window', g.id, t); var f = w && lastBefore(w.frames, t); if (f) processFrame(f); } catch (ex2) {} }
+      REPLAY = {base: startMs, real: Date.now(), vel: vel || 6};
+      emit();
+      loopId = setInterval(function () { tickWindow().catch(function () {}); }, 1000);
+    }
   };
 
   RiftEngine.MODELO = MODELO;       // fuente única de los pesos del modelo (la app los lee de aquí)
