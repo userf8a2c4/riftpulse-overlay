@@ -844,7 +844,7 @@
       out.push('<b>'+esc(r.code)+'</b> gana en '+mmss(r.dur)+'. Al arrancar el juego el modelo le daba '+pct(r.pre)+'.');
       if (r.comeback) out.push('¡Remontada! Estuvo al <b>'+pct(r.low.p)+'</b> en el min '+mmss(r.low.gt)+'.');
       else out.push('Su peor momento: '+pct(r.low.p)+' en el min '+mmss(r.low.gt)+'.');
-      if (r.swing) out.push(r.swing.b-r.swing.a>360 ? 'Ventaja construida de a poco: <b>+'+Math.round(Math.abs(r.swing.d)*100)+' pts</b> entre el min '+mmss(r.swing.a)+' y el '+mmss(r.swing.b)+'.'
+      if (r.swing) out.push((r.swing.a<60 && r.swing.b-r.swing.a>360) || (r.swing.b-r.swing.a>600 && !/Barón|Pelea|Ancestral|Inhibidor|ALMA/.test(r.swing.cause||'')) ? 'Ventaja construida de a poco: <b>+'+Math.round(Math.abs(r.swing.d)*100)+' pts</b> entre el min '+mmss(r.swing.a)+' y el '+mmss(r.swing.b)+'.'
         : 'El giro decisivo: min '+mmss(r.swing.a)+'–'+mmss(r.swing.b)+', <b>+'+Math.round(Math.abs(r.swing.d)*100)+' pts</b> con '+esc(causaTxt(r.swing.cause, r.swing.side))+'.');
       if (r.key) out.push('Jugador clave: <b>'+esc(r.key.name)+'</b> ('+esc(r.key.code)+', '+esc(r.key.champ)+') · '+r.key.k+'/'+r.key.d+'/'+r.key.a+' · '+Math.round(r.key.share*100)+'% del daño.');
       if (r.stats){ var w=r.stats[r.win], l=r.stats[r.win==='blue'?'red':'blue']; out.push('Kills '+w.kills+'–'+l.kills+' · torres '+w.towers+'–'+l.towers+' · dragones '+w.dragons+'–'+l.dragons+' · Barones '+w.barons+'–'+l.barons+'.'); }
@@ -857,7 +857,7 @@
       var F=function(w,sz,fam){ return w+' '+sz+'px '+(fam||'"Saira Condensed", sans-serif'); };
       c.fillStyle='#0C0E12'; c.fillRect(0,0,W,H);
       var gl=c.createRadialGradient(r.win==='blue'?100:W-100,0,10,r.win==='blue'?100:W-100,0,720); gl.addColorStop(0,'rgba('+Wn.rgb+',.30)'); gl.addColorStop(1,'rgba(0,0,0,0)'); c.fillStyle=gl; c.fillRect(0,0,W,H);
-      c.fillStyle='#C8FF3E'; c.fillRect(60,66,90,4);
+      c.fillStyle='#22D3EE'; c.fillRect(60,66,90,4);
       c.fillStyle='#9AA3B2'; c.font=F(700,22); c.fillText(('Fin del juego'+(m.gameNo?' '+m.gameNo:'')+' · '+(m.league||'')).toUpperCase(),60,96);
       c.fillStyle=Wn.txt; c.font=F(800,84); c.fillText(r.code+' gana',56,176);
       c.fillStyle='#C7CDD8'; c.font=F(500,24,'"Inter Tight", sans-serif'); c.fillText('vs '+r.lose+' · '+mmss(r.dur)+(r.comeback?' · ¡remontada desde el '+pct(r.low.p)+'!':''),60,216);
@@ -872,10 +872,10 @@
       var lines=recapLines(s).slice(2).map(function(t){ return t.replace(/<[^>]+>/g,''); }), y=Y0+CH+66;
       c.fillStyle='#F2F4F7'; c.font=F(500,22,'"Inter Tight", sans-serif');
       lines.slice(0,3).forEach(function(t){ c.fillText(t.length>92?t.slice(0,90)+'…':t,60,y); y+=36; });
-      c.fillStyle='#C8FF3E'; c.fillRect(60,H-62,34,3);
+      c.fillStyle='#22D3EE'; c.fillRect(60,H-62,34,3);
       c.fillStyle='#6E7686'; c.font=F(500,16,'"Inter Tight", sans-serif'); c.fillText('Pronóstico de un modelo propio, sin apuestas. No avalado por Riot Games. #Worlds2026',60,H-30);
       c.textAlign='right'; c.fillStyle='#F2F4F7'; c.font=F(800,24); c.fillText('RIFTPULSE',W-60,H-30);
-      if (s.precision){ c.fillStyle='#C8FF3E'; c.font=F(700,18); c.fillText(Math.round(s.precision.acc15*100)+'% DE ACIERTO AL MIN 15',W-60,H-60); }
+      if (s.precision){ c.fillStyle='#22D3EE'; c.font=F(700,18); c.fillText(Math.round(s.precision.acc15*100)+'% DE ACIERTO AL MIN 15',W-60,H-60); }
       c.textAlign='left';
       return cv.toDataURL('image/png');
     }
@@ -1102,7 +1102,9 @@
     // 2) el giro: el más grande; con el juego terminado, el decisivo del ganador (y el del que perdió, si fue mayor)
     var pts = function (w) { return '<b>+' + Math.round(Math.abs(w.d) * 100) + ' puntos</b>'; };
     var giroTxt = function (w, pre) {
-      if (w.b - w.a > 360) return C[w.side] + ' fue ampliando la ventaja de a poco: ' + pts(w) + ' entre el min ' + mmss(w.a) + ' y el ' + mmss(w.b) + '.';
+      // «de a poco» solo si la ventaja crece desde el arranque, o por más de 10 min sin un Barón ni una pelea que la explique
+      var largo = (w.a < 60 && w.b - w.a > 360) || (w.b - w.a > 600 && !/Barón|Pelea|Ancestral|Inhibidor|ALMA/.test(w.cause || ''));
+      if (largo) return C[w.side] + ' fue ampliando la ventaja de a poco: ' + pts(w) + ' entre el min ' + mmss(w.a) + ' y el ' + mmss(w.b) + '.';
       var ca = causaTxt(w.cause, w.side);
       return (pre || 'El giro') + ': entre el min ' + mmss(w.a) + ' y el ' + mmss(w.b) + ', ' + C[w.side] + ' sumó ' + pts(w) + (ca ? ' con ' + eh(ca) : '') + '.';
     };

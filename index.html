@@ -287,8 +287,8 @@ header.top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;g
 .brand{display:flex;align-items:center;gap:10px}
 .logo{width:38px;height:38px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))}
 .brand-t{font-weight:800;font-size:15px;letter-spacing:.2px}.brand-s{font-size:11px;color:var(--muted)}
-.brand-p{font-size:10.5px;font-weight:700;color:var(--ok);letter-spacing:.2px;margin-top:1px;display:flex;align-items:center;gap:5px}
-.brand-p::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px rgba(61,220,151,.6)}
+.brand-p{font-size:10.5px;font-weight:600;color:var(--muted);letter-spacing:.2px;margin-top:1px;display:flex;align-items:center;gap:5px}
+.brand-p::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--signal);box-shadow:0 0 8px rgba(var(--signal-rgb),.6)}
 .brand-p:empty{display:none}
 nav.tabs{display:flex;justify-content:center;gap:2px;background:var(--surface-3);border:1px solid var(--line-2);border-radius:10px;padding:3px;justify-self:center}
 nav.tabs button{background:transparent;border:0;color:var(--muted);font-family:var(--ff-display);font-size:13px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:7px 15px;border-radius:7px;cursor:pointer;transition:background .15s,color .15s}
@@ -604,7 +604,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
 <div id="tinte"><div class="city"></div><div class="grad"></div></div>
 <div class="wrap">
   <header class="top">
-    <div class="brand"><img class="logo" src="logo.svg" alt="RiftPulse"><div><div class="brand-t">RiftPulse</div><div class="brand-s">League of Legends · Mundial 2026</div><div class="brand-p" id="precHdr"></div><a class="brand-p" href="https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html" target="_blank" rel="noopener" style="color:var(--link);text-decoration:none">¿Cómo funciona? →</a></div></div>
+    <div class="brand"><img class="logo" src="logo.svg" alt="RiftPulse"><div><div class="brand-t">RiftPulse</div><div class="brand-s">Tu segunda pantalla del Mundial</div><div class="brand-p" id="precHdr"></div><a class="brand-p" href="https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html" target="_blank" rel="noopener" style="color:var(--link);text-decoration:none">¿Cómo funciona? →</a></div></div>
     <nav class="tabs"><button id="tabAhora">Ahora</button><button id="tabCopa">Mundial</button><button id="tabHist">Historial</button><button id="tabMando" title="Centro de mando para streamers y analistas">Mando</button></nav>
     <div class="hstat">
       <select id="sel" title="Partido en vivo" hidden></select>
@@ -765,6 +765,8 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const https = u => (u || '').replace(/^http:/, 'https:');
 const mmss = s => { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+// un acierto dicho como lo dice la gente: 0,745 → «3 de cada 4»
+const deCada = a => { let m = null; [[3, 4], [4, 5], [2, 3], [7, 10], [5, 6], [3, 5], [9, 10]].forEach(([x, y]) => { if (!m || Math.abs(x / y - a) < Math.abs(m[0] / m[1] - a)) m = [x, y]; }); return m[0] + ' de cada ' + m[1]; };
 const k1 = g => (g / 1000).toFixed(1).replace('.', ',') + 'k';  // decimales con coma
 const store = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
 
@@ -2403,7 +2405,7 @@ function calibTick() {
 const BACKTEST = {"fecha":"2026-10-16","juego":{"pre":{"juegos":589,"acc":0.6248,"brier":0.2208,"accAnt":0.6265,"brierAnt":0.2256},"m10":{"juegos":589,"acc":0.6842,"brier":0.2023,"accAnt":0.6418,"brierAnt":0.2187},"m15":{"juegos":589,"acc":0.7453,"brier":0.1729,"accAnt":0.7267,"brierAnt":0.1831},"m20":{"juegos":588,"acc":0.7857,"brier":0.145,"accAnt":0.7704,"brierAnt":0.1513},"m25":{"juegos":554,"acc":0.8357,"brier":0.1137,"accAnt":0.8303,"brierAnt":0.1172}},"eventos":"Prueba con 589 juegos de agosto a octubre de 2026 que el modelo no vio (ligas regionales e internacionales). Entrenado con 1658 juegos anteriores; la version activa usa los 2247 juegos"};
 const seriesP = (p, bo) => { const need = Math.ceil(bo / 2), f = (x, y) => x >= need ? 1 : y >= need ? 0 : p * f(x + 1, y) + (1 - p) * f(x, y + 1); return f(0, 0); };
 // Badge de precisión en la cabecera (siempre visible): dato real del backtest.
-try { const _j = BACKTEST && BACKTEST.juego, _e = $('#precHdr'); if (_e && _j && _j.m15) _e.textContent = Math.round(_j.m15.acc * 100) + '% de acierto en vivo · min 15'; } catch (e) {}
+try { const _j = BACKTEST && BACKTEST.juego, _e = $('#precHdr'); if (_e && _j && _j.m15) _e.textContent = 'Acierta ' + deCada(_j.m15.acc) + ' al minuto 15 · medido en ' + (_j.m15.juegos || 589) + ' juegos'; } catch (e) {}
 function eloStats(rows) {
   let gOk = 0, gN = 0, br = 0, sOk = 0;
   const bins = {};
@@ -2568,12 +2570,12 @@ function pronElegir(id, code) {
 function shareMiPron() {
   const r = pronRecord(); if (!r.n) return;
   tarjeta('riftpulse-mi-mundial.png', (c, W) => {
-    brillo(c, 80, 0, 720, '200,255,62', .12);
+    brillo(c, 80, 0, 720, '34,211,238', .12);
     titulito(c, 'Mi Mundial contra RiftPulse', 96);
     c.fillStyle = '#F2F4F7'; c.font = '800 64px "Saira Condensed", sans-serif'; c.fillText(r.gane > 0 ? 'Le gané al modelo ' + r.gane + (r.gane === 1 ? ' vez' : ' veces') : 'Mi récord del Mundial', 60, 176);
     const caja = (x, n, k, col) => { c.fillStyle = '#14171D'; c.fillRect(x, 230, 250, 170); c.fillStyle = col; c.fillRect(x, 230, 250, 4);
       c.fillStyle = '#F2F4F7'; c.font = '800 76px "Saira Condensed", sans-serif'; c.fillText(n, x + 22, 330); c.fillStyle = '#9AA3B2'; c.font = '600 20px "Inter Tight", sans-serif'; c.fillText(k, x + 22, 372); };
-    caja(60, r.yo + '/' + r.n, 'mis aciertos', '#C8FF3E'); caja(330, r.rp + '/' + r.rpN, 'RiftPulse', '#9AA3B2'); caja(600, String(r.mejor), 'mejor racha', '#C8FF3E'); caja(870, String(r.gane), 'le gané al modelo', '#C8FF3E');
+    caja(60, r.yo + '/' + r.n, 'mis aciertos', '#22D3EE'); caja(330, r.rp + '/' + r.rpN, 'RiftPulse', '#9AA3B2'); caja(600, String(r.mejor), 'mejor racha', '#22D3EE'); caja(870, String(r.gane), 'le gané al modelo', '#22D3EE');
     c.fillStyle = '#6E7686'; c.font = '500 18px "Inter Tight", sans-serif'; c.fillText('Series del Mundial 2026 elegidas antes de empezar. RiftPulse: probabilidad de su modelo en ese momento.', 60, 460);
   });
 }
@@ -2795,14 +2797,14 @@ async function tarjeta(nombre, dibujar) {
   const W = 1200, H = 675, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
   c.fillStyle = '#0C0E12'; c.fillRect(0, 0, W, H);
   dibujar(c, W, H);
-  c.fillStyle = '#C8FF3E'; c.fillRect(60, H - 62, 34, 3);
+  c.fillStyle = '#22D3EE'; c.fillRect(60, H - 62, 34, 3);
   c.textAlign = 'left'; c.fillStyle = '#6E7686'; c.font = '500 16px "Inter Tight", sans-serif';
   c.fillText('Pronóstico de un modelo propio, sin apuestas. No avalado por Riot Games. #Worlds2026', 60, H - 30);
   c.textAlign = 'right'; c.fillStyle = '#F2F4F7'; c.font = '800 24px "Saira Condensed", sans-serif'; c.fillText('RIFTPULSE', W - 60, H - 30); c.textAlign = 'left';
   const l = document.createElement('a'); l.href = cv.toDataURL('image/png'); l.download = nombre; l.click();
 }
 const brillo = (c, x, y, r, rgb, a) => { const g = c.createRadialGradient(x, y, 10, x, y, r); g.addColorStop(0, `rgba(${rgb},${a})`); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.fillRect(0, 0, 1200, 675); };
-const titulito = (c, txt, y) => { c.fillStyle = '#C8FF3E'; c.fillRect(60, y - 30, 90, 4); c.fillStyle = '#9AA3B2'; c.font = '700 22px "Saira Condensed", sans-serif'; c.fillText(txt.toUpperCase().slice(0, 70), 60, y); };
+const titulito = (c, txt, y) => { c.fillStyle = '#22D3EE'; c.fillRect(60, y - 30, 90, 4); c.fillStyle = '#9AA3B2'; c.font = '700 22px "Saira Condensed", sans-serif'; c.fillText(txt.toUpperCase().slice(0, 70), 60, y); };
 // la barra de dos colores con los porcentajes adentro
 function barra2(c, x, y, w, h, p, A, B) {
   c.fillStyle = A.main; c.fillRect(x, y, w * p, h); c.fillStyle = B.main; c.fillRect(x + w * p, y, w * (1 - p), h);
@@ -2831,7 +2833,7 @@ function sharePickem() {
   const w30 = by(x => x.w30).slice(0, 2), l03 = by(x => x.l03).slice(0, 2), used = new Set([...w30, ...l03].map(x => x.t));
   const adv = by(x => x.qf - x.w30).filter(x => !used.has(x.t)).slice(0, 5);
   tarjeta('riftpulse-pickem.png', (c, W) => {
-    brillo(c, W - 100, 0, 760, '200,255,62', .10);
+    brillo(c, W - 100, 0, 760, '34,211,238', .10);
     titulito(c, "Mi Pick'Em · Sistema Suizo", 96);
     c.fillStyle = '#F2F4F7'; c.font = '800 64px "Saira Condensed", sans-serif'; c.fillText('Según RiftPulse', 60, 170);
     const fila = (y, k, lista, f) => {

@@ -857,7 +857,7 @@
       var F=function(w,sz,fam){ return w+' '+sz+'px '+(fam||'"Saira Condensed", sans-serif'); };
       c.fillStyle='#0C0E12'; c.fillRect(0,0,W,H);
       var gl=c.createRadialGradient(r.win==='blue'?100:W-100,0,10,r.win==='blue'?100:W-100,0,720); gl.addColorStop(0,'rgba('+Wn.rgb+',.30)'); gl.addColorStop(1,'rgba(0,0,0,0)'); c.fillStyle=gl; c.fillRect(0,0,W,H);
-      c.fillStyle='#C8FF3E'; c.fillRect(60,66,90,4);
+      c.fillStyle='#22D3EE'; c.fillRect(60,66,90,4);
       c.fillStyle='#9AA3B2'; c.font=F(700,22); c.fillText(('Fin del juego'+(m.gameNo?' '+m.gameNo:'')+' · '+(m.league||'')).toUpperCase(),60,96);
       c.fillStyle=Wn.txt; c.font=F(800,84); c.fillText(r.code+' gana',56,176);
       c.fillStyle='#C7CDD8'; c.font=F(500,24,'"Inter Tight", sans-serif'); c.fillText('vs '+r.lose+' · '+mmss(r.dur)+(r.comeback?' · ¡remontada desde el '+pct(r.low.p)+'!':''),60,216);
@@ -872,10 +872,10 @@
       var lines=recapLines(s).slice(2).map(function(t){ return t.replace(/<[^>]+>/g,''); }), y=Y0+CH+66;
       c.fillStyle='#F2F4F7'; c.font=F(500,22,'"Inter Tight", sans-serif');
       lines.slice(0,3).forEach(function(t){ c.fillText(t.length>92?t.slice(0,90)+'…':t,60,y); y+=36; });
-      c.fillStyle='#C8FF3E'; c.fillRect(60,H-62,34,3);
+      c.fillStyle='#22D3EE'; c.fillRect(60,H-62,34,3);
       c.fillStyle='#6E7686'; c.font=F(500,16,'"Inter Tight", sans-serif'); c.fillText('Pronóstico de un modelo propio, sin apuestas. No avalado por Riot Games. #Worlds2026',60,H-30);
       c.textAlign='right'; c.fillStyle='#F2F4F7'; c.font=F(800,24); c.fillText('RIFTPULSE',W-60,H-30);
-      if (s.precision){ c.fillStyle='#C8FF3E'; c.font=F(700,18); c.fillText(Math.round(s.precision.acc15*100)+'% DE ACIERTO AL MIN 15',W-60,H-60); }
+      if (s.precision){ c.fillStyle='#22D3EE'; c.font=F(700,18); c.fillText(Math.round(s.precision.acc15*100)+'% DE ACIERTO AL MIN 15',W-60,H-60); }
       c.textAlign='left';
       return cv.toDataURL('image/png');
     }

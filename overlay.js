@@ -46,7 +46,7 @@
   // tokens del sistema visual dentro del shadow DOM (los colores del partido los pone RP.colores en el host)
   var TOK = ':host{--bg:#0C0E12;--bg-rgb:12,14,18;--g0:#101318;--g0-rgb:16,19,24;--g1:#14171D;--g1-rgb:20,23,29;--g2:#1B1F27;--g2-rgb:27,31,39;--line-rgb:220,226,236;' +
     '--line:rgba(220,226,236,.09);--line-2:rgba(220,226,236,.06);--line-strong:rgba(220,226,236,.16);--text:#F2F4F7;--muted:#9AA3B2;--text-dim:#6E7686;' +
-    '--signal:#C8FF3E;--signal-2:#9ED62A;--signal-soft:#E4FF9E;--signal-rgb:200,255,62;--signal-ink:#10140A;--ok:#2FD6A0;--live:#FF4D5A;--link:#9CC8FF;' +
+    '--signal:#22D3EE;--signal-2:#0EA5C6;--signal-soft:#A5F3FC;--signal-rgb:34,211,238;--signal-ink:#0C0E12;--ok:#2FD6A0;--live:#FF4D5A;--link:#9CC8FF;' +
     '--team-a:#3D8BFF;--team-a-2:#2A63C0;--team-a-hi:#8DBBFF;--team-a-ink:#FFFFFF;--team-a-rgb:61,139,255;--team-a-txt:#7FB2FF;' +
     '--team-b:#FF4655;--team-b-2:#C0303D;--team-b-hi:#FF96A0;--team-b-ink:#FFFFFF;--team-b-rgb:255,70,85;--team-b-txt:#FF7C87;' +
     '--ff:Inter Tight,system-ui,sans-serif;--ffd:Saira Condensed,Inter Tight,sans-serif;--ffm:JetBrains Mono,ui-monospace,monospace}';

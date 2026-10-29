@@ -2,7 +2,7 @@
 
 # RiftPulse
 
-Una segunda pantalla para ver el **Mundial de League of Legends 2026 (Worlds)**: predicción en vivo del ganador con un modelo entrenado y **honesto sobre sus aciertos**, la historia de cada juego, simulación del torneo y ayuda para el Pick'Em oficial. Todo en los **colores de cada equipo**.
+**Tu segunda pantalla del Mundial.** Para ver el **Mundial de League of Legends 2026 (Worlds)**: predicción en vivo del ganador con un modelo entrenado y **honesto sobre sus aciertos**, la historia de cada juego, simulación del torneo y ayuda para el Pick'Em oficial. Todo en los **colores de cada equipo**.
 
 Es un solo archivo HTML, sin instalación ni servidor. Proyecto de código abierto, **sin funciones de apuestas**.
 
