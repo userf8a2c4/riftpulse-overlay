@@ -183,6 +183,12 @@
     M = {id: id, league: e.league, strategy: e.match.strategy, teams: e.match.teams, games: e.match.games};
     return M.games.find(function (x) { return x.state === 'inProgress'; });
   }
+  var NEXTM = null;  // próximo partido (cuando no hay nada en vivo)
+  async function upcoming() {
+    var d = await api('getSchedule', {leagueId: WORLDS});
+    var ev = (d.schedule.events || []).filter(function (e) { return e.state === 'unstarted' && e.match && (e.match.teams || []).every(function (t) { return t.code && t.code !== 'TBD'; }); })[0];
+    return ev ? {blue: ev.match.teams[0].code, red: ev.match.teams[1].code, at: ev.startTime, block: ev.blockName || ''} : null;
+  }
   async function startGame(id) {
     var gen = ++GEN;
     G = newGame(id);
@@ -241,7 +247,7 @@
         reasons: G.wp ? G.wp.parts : [], events: G.events.slice(-8), timers: G.t,
         stats: G.last ? {blue: tstat(G.last.blueTeam), red: tstat(G.last.redTeam)} : null,
         samples: G.samples ? G.samples.slice() : [], impact: impactNext()} : null,
-      blueCode: blueCode, redCode: redCode, delay: delay, precision: PRECISION, at: Date.now()
+      blueCode: blueCode, redCode: redCode, delay: delay, precision: PRECISION, next: NEXTM, at: Date.now()
     };
   }
   function emit() { var s = snapshot(); for (var i = 0; i < subs.length; i++) { try { subs[i](s); } catch (e) {} } }
@@ -264,7 +270,7 @@
           var evt = await findLive();
           if (evt && (!M || M.id !== evt.id)) { var g = await loadEvent(evt.id); if (g) await startGame(g.id); }
           else if (evt && M && (!G || G.ended)) { var g2 = await loadEvent(evt.id); if (g2 && (!G || g2.id !== G.id)) await startGame(g2.id); }
-          else if (!evt) { M = null; G = null; emit(); }
+          else if (!evt) { M = null; G = null; try { NEXTM = await upcoming(); } catch (e) {} emit(); }
         } catch (e) {}
       }
       await sync();
