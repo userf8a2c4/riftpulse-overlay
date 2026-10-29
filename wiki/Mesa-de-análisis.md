@@ -13,6 +13,10 @@ Sin partido en vivo, pruébala con un partido real ya jugado: `analista.html?dem
 - **Por qué** — el desglose de los factores del modelo (oro, torres, dragones, almas, Barón, inhibidores…).
 - **Momentum y giros clave** — la probabilidad en todo el juego, con los tramos donde saltó 9 puntos o más sombreados y su causa (*"min 20:30–24:00, GEN +38: Barón Nashor"*).
 - **Objetivos y eventos** — timers y lo que va pasando.
+- **Mapa de la Grieta** — un mapa esquemático con puntos para tocar: el pozo del dragón (dragones tomados por tipo y minuto, alma, próximo), el del Barón (quién lo tomó, buff activo, cuándo reaparece) y cada base (torres perdidas, inhibidores caídos y cuándo reaparecen). El punto se ilumina si pasó algo en el último minuto.
+- **Oro y objetivos** — la diferencia de oro de todo el juego, con dragones, Barones e inhibidores marcados donde ocurrieron.
+- **Kills en el tiempo** y **rendimiento por jugador** (campeón, % del daño del equipo, oro y CS por minuto).
+- **Alineaciones de la serie** — los 10 campeones de cada mapa jugado o en curso, quién ganó y cuánto duró. El feed oficial no trae los bloqueos (bans).
 - **Duelos por línea** — top, jungla, mid, ADC y soporte frente a su rival directo: diferencia de oro y CS, K/D/A y campeón. Destaca al **jugador clave** del momento (oro sobre su rival, % del daño del equipo y participación en kills).
 - **Serie** — cuánto vale este juego: probabilidad de llevarse la serie si lo gana cada equipo, y ahora mismo. Los juegos que faltan se cuentan 50/50 (el motor no estima la fuerza previa de los equipos). Incluye el **cara a cara** de 2025–26.
 - **Draft y ventana de poder** — el plan de cada draft según la escala de sus campeones en ~2,200 juegos profesionales, y quién necesita ventaja antes del min ~20–24. Es contexto: no cambia la probabilidad.

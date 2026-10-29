@@ -25,7 +25,7 @@ El overlay y el control se sincronizan cuando **ambos corren en OBS** (comparten
 <p align="center"><img src="https://raw.githubusercontent.com/userf8a2c4/riftpulse-overlay/main/docs/img/predicciones.png" width="760" alt="Predicciones del stream"><br><sub>Datos de ejemplo.</sub></p>
 
 La gráfica de picks del equipo del stream, como la de las transmisiones oficiales, pero con aciertos automáticos.
-1. Ponle **título** (por ejemplo, «Predicciones del Boom»).
+1. Ponle **título** (por ejemplo, «Predicciones del stream» o el nombre de tu canal).
 2. Agrega a los **integrantes**, todos los que quieras: nombre y, si quieres, una **foto** (se sube desde la computadora y se ajusta sola).
 3. Elige **qué partidos**: el próximo día con partidos (automático), cualquier día del torneo o una **fase completa** (por ejemplo, todos los cuartos).
 4. Toca el equipo que elige cada integrante en cada partido.
