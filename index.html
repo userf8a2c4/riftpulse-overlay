@@ -1511,7 +1511,7 @@ function renderEvents() {
   if (!G || !G.events.length) { el.innerHTML = '<li class="pm">Sin eventos todavía.</li>'; return; }
   const km = keyMoments(G.samples, G.events);
   const kmHtml = km.length ? '<li class="km-h">⚡ Giros clave · cuánto movió el pronóstico</li>' + km.map(m =>
-    `<li class="km"><span class="t">${mmss(m.b)}</span><b class="${m.side[0]}">▲ ${Math.round(Math.abs(m.d) * 100)} pts ${esc(code(m.side))}</b> <span class="pm">· ${esc(m.cause)}</span></li>`).join('') + '<li class="km-h">Bitácora</li>' : '';
+    `<li class="km"><span class="t">${mmss(m.b)}</span><b class="${m.side[0]}">▲ ${Math.round(Math.abs(m.d) * 100)} pts ${esc(code(m.side))}</b> <span class="pm">· ${esc(RiftEngine.causaTxt(m.cause, m.side))}</span></li>`).join('') + '<li class="km-h">Bitácora</li>' : '';
   el.innerHTML = kmHtml + G.events.slice().reverse().slice(0, 30).map(e => `<li><span class="t">${mmss(e.gt)}</span>${evIcon(e.kind)} <b class="${e.side[0]}">${esc(code(e.side))}</b> ${esc(e.txt)}</li>`).join('');
 }
 
@@ -3227,14 +3227,14 @@ function renderMando() {
   chips.push(`<div class="mx-k">Min <b>${mmss(g.gt)}</b>${m.gameNo ? ` · juego ${m.gameNo}` : ''}</div>`);
   if (g.acc != null) chips.push(`<div class="mx-k" title="Acierto medido del modelo a este minuto, sobre 589 juegos que no había visto">A este minuto acierta <b>${mxPct(g.acc)}</b></div>`);
   const clip = (g.swings || []).filter(x => Math.abs(x.d) >= 0.2 && g.gt - x.b <= 150).slice(-1)[0];
-  MX.clip = clip ? `🎬 Momento clave: min ${mmss(clip.a)}–${mmss(clip.b)}, ${clip.code} +${Math.round(Math.abs(clip.d) * 100)} puntos de probabilidad (${clip.cause}). Según RiftPulse · #Worlds2026` : null;
+  MX.clip = clip ? `🎬 Momento clave: min ${mmss(clip.a)}–${mmss(clip.b)}, ${clip.code} +${Math.round(Math.abs(clip.d) * 100)} puntos de probabilidad (${RiftEngine.causaTxt(clip.cause, clip.side)}). Según RiftPulse · #Worlds2026` : null;
   if (se && se.bo > 1) chips.push(`<div class="mx-k">Serie Bo${se.bo} <b>${se.score[0]}–${se.score[1]}</b> · si gana <b class="b">${esc(m.blue.code)}</b> ${mxPct(se.ifBlue)} · si gana <b class="r">${esc(m.red.code)}</b> ${mxPct(1 - se.ifRed)}</div>`);
   if (im) chips.push(`<div class="mx-k">${im.at <= g.gt ? `<b>${esc(im.obj)}</b> ya está en el mapa` : `Próx. <b>${esc(im.obj)}</b> en ${mmss(im.at - g.gt)}`}: <b class="b">${esc(m.blue.code)} ${im.blue >= 0 ? '+' : ''}${im.blue}</b> · <b class="r">${esc(m.red.code)} ${im.red >= 0 ? '+' : ''}${im.red}</b> pts</div>`);
   const fdt = s.feed && s.feed.estado !== 'ok' && s.feed.estado !== 'demo' ? `<span class="mx-badge demo">${esc(s.feed.txt)}</span>` : '';
   air.innerHTML = `<div class="mx-h"><h2>Al aire ahora</h2>${segBtn}${s.demo ? '<button class="mx-btn" data-mx="live">⏹ Volver al vivo</button>' : ''}</div><div class="mx-top">${badge}${fdt}<span>${esc(m.league || '')}</span></div>
     <div class="mx-teams"><span class="b">${esc(m.blue.code)}</span><span class="sc">${m.blue.wins == null || sinSpoilers() ? 'vs' : m.blue.wins + ' – ' + m.red.wins}</span><span class="r">${esc(m.red.code)}</span></div>
     <div class="mx-bar"><div class="pb" style="width:${Math.min(85, Math.max(pb, 15))}%">${pb}%</div><div class="pr" style="width:${Math.min(85, Math.max(pr, 15))}%">${pr}%</div></div>
-    <div class="mx-row">${chips.join('')}</div>${clip ? `<div class="mx-clip">🎬 <span><b>Momento para clip</b> · min ${mmss(clip.a)}–${mmss(clip.b)}: <b class="${mxSc(clip.side)}">${esc(clip.code)} +${Math.round(Math.abs(clip.d) * 100)}</b> (${esc(clip.cause)})</span><button class="mx-btn${MX.copied === 'clip' ? ' on' : ''}" data-mx="cp" data-k="clip">${MX.copied === 'clip' ? '✓' : '📋 Texto'}</button></div>` : ''}${mxSpark(g)}`;
+    <div class="mx-row">${chips.join('')}</div>${clip ? `<div class="mx-clip">🎬 <span><b>Momento para clip</b> · min ${mmss(clip.a)}–${mmss(clip.b)}: <b class="${mxSc(clip.side)}">${esc(clip.code)} +${Math.round(Math.abs(clip.d) * 100)}</b> (${esc(RiftEngine.causaTxt(clip.cause, clip.side))})</span><button class="mx-btn${MX.copied === 'clip' ? ' on' : ''}" data-mx="cp" data-k="clip">${MX.copied === 'clip' ? '✓' : '📋 Texto'}</button></div>` : ''}${mxSpark(g)}`;
 
   // guion: frases con botón para copiar
   const talk = RiftEngine.talk(s);
@@ -3251,7 +3251,7 @@ function renderMando() {
   if (mi) rd += `<div class="mx-sub">Qué mirar ahora</div><div style="font-size:13.5px"><b>${esc(mi.obj)}</b> ${mi.vivo ? '<b>ya está en el mapa</b>' : `en <b>${mmss(mi.en)}</b>`}${mi.impacto ? ` · si lo toma <b class="b">${esc(m.blue.code)}</b> ${mi.impacto.blue >= 0 ? '+' : ''}${mi.impacto.blue} pts, si lo toma <b class="r">${esc(m.red.code)}</b> ${mi.impacto.red >= 0 ? '+' : ''}${mi.impacto.red} pts` : ''}.${mi.mejor ? ` Llega mejor <b class="${mxSc(mi.mejor)}">${esc(mi.code)}</b>: ${mi.por.map(x => esc(x.txt)).join(' y ')}.` : ''}</div>`;
   if (cb) rd += `<div class="mx-sub">Qué cambió en el último minuto</div><div style="font-size:13.5px">${cb.dp ? `<b class="${mxSc(cb.dp > 0 ? 'blue' : 'red')}">${esc(cb.dp > 0 ? m.blue.code : m.red.code)} +${Math.abs(cb.dp)} pts</b>` : 'Probabilidad sin cambios'}${cb.items.length ? ' · ' + cb.items.map(x => `<b class="${mxSc(x.side)}">${esc(x.code)}</b> ${esc(x.txt)}`).join(', ') : ''}.</div>`;
   rd += '<div class="mx-sub">Giros clave</div>';
-  rd += sw.length ? `<ul class="mx-list">${sw.map(x => `<li><span class="t">${mmss(x.a)}–${mmss(x.b)}</span><span><b class="${mxSc(x.side)}">${esc(x.code)} +${Math.round(Math.abs(x.d) * 100)}</b> · ${esc(x.cause)}</span></li>`).join('')}</ul>` : '<div class="mx-note">Todavía no hay giros de 9 puntos o más.</div>';
+  rd += sw.length ? `<ul class="mx-list">${sw.map(x => `<li><span class="t">${mmss(x.a)}–${mmss(x.b)}</span><span><b class="${mxSc(x.side)}">${esc(x.code)} +${Math.round(Math.abs(x.d) * 100)}</b> · ${esc(RiftEngine.causaTxt(x.cause, x.side))}</span></li>`).join('')}</ul>` : '<div class="mx-note">Todavía no hay giros de 9 puntos o más.</div>';
   rd += '<div class="mx-sub">Para remontar</div>';
   rd += c ? `<div style="font-size:13.5px"><b class="${mxSc(c.side)}">${esc(c.code)}</b> está en ${mxPct(c.p)}. ${c.reached ? 'Necesita' : 'Lo que más lo acerca:'} <b>${esc(c.paths[0].txt)}</b> → ${mxPct(c.paths[0].p)}${c.paths[1] ? `, o <b>${esc(c.paths[1].txt)}</b> → ${mxPct(c.paths[1].p)}` : ''}.</div>` : '<div class="mx-note">Nadie está por debajo del 45%.</div>';
   if (k) rd += `<div class="mx-key">⭐ Jugador clave: <b>${esc(k.name)}</b> (${esc(k.code)}, ${esc(k.champ)}) · ${k.gd >= 0 ? '+' : '−'}${mxK(k.gd)} de oro sobre ${esc(k.vs)} · ${Math.round(k.share * 100)}% del daño · ${k.k}/${k.d}/${k.a}</div>`;
@@ -3275,7 +3275,7 @@ function renderMando() {
 const hms = t => { t = Math.max(0, Math.round(t)); const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), x = t % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
 function mxMomentos(s) {
   const g = s.game, m = s.match, out = [];
-  (g.swings || []).filter(x => Math.abs(x.d) >= 0.09).forEach(x => out.push({gt: x.a, txt: `${x.code} +${Math.round(Math.abs(x.d) * 100)} puntos (${x.cause})`, side: x.side, peso: 2}));
+  (g.swings || []).filter(x => Math.abs(x.d) >= 0.09).forEach(x => out.push({gt: x.a, txt: `${x.code} +${Math.round(Math.abs(x.d) * 100)} puntos (${RiftEngine.causaTxt(x.cause, x.side)})`, side: x.side, peso: 2}));
   (g.events || []).filter(e => ['baron', 'elder', 'inhib'].includes(e.kind) || (e.kind === 'fight' && (d => !!d && Math.abs(d[1] - d[2]) >= 2)(String(e.txt).match(/(\d+)\s*–\s*(\d+)/))))
     .forEach(e => out.push({gt: e.gt, txt: e.txt, side: e.side, peso: 1}));
   if (g.ended && g.recap) out.push({gt: g.gt, txt: `${g.recap.code} gana el juego`, side: g.recap.win, peso: 3});

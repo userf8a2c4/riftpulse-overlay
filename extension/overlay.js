@@ -611,7 +611,7 @@
     var bw = function (x) { return R.banda ? R.banda(x.gt) || 0 : 0; };  // banda de confianza
     var band = 'M' + sm.map(function (x) { return X(x.gt).toFixed(1) + ' ' + Y(Math.min(1, x.p + bw(x))).toFixed(1); }).join(' L') + ' L' + sm.slice().reverse().map(function (x) { return X(x.gt).toFixed(1) + ' ' + Y(Math.max(0, x.p - bw(x))).toFixed(1); }).join(' L') + ' Z';
     TLM = [];
-    (g.swings || []).forEach(function (w) { TLM.push({gt: w.a, txt: (w.side === 'blue' ? s.match.blue.code : s.match.red.code) + ' +' + Math.round(Math.abs(w.d) * 100) + ' · ' + (w.cause || 'giro'), c: w.side === 'blue' ? RPC.a : RPC.b, r: 6}); });
+    (g.swings || []).forEach(function (w) { TLM.push({gt: w.a, txt: (w.side === 'blue' ? s.match.blue.code : s.match.red.code) + ' +' + Math.round(Math.abs(w.d) * 100) + ' · ' + ((R.causaTxt ? R.causaTxt(w.cause, w.side) : w.cause) || 'giro'), c: w.side === 'blue' ? RPC.a : RPC.b, r: 6}); });
     (g.events || []).forEach(function (e) { if (['dragon', 'baron', 'elder', 'inhib'].indexOf(e.kind) >= 0) TLM.push({gt: e.gt, txt: e.txt, c: e.side === 'blue' ? RPC.a : RPC.b, r: 4}); });
     TLM.sort(function (a, b) { return a.gt - b.gt; });
     var mk = TLM.map(function (m, i) { return '<g class="mk" data-tl="' + i + '"><title>' + esc(mmss(m.gt) + ' · ' + m.txt) + '</title><circle cx="' + X(m.gt).toFixed(1) + '" cy="' + (m.r > 5 ? 9 : H - 6) + '" r="' + m.r + '" fill="' + m.c + '" stroke="#101318" stroke-width="1.5"/></g>'; }).join('');

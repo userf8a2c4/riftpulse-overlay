@@ -31,7 +31,7 @@
   }
 
   // ---------- helpers ----------
-  var k1 = function (g) { return (g / 1000).toFixed(1) + 'k'; };
+  var k1 = function (g) { return (g / 1000).toFixed(1).replace('.', ',') + 'k'; };
   var mmss = function (s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
   var https = function (u) { return (u || '').replace(/^http:/, 'https:'); };
   var iso10 = function (t) { return new Date(Math.floor(t / 10000) * 10000).toISOString().replace(/\.\d{3}Z$/, 'Z'); };
@@ -298,6 +298,20 @@
   var champName = function (id) { id = String(id || ''); return CHAMP_ES[id] || id.replace(/([a-z])([A-Z])/g, '$1 $2'); };
   var other = function (side) { return side === 'blue' ? 'red' : 'blue'; };
 
+  // la causa de un giro, dicha en castellano y desde el equipo del giro: «una pelea ganada 3–0 y el Barón»
+  function causaTxt(cause, side) {
+    var partes = String(cause || '').split(/,\s*/).filter(Boolean).map(function (c) {
+      var p = c.match(/^Pelea:\s*\S+\s+(\d+)\s*[–-]\s*(\d+)\s+\S+/);
+      if (p) { var a = +p[1], b = +p[2], mio = side === 'blue' ? a : b, suyo = side === 'blue' ? b : a; return mio >= suyo ? 'una pelea ganada ' + mio + '–' + suyo : 'una pelea perdida ' + mio + '–' + suyo; }
+      if (/^Barón/.test(c)) return 'el Barón';
+      if (/^Primera sangre/.test(c)) return 'la primera sangre';
+      if (/^Inhibidor/.test(c)) return 'un inhibidor';
+      if (/^Dragón/.test(c)) return 'el ' + c.replace(' · ¡ALMA!', ' (alma)');
+      if (/torres?$/i.test(c)) return /^\d/.test(c) ? c : 'una torre';
+      return c;
+    });
+    return partes.length > 1 ? partes.slice(0, -1).join(', ') + ' y ' + partes[partes.length - 1] : partes[0] || '';
+  }
   // Giros clave: tramos donde la probabilidad saltó 9 pts o más, con la causa más probable (eventos de ese equipo en el tramo).
   function keyMoments(maxN) {
     var S = G ? G.samples : null, out = [];
@@ -830,7 +844,8 @@
       out.push('<b>'+esc(r.code)+'</b> gana en '+mmss(r.dur)+'. Al arrancar el juego el modelo le daba '+pct(r.pre)+'.');
       if (r.comeback) out.push('¡Remontada! Estuvo al <b>'+pct(r.low.p)+'</b> en el min '+mmss(r.low.gt)+'.');
       else out.push('Su peor momento: '+pct(r.low.p)+' en el min '+mmss(r.low.gt)+'.');
-      if (r.swing) out.push('El giro decisivo: min '+mmss(r.swing.a)+'–'+mmss(r.swing.b)+', <b>+'+Math.round(Math.abs(r.swing.d)*100)+' pts</b> ('+esc(r.swing.cause)+').');
+      if (r.swing) out.push(r.swing.b-r.swing.a>360 ? 'Ventaja construida de a poco: <b>+'+Math.round(Math.abs(r.swing.d)*100)+' pts</b> entre el min '+mmss(r.swing.a)+' y el '+mmss(r.swing.b)+'.'
+        : 'El giro decisivo: min '+mmss(r.swing.a)+'–'+mmss(r.swing.b)+', <b>+'+Math.round(Math.abs(r.swing.d)*100)+' pts</b> con '+esc(causaTxt(r.swing.cause, r.swing.side))+'.');
       if (r.key) out.push('Jugador clave: <b>'+esc(r.key.name)+'</b> ('+esc(r.key.code)+', '+esc(r.key.champ)+') · '+r.key.k+'/'+r.key.d+'/'+r.key.a+' · '+Math.round(r.key.share*100)+'% del daño.');
       if (r.stats){ var w=r.stats[r.win], l=r.stats[r.win==='blue'?'red':'blue']; out.push('Kills '+w.kills+'–'+l.kills+' · torres '+w.towers+'–'+l.towers+' · dragones '+w.dragons+'–'+l.dragons+' · Barones '+w.barons+'–'+l.barons+'.'); }
       return out;
@@ -867,7 +882,8 @@
     function talk(s){
       var m=s.match, g=s.game, out=[];
       var pb=Math.round(g.pBlue*100), lead = pb>=50, lc = lead?m.blue.code:m.red.code, lp = lead?pb:100-pb;
-      out.push('RiftPulse da <b>'+lp+'%</b> a <b>'+esc(lc)+'</b> ahora mismo ('+mmss(g.gt)+').');
+      if (g.ended && g.recap) out.push('<b>'+esc(g.recap.code)+'</b> ganó el juego en '+mmss(g.recap.dur)+'; al final RiftPulse le daba <b>'+(g.recap.win==='blue'?pb:100-pb)+'%</b>.');
+      else out.push('RiftPulse da <b>'+lp+'%</b> a <b>'+esc(lc)+'</b> ahora mismo ('+mmss(g.gt)+').');
       var top=(g.reasons||[]).filter(function(x){ return (x.z>=0)===lead && Math.abs(x.z)>=0.15; })[0];  // los factores con poco peso son ruido: no se dicen
       if (top) out.push('Su mayor factor: <b>'+esc(top.txt)+'</b>.');
       // momentum
@@ -1064,6 +1080,7 @@
     return D;
   };
   RiftEngine.aprenderColor = aprenderColor;
+  RiftEngine.causaTxt = causaTxt;
   // ---------- la historia del juego: frases a partir de lo que pasó (giros, objetivos, oro) ----------
   var kc = function (g) { return (Math.abs(g) / 1000).toFixed(1).replace('.', ',') + 'k'; };
   var pc = function (x) { return Math.round(x * 100) + '%'; };
@@ -1080,11 +1097,22 @@
       var la = e14.diff >= 0 ? 'blue' : 'red', fb = ev.filter(function (e) { return e.kind === 'fb'; })[0];
       var dl = cuenta('dragon', la, 840);
       if (Math.abs(e14.diff) >= 1000) out.push(C[la] + ' tomó el control temprano: +' + kc(e14.diff) + ' de oro al min ' + mmss(e14.gt) + (dl >= 2 ? ' y ' + dl + ' dragones' : '') + '.');
-      else out.push('Arranque parejo: al min ' + mmss(e14.gt) + ' la diferencia era de ' + kc(e14.diff) + ' de oro' + (fb ? ', con la primera sangre para ' + C[fb.side] : '') + '.');
+      else out.push('Arranque parejo: al min ' + mmss(e14.gt) + (Math.abs(e14.diff) < 150 ? ' estaban iguales en oro' : ' la diferencia era de ' + kc(e14.diff) + ' de oro') + (fb ? ', con la primera sangre para ' + C[fb.side] : '') + '.');
     }
-    // 2) el giro más grande
-    var sw = (g.swings || []).slice().sort(function (a, b) { return Math.abs(b.d) - Math.abs(a.d); })[0];
-    if (sw && Math.abs(sw.d) >= 0.12) out.push('El giro: entre el min ' + mmss(sw.a) + ' y el ' + mmss(sw.b) + ', ' + C[sw.side] + ' sumó <b>+' + Math.round(Math.abs(sw.d) * 100) + ' puntos</b> con ' + eh(sw.cause) + '.');
+    // 2) el giro: el más grande; con el juego terminado, el decisivo del ganador (y el del que perdió, si fue mayor)
+    var pts = function (w) { return '<b>+' + Math.round(Math.abs(w.d) * 100) + ' puntos</b>'; };
+    var giroTxt = function (w, pre) {
+      if (w.b - w.a > 360) return C[w.side] + ' fue ampliando la ventaja de a poco: ' + pts(w) + ' entre el min ' + mmss(w.a) + ' y el ' + mmss(w.b) + '.';
+      var ca = causaTxt(w.cause, w.side);
+      return (pre || 'El giro') + ': entre el min ' + mmss(w.a) + ' y el ' + mmss(w.b) + ', ' + C[w.side] + ' sumó ' + pts(w) + (ca ? ' con ' + eh(ca) : '') + '.';
+    };
+    var sws = (g.swings || []).slice().sort(function (a, b) { return Math.abs(b.d) - Math.abs(a.d); }), sw = sws[0];
+    if (g.ended && g.recap) {
+      var gan = g.recap.win, dec = sws.filter(function (w) { return w.side === gan; })[0], per = sws.filter(function (w) { return w.side !== gan; })[0];
+      if (dec && Math.abs(dec.d) >= 0.12) out.push(giroTxt(dec, 'El giro decisivo'));
+      if (per && Math.abs(per.d) >= 0.12 && (!dec || Math.abs(per.d) > Math.abs(dec.d)))
+        out.push(C[per.side] + ' tuvo su momento entre el min ' + mmss(per.a) + ' y el ' + mmss(per.b) + ' (' + pts(per) + '), pero no le alcanzó.');
+    } else if (sw && Math.abs(sw.d) >= 0.12) out.push(giroTxt(sw));
     // 3) cómo está ahora (o cómo terminó)
     if (g.ended && g.recap) out.push(C[g.recap.win] + ' cerró el juego en ' + mmss(g.recap.dur) + (g.recap.comeback ? ', remontando desde el ' + pc(g.recap.low.p) : '') + '.');
     else {
@@ -1095,7 +1123,8 @@
         if (st[ld].dragons >= 4) xs.push('el alma de dragón'); else if (st[ld].dragons - st[ot].dragons >= 2) xs.push((st[ld].dragons - st[ot].dragons) + ' dragones más');
       }
       var bb = g.timers && g.timers.baronBuff; if (bb && bb.until > g.gt && bb.side === ld) xs.push('el Barón activo');
-      out.push((Math.abs(g.pBlue - 0.5) < 0.06 ? 'Ahora está parejo: ' + C[ld] + ' ' + pc(Math.max(g.pBlue, 1 - g.pBlue)) : 'Ahora ' + C[ld] + ' va ' + pc(Math.max(g.pBlue, 1 - g.pBlue))) +
+      var pl = Math.max(g.pBlue, 1 - g.pBlue);
+      out.push((Math.round(pl * 100) === 50 ? 'Ahora está parejo: 50 % para cada uno' : pl < 0.56 ? 'Ahora está parejo: ' + C[ld] + ' apenas arriba, con ' + pc(pl) : 'Ahora ' + C[ld] + ' va ' + pc(pl)) +
         (xs.length ? ', con ' + xs.slice(0, 3).join(', ').replace(/, ([^,]*)$/, ' y $1') : '') + '.');
       // 4) qué necesita el otro
       var c = g.comeback;
