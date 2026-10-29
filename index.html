@@ -2940,7 +2940,9 @@ function mxSpark(g) {
   const X = gt => (gt - t0) / span * W, Y = p => H - 6 - p * (H - 12);
   const d = 'M' + pts.map(p => X(p.gt).toFixed(1) + ' ' + Y(p.p).toFixed(1)).join(' L');
   const marks = (g.swings || []).map(m => `<rect x="${X(m.a).toFixed(1)}" y="0" width="${Math.max(2, X(m.b) - X(m.a)).toFixed(1)}" height="${H}" fill="${m.side === 'blue' ? RPC.a : RPC.b}" opacity=".1"/>`).join('');
-  return `<svg class="mx-spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${marks}<line x1="0" y1="${H / 2}" x2="${W}" y2="${H / 2}" stroke="#2a2f3a" stroke-dasharray="4 4"/><path d="${d}" fill="none" stroke="url(#mxg)" stroke-width="2.5" vector-effect="non-scaling-stroke"/><defs><linearGradient id="mxg" x1="0" y1="0" x2="0" y2="${H}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${RPC.a}"/><stop offset="1" stop-color="${RPC.b}"/></linearGradient></defs></svg>`;
+  const bw = p => (RiftEngine.banda ? RiftEngine.banda(p.gt) || 0 : 0);  // banda de confianza: más ancha cuando el modelo acierta menos
+  const band = 'M' + pts.map(p => X(p.gt).toFixed(1) + ' ' + Y(Math.min(1, p.p + bw(p))).toFixed(1)).join(' L') + ' L' + pts.slice().reverse().map(p => X(p.gt).toFixed(1) + ' ' + Y(Math.max(0, p.p - bw(p))).toFixed(1)).join(' L') + ' Z';
+  return `<svg class="mx-spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Probabilidad en todo el juego, con su banda de confianza">${marks}<path d="${band}" fill="#ffffff" opacity=".07"/><line x1="0" y1="${H / 2}" x2="${W}" y2="${H / 2}" stroke="#2a2f3a" stroke-dasharray="4 4"/><path d="${d}" fill="none" stroke="url(#mxg)" stroke-width="2.5" vector-effect="non-scaling-stroke"/><defs><linearGradient id="mxg" x1="0" y1="0" x2="0" y2="${H}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${RPC.a}"/><stop offset="1" stop-color="${RPC.b}"/></linearGradient></defs></svg>`;
 }
 function mxPost(s) {
   const m = s.match, g = s.game;
@@ -3011,7 +3013,12 @@ function renderMando() {
 
   // lectura del juego
   const sw = g.swings || [], c = g.comeback, k = g.keyPlayer, dw = g.draft && g.draft.window;
-  let rd = '<div class="mx-sub">Giros clave</div>';
+  const hi = RiftEngine.historia ? RiftEngine.historia(s) : [], cb = RiftEngine.cambio ? RiftEngine.cambio(s) : null, mi = RiftEngine.mirar ? RiftEngine.mirar(s) : null;
+  let rd = '';
+  if (hi.length) rd += `<div class="mx-sub">La historia del juego</div><ul class="mx-list">${hi.map(x => `<li><span>${x.html}</span></li>`).join('')}</ul>`;
+  if (mi) rd += `<div class="mx-sub">Qué mirar ahora</div><div style="font-size:13.5px"><b>${esc(mi.obj)}</b> ${mi.vivo ? '<b>ya está en el mapa</b>' : `en <b>${mmss(mi.en)}</b>`}${mi.impacto ? ` · si lo toma <b class="b">${esc(m.blue.code)}</b> ${mi.impacto.blue >= 0 ? '+' : ''}${mi.impacto.blue} pts, si lo toma <b class="r">${esc(m.red.code)}</b> ${mi.impacto.red >= 0 ? '+' : ''}${mi.impacto.red} pts` : ''}.${mi.mejor ? ` Llega mejor <b class="${mxSc(mi.mejor)}">${esc(mi.code)}</b>: ${mi.por.map(x => esc(x.txt)).join(' y ')}.` : ''}</div>`;
+  if (cb) rd += `<div class="mx-sub">Qué cambió en el último minuto</div><div style="font-size:13.5px">${cb.dp ? `<b class="${mxSc(cb.dp > 0 ? 'blue' : 'red')}">${esc(cb.dp > 0 ? m.blue.code : m.red.code)} +${Math.abs(cb.dp)} pts</b>` : 'Probabilidad sin cambios'}${cb.items.length ? ' · ' + cb.items.map(x => `<b class="${mxSc(x.side)}">${esc(x.code)}</b> ${esc(x.txt)}`).join(', ') : ''}.</div>`;
+  rd += '<div class="mx-sub">Giros clave</div>';
   rd += sw.length ? `<ul class="mx-list">${sw.map(x => `<li><span class="t">${mmss(x.a)}–${mmss(x.b)}</span><span><b class="${mxSc(x.side)}">${esc(x.code)} +${Math.round(Math.abs(x.d) * 100)}</b> · ${esc(x.cause)}</span></li>`).join('')}</ul>` : '<div class="mx-note">Todavía no hay giros de 9 puntos o más.</div>';
   rd += '<div class="mx-sub">Para remontar</div>';
   rd += c ? `<div style="font-size:13.5px"><b class="${mxSc(c.side)}">${esc(c.code)}</b> está en ${mxPct(c.p)}. ${c.reached ? 'Necesita' : 'Lo que más lo acerca:'} <b>${esc(c.paths[0].txt)}</b> → ${mxPct(c.paths[0].p)}${c.paths[1] ? `, o <b>${esc(c.paths[1].txt)}</b> → ${mxPct(c.paths[1].p)}` : ''}.</div>` : '<div class="mx-note">Nadie está por debajo del 45%.</div>';

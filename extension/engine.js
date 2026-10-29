@@ -86,9 +86,9 @@
   var G = null;   // juego actual
   function newGame(id) {
     return {id: id, meta: null, start: null, waiting: false, loading: true, last: null, lastTs: 0, paused: 0, gt: 0,
-      samples: [], events: [], wp: null, ended: false,
+      samples: [], events: [], wp: null, ended: false, det: null, picos: [],
       pre: null, draft: null,
-      t: {dragon: {at: 300, elder: false}, baron: null, baronBuff: null, elderBuff: null, inhibs: []}};
+      t: {dragon: {at: 300, elder: false}, baron: {at: 1200}, baronBuff: null, elderBuff: null, inhibs: []}};  // el Barón aparece al min 20
   }
   function sideTeam(side) {
     var fb = {code: side === 'blue' ? 'AZUL' : 'ROJO'};
@@ -169,7 +169,8 @@
     G.wp = winProb(f, gt);
     var s = G.samples[G.samples.length - 1];
     if (!s || gt - s.gt >= 10) G.samples.push({gt: gt, diff: f.blueTeam.totalGold - f.redTeam.totalGold, p: G.wp.p,
-      kb: f.blueTeam.totalKills, kr: f.redTeam.totalKills, tb: f.blueTeam.towers, tr: f.redTeam.towers});
+      kb: f.blueTeam.totalKills, kr: f.redTeam.totalKills, tb: f.blueTeam.towers, tr: f.redTeam.towers,
+      db: f.blueTeam.dragons.length, dr: f.redTeam.dragons.length, bb: f.blueTeam.barons, br: f.redTeam.barons, ib: f.blueTeam.inhibitors, ir: f.redTeam.inhibitors});
     if (f.gameState === 'finished') { if (!G.ended && DEMO) DEMO.next = setTimeout(demoNext, 30000); G.ended = true; }
     emit();
   }
@@ -241,10 +242,24 @@
       return md.map(function (p) {
         var st = df.participants.find(function (x) { return x.participantId === p.participantId; }) || {};
         return {name: shortName(p.summonerName), role: p.role, champ: champName(p.championId), champId: p.championId, share: st.championDamageShare || 0, kp: st.killParticipation || 0,
-          k: st.kills || 0, d: st.deaths || 0, a: st.assists || 0, cs: st.creepScore || 0, gold: st.totalGoldEarned || 0, lvl: st.level || 1};
+          k: st.kills || 0, d: st.deaths || 0, a: st.assists || 0, cs: st.creepScore || 0, gold: st.totalGoldEarned || 0, lvl: st.level || 1,
+          wp: st.wardsPlaced, wd: st.wardsDestroyed, items: Array.isArray(st.items) ? st.items : null};
       });
     }
+    var antes = G.roster;
     G.roster = {blue: sideP('blueTeamMetadata'), red: sideP('redTeamMetadata')};
+    // qué campos trae de verdad el feed (lo que no viene, no se muestra)
+    var todos = G.roster.blue.concat(G.roster.red);
+    G.det = {wards: todos.some(function (p) { return typeof p.wp === 'number'; }), items: todos.some(function (p) { return p.items && p.items.length; })};
+    if (G.det.items) cargarItems();
+    // picos de poder: un jugador completa un ítem
+    if (antes && ITEMS) ['blue', 'red'].forEach(function (side) {
+      G.roster[side].forEach(function (p, i) {
+        var a = antes[side][i], nuevos = completos(p.items).filter(function (id) { return completos(a && a.items).indexOf(id) < 0; });
+        nuevos.forEach(function (id) { G.picos.push({gt: G.gt, side: side, name: p.name, champ: p.champ, item: ITEMS[id].n, n: completos(p.items).length}); });
+      });
+    });
+    if (G.picos.length > 12) G.picos = G.picos.slice(-12);
     var byShare = function (a, b) { return b.share - a.share; };
     G.players = {blue: G.roster.blue.slice().sort(byShare), red: G.roster.red.slice().sort(byShare)};
   }
@@ -257,8 +272,10 @@
   function impactNext() {
     if (!G || !G.last || !G.wp || !G.t) return null;
     var gt = G.gt, t = G.t, pick = null;
-    if (t.dragon && t.dragon.at > gt) pick = {kind: 'dragon', name: t.dragon.elder ? 'Ancestral' : 'Dragón', at: t.dragon.at};
-    if (t.baron && t.baron.at > gt && (!pick || t.baron.at < pick.at)) pick = {kind: 'baron', name: 'Barón', at: t.baron.at};
+    var dr = t.dragon ? {kind: 'dragon', name: t.dragon.elder ? 'Ancestral' : 'Dragón', at: t.dragon.at} : null, ba = t.baron ? {kind: 'baron', name: 'Barón', at: t.baron.at} : null;
+    // si ya está en el mapa (nadie lo tomó), ese es el que se pelea: el Barón antes que el dragón; si no, el que aparece primero
+    if (ba && ba.at <= gt) pick = ba; else if (dr && dr.at <= gt) pick = dr;
+    else [dr, ba].forEach(function (c) { if (c && (!pick || c.at < pick.at)) pick = c; });
     if (!pick) return null;
     var base = G.wp.p;
     function sim(side) {
@@ -473,6 +490,33 @@
   }
 
   // Duelo por línea y jugador clave (feed de detalles: oro, CS, K/D/A, % del daño, participación en kills).
+  // ---------- ítems: cuáles son completos (de Data Dragon, una sola vez; si no carga, la sección no se muestra) ----------
+  var ITEMS = null, ITEMS_PEDIDO = false;
+  function cargarItems() {
+    if (ITEMS_PEDIDO || typeof fetch === 'undefined') return; ITEMS_PEDIDO = true;
+    var dd = 'https://ddragon.leagueoflegends.com/';
+    fetch(dd + 'api/versions.json').then(function (r) { return r.json(); }).then(function (v) { return fetch(dd + 'cdn/' + v[0] + '/data/es_MX/item.json'); })
+      .then(function (r) { return r.json(); }).then(function (j) {
+        var o = {};
+        Object.keys(j.data || {}).forEach(function (id) { var it = j.data[id], t = it.tags || [];
+          if (it.gold && it.gold.total >= 2200 && !(it.into && it.into.length) && t.indexOf('Boots') < 0 && t.indexOf('Consumable') < 0 && t.indexOf('Trinket') < 0) o[id] = {n: it.name}; });
+        ITEMS = Object.keys(o).length ? o : null; if (ITEMS) emit();
+      }).catch(function () {});
+  }
+  function completos(items) { return ITEMS && items ? items.filter(function (id) { return ITEMS[id]; }) : []; }
+  // jugadores por equipo: nivel medio, hitos de nivel y, si el feed los trae, visión e ítems completos
+  function jugadores() {
+    if (!G || !G.roster || !G.roster.blue.length) return null;
+    var det = G.det || {};
+    var lado = function (side) {
+      var ps = G.roster[side], sum = function (f) { return ps.reduce(function (a, p) { return a + (f(p) || 0); }, 0); };
+      var o = {lvl: sum(function (p) { return p.lvl; }) / ps.length, n6: ps.filter(function (p) { return p.lvl >= 6; }).length, n11: ps.filter(function (p) { return p.lvl >= 11; }).length, n16: ps.filter(function (p) { return p.lvl >= 16; }).length};
+      if (det.wards) { o.wp = sum(function (p) { return p.wp; }); o.wd = sum(function (p) { return p.wd; }); }
+      if (det.items && ITEMS) o.items = sum(function (p) { return completos(p.items).length; });
+      return o;
+    };
+    return {blue: lado('blue'), red: lado('red'), wards: !!det.wards, items: !!(det.items && ITEMS), picos: (G.picos || []).slice(-6)};
+  }
   function lanes() {
     if (!G || !G.roster) return null;
     return ROLES.map(function (role) {
@@ -523,7 +567,8 @@
         stats: G.last ? {blue: tstat(G.last.blueTeam), red: tstat(G.last.redTeam)} : null,
         samples: G.samples ? G.samples.slice() : [], impact: impactNext(),
         fight: G.fight && G.fight.players ? {gt: G.fight.gt, win: G.fight.win, blue: G.fight.players.blue, red: G.fight.players.red} : null,
-        swings: keyMoments(3), comeback: comebackPaths(), draft: draftInfo(), lanes: L, keyPlayer: keyPlayer(L), recap: recap()} : null,
+        swings: keyMoments(3), comeback: comebackPaths(), draft: draftInfo(), lanes: L, keyPlayer: keyPlayer(L), recap: recap(), jugadores: jugadores(),
+        allEvents: G.events.slice()} : null,
       series: seriesNow(), h2h: M ? h2hFor(bt.code, rt.code) : null, maps: seriesMaps(),
       demo: DEMO && DEMO.cur ? {blue: DEMO.cur.blue, red: DEMO.cur.red, date: DEMO.cur.date, block: DEMO.cur.block, vel: DEMO.vel} : null,
       follow: FOLLOW ? {matchId: FOLLOW.matchId, juego: FOLLOW.juego} : null, feed: feedState(),
@@ -997,7 +1042,9 @@
       var cb = g.comeback;
       if (N() >= 1 && cb && cb.p <= 0.30 && g.gt >= 600 && cb.paths && cb.paths[0] && !D.visto['rem' + g.id + cb.side]) return poner('remontada', 'rem' + g.id + cb.side, 12, {txt: cb.code + ' ' + Math.round(cb.p * 100) + '%'});
       // 6) nivel show: el oro o los duelos cada ~4 min de juego
-      if (N() >= 2 && g.gt - D.ultimoShow >= 240 && g.gt > 300) { D.ultimoShow = g.gt; var dd = Math.floor(g.gt / 240) % 2 ? 'duelos' : 'oro'; return poner(dd, dd + Math.round(g.gt), 12, {txt: dd}); }
+      if (N() >= 2 && g.gt - D.ultimoShow >= 240 && g.gt > 300) { D.ultimoShow = g.gt; var dd = ['oro', 'duelos', 'historia'][Math.floor(g.gt / 240) % 3]; return poner(dd, dd + Math.round(g.gt), dd === 'historia' ? 14 : 12, {txt: dd}); }
+      // 7) a mitad del juego (min 20), una vez: la historia hasta ahí
+      if (N() >= 1 && g.gt >= 1200 && g.gt < 1500 && !D.visto['hist' + g.id]) { D.visto['hist' + g.id] = true; return poner('historia', 'hist' + g.id, 14, {txt: 'min 20'}); }
       return null;
     };
     D.saltar = function () { if (D.actual) { D.actual.hasta = 0; } };
@@ -1008,6 +1055,82 @@
     return D;
   };
   RiftEngine.aprenderColor = aprenderColor;
+  // ---------- la historia del juego: frases a partir de lo que pasó (giros, objetivos, oro) ----------
+  var kc = function (g) { return (Math.abs(g) / 1000).toFixed(1).replace('.', ',') + 'k'; };
+  var pc = function (x) { return Math.round(x * 100) + '%'; };
+  var eh = function (t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]; }); };
+  var conTexto = function (l) { return l.map(function (h) { return {html: h, text: h.replace(/<[^>]+>/g, '')}; }); };
+  RiftEngine.historia = function (s) {
+    s = s || snapshot(); var g = s.game, m = s.match;
+    if (!m || !g || g.pBlue == null || !g.samples || g.samples.length < 2) return [];
+    var C = {blue: '<b class="b">' + eh(m.blue.code) + '</b>', red: '<b class="r">' + eh(m.red.code) + '</b>'}, sm = g.samples, ev = g.allEvents || g.events || [], out = [];
+    var cuenta = function (kind, side, hasta) { return ev.filter(function (e) { return e.kind === kind && e.side === side && e.gt <= hasta; }).length; };
+    // 1) el arranque, hasta el min 14
+    var e14 = sm.filter(function (x) { return x.gt >= 300 && x.gt <= 840; }).pop();  // si se entró tarde al juego, no hay arranque que contar
+    if (g.gt >= 420 && e14) {
+      var la = e14.diff >= 0 ? 'blue' : 'red', fb = ev.filter(function (e) { return e.kind === 'fb'; })[0];
+      var dl = cuenta('dragon', la, 840);
+      if (Math.abs(e14.diff) >= 1000) out.push(C[la] + ' tomó el control temprano: +' + kc(e14.diff) + ' de oro al min ' + mmss(e14.gt) + (dl >= 2 ? ' y ' + dl + ' dragones' : '') + '.');
+      else out.push('Arranque parejo: al min ' + mmss(e14.gt) + ' la diferencia era de ' + kc(e14.diff) + ' de oro' + (fb ? ', con la primera sangre para ' + C[fb.side] : '') + '.');
+    }
+    // 2) el giro más grande
+    var sw = (g.swings || []).slice().sort(function (a, b) { return Math.abs(b.d) - Math.abs(a.d); })[0];
+    if (sw && Math.abs(sw.d) >= 0.12) out.push('El giro: entre el min ' + mmss(sw.a) + ' y el ' + mmss(sw.b) + ', ' + C[sw.side] + ' sumó <b>+' + Math.round(Math.abs(sw.d) * 100) + ' puntos</b> con ' + eh(sw.cause) + '.');
+    // 3) cómo está ahora (o cómo terminó)
+    if (g.ended && g.recap) out.push(C[g.recap.win] + ' cerró el juego en ' + mmss(g.recap.dur) + (g.recap.comeback ? ', remontando desde el ' + pc(g.recap.low.p) : '') + '.');
+    else {
+      var ld = g.pBlue >= 0.5 ? 'blue' : 'red', ot = ld === 'blue' ? 'red' : 'blue', st = g.stats, xs = [];
+      if (st) {
+        var gd = (st[ld].gold - st[ot].gold); if (gd >= 800) xs.push('+' + kc(gd) + ' de oro');
+        var td = st[ld].towers - st[ot].towers; if (td >= 2) xs.push(td + ' torres más');
+        if (st[ld].dragons >= 4) xs.push('el alma de dragón'); else if (st[ld].dragons - st[ot].dragons >= 2) xs.push((st[ld].dragons - st[ot].dragons) + ' dragones más');
+      }
+      var bb = g.timers && g.timers.baronBuff; if (bb && bb.until > g.gt && bb.side === ld) xs.push('el Barón activo');
+      out.push((Math.abs(g.pBlue - 0.5) < 0.06 ? 'Ahora está parejo: ' + C[ld] + ' ' + pc(Math.max(g.pBlue, 1 - g.pBlue)) : 'Ahora ' + C[ld] + ' va ' + pc(Math.max(g.pBlue, 1 - g.pBlue))) +
+        (xs.length ? ', con ' + xs.slice(0, 3).join(', ').replace(/, ([^,]*)$/, ' y $1') : '') + '.');
+      // 4) qué necesita el otro
+      var c = g.comeback;
+      if (c && c.paths && c.paths[0] && c.p < 0.45) out.push(C[c.side] + ' ' + (c.reached ? 'necesita ' : 'se acerca con ') + '<b>' + eh(c.paths[0].txt) + '</b>: con eso vuelve al ' + pc(c.paths[0].p) + '.');
+      else if (Math.abs(g.pBlue - 0.5) < 0.08 && g.impact) out.push('Todo abierto: el próximo ' + eh(g.impact.obj) + ' puede inclinarlo.');
+    }
+    return conTexto(out.slice(0, 5));
+  };
+  // ---------- qué cambió en el último minuto de juego ----------
+  RiftEngine.cambio = function (s) {
+    s = s || snapshot(); var g = s.game, m = s.match, sm = g && g.samples;
+    if (!m || !sm || sm.length < 3 || !g.stats || g.pBlue == null) return null;
+    var past = null; for (var i = 0; i < sm.length; i++) if (g.gt - sm[i].gt >= 60) past = sm[i];
+    if (!past || g.gt - past.gt > 150) return null;  // sin una muestra de hace ~1 min (se acaba de entrar), no se compara
+    var B = g.stats.blue, Rr = g.stats.red, items = [];
+    var add = function (side, n, uno, varios) { if (n > 0) items.push({side: side, code: side === 'blue' ? m.blue.code : m.red.code, txt: '+' + n + ' ' + (n === 1 ? uno : varios)}); };
+    var dg = (B.gold - Rr.gold) - past.diff; if (Math.abs(dg) >= 300) items.push({side: dg > 0 ? 'blue' : 'red', code: dg > 0 ? m.blue.code : m.red.code, txt: '+' + kc(dg) + ' de oro'});
+    if (past.kb != null) { add('blue', B.kills - past.kb, 'kill', 'kills'); add('red', Rr.kills - past.kr, 'kill', 'kills'); add('blue', B.towers - past.tb, 'torre', 'torres'); add('red', Rr.towers - past.tr, 'torre', 'torres'); }
+    if (past.db != null) { add('blue', B.dragons + B.elders - past.db, 'dragón', 'dragones'); add('red', Rr.dragons + Rr.elders - past.dr, 'dragón', 'dragones');
+      add('blue', B.barons - past.bb, 'Barón', 'Barones'); add('red', Rr.barons - past.br, 'Barón', 'Barones'); add('blue', B.inhibs - past.ib, 'inhibidor', 'inhibidores'); add('red', Rr.inhibs - past.ir, 'inhibidor', 'inhibidores'); }
+    return {dp: Math.round((g.pBlue - past.p) * 100), desde: past.gt, items: items};
+  };
+  // ---------- qué mirar ahora: el próximo objetivo, cuánto mueve y quién llega mejor ----------
+  RiftEngine.mirar = function (s) {
+    s = s || snapshot(); var g = s.game, m = s.match;
+    if (!m || !g || g.pBlue == null || g.ended) return null;
+    // el próximo objetivo; si ya está en el mapa (nadie lo tomó), ese manda, y el Barón antes que el dragón
+    var t = g.timers || {}, cs = [];
+    if (t.dragon) cs.push({obj: t.dragon.elder ? 'Dragón Ancestral' : 'Dragón', at: t.dragon.at, peso: 1});
+    if (t.baron) cs.push({obj: 'Barón', at: t.baron.at, peso: 2});
+    if (!cs.length) return null;
+    var vivos = cs.filter(function (c) { return c.at <= g.gt; }).sort(function (a, b) { return b.peso - a.peso; });
+    var ob = vivos[0] || cs.sort(function (a, b) { return a.at - b.at; })[0];
+    var o = {obj: ob.obj, en: Math.max(0, ob.at - g.gt), vivo: ob.at <= g.gt, impacto: g.impact ? {blue: g.impact.blue, red: g.impact.red} : null, mejor: null, por: []};
+    var J = g.jugadores, st = g.stats, sc = 0;
+    if (J) { var dl = J.blue.lvl - J.red.lvl; if (Math.abs(dl) >= 0.4) { o.por.push({side: dl > 0 ? 'blue' : 'red', txt: 'nivel medio ' + Math.max(J.blue.lvl, J.red.lvl).toFixed(1).replace('.', ',') + ' contra ' + Math.min(J.blue.lvl, J.red.lvl).toFixed(1).replace('.', ',')}); sc += dl * 1.2; }
+      if (J.items && J.blue.items !== J.red.items) { var di = J.blue.items - J.red.items; o.por.push({side: di > 0 ? 'blue' : 'red', txt: Math.abs(di) + (Math.abs(di) === 1 ? ' ítem completo más' : ' ítems completos más')}); sc += di * 0.8; } }
+    if (st) { var gd = st.blue.gold - st.red.gold; if (Math.abs(gd) >= 700) { o.por.push({side: gd > 0 ? 'blue' : 'red', txt: '+' + kc(gd) + ' de oro'}); sc += gd / 1500; } }
+    if (Math.abs(sc) >= 0.6) { o.mejor = sc > 0 ? 'blue' : 'red'; o.por = o.por.filter(function (x) { return x.side === o.mejor; }); o.code = o.mejor === 'blue' ? m.blue.code : m.red.code; }
+    else o.por = [];
+    return o;
+  };
+  // banda de confianza del gráfico: más ancha en los minutos en que el modelo acierta menos (es una guía, no un intervalo estadístico)
+  RiftEngine.banda = function (gt) { var a = accAt(gt); return a == null ? null : Math.max(0.04, (1 - a) * 0.5); };
   RiftEngine.paleta = function (hex) { var c = hex2rgb(hex); return c ? variantes(c) : null; };  // las variantes de un color cualquiera (tema «Mi canal»)
   RiftEngine.colorConocido = function (code) { return TEAMCOL[code] || null; };
   RiftEngine.contraste = function (h1, h2) { return contraste(hex2rgb(h1), hex2rgb(h2)); };

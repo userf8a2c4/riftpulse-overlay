@@ -254,7 +254,8 @@
       body.innerHTML = '<div class="seg prob"><span class="tc b">' + esc(m.blue.code) + '</span><div class="bar" style="width:150px"><div class="pb' + lb + '" style="width:' + Math.min(85, Math.max(pb, 15)) + '%">' + pb + '%</div><div class="pr' + lr + '" style="width:' + Math.min(85, Math.max(pr, 15)) + '%">' + pr + '%</div></div><span class="tc r">' + esc(m.red.code) + '</span></div>' + fdo;
       hist.push({t: Date.now(), p: g.pBlue}); checkMomentum(s); showFight(s); return;
     }
-    html += '<div class="seg prob2"><div class="tm a' + lb + '"><span class="code">' + esc(m.blue.code) + '</span><span class="pct"><span data-rpn="ext-a">' + pb + '</span><small>%</small></span></div>' +
+    var hist0 = R.historia ? R.historia(s).map(function (x) { return x.text; }).join('\n') : '';
+    html += '<div class="seg prob2"' + (hist0 ? ' title="' + esc(hist0) + '"' : '') + '><div class="tm a' + lb + '"><span class="code">' + esc(m.blue.code) + '</span><span class="pct"><span data-rpn="ext-a">' + pb + '</span><small>%</small></span></div>' +
       '<div class="meter"><i style="width:' + pb + '%"></i><b></b></div>' +
       '<div class="tm b' + lr + '"><span class="pct"><span data-rpn="ext-b">' + pr + '</span><small>%</small></span><span class="code">' + esc(m.red.code) + '</span></div></div>';
 
@@ -354,6 +355,8 @@
     if (sm.length < 2 || !wEl.matches(':hover')) return;
     var W = 600, H = 78, t1 = Math.max(60, g.gt), X = function (t) { return 8 + t / t1 * (W - 16); }, Y = function (p) { return H - 10 - p * (H - 20); };
     var line = sm.map(function (x, i) { return (i ? 'L' : 'M') + X(x.gt).toFixed(1) + ' ' + Y(x.p).toFixed(1); }).join(' ');
+    var bw = function (x) { return R.banda ? R.banda(x.gt) || 0 : 0; };  // banda de confianza
+    var band = 'M' + sm.map(function (x) { return X(x.gt).toFixed(1) + ' ' + Y(Math.min(1, x.p + bw(x))).toFixed(1); }).join(' L') + ' L' + sm.slice().reverse().map(function (x) { return X(x.gt).toFixed(1) + ' ' + Y(Math.max(0, x.p - bw(x))).toFixed(1); }).join(' L') + ' Z';
     TLM = [];
     (g.swings || []).forEach(function (w) { TLM.push({gt: w.a, txt: (w.side === 'blue' ? s.match.blue.code : s.match.red.code) + ' +' + Math.round(Math.abs(w.d) * 100) + ' · ' + (w.cause || 'giro'), c: w.side === 'blue' ? RPC.a : RPC.b, r: 6}); });
     (g.events || []).forEach(function (e) { if (['dragon', 'baron', 'elder', 'inhib'].indexOf(e.kind) >= 0) TLM.push({gt: e.gt, txt: e.txt, c: e.side === 'blue' ? RPC.a : RPC.b, r: 4}); });
@@ -361,7 +364,7 @@
     var mk = TLM.map(function (m, i) { return '<g class="mk" data-tl="' + i + '"><title>' + esc(mmss(m.gt) + ' · ' + m.txt) + '</title><circle cx="' + X(m.gt).toFixed(1) + '" cy="' + (m.r > 5 ? 9 : H - 6) + '" r="' + m.r + '" fill="' + m.c + '" stroke="#101318" stroke-width="1.5"/></g>'; }).join('');
     var puede = esVod() && AS.id && AS.off != null;
     tlEl.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none"><line x1="0" x2="' + W + '" y1="' + Y(0.5) + '" y2="' + Y(0.5) + '" stroke="rgba(255,255,255,.18)" stroke-dasharray="4 4"/>' +
-      '<path d="' + line + '" fill="none" stroke="' + RPC.s + '" stroke-width="2" vector-effect="non-scaling-stroke"/><line x1="' + X(g.gt) + '" x2="' + X(g.gt) + '" y1="0" y2="' + H + '" stroke="rgba(255,255,255,.5)"/>' + mk + '</svg>' +
+      '<path d="' + band + '" fill="#ffffff" opacity=".08"/><path d="' + line + '" fill="none" stroke="' + RPC.s + '" stroke-width="2" vector-effect="non-scaling-stroke"/><line x1="' + X(g.gt) + '" x2="' + X(g.gt) + '" y1="0" y2="' + H + '" stroke="rgba(255,255,255,.5)"/>' + mk + '</svg>' +
       '<div class="nav">' + (puede ? '<button data-salto="-10">−10 s</button><button data-salto="prev">◀ momento</button><button data-salto="next">momento ▶</button><span>Tocá un punto para ir a ese momento del video</span>' : '<span>' + (esVod() ? 'Sincronizá el video para saltar a cada momento' : 'Momentos clave del juego (en vivo no se puede saltar)') + '</span>') + '</div>';
   }
   function irA(gt) { var v = video(); if (!v || AS.off == null || !esVod()) return; v.currentTime = Math.max(0, gt - AS.off - 3); }  // 3 s antes, para ver la jugada entera
