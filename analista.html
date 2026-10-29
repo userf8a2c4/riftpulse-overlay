@@ -253,7 +253,7 @@
   }
   function swingList(sw){
     if (!sw || !sw.length) return '<div class="note">Todavía no hay giros de 9 puntos o más.</div>';
-    return '<ul class="sw">'+sw.map(function(m){ return '<li><span class="t">min '+mmss(m.a)+'–'+mmss(m.b)+'</span><span class="d '+sc(m.side)+'">'+esc(m.code)+' +'+Math.round(Math.abs(m.d)*100)+'</span><span>'+esc(m.cause)+'</span></li>'; }).join('')+'</ul>';
+    return '<ul class="sw">'+sw.map(function(m){ return '<li><span class="t">min '+mmss(m.a)+'–'+mmss(m.b)+'</span><span class="d '+sc(m.side)+'">'+esc(m.code)+' +'+Math.round(Math.abs(m.d)*100)+'</span><span>'+esc(R.causaTxt ? R.causaTxt(m.cause, m.side) : m.cause)+'</span></li>'; }).join('')+'</ul>';
   }
   function seriesCard(s){
     var m=s.match, se=s.series, h=s.h2h, out='';

@@ -30,6 +30,31 @@ module.exports = async function () {
   const sin = await q.evaluate(() => ({j: RiftEngine.state.game.jugadores, wards: /Wards puestas/.test(document.getElementById('content').textContent), hist: document.querySelectorAll('.hist li').length}));
   ok = chequear('sin detalles: no aparecen visión ni ítems inventados', !sin.j && !sin.wards) && ok;
   ok = chequear('sin detalles: la historia igual se cuenta', sin.hist >= 2) && ok;
+  // casos que salieron con datos reales del Mundial (sondeo): la historia tiene que sonar natural
+  const c3 = await b.newContext(); await montar(c3); const u = await c3.newPage(); u.on('pageerror', e => errores.push(e.message));
+  await u.goto(BASE + 'analista.html'); await u.waitForTimeout(1500);
+  const casos = await u.evaluate(() => {
+    const base = (o) => ({match: {blue: {code: 'T1'}, red: {code: 'MKOI'}}, game: Object.assign({id: 'x', gt: 1500, pBlue: 0.6, events: [], allEvents: [], swings: [], timers: {}, stats: null, comeback: null,
+      samples: [{gt: 0, p: 0.5, diff: 0}, {gt: 600, p: 0.5, diff: 20}, {gt: 840, p: 0.5, diff: 30}, {gt: 1500, p: 0.6, diff: 900}]}, o)});
+    const h = s => RiftEngine.historia(s).map(x => x.text);
+    return {
+      igual: h(base({})),
+      parejo: h(base({pBlue: 0.5})),
+      largo: h(base({swings: [{a: 0, b: 1500, d: 0.44, side: 'blue', code: 'T1', cause: 'Primera sangre, Dragón Montaña'}]})),
+      pelea: h(base({swings: [{a: 1300, b: 1400, d: 0.3, side: 'red', code: 'MKOI', cause: 'Pelea: T1 1 – 3 MKOI, Barón Nashor'}]})),
+      fin: h(base({gt: 2400, pBlue: 0.9, ended: true, recap: {win: 'blue', code: 'T1', dur: 2400, comeback: false, low: {p: 0.4}},
+        swings: [{a: 1700, b: 1800, d: -0.54, side: 'red', code: 'MKOI', cause: 'Dragón Infernal, Pelea: T1 1 – 3 MKOI'}, {a: 2200, b: 2300, d: 0.3, side: 'blue', code: 'T1', cause: 'Barón Nashor'}]})),
+      talkFin: RiftEngine.talk(base({gt: 2400, pBlue: 0.9, ended: true, recap: {win: 'blue', code: 'T1', dur: 2400}})).map(x => x.text)[0]};
+  });
+  const todo = Object.values(casos).flat().join(' | ');
+  ok = chequear('real: oro igual al min 14 se dice «estaban iguales en oro»', casos.igual.some(t => /estaban iguales en oro/.test(t)) && !/0,0k/.test(todo), casos.igual[0]) && ok;
+  ok = chequear('real: el empate se dice bien', casos.parejo.some(t => /50 % para cada uno/.test(t)), casos.parejo.join(' / ')) && ok;
+  ok = chequear('real: una ventaja de todo el juego no es «el giro»', casos.largo.some(t => /de a poco/.test(t)) && !casos.largo.some(t => /primera sangre/i.test(t)), casos.largo.join(' / ')) && ok;
+  ok = chequear('real: la pelea se cuenta desde el equipo del giro', casos.pelea.some(t => /una pelea ganada 3–1 y el Barón/.test(t)) && !/Pelea:/.test(todo), casos.pelea.join(' / ')) && ok;
+  ok = chequear('real: juego terminado, el giro del ganador y el del que no le alcanzó', casos.fin.some(t => /El giro decisivo/.test(t) && /T1/.test(t)) && casos.fin.some(t => /no le alcanzó/.test(t)), casos.fin.join(' / ')) && ok;
+  ok = chequear('real: juego terminado en pasado, no «ahora mismo»', /ganó el juego/.test(casos.talkFin) && !/ahora mismo/.test(casos.talkFin), casos.talkFin) && ok;
+  ok = chequear('decimales con coma en los textos del modelo', !/\d\.\dk/.test(todo)) && ok;
+  await c3.close();
   ok = chequear('sin errores de JavaScript', !errores.length, errores.slice(0, 3).join(' | ')) && ok;
   await b.close(); return ok;
 };

@@ -432,7 +432,7 @@
     var d = 'M' + sm.map(function (p) { var v = r.win === 'blue' ? p.p : 1 - p.p; return ((p.gt - t0) / span * 600).toFixed(1) + ' ' + (66 - v * 62).toFixed(1); }).join(' L');
     var li = [];
     if (r.comeback) li.push('¡Remontada! Estuvo al <b>' + pct(r.low.p) + '</b> en el min ' + mmss(r.low.gt) + '.');
-    if (r.swing) li.push('Giro decisivo: min ' + mmss(r.swing.a) + '–' + mmss(r.swing.b) + ', <b>+' + Math.round(Math.abs(r.swing.d) * 100) + ' pts</b> (' + esc(r.swing.cause) + ').');
+    if (r.swing) li.push('Giro decisivo: min ' + mmss(r.swing.a) + '–' + mmss(r.swing.b) + ', <b>+' + Math.round(Math.abs(r.swing.d) * 100) + ' pts</b> (' + esc(R.causaTxt ? R.causaTxt(r.swing.cause, r.swing.side) : r.swing.cause) + ').');
     if (r.key) li.push('Jugador clave: <b>' + esc(r.key.name) + '</b> (' + esc(r.key.champ) + ') · ' + r.key.k + '/' + r.key.d + '/' + r.key.a + ' · ' + Math.round(r.key.share * 100) + '% del daño.');
     if (r.stats) { var w = r.stats[r.win], l = r.stats[r.win === 'blue' ? 'red' : 'blue']; li.push('Kills ' + w.kills + '–' + l.kills + ' · torres ' + w.towers + '–' + l.towers + ' · dragones ' + w.dragons + '–' + l.dragons + '.'); }
     return '<div class="t">' + LOGO + 'RiftPulse · fin del juego' + (m.gameNo ? ' ' + m.gameNo : '') + '</div>' +
