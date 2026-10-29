@@ -100,7 +100,7 @@ footer{border-top-color:var(--line) !important}
     --bg:#F4F5F7;--bg-rgb:244,245,247;--g0:#EBEDF1;--g0-rgb:235,237,241;--g1:#FFFFFF;--g1-rgb:255,255,255;--g2:#F2F3F6;--g2-rgb:242,243,246;--g3:#E4E7EC;
     --line-rgb:20,26,38;--line:rgba(20,26,38,.1);--line-2:rgba(20,26,38,.06);--line-strong:rgba(20,26,38,.16);
     --text:#12151B;--muted:#5B6372;--text-dim:#7A8291;--link:#2563C9;
-    --signal:#5E8C00;--signal-2:#4A7000;--signal-soft:#E9F5CF;--signal-rgb:94,140,0;--signal-ink:#FFFFFF;
+    --signal:#0E7490;--signal-2:#155E75;--signal-soft:#CFFAFE;--signal-rgb:14,116,144;--signal-ink:#FFFFFF;
     --ok:#0C8A62;--warn:#A86400;--live:#D42A38;
   }
   :root:not(.rp-oscuro) body{background:radial-gradient(1100px 520px at -8% -14%,rgba(var(--team-a-rgb),.10),transparent 62%),radial-gradient(1000px 500px at 108% -12%,rgba(var(--team-b-rgb),.08),transparent 60%),var(--bg) !important}

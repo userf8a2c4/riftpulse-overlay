@@ -4,7 +4,7 @@ Todo RiftPulse usa un mismo sistema visual, **«Colores de cada equipo»**: la a
 
 - **Fondo grafito neutro.** Nada de azul noche: el color lo ponen los equipos.
 - **Cada partido toma los colores reales de sus dos equipos.** Un GEN vs T1 se ve dorado y rojo; un IG vs LYON, blanco y violeta.
-- **Un solo color propio, la señal verde lima** (`#C8FF3E`): marca lo que aporta el modelo (giros, momentos clave, acierto).
+- **Un solo color propio, la señal cian eléctrico** (`#22D3EE`): marca lo que aporta el modelo (giros, momentos clave, acierto).
 - **Tipografía:** Saira Condensed para titulares y números grandes, Inter Tight para leer y JetBrains Mono para relojes y timers. Ningún texto mide menos de 12 px.
 - **Movimiento:** los porcentajes se animan al cambiar y un cambio grande deja un destello breve. Respeta «reducir movimiento» del sistema.
 - **Modo claro** en la app, siguiendo al sistema. El overlay y OBS siempre van oscuros.

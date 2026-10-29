@@ -14,7 +14,7 @@ Después, cada versión nueva se sube igual (otro ZIP con la versión mayor) y l
 
 ## Textos de la ficha
 
-**Nombre:** RiftPulse — pronóstico en vivo del Mundial de LoL
+**Nombre:** RiftPulse — tu segunda pantalla del Mundial de LoL
 
 **Descripción breve (máx. 132):**
 Probabilidad en vivo del Mundial de LoL sobre el video de Twitch y lolesports, sincronizada sola con el minuto que ves.

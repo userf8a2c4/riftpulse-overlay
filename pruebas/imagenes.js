@@ -144,11 +144,11 @@ const GRIETA = 'radial-gradient(900px 600px at 28% 38%,#2c4a2a,#17261b 55%,#0d14
   await p.waitForTimeout(800); await (await p.$('#g')).screenshot({path: path.join(OUT, 'piezas-casters.png')});
   await p.setViewportSize({width: 1600, height: 520});
   const logo = fs.readFileSync(path.join(RAIZ, 'logo.svg'), 'utf8');
-  await p.setContent(`${base}<div style="position:relative;width:1600px;height:520px;overflow:hidden;background:radial-gradient(700px 400px at 0% 0%,rgba(200,255,62,.10),transparent 60%),#0C0E12">
+  await p.setContent(`${base}<div style="position:relative;width:1600px;height:520px;overflow:hidden;background:radial-gradient(700px 400px at 0% 0%,rgba(34,211,238,.10),transparent 60%),#0C0E12">
     <div style="position:absolute;left:84px;top:104px;width:620px">
       <div style="display:flex;align-items:center;gap:22px"><div style="width:84px;height:84px">${logo.replace('<svg', '<svg width="84" height="84"')}</div><div style="font:800 104px 'Saira Condensed';letter-spacing:2px;line-height:.9">RIFTPULSE</div></div>
-      <div style="margin-top:30px;font:500 30px/1.4 'Inter Tight';color:#C7CDD8">Pronóstico <b style="color:#fff">en vivo</b> del Mundial de LoL, <b style="color:#fff">en los colores de cada equipo</b>. Una URL en OBS y decide sola qué mostrar.</div>
-      <div style="display:flex;gap:10px;margin-top:30px">${['75 % de acierto al min 15', 'Director automático', 'Sin apuestas'].map((t, i) => `<span style="font:700 17px 'Saira Condensed';letter-spacing:1.6px;text-transform:uppercase;padding:9px 14px;border-radius:999px;border:1px solid ${i ? 'rgba(220,226,236,.18)' : '#C8FF3E'};color:${i ? '#C7CDD8' : '#C8FF3E'}">${t}</span>`).join('')}</div></div>
+      <div style="margin-top:30px;font:500 30px/1.4 'Inter Tight';color:#C7CDD8"><b style="color:#fff">Tu segunda pantalla del Mundial.</b> Quién va ganando, en vivo y en los colores de cada equipo, sincronizado con lo que ves.</div>
+      <div style="display:flex;gap:10px;margin-top:30px">${['Acierta 3 de cada 4', 'Director automático', 'Sin apuestas'].map((t, i) => `<span style="white-space:nowrap;font:700 17px 'Saira Condensed';letter-spacing:1.6px;text-transform:uppercase;padding:9px 14px;border-radius:999px;border:1px solid ${i ? 'rgba(220,226,236,.18)' : '#22D3EE'};color:${i ? '#C7CDD8' : '#22D3EE'}">${t}</span>`).join('')}</div></div>
     <div style="position:absolute;right:56px;top:46px;width:780px;height:439px;border-radius:14px;overflow:hidden;border:1px solid rgba(220,226,236,.14);box-shadow:0 30px 80px rgba(0,0,0,.6)"><img src="${img(path.join(TMP, 'transmision.png'))}" style="width:100%;height:100%;object-fit:cover;display:block">
       <div style="position:absolute;right:12px;bottom:8px;font:500 13px 'Inter Tight';color:rgba(242,244,247,.6)">Imagen ilustrativa · datos simulados</div></div></div>`);
   await p.waitForTimeout(1500); await p.screenshot({path: path.join(OUT, 'banner.jpg'), type: 'jpeg', quality: 90});

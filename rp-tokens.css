@@ -16,7 +16,7 @@
   /* texto */
   --text:#F2F4F7;--muted:#9AA3B2;--text-dim:#6E7686;
   /* la señal de RiftPulse: solo para lo que aporta el modelo (giros, momentos clave, acierto) */
-  --signal:#C8FF3E;--signal-2:#9ED62A;--signal-soft:#E4FF9E;--signal-rgb:200,255,62;--signal-ink:#10140A;
+  --signal:#22D3EE;--signal-2:#0EA5C6;--signal-soft:#A5F3FC;--signal-rgb:34,211,238;--signal-ink:#0C0E12;
   /* estados */
   --ok:#2FD6A0;--warn:#FFB020;--live:#FF4D5A;--link:#9CC8FF;
   /* colores de los equipos del partido (por defecto, los lados del mapa) */

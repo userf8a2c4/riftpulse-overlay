@@ -43,7 +43,7 @@ Todo usa el estilo **[«Colores de cada equipo»](Estilo-y-colores-de-equipo)**:
 | `?modules=` | qué muestra la barra: `prob,pregame,momentum,timers,brand` |
 | `?demo` | reproduce un **partido real del Mundial ya jugado**, acelerado (×8; `?demo=4` para ×4). Siempre lleva la insignia **DEMO**: no se confunde con el vivo |
 | `?delay=` | tu retraso frente al feed, en segundos (p. ej. `42`). Queda guardado. Ver [Al aire sin sorpresas](Al-aire-sin-sorpresas) |
-| `?accent=` | color de señal sin `#` (p. ej. `ff8800`). Por defecto, el verde lima de RiftPulse. Con `&tema=canal`, también pinta la barra |
+| `?accent=` | color de señal sin `#` (p. ej. `ff8800`). Por defecto, el cian eléctrico de RiftPulse. Con `&tema=canal`, también pinta la barra |
 | `?logo=` | URL `https://` de tu logo, en lugar del de RiftPulse |
 | `?brand=0` | sin marca ni precisión en la barra |
 | `?safe=1` | márgenes amplios para no chocar con los elementos de Twitch o Kick |

@@ -5,7 +5,7 @@
   'use strict';
   var RPC = window.RPC = {a: '#3d8bff', a2: '#2a63c0', ahi: '#8dbbff', aink: '#ffffff', atxt: '#7fb2ff', argb: '61,139,255',
     b: '#ff4655', b2: '#c0303d', bhi: '#ff96a0', bink: '#ffffff', btxt: '#ff7c87', brgb: '255,70,85',
-    s: '#c8ff3e', s2: '#9ed62a', srgb: '200,255,62', codes: null};
+    s: '#22D3EE', s2: '#0EA5C6', srgb: '34,211,238', codes: null};
   var RP = window.RPUI = window.RPUI || {};
   var ultimo = '';
   // carga los colores de un partido en la página (o en un elemento, por ejemplo el host del overlay)
@@ -13,7 +13,7 @@
     var R = window.RiftEngine; if (!R || !R.colores) return RPC;
     var key = codeA + '|' + codeB + '|' + (el ? 'el' : 'doc');
     if (key === ultimo && !el) return RPC;
-    var c = RP.tema === 'canal' && R.paleta ? {a: R.paleta(RP.acento || '#C8FF3E'), b: R.paleta('#AEB6C4')} : R.colores(codeA, codeB);
+    var c = RP.tema === 'canal' && R.paleta ? {a: R.paleta(RP.acento || '#22D3EE'), b: R.paleta('#AEB6C4')} : R.colores(codeA, codeB);
     aplicar(c, el);
     RPC.codes = [codeA, codeB]; if (!el) ultimo = key;
     return RPC;

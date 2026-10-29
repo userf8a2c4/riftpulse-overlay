@@ -4,7 +4,7 @@
 
 # RiftPulse
 
-**Pronóstico del Mundial de LoL en vivo, sobre tu transmisión, en los colores de cada equipo. Una URL en OBS y decide sola qué mostrar.**
+**Tu segunda pantalla del Mundial.** Quién va ganando, en vivo y en los colores de cada equipo, sincronizado con lo que ves; y para streamers, una URL en OBS que decide sola qué mostrar.
 
 ![Acierto](https://img.shields.io/badge/acierto-75%25%20al%20min%2015-2BB673)
 ![Backtest](https://img.shields.io/badge/prueba-589%20juegos%20no%20vistos-4CC9F0)
