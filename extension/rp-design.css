@@ -112,3 +112,9 @@ footer{border-top-color:var(--line) !important}
 .bigp .n{font-size:58px !important;letter-spacing:.5px}
 #tinte{opacity:.35}
 .matchbar .mt{font-family:var(--ffh);font-weight:400;letter-spacing:1px;text-transform:uppercase}
+
+/* ---------- app: las tarjetas de Inicio crecen con su contenido en vez de aplastarlo ---------- */
+.inicio .mid{height:auto;min-height:270px}
+.inicio .foot{height:auto;min-height:158px}
+.inicio .card>*{flex-shrink:0}
+.ini-go{font-family:var(--ffd);letter-spacing:1.2px;text-transform:uppercase;border-radius:4px}
