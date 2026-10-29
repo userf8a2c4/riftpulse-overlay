@@ -959,6 +959,47 @@
   RiftEngine.setFuerza = function (elo) { FUERZA.elo = elo && Object.keys(elo).length ? elo : null; FUERZA.fuente = FUERZA.elo ? 'app' : null; emit(); };
   RiftEngine.pMapa = pMapa;
   RiftEngine.colores = colores;
+  // ---------- director: qué pieza mostrar en cada momento del juego ----------
+  // nivel: 'minimo' (solo la barra y los giros), 'estandar' (más objetivo, pelea y resumen) o 'show' (más oro y duelos de vez en cuando).
+  // decidir(s) devuelve {pieza, clave, hasta} o null. Nunca dos piezas grandes a la vez y siempre un respiro entre una y otra.
+  RiftEngine.crearDirector = function (nivel) {
+    var D = {nivel: nivel || 'estandar', actual: null, libreDesde: 0, visto: {}, hist: [], ultimoGiro: 0, ultimoShow: -1e9, log: []};
+    var N = function () { return {minimo: 0, estandar: 1, show: 2}[D.nivel] || 1; };
+    function poner(pieza, clave, seg, datos) {
+      var ahora = Date.now(); D.visto[clave] = true;
+      D.actual = {pieza: pieza, clave: clave, desde: ahora, hasta: ahora + seg * 1000, datos: datos || null};
+      D.log.unshift({pieza: pieza, at: ahora, txt: datos && datos.txt}); D.log = D.log.slice(0, 30);
+      return D.actual;
+    }
+    D.decidir = function (s) {
+      var ahora = Date.now(), g = s && s.game;
+      if (!g || g.pBlue == null) { D.actual = null; return null; }
+      D.hist.push({t: ahora, p: g.pBlue}); D.hist = D.hist.filter(function (x) { return ahora - x.t <= 90000; });
+      if (D.actual && ahora < D.actual.hasta) return D.actual;
+      if (D.actual) { D.actual = null; D.libreDesde = ahora + 6000; }  // respiro entre piezas
+      if (ahora < D.libreDesde) return null;
+      // 1) resumen al terminar el juego
+      if (N() >= 1 && g.ended && g.recap && !D.visto['fin' + g.id]) return poner('resumen', 'fin' + g.id, 20, {txt: g.recap.code + ' gana'});
+      // 2) giro: la probabilidad se movió 12 puntos o más en ~40 s
+      var antes = null; for (var i = 0; i < D.hist.length; i++) if (ahora - D.hist[i].t >= 38000) antes = D.hist[i];
+      if (antes && ahora - D.ultimoGiro > 25000) {
+        var d = Math.round((g.pBlue - antes.p) * 100);
+        if (Math.abs(d) >= 12) { D.ultimoGiro = ahora; return poner('giro', 'giro' + ahora, 7, {d: d, side: d > 0 ? 'blue' : 'red', txt: (d > 0 ? s.match.blue.code : s.match.red.code) + ' +' + Math.abs(d)}); }
+      }
+      // 3) pelea recién terminada: reparto de daño
+      if (N() >= 1 && g.fight && g.fight.gt != null && g.gt - g.fight.gt < 40 && !D.visto['pelea' + g.fight.gt]) return poner('pelea', 'pelea' + g.fight.gt, 9, {txt: 'pelea'});
+      // 4) objetivo por aparecer (60 s antes): cuánto vale para cada equipo
+      var t = g.timers || {}, ob = t.dragon && t.dragon.at > g.gt ? {k: t.dragon.elder ? 'Ancestral' : 'Dragón', at: t.dragon.at} : null;
+      if (t.baron && t.baron.at > g.gt && (!ob || t.baron.at < ob.at)) ob = {k: 'Barón', at: t.baron.at};
+      if (N() >= 1 && ob && ob.at - g.gt <= 60 && !D.visto['obj' + ob.k + Math.round(ob.at)]) return poner('objetivo', 'obj' + ob.k + Math.round(ob.at), Math.min(20, Math.max(8, ob.at - g.gt)), {txt: ob.k});
+      // 5) nivel show: el oro o los duelos cada ~4 min de juego
+      if (N() >= 2 && g.gt - D.ultimoShow >= 240 && g.gt > 300) { D.ultimoShow = g.gt; var dd = Math.floor(g.gt / 240) % 2 ? 'duelos' : 'oro'; return poner(dd, dd + Math.round(g.gt), 12, {txt: dd}); }
+      return null;
+    };
+    D.saltar = function () { if (D.actual) { D.actual.hasta = 0; } };
+    D.retener = function (seg) { if (D.actual) D.actual.hasta = Date.now() + (seg || 30) * 1000; };
+    return D;
+  };
   RiftEngine.aprenderColor = aprenderColor;
   RiftEngine.colorConocido = function (code) { return TEAMCOL[code] || null; };
   RiftEngine.contraste = function (h1, h2) { return contraste(hex2rgb(h1), hex2rgb(h2)); };

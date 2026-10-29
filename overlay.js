@@ -132,6 +132,21 @@
   .prob2 .meter{position:relative;width:150px;height:6px;border-radius:99px;background:var(--team-b);overflow:hidden}\
   .prob2 .meter i{position:absolute;left:0;top:0;bottom:0;background:var(--team-a);border-right:2px solid var(--g1);transition:width .9s cubic-bezier(.16,1,.3,1)}\
   .prob2 .meter b{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:rgba(255,255,255,.45)}\
+  .toast{position:absolute;left:50%;top:-46px;transform:translate(-50%,6px);opacity:0;pointer-events:none;white-space:nowrap;display:flex;align-items:center;gap:8px;\
+    background:rgba(var(--g1-rgb),.97);border:1px solid rgba(var(--signal-rgb),.55);border-radius:999px;padding:6px 14px;font-family:var(--ff);font-size:13px;font-weight:600;color:var(--text);box-shadow:0 10px 26px rgba(0,0,0,.5);transition:opacity .35s,transform .35s;z-index:6}\
+  .toast.show{opacity:1;transform:translate(-50%,0)}.toast i{width:8px;height:8px;border-radius:50%;background:var(--signal);box-shadow:0 0 10px var(--signal)}\
+  .toast .ca{color:var(--team-a-txt);font-weight:800}.toast .cb{color:var(--team-b-txt);font-weight:800}\
+  .mini{display:flex;align-items:center;gap:8px;padding:0 12px 0 10px;font-family:var(--ffd);font-weight:700;font-size:15px;letter-spacing:.5px;color:var(--text)}\
+  .mini .logo{width:18px;height:18px}.mini .k{font-family:var(--ff);font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.2px}\
+  .w.chico{height:34px}\
+  .ctl{flex-wrap:wrap;max-width:620px;justify-content:center}\
+  .w:hover .cards{display:none}\
+  .tl{flex-basis:100%;display:none}.tl.on{display:block}\
+  .tl svg{display:block;width:100%;height:78px}.tl .mk{cursor:pointer}.tl .mk:hover circle{stroke:var(--signal);stroke-width:2}\
+  .tl .nav{display:flex;gap:6px;justify-content:center;align-items:center;margin:2px 0 4px;font-family:var(--ff);font-size:12px;color:var(--muted)}\
+  .tl .nav button{background:var(--g2);border:1px solid rgba(var(--line-rgb),.18);color:var(--text);border-radius:6px;padding:2px 9px;font:600 12px var(--ff);cursor:pointer;white-space:nowrap;flex:none}\
+  .tl .nav button:hover{border-color:var(--signal)}\
+  .rs li{margin:3px 0;font-size:12.5px;color:var(--text);line-height:1.4}.rs ul{margin:4px 0 0;padding-left:16px;font-family:var(--ff)}\
   .acc .n{color:var(--signal)}.rp-flash{animation:rpf .9s cubic-bezier(.16,1,.3,1)}@keyframes rpf{25%{color:var(--signal);text-shadow:0 0 14px rgba(var(--signal-rgb),.9)}}\
   .fdo .sl{color:var(--signal);font-size:11px}\
   .diag{position:absolute;right:0;top:calc(100% + 40px);display:none;width:340px;background:rgba(var(--g0-rgb),.97);border:1px solid rgba(var(--signal-rgb),.45);border-radius:5px;padding:10px 12px;box-shadow:0 12px 32px rgba(0,0,0,.6);z-index:5;cursor:default}\
@@ -143,8 +158,8 @@
 
   var LOGO = '<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="rplg" x1="8" y1="40" x2="56" y2="26" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="'+RPC.a+'"/><stop offset=".5" stop-color="'+RPC.ahi+'"/><stop offset="1" stop-color="'+RPC.b+'"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="15" fill="#14171d" stroke="#2a2f3a" stroke-width="3"/><path d="M10 35 H21 L25 35 L30 17 L36 49 L40 35 H54" fill="none" stroke="url(#rplg)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-  sh.innerHTML = '<style>' + CSS + TOK + '</style><div class="w" id="w"><div class="mom" id="mom"></div><div class="diag" id="diag"></div><div class="cards" id="cards"><div class="dmg" id="dmg"></div><div id="cardsx" style="display:contents"></div></div><div id="body" style="display:inline-flex"></div>' +
-    '<div class="ctl" id="ctl"><span class="chip" id="autoc" title="Lee el reloj y el marcador del video y se sincroniza solo">auto-sync</span><span class="ast" id="ast"></span><button class="ic" id="diagb" title="diagnóstico del auto-sync: qué está leyendo del video">?</button><span class="chip" data-ext="obj">objetivo</span><span class="chip" data-ext="pg">trayectoria</span><span class="chip" data-ext="oro">oro</span><span class="chip" data-ext="dano">daño</span><span class="chip" data-ext="imp">impacto</span><span class="chip" data-ext="duelos">duelos</span><span class="chip" data-ext="mini">mínimo</span>' +
+  sh.innerHTML = '<style>' + CSS + TOK + '</style><div class="w" id="w"><div class="mom" id="mom"></div><div class="toast" id="toast"></div><div class="diag" id="diag"></div><div class="cards" id="cards"><div class="dmg" id="dmg"></div><div id="cardsx" style="display:contents"></div></div><div id="body" style="display:inline-flex"></div>' +
+    '<div class="ctl" id="ctl"><div class="tl" id="tl"></div><span class="chip" id="autoc" title="Lee el reloj y el marcador del video y se sincroniza solo">auto-sync</span><span class="ast" id="ast"></span><button class="ic" id="diagb" title="diagnóstico del auto-sync: qué está leyendo del video">?</button><span class="chip" data-ext="obj">objetivo</span><span class="chip" data-ext="pg">trayectoria</span><span class="chip" data-ext="oro">oro</span><span class="chip" data-ext="dano">daño</span><span class="chip" data-ext="imp">impacto</span><span class="chip" data-ext="duelos">duelos</span><span class="chip" data-ext="mini">mínimo</span>' +
     '<button class="ic" id="posbtn" title="arriba/abajo">↑↓</button><button class="ic" data-d="-5" title="atrasar">−</button><button class="ic" data-d="5" title="adelantar">+</button>' +
     '<span class="syncg" title="Escribe el minuto que ves en el stream y pulsa ⟲ (o Enter) para clavar el overlay a ese momento">ves <input id="scm" placeholder="mm:ss" maxlength="5"><button class="ic" id="syncb" title="sincronizar al minuto que ves">⟲</button> va <span class="gt" id="gtnow">—</span></span></div></div>';
   var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom'), dmgEl = sh.getElementById('dmg'), cardsEl = sh.getElementById('cards'), cardsX = sh.getElementById('cardsx');
@@ -211,6 +226,13 @@
       body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div><div class="wait">' + (AS.id && !AS.trasSalto ? 'Cargando ' + esc(AS.id.codes.join(' vs ')) + ' · juego ' + AS.id.juego + '…' : 'Sincronizando con el video…') + '</div>';
       return;
     }
+    // sin reloj a la vista más de 12 s (desk, publicidad, entrevista): la barra se contrae a una pastilla
+    var g0 = s.game, sinReloj = typeof AS !== 'undefined' && AS.on && AS.id && AS.visto && Date.now() - AS.visto > 12000;
+    wEl.classList.toggle('chico', !!(sinReloj && s.match));
+    if (sinReloj && s.match && g0 && g0.pBlue != null) {
+      var lider = g0.pBlue >= 0.5, pl = Math.round((lider ? g0.pBlue : 1 - g0.pBlue) * 100);
+      body.innerHTML = '<div class="mini">' + LOGO + '<span class="' + (lider ? 'b' : 'r') + '">' + esc(lider ? s.match.blue.code : s.match.red.code) + ' ' + pl + '%</span><span class="k">· vuelve con el juego</span></div>'; return;
+    }
     if (!s.match) {
       if (s.next) { body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div>' +
         '<div class="seg next"><span class="sl">Próximo partido</span><span class="vs"><span class="b">' + esc(s.next.blue) + '</span> vs <span class="r">' + esc(s.next.red) + '</span></span></div>'; }
@@ -221,7 +243,7 @@
     var html = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div>';
 
     if (!g || g.pBlue == null) {
-      html += '<div class="seg prob"><span class="tc b">' + esc(m.blue.code) + '</span><span class="sl" style="padding:0 4px">' + ((g && g.waiting) ? 'cargando juego…' : 'por empezar') + '</span><span class="tc r">' + esc(m.red.code) + '</span></div>';
+      html += '<div class="mini"><span class="k">' + ((g && g.waiting) ? 'Cargando el juego' : 'Draft') + '</span><span class="b">' + esc(m.blue.code) + '</span><span class="k">vs</span><span class="r">' + esc(m.red.code) + '</span></div>';
       if (s.next) html += '<div class="seg next"><span class="sl">Próximo</span><span class="vs"><span class="b">' + esc(s.next.blue) + '</span> vs <span class="r">' + esc(s.next.red) + '</span></span></div>';
       body.innerHTML = html; return;
     }
@@ -250,6 +272,7 @@
 
     body.innerHTML = html;
     if (window.RPUI) RPUI.numeros(body);
+    pintarTL(s);
     hist.push({t: Date.now(), p: g.pBlue}); checkMomentum(s); showFight(s);
   }
 
@@ -293,6 +316,12 @@
       return '<div class="du"><span class="nb"><span class="nm b">' + esc(l.blue.name) + '</span>' + (gb && l.gd > 99 ? '<span class="gd b">+' + kc(l.gd) + '</span>' : '') + '</span><span class="rl">' + esc(l.label) + '</span><span class="nb nr">' + (!gb && l.gd < -99 ? '<span class="gd r">+' + kc(l.gd) + '</span>' : '') + '<span class="nm r">' + esc(l.red.name) + '</span></span></div>';
     }).join('') + '</div>';
   }
+  // ---------- paneles automáticos: el director del motor decide qué mostrar (nivel mínimo, estándar o show) ----------
+  var DIR = R.crearDirector ? R.crearDirector(ls('rp_dir') || 'estandar') : null;
+  function grafResumen(s) {
+    var lines = R.recapLines ? R.recapLines(s) : []; if (!lines.length) return '';
+    return '<div class="cd rs" style="width:420px"><div class="ch"><span>Resumen del juego</span></div><ul>' + lines.map(function (l) { return '<li>' + l + '</li>'; }).join('') + '</ul></div>';
+  }
   var cardsSig = '';
   function tarjetas(s) {
     cardsEl.classList.toggle('up', POS === 'bottom' && !XY);
@@ -302,9 +331,50 @@
       if (EXT.indexOf('imp') >= 0) h += grafImpacto(s);
       if (EXT.indexOf('duelos') >= 0) h += grafDuelos(s);
       if (EXT.indexOf('dano') >= 0) h += grafDano(s);
+      var d = DIR && DIR.decidir(s);  // lo automático no repite un panel que ya está puesto a mano
+      if (d) {
+        if (d.pieza === 'objetivo' && EXT.indexOf('imp') < 0) h += grafImpacto(s);
+        else if (d.pieza === 'resumen') h += grafResumen(s);
+        else if (d.pieza === 'oro' && EXT.indexOf('oro') < 0) h += grafOro(s);
+        else if (d.pieza === 'duelos' && EXT.indexOf('duelos') < 0) h += grafDuelos(s);
+      }
     }
     if (h !== cardsSig) { cardsSig = h; cardsX.innerHTML = h; }
   }
+
+  // ---------- aviso «Sincronizado» ----------
+  var toastEl = sh.getElementById('toast'), toastT = null;
+  function aviso(html) { toastEl.innerHTML = '<i></i>' + html; toastEl.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(function () { toastEl.classList.remove('show'); }, 3200); }
+  // ---------- línea de tiempo: el gráfico del juego con sus momentos; en un VOD, tocar un momento salta el video ----------
+  var tlEl = sh.getElementById('tl'), TLM = [];
+  function esVod() { return /\/videos\/|\/vod\//.test(location.pathname); }
+  function pintarTL(s) {
+    var g = s.game, sm = (g && g.samples) || [];
+    tlEl.classList.toggle('on', sm.length > 1);
+    if (sm.length < 2 || !wEl.matches(':hover')) return;
+    var W = 600, H = 78, t1 = Math.max(60, g.gt), X = function (t) { return 8 + t / t1 * (W - 16); }, Y = function (p) { return H - 10 - p * (H - 20); };
+    var line = sm.map(function (x, i) { return (i ? 'L' : 'M') + X(x.gt).toFixed(1) + ' ' + Y(x.p).toFixed(1); }).join(' ');
+    TLM = [];
+    (g.swings || []).forEach(function (w) { TLM.push({gt: w.a, txt: (w.side === 'blue' ? s.match.blue.code : s.match.red.code) + ' +' + Math.round(Math.abs(w.d) * 100) + ' · ' + (w.cause || 'giro'), c: w.side === 'blue' ? RPC.a : RPC.b, r: 6}); });
+    (g.events || []).forEach(function (e) { if (['dragon', 'baron', 'elder', 'inhib'].indexOf(e.kind) >= 0) TLM.push({gt: e.gt, txt: e.txt, c: e.side === 'blue' ? RPC.a : RPC.b, r: 4}); });
+    TLM.sort(function (a, b) { return a.gt - b.gt; });
+    var mk = TLM.map(function (m, i) { return '<g class="mk" data-tl="' + i + '"><title>' + esc(mmss(m.gt) + ' · ' + m.txt) + '</title><circle cx="' + X(m.gt).toFixed(1) + '" cy="' + (m.r > 5 ? 9 : H - 6) + '" r="' + m.r + '" fill="' + m.c + '" stroke="#101318" stroke-width="1.5"/></g>'; }).join('');
+    var puede = esVod() && AS.id && AS.off != null;
+    tlEl.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none"><line x1="0" x2="' + W + '" y1="' + Y(0.5) + '" y2="' + Y(0.5) + '" stroke="rgba(255,255,255,.18)" stroke-dasharray="4 4"/>' +
+      '<path d="' + line + '" fill="none" stroke="' + RPC.s + '" stroke-width="2" vector-effect="non-scaling-stroke"/><line x1="' + X(g.gt) + '" x2="' + X(g.gt) + '" y1="0" y2="' + H + '" stroke="rgba(255,255,255,.5)"/>' + mk + '</svg>' +
+      '<div class="nav">' + (puede ? '<button data-salto="-10">−10 s</button><button data-salto="prev">◀ momento</button><button data-salto="next">momento ▶</button><span>Tocá un punto para ir a ese momento del video</span>' : '<span>' + (esVod() ? 'Sincronizá el video para saltar a cada momento' : 'Momentos clave del juego (en vivo no se puede saltar)') + '</span>') + '</div>';
+  }
+  function irA(gt) { var v = video(); if (!v || AS.off == null || !esVod()) return; v.currentTime = Math.max(0, gt - AS.off - 3); }  // 3 s antes, para ver la jugada entera
+  tlEl.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+  tlEl.addEventListener('click', function (e) {
+    e.stopPropagation(); var v = video(); if (!v || AS.off == null) return;
+    var gv = AS.off + v.currentTime;  // el minuto del juego que se ve ahora, según el video
+    var m = e.target.closest('[data-tl]'); if (m) { irA(TLM[+m.getAttribute('data-tl')].gt); return; }
+    var b = e.target.closest('[data-salto]'); if (!b || !esVod()) return; var k = b.getAttribute('data-salto');
+    if (k === '-10') v.currentTime = Math.max(0, v.currentTime - 10);
+    else if (k === 'prev') { var p = TLM.filter(function (x) { return x.gt < gv - 8; }).pop(); if (p) irA(p.gt); }
+    else { var n = TLM.filter(function (x) { return x.gt > gv + 2; })[0]; if (n) irA(n.gt); }
+  });
 
   function checkMomentum(s) {
     var now = Date.now(); hist = hist.filter(function (x) { return now - x.t <= 90000; });
@@ -328,6 +398,8 @@
     if (c.hidden != null) host.style.display = c.hidden ? 'none' : '';
     if (!inicial && c.sync) R.syncTo(c.sync.secs + (Date.now() - c.sync.at) / 1000);  // las órdenes de un solo uso no se repiten al recargar
     if (!inicial && c.nudge) R.nudge(c.nudge);
+    if (c.director && DIR) { DIR.nivel = c.director; ls('rp_dir', c.director); }
+    if (!inicial && c.dirSaltar && DIR) DIR.saltar();
     if (LAST) render(LAST);
   }
   var hayStorage = false;
@@ -412,7 +484,7 @@
   // lo que se ve en pantalla, para el centro de mando del panel
   function publicar() {
     var v = video() || {};
-    var d = AS.id ? {matchId: AS.id.matchId, juego: AS.id.juego, gameId: AS.id.gameId, codes: AS.id.codes, gt: AS.off != null ? AS.off + v.currentTime : null, playing: !v.paused, at: Date.now()} : null;
+    var d = AS.id ? {matchId: AS.id.matchId, juego: AS.id.juego, gameId: AS.id.gameId, codes: AS.id.codes, gt: AS.off != null ? AS.off + v.currentTime : null, playing: !v.paused, vod: esVod(), at: Date.now()} : null;
     try { if (chrome.storage && chrome.storage.local) chrome.storage.local.set({rp_pantalla: d}); else chrome.runtime.sendMessage({type: 'rp-pantalla', data: d}, function () { void chrome.runtime.lastError; }); } catch (e) {}
   }
   // atar el motor al video: minuto = desfase + posición del video
@@ -469,6 +541,22 @@
     }
     return mejor;
   }
+  // el color de las siglas en el HUD: si es de marca (no el azul o el rojo del lado), se aprende para ese equipo
+  function colorHUD(v, codes) {
+    try {
+      [[HUD.tagI, codes[0]], [HUD.tagD, codes[1]]].forEach(function (z) {
+        var c = document.createElement('canvas'); c.width = 48; c.height = 16; var x = c.getContext('2d', {willReadFrequently: true});
+        x.drawImage(v, z[0][0] * v.videoWidth, z[0][1] * v.videoHeight, (z[0][2] - z[0][0]) * v.videoWidth, (z[0][3] - z[0][1]) * v.videoHeight, 0, 0, 48, 16);
+        var d = x.getImageData(0, 0, 48, 16).data, sum = [0, 0, 0], n = 0;
+        for (var i = 0; i < d.length; i += 4) { var mx = Math.max(d[i], d[i + 1], d[i + 2]), mn = Math.min(d[i], d[i + 1], d[i + 2]); if (mx > 110 && mx - mn > 80) { sum[0] += d[i]; sum[1] += d[i + 1]; sum[2] += d[i + 2]; n++; } }
+        if (n < 12) return;
+        var r = sum[0] / n, g = sum[1] / n, b = sum[2] / n, mx2 = Math.max(r, g, b), mn2 = Math.min(r, g, b), dd = mx2 - mn2, h = 0;
+        if (dd) h = mx2 === r ? ((g - b) / dd) % 6 : mx2 === g ? (b - r) / dd + 2 : (r - g) / dd + 4; h = (h * 60 + 360) % 360;
+        var lado = Math.min(Math.abs(h - 215), 360 - Math.abs(h - 215)) < 30 || Math.min(Math.abs(h - 355), 360 - Math.abs(h - 355)) < 25;
+        if (!lado && R.aprenderColor) R.aprenderColor(z[1], '#' + [r, g, b].map(function (q) { return ('0' + Math.round(q).toString(16)).slice(-2); }).join(''));
+      });
+    } catch (e) {}
+  }
   async function identificar(v, gt) {
     var C = await codigos(), lee = function (z, m) { return L.numeros(L.recorte(v, z, 'blanco'), m); };
     var sI = L.siglas(L.recorte(v, HUD.tagI, 'color'), C), sD = L.siglas(L.recorte(v, HUD.tagD, 'color'), C);
@@ -490,7 +578,7 @@
   }
   function rango(ls) { var a = Infinity, b = -Infinity; ls.forEach(function (r) { a = Math.min(a, r.ct); b = Math.max(b, r.ct); }); return b - a; }
   async function asTick() {
-    if (!AS.on || AS.busy || !L) return;
+    if (!AS.on || AS.busy || !L || document.hidden) return;  // pestaña oculta: el lector descansa
     var v = video(); if (!v || v.readyState < 2 || !v.videoWidth) return;
     AS.busy = true; AS.n++;
     try {
@@ -546,7 +634,12 @@
       if (!AS.id) {
         asEstado('reconociendo el partido…');
         var id = await identificar(v, gt);
-        if (id) { AS.id = id; AS.playing = null; AS.malas = 0; AS.pend = null; }
+        if (id) {
+          var nuevo = !AS.id || AS.id.gameId !== id.gameId;
+          AS.id = id; AS.playing = null; AS.malas = 0; AS.pend = null;
+          if (nuevo) aviso('Sincronizado · <span class="ca">' + esc(id.codes[0]) + '</span> vs <span class="cb">' + esc(id.codes[1]) + '</span> · juego ' + id.juego + ' · ' + mmss(gt));
+          colorHUD(v, id.codes);
+        }
         else { asEstado('no reconozco el partido (mirá el diagnóstico)'); return; }
       } else if (AS.n % 20 === 0) await verificar(v, gt);
       seguir(v); publicar();
