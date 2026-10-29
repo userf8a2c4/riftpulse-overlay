@@ -2346,6 +2346,8 @@ async function pinGame(matchId, gameId) {
   setVista('partido'); render(); renderPlayer();
   const e = schedule.find(x => x.match.id === matchId);
   try { await loadEvent(matchId, e && e.blockName); } catch (err) { status('No se pudo abrir el juego: ' + err.message, true, 6000); }
+  // la repetición arranca sola desde el inicio, apenas el juego terminó de cargar
+  if (PIN && PIN.gameId === gameId && G && G.start) SCRUB = {gt: 0, playing: true, base: Date.now(), speed: +$('#pVel').value};
   render(); renderPlayer();
 }
 

@@ -42,6 +42,8 @@ Es un solo archivo HTML, sin instalación ni servidor. Proyecto de código abier
 </p>
 
 ### Sincronía con el stream
+**Automática:** el overlay de la extensión lee del video el reloj del juego, los equipos y el marcador (oro y kills), reconoce qué partido y qué juego se está viendo y se clava a ese minuto. Funciona igual en vivo o con una repetición a cualquier hora, y sigue sola la pausa, la velocidad y los saltos del video. Se prende o apaga con el botón **auto-sync** de los controles del overlay. La lectura (OCR) va empaquetada en la extensión y se hace en tu computadora.
+
 La página ajusta sola el retraso frente a la transmisión. Si ve un desfase, use los botones **±** del menú ⏱ en la cabecera.
 
 En el overlay, pase el ratón sobre la barra: escriba en **«ves»** el minuto del juego que muestra el stream y pulse **⟲** (o Enter). El overlay se clava a ese instante y **«va»** muestra el minuto en que va, para comparar. Los botones **−/+** lo mueven de 5 en 5 segundos.

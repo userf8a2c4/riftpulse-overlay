@@ -21,11 +21,22 @@
   host.style.cssText = 'position:fixed;z-index:2147483646;max-width:96vw;';
   (document.body || document.documentElement).appendChild(host);
   var sh = host.attachShadow({mode: 'open'});
+  // el video principal de la página (el más grande que esté visible)
+  function mainVideo() {
+    var best = null, area = 0;
+    document.querySelectorAll('video').forEach(function (v) { var r = v.getBoundingClientRect(), a = r.width * r.height; if (a > area && r.width > 200) { best = v; area = a; } });
+    return best;
+  }
+  // arriba = justo debajo del marcador oficial de la transmisión; abajo = encima del panel de jugadores
   function place() {
     if (XY) { host.style.left = XY.l + 'px'; host.style.top = XY.t + 'px'; host.style.bottom = 'auto'; host.style.transform = 'none'; return; }
-    host.style.left = '50%'; host.style.transform = 'translateX(-50%)';
-    if (POS === 'bottom') { host.style.bottom = '112px'; host.style.top = 'auto'; } else { host.style.top = '52px'; host.style.bottom = 'auto'; }
+    var v = mainVideo(), r = v ? v.getBoundingClientRect() : null;
+    host.style.transform = 'translateX(-50%)';
+    host.style.left = r ? (r.left + r.width / 2) + 'px' : '50%';
+    if (POS === 'bottom') { host.style.top = 'auto'; host.style.bottom = r ? Math.max(8, innerHeight - (r.top + r.height * 0.70)) + 'px' : '112px'; }
+    else { host.style.bottom = 'auto'; host.style.top = r ? Math.max(8, r.top + r.height * 0.125) + 'px' : '52px'; }
   }
+  setInterval(place, 2000);
   place();
 
   function rpFullscreen() { var fs = document.fullscreenElement || document.webkitFullscreenElement || null; var dest = fs || document.body; if (dest && host.parentNode !== dest) dest.appendChild(host); }
@@ -87,13 +98,15 @@
   .syncg{display:flex;align-items:center;gap:3px;font-size:9.5px;color:#8b97b0;border-left:1px solid rgba(120,150,200,.25);padding-left:6px;margin-left:2px}\
   .syncg input{width:42px;height:18px;background:rgba(20,28,44,.7);border:1px solid rgba(120,150,200,.3);border-radius:5px;color:#e8edf7;font:inherit;font-size:11px;text-align:center;padding:0 3px}\
   .syncg input:focus{outline:none;border-color:#4aa3ff}.syncg input.bad{border-color:#ff5a5f}\
+  .ast{font-size:9.5px;letter-spacing:1px;color:#8fa0c2;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:4px}\
+  .ast.ok{color:#3ddc97}\
   .syncg .gt{font-variant-numeric:tabular-nums;color:#aab6cc;font-weight:700}\
   ';
 
   var LOGO = '<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="rplg" x1="8" y1="40" x2="56" y2="26" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4aa3ff"/><stop offset=".5" stop-color="#9ab0e6"/><stop offset="1" stop-color="#ff5a5f"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="15" fill="#0d1320" stroke="#2b3c62" stroke-width="3"/><path d="M10 35 H21 L25 35 L30 17 L36 49 L40 35 H54" fill="none" stroke="url(#rplg)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   sh.innerHTML = '<style>' + CSS + '</style><div class="w" id="w"><div class="mom" id="mom"></div><div class="dmg" id="dmg"></div><div id="body" style="display:inline-flex"></div>' +
-    '<div class="ctl" id="ctl"><span class="chip" data-ext="obj">objetivo</span><span class="chip" data-ext="pg">trayectoria</span>' +
+    '<div class="ctl" id="ctl"><span class="chip" id="autoc" title="Lee el reloj y el marcador del video y se sincroniza solo">auto-sync</span><span class="ast" id="ast"></span><span class="chip" data-ext="obj">objetivo</span><span class="chip" data-ext="pg">trayectoria</span>' +
     '<button class="ic" id="posbtn" title="arriba/abajo">↑↓</button><button class="ic" data-d="-5" title="atrasar">−</button><button class="ic" data-d="5" title="adelantar">+</button>' +
     '<span class="syncg" title="Escribe el minuto que ves en el stream y pulsa ⟲ (o Enter) para clavar el overlay a ese momento">ves <input id="scm" placeholder="mm:ss" maxlength="5"><button class="ic" id="syncb" title="sincronizar al minuto que ves">⟲</button> va <span class="gt" id="gtnow">—</span></span></div></div>';
   var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom'), dmgEl = sh.getElementById('dmg');
@@ -214,6 +227,85 @@
     chrome.storage.local.get('rp_cmd', function (o) { applyCmd(o && o.rp_cmd, true); });
     chrome.storage.onChanged.addListener(function (ch, area) { if (area === 'local' && ch.rp_cmd) applyCmd(ch.rp_cmd.newValue, false); });
   } catch (e) {}
+
+  // ---------- sincronía automática: lee del video el reloj del juego, los equipos y el marcador ----------
+  // Zonas del HUD de la transmisión del Mundial, relativas al cuadro del video.
+  var ZONAS = {
+    reloj: [0.455, 0.062, 0.545, 0.112, 'blanco'],
+    tagI: [0.29, 0.0, 0.375, 0.055, 'color'], tagD: [0.625, 0.0, 0.715, 0.055, 'color'],
+    oroI: [0.415, 0.012, 0.458, 0.058, 'blanco'], oroD: [0.548, 0.012, 0.59, 0.058, 'blanco'],
+    killI: [0.468, 0.01, 0.497, 0.065, 'blanco'], killD: [0.503, 0.01, 0.533, 0.065, 'blanco']
+  };
+  var LISTA = {reloj: '0123456789:', tagI: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', tagD: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', oroI: '0123456789.K', oroD: '0123456789.K', killI: '0123456789', killD: '0123456789'};
+  var MODO = {reloj: '7', tagI: '8', tagD: '8', oroI: '7', oroD: '7', killI: '8', killD: '8'};  // línea / palabra
+  var AS = {on: ls('rp_auto6') !== '0', busy: false, id: null, anchor: null, prev: null, err: '', tries: 0};
+  // recorta una zona del cuadro y la deja en negro sobre blanco, ampliada, lista para leer
+  function zona(v, z) {
+    var vw = v.videoWidth, vh = v.videoHeight, sx = z[0] * vw, sy = z[1] * vh, sw = (z[2] - z[0]) * vw, sh2 = (z[3] - z[1]) * vh;
+    var k = Math.max(1, Math.min(4, 110 / sh2)), c = document.createElement('canvas');
+    c.width = Math.round(sw * k); c.height = Math.round(sh2 * k);
+    var x = c.getContext('2d', {willReadFrequently: true});
+    x.imageSmoothingQuality = 'high'; x.drawImage(v, sx, sy, sw, sh2, 0, 0, c.width, c.height);
+    var d = x.getImageData(0, 0, c.width, c.height), p = d.data;  // falla si el video está protegido
+    for (var i = 0; i < p.length; i += 4) {
+      var mx = Math.max(p[i], p[i + 1], p[i + 2]), mn = Math.min(p[i], p[i + 1], p[i + 2]);
+      var tinta = z[4] === 'color' ? (mx > 110 && mx - mn > 80) : mn > 165;
+      p[i] = p[i + 1] = p[i + 2] = tinta ? 0 : 255; p[i + 3] = 255;
+    }
+    x.putImageData(d, 0, 0);
+    return c.toDataURL('image/png');
+  }
+  function leer(imgs) {
+    var wl = {}, psm = {}; Object.keys(imgs).forEach(function (k) { wl[k] = LISTA[k]; psm[k] = MODO[k]; });
+    if (window.RP_OCR) return window.RP_OCR(imgs, wl, psm);
+    return new Promise(function (res) { try { chrome.runtime.sendMessage({type: 'rp-ocr', images: imgs, wl: wl, psm: psm}, function (r) { res(r || {}); }); } catch (e) { res({}); } });
+  }
+  var autoc = sh.getElementById('autoc'), astEl = sh.getElementById('ast');
+  function asEstado(t, ok) { astEl.textContent = t; astEl.classList.toggle('ok', !!ok); }
+  function asChip() { autoc.classList.toggle('on', AS.on); if (!AS.on) asEstado(''); }
+  asChip();
+  autoc.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+  autoc.addEventListener('click', function (e) { e.stopPropagation(); AS.on = !AS.on; ls('rp_auto6', AS.on ? '1' : '0'); AS.id = null; AS.anchor = null; asChip(); if (!AS.on) R.follow(null); });
+  // minuto de juego esperado según el último anclaje (sigue la pausa y la velocidad del video)
+  function esperado(v) { var a = AS.anchor; return a ? a.gt + (a.playing ? (Date.now() - a.at) / 1000 * a.speed : 0) : null; }
+  function anclar(v, gt) {
+    AS.anchor = {gt: gt, at: Date.now(), playing: !v.paused, speed: v.playbackRate || 1};
+    R.follow({matchId: AS.id.matchId, juego: AS.id.juego, gt: gt, playing: AS.anchor.playing, speed: AS.anchor.speed, at: AS.anchor.at});
+  }
+  async function asTick() {
+    if (!AS.on || AS.busy) return;
+    var v = mainVideo(); if (!v || v.readyState < 2 || !v.videoWidth) return;
+    AS.busy = true;
+    try {
+      var t0 = Date.now(), need = !AS.id || (++AS.tries % 8 === 0), imgs = {reloj: zona(v, ZONAS.reloj)};
+      if (need) ['tagI', 'tagD', 'oroI', 'oroD', 'killI', 'killD'].forEach(function (k) { imgs[k] = zona(v, ZONAS[k]); });
+      // el reloj puede llegar sin los dos puntos («112» = 1:12): con 3 o 4 cifras, las dos últimas son los segundos
+      var r = await leer(imgs), rl = String(r.reloj || '').replace(/[^\d:]/g, ''), m = rl.match(/(\d{1,2}):(\d{2})/) || rl.match(/^(\d{1,2})(\d{2})$/);
+      if (!m || +m[2] > 59) { asEstado(AS.id ? 'sincronizado · sin reloj a la vista' : 'buscando el reloj del juego…', !!AS.id); return; }
+      var gt = +m[1] * 60 + +m[2] + (v.paused ? 0 : (Date.now() - t0) / 1000 * (v.playbackRate || 1) * 0.5);
+      // dos lecturas coherentes seguidas antes de confiar
+      var p = AS.prev; AS.prev = {gt: gt, at: Date.now(), rate: v.paused ? 0 : (v.playbackRate || 1)};
+      if (!p || Math.abs((gt - p.gt) - (AS.prev.at - p.at) / 1000 * AS.prev.rate) > 3) { if (!AS.id) asEstado('leyendo el reloj… ' + m[1] + ':' + m[2]); return; }
+      if (need) {
+        var num = function (x) { var q = String(x || '').match(/\d+(\.\d)?/); return q ? parseFloat(q[0]) : null; };
+        var tags = [String(r.tagI || '').trim(), String(r.tagD || '').trim()];
+        var gold = [num(r.oroI), num(r.oroD)], kills = [num(r.killI), num(r.killD)];
+        var id = await R.identify({gt: gt, tags: tags, gold: gold[0] != null && gold[1] != null ? gold : null, kills: kills[0] != null && kills[1] != null ? kills : null});
+        if (id && (!AS.id || id.matchId !== AS.id.matchId || id.juego !== AS.id.juego)) { AS.id = id; anclar(v, gt); }
+      }
+      if (!AS.id) { asEstado('no reconozco el partido todavía…'); return; }
+      var e = esperado(v);
+      if (e == null || Math.abs(gt - e) > 2) anclar(v, gt);
+      asEstado('auto · ' + AS.id.codes.join(' vs ') + ' · J' + AS.id.juego + ' · ' + m[1] + ':' + m[2], true);
+    } catch (err) {
+      asEstado(/insecure|tainted|SecurityError/i.test(String(err)) ? 'este video no se puede leer (protegido)' : 'auto-sync: ' + String(err).slice(0, 40));
+    } finally { AS.busy = false; }
+  }
+  setInterval(function () { asTick(); }, 2000);
+  // pausa, velocidad o salto del video: re-anclar al instante con lo que ya sabemos
+  ['pause', 'play', 'ratechange'].forEach(function (ev) { document.addEventListener(ev, function (e) {
+    if (!AS.on || !AS.id || e.target !== mainVideo()) return; var g = esperado(e.target); if (g != null) anclar(e.target, g); }, true); });
+  document.addEventListener('seeked', function (e) { if (AS.on && e.target === mainVideo()) { AS.anchor = null; AS.prev = null; } }, true);
 
   R.onUpdate(render);
   if (!window.RP_NO_AUTOSTART) R.start();
