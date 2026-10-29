@@ -44,17 +44,19 @@
   }
 
   // ---------- red (fetch directo; los endpoints de LoL Esports son CORS-abiertos) ----------
+  var NET = {okAt: 0, errs: 0};  // última respuesta buena y fallos seguidos (tras los reintentos)
   async function fetchRetry(url, opts, tries) {
     tries = tries || 3; var err;
     for (var i = 0; i < tries; i++) {
       try {
         var r = await fetch(url, opts);
-        if (r.ok || r.status === 204) return r;
+        if (r.ok || r.status === 204) { NET.okAt = Date.now(); NET.errs = 0; return r; }
         err = new Error('HTTP ' + r.status);
         if (r.status < 500 && r.status !== 429) break;
       } catch (e) { err = e; }
       if (i < tries - 1) await new Promise(function (res) { setTimeout(res, 400 * (i + 1)); });
     }
+    NET.errs++;
     throw err;
   }
   async function api(path, params) {
@@ -62,7 +64,7 @@
     u.searchParams.set('hl', HL);
     for (var k in (params || {})) u.searchParams.set(k, params[k]);
     var r = await fetchRetry(u, {headers: {'x-api-key': KEY}});
-    return (await r.json()).data;
+    try { return (await r.json()).data; } catch (e) { NET.errs++; throw e; }
   }
   var FEEDC = new Map();
   async function feed(kind, id, t) {
@@ -73,7 +75,7 @@
     var r;
     try { r = await fetchRetry(u); } catch (e) { return null; }
     if (!r || r.status === 204) return null;
-    var d = await r.json();
+    var d; try { d = await r.json(); } catch (e) { NET.errs++; return null; }
     // cachea los tramos de más de 2 min (ya no cambian)
     if (t && Date.now() - t > 120000 && FEEDC.size < 800) FEEDC.set(key, d);
     return d;
@@ -176,6 +178,10 @@
   var VIDEO_DEFAULT = 42;
   var videoDelay = (function () { try { return +(localStorage.getItem('rp_retraso') || VIDEO_DEFAULT); } catch (e) { return VIDEO_DEFAULT; } })();
   var delay = videoDelay;
+  // ?delay=42 (segundos) en la URL de una pieza de OBS: manda sobre lo guardado y queda recordado
+  try { var qd = new URLSearchParams(location.search).get('delay'); if (qd != null && qd !== '' && isFinite(+qd)) { delay = Math.max(0, Math.round(+qd)); localStorage.setItem('rp_retraso', delay); } } catch (e) {}
+  // ?stale=25: segundos sin datos nuevos para avisar «datos retrasados»
+  var STALE_S = (function () { try { var v = +new URLSearchParams(location.search).get('stale'); return v >= 5 ? v : 25; } catch (e) { return 25; } })();
   var now = function () { return Date.now(); };
   var REPLAY = null;  // modo repetición: {base, real, vel}
   var DEMO = null;    // modo demo: {list, i, vel, cur}: repite juegos reales del Mundial, uno tras otro
@@ -335,9 +341,34 @@
     var bo = M.strategy.count || 1, need = Math.ceil(bo / 2);
     var wb = (sideTeam('blue').result || {}).gameWins || 0, wr = (sideTeam('red').result || {}).gameWins || 0;
     if (wb >= need || wr >= need) return null;
-    function f(x, y) { return x >= need ? 1 : y >= need ? 0 : 0.5 * f(x + 1, y) + 0.5 * f(x, y + 1); }
+    // los mapas que faltan se estiman con la fuerza de cada equipo (Elo); sin datos, 50/50
+    var pm = pMapa(code('blue'), code('red')), q = pm == null ? 0.5 : pm;
+    function f(x, y) { return x >= need ? 1 : y >= need ? 0 : q * f(x + 1, y) + (1 - q) * f(x, y + 1); }
     var ifB = f(wb + 1, wr), ifR = f(wb, wr + 1), p = G.wp.p;
-    return {bo: bo, need: need, score: [wb, wr], ifBlue: ifB, ifRed: ifR, pNow: p * ifB + (1 - p) * ifR};
+    return {bo: bo, need: need, score: [wb, wr], ifBlue: ifB, ifRed: ifR, pNow: p * ifB + (1 - p) * ifR, pMapa: q, metodo: pm == null ? 'mapas que faltan: 50/50 (sin datos de fuerza)' : FUERZA.fuente === 'app' ? 'mapas que faltan estimados con el Elo de RiftPulse' : 'mapas que faltan estimados con los resultados del Mundial'};
+  }
+
+  // ---------- fuerza de los equipos (Elo) ----------
+  // La app manda su Elo completo (RiftEngine.setFuerza); si no, se calcula un Elo con los resultados del Mundial.
+  var FUERZA = {elo: null, fuente: null};
+  function eloMundial() {
+    var ev = (SCH.events || []).filter(function (e) { return e.state === 'completed' && e.match && (e.match.teams || []).length === 2; })
+      .sort(function (a, b) { return a.startTime < b.startTime ? -1 : 1; });
+    if (ev.length < 6) return null;
+    var E = {};
+    ev.forEach(function (e) {
+      var a = e.match.teams[0], b = e.match.teams[1]; if (!a.code || !b.code) return;
+      var ea = E[a.code] || 1500, eb = E[b.code] || 1500, wa = (a.result || {}).gameWins || 0, wb = (b.result || {}).gameWins || 0;
+      if (wa === wb) return;
+      var exp = 1 / (1 + Math.pow(10, (eb - ea) / 400)), k = 24 * Math.max(1, Math.abs(wa - wb)) / (wa + wb > 1 ? 1.5 : 1), r = wa > wb ? 1 : 0;
+      E[a.code] = ea + k * (r - exp); E[b.code] = eb - k * (r - exp);
+    });
+    return E;
+  }
+  function pMapa(a, b) {
+    var E = FUERZA.elo || eloMundial(); if (!E || E[a] == null || E[b] == null) return null;
+    if (!FUERZA.elo) FUERZA.fuente = 'mundial';
+    return 1 / (1 + Math.pow(10, (E[b] - E[a]) / 400));
   }
 
   // Draft: plan y ventana de poder de cada equipo según la escala de sus campeones (datos pro). No cambia la probabilidad.
@@ -453,9 +484,22 @@
         swings: keyMoments(3), comeback: comebackPaths(), draft: draftInfo(), lanes: L, keyPlayer: keyPlayer(L), recap: recap()} : null,
       series: seriesNow(), h2h: M ? h2hFor(bt.code, rt.code) : null, maps: seriesMaps(),
       demo: DEMO && DEMO.cur ? {blue: DEMO.cur.blue, red: DEMO.cur.red, date: DEMO.cur.date, block: DEMO.cur.block, vel: DEMO.vel} : null,
-      follow: FOLLOW ? {matchId: FOLLOW.matchId, juego: FOLLOW.juego} : null,
+      follow: FOLLOW ? {matchId: FOLLOW.matchId, juego: FOLLOW.juego} : null, feed: feedState(),
       blueCode: blueCode, redCode: redCode, delay: delay, precision: PRECISION, next: NEXTM, at: Date.now()
     };
+  }
+  // estado de los datos, para mostrarlo en todas las vistas (nunca se borra la última predicción)
+  function feedState() {
+    var edad = NET.okAt ? Math.round((Date.now() - NET.okAt) / 1000) : null;
+    if (DEMO) return {estado: 'demo', txt: 'DEMO · partido ya jugado', edad: edad};
+    if (NET.errs >= 2) return {estado: 'caido', txt: 'Sin datos nuevos', edad: edad};
+    if (!M) return {estado: 'sin_partido', txt: 'Esperando partido', edad: edad};
+    if (G && G.last && G.last.gameState === 'paused') return {estado: 'pausa', txt: 'Juego en pausa', edad: edad};
+    if (G && G.start && G.lastTs && !G.ended) {
+      var atraso = Math.round((dataTime() - G.lastTs) / 1000);
+      if (atraso > STALE_S) return {estado: 'retrasado', txt: 'Datos retrasados · ' + atraso + ' s', edad: atraso};
+    }
+    return {estado: 'ok', txt: 'Datos al día', edad: edad};
   }
   function emit() { var s = snapshot(); for (var i = 0; i < subs.length; i++) { try { subs[i](s); } catch (e) {} } }
 
@@ -726,13 +770,14 @@
       c.fillStyle='#56627a'; c.font=F(500,14,'Inter, sans-serif');
       c.fillText('Pronóstico y análisis, sin fines de apuestas. No avalado por Riot Games.',60,H-28);
       c.textAlign='right'; c.fillStyle='#3ddc97'; c.font=F(700,15); if (s.precision) c.fillText(Math.round(s.precision.acc15*100)+'% DE ACIERTO AL MIN 15',W-60,H-28);
+      c.textAlign='left'; c.fillStyle='#6a7a9c'; c.font=F(500,14,'Inter, sans-serif'); c.fillText('Pronóstico de un modelo propio, sin apuestas. No avalado por Riot Games.',60,H-24);
       return cv.toDataURL('image/png');
     }
     function talk(s){
       var m=s.match, g=s.game, out=[];
       var pb=Math.round(g.pBlue*100), lead = pb>=50, lc = lead?m.blue.code:m.red.code, lp = lead?pb:100-pb;
       out.push('RiftPulse da <b>'+lp+'%</b> a <b>'+esc(lc)+'</b> ahora mismo ('+mmss(g.gt)+').');
-      var top=(g.reasons||[]).filter(function(x){ return (x.z>=0)===lead; })[0];
+      var top=(g.reasons||[]).filter(function(x){ return (x.z>=0)===lead && Math.abs(x.z)>=0.15; })[0];  // los factores con poco peso son ruido: no se dicen
       if (top) out.push('Su mayor factor: <b>'+esc(top.txt)+'</b>.');
       // momentum
       var past=null, sm=g.samples||[];
@@ -742,11 +787,11 @@
       if (se && se.bo>1){ var trail=lead?m.red.code:m.blue.code, pTrail=lead?1-se.ifRed:se.ifBlue; out.push('Si <b>'+esc(trail)+'</b> le da la vuelta a este juego, queda con <b>'+pct(pTrail)+'</b> de llevarse la serie.'); }
       var c=g.comeback;
       if (c && c.reached) out.push('Para remontar, <b>'+esc(c.code)+'</b> necesita <b>'+esc(c.paths[0].txt)+'</b>: con eso vuelve al '+pct(c.paths[0].p)+'.');
+      var o = g.timers && ((g.timers.dragon && g.timers.dragon.at>g.gt)?{k:g.timers.dragon.elder?'Ancestral':'Dragón',v:g.timers.dragon.at-g.gt}:(g.timers.baron && g.timers.baron.at>g.gt)?{k:'Barón',v:g.timers.baron.at-g.gt}:null);
+      if (o) out.push('Próximo <b>'+o.k+'</b> en <b>'+mmss(o.v)+'</b>'+(g.impact?': si lo toma '+esc(m.blue.code)+', '+(g.impact.blue>=0?'+':'')+g.impact.blue+' pts; si lo toma '+esc(m.red.code)+', '+(g.impact.red>=0?'+':'')+g.impact.red+' pts.':': objetivo que puede mover la balanza.'));
       var k=g.keyPlayer;
       if (k && Math.abs(k.gd)>=500) out.push('Jugador clave: <b>'+esc(k.name)+'</b>, '+(k.gd>=0?'+':'−')+k1(k.gd)+' de oro sobre '+esc(k.vs)+' y '+Math.round(k.share*100)+'% del daño de '+esc(k.code)+'.');
       if (g.draft && g.draft.window && g.gt<1500) out.push('Reloj del draft: <b>'+esc(g.draft.window.early)+'</b> tiene que sacar ventaja antes del min ~24; después el draft favorece a <b>'+esc(g.draft.window.late)+'</b>.');
-      var o = g.timers && ((g.timers.dragon && g.timers.dragon.at>g.gt)?{k:g.timers.dragon.elder?'Ancestral':'Dragón',v:g.timers.dragon.at-g.gt}:(g.timers.baron && g.timers.baron.at>g.gt)?{k:'Barón',v:g.timers.baron.at-g.gt}:null);
-      if (o) out.push('Próximo <b>'+o.k+'</b> en <b>'+mmss(o.v)+'</b>'+(g.impact?': si lo toma '+esc(m.blue.code)+', '+(g.impact.blue>=0?'+':'')+g.impact.blue+' pts; si lo toma '+esc(m.red.code)+', '+(g.impact.red>=0?'+':'')+g.impact.red+' pts.':': objetivo que puede mover la balanza.'));
       var h=s.h2h;
       if (h && (h.wa+h.wb)) out.push('Cara a cara 2025–26: <b>'+esc(h.a)+' '+h.wa+'–'+h.wb+' '+esc(h.b)+'</b> en series.');
       return out;
@@ -869,6 +914,10 @@
   RiftEngine.MODELO = MODELO;       // fuente única de los pesos del modelo (la app los lee de aquí)
   RiftEngine.PRECISION = PRECISION;
   RiftEngine.accAt = accAt;
+  RiftEngine.setFuerza = function (elo) { FUERZA.elo = elo && Object.keys(elo).length ? elo : null; FUERZA.fuente = FUERZA.elo ? 'app' : null; emit(); };
+  RiftEngine.pMapa = pMapa;
+  // el estado de los datos cambia aunque no lleguen datos: se avisa cada 5 s
+  setInterval(function () { if (subs.length) emit(); }, 5000);
   // simulador para «Cómo funciona»: el mismo modelo, con un estado de juego a mano (todo desde el lado azul)
   // o = {min, previa, oro, kills, torres, inhib, barones, dragones, alma, punto, ancestral}
   RiftEngine.simular = function (o) {

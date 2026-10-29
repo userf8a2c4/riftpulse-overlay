@@ -114,6 +114,7 @@
   .syncg input:focus{outline:none;border-color:#4aa3ff}.syncg input.bad{border-color:#ff5a5f}\
   .ast{font-size:9.5px;letter-spacing:1px;color:#8fa0c2;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:4px}\
   .ast.ok{color:#3ddc97}\
+  .fdo .sl{color:#f2c14e;font-size:11px}\
   .diag{position:absolute;right:0;top:calc(100% + 40px);display:none;width:340px;background:rgba(6,12,28,.97);border:1px solid rgba(242,193,78,.45);border-radius:5px;padding:10px 12px;box-shadow:0 12px 32px rgba(0,0,0,.6);z-index:5;cursor:default}\
   .diag.show{display:block}.dg-t{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:#f2c14e;margin-bottom:6px}\
   .dg-r{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:2px 0;border-bottom:1px solid rgba(150,180,230,.1)}.dg-r span{color:#8fa0c2;flex:none}.dg-r b{color:#eef3fb;font-weight:500;text-align:right;font-family:Inter,system-ui,sans-serif}\
@@ -124,7 +125,7 @@
   var LOGO = '<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="rplg" x1="8" y1="40" x2="56" y2="26" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4aa3ff"/><stop offset=".5" stop-color="#9ab0e6"/><stop offset="1" stop-color="#ff5a5f"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="15" fill="#0d1320" stroke="#2b3c62" stroke-width="3"/><path d="M10 35 H21 L25 35 L30 17 L36 49 L40 35 H54" fill="none" stroke="url(#rplg)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   sh.innerHTML = '<style>' + CSS + '</style><div class="w" id="w"><div class="mom" id="mom"></div><div class="diag" id="diag"></div><div class="cards" id="cards"><div class="dmg" id="dmg"></div><div id="cardsx" style="display:contents"></div></div><div id="body" style="display:inline-flex"></div>' +
-    '<div class="ctl" id="ctl"><span class="chip" id="autoc" title="Lee el reloj y el marcador del video y se sincroniza solo">auto-sync</span><span class="ast" id="ast"></span><button class="ic" id="diagb" title="diagnóstico del auto-sync: qué está leyendo del video">?</button><span class="chip" data-ext="obj">objetivo</span><span class="chip" data-ext="pg">trayectoria</span><span class="chip" data-ext="oro">oro</span><span class="chip" data-ext="dano">daño</span><span class="chip" data-ext="imp">impacto</span><span class="chip" data-ext="duelos">duelos</span>' +
+    '<div class="ctl" id="ctl"><span class="chip" id="autoc" title="Lee el reloj y el marcador del video y se sincroniza solo">auto-sync</span><span class="ast" id="ast"></span><button class="ic" id="diagb" title="diagnóstico del auto-sync: qué está leyendo del video">?</button><span class="chip" data-ext="obj">objetivo</span><span class="chip" data-ext="pg">trayectoria</span><span class="chip" data-ext="oro">oro</span><span class="chip" data-ext="dano">daño</span><span class="chip" data-ext="imp">impacto</span><span class="chip" data-ext="duelos">duelos</span><span class="chip" data-ext="mini">mínimo</span>' +
     '<button class="ic" id="posbtn" title="arriba/abajo">↑↓</button><button class="ic" data-d="-5" title="atrasar">−</button><button class="ic" data-d="5" title="adelantar">+</button>' +
     '<span class="syncg" title="Escribe el minuto que ves en el stream y pulsa ⟲ (o Enter) para clavar el overlay a ese momento">ves <input id="scm" placeholder="mm:ss" maxlength="5"><button class="ic" id="syncb" title="sincronizar al minuto que ves">⟲</button> va <span class="gt" id="gtnow">—</span></span></div></div>';
   var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom'), dmgEl = sh.getElementById('dmg'), cardsEl = sh.getElementById('cards'), cardsX = sh.getElementById('cardsx');
@@ -206,6 +207,11 @@
     }
 
     var pb = Math.round(g.pBlue * 100), pr = 100 - pb, lb = pb >= pr ? ' lead' : '', lr = pr > pb ? ' lead' : '';
+    var fdo = s.feed && ['retrasado', 'caido', 'pausa'].indexOf(s.feed.estado) >= 0 ? '<div class="seg fdo"><span class="sl">' + esc(s.feed.txt) + '</span></div>' : '';
+    if (EXT.indexOf('mini') >= 0) {  // modo mínimo: solo el porcentaje
+      body.innerHTML = '<div class="seg prob"><span class="tc b">' + esc(m.blue.code) + '</span><div class="bar" style="width:150px"><div class="pb' + lb + '" style="width:' + Math.min(85, Math.max(pb, 15)) + '%">' + pb + '%</div><div class="pr' + lr + '" style="width:' + Math.min(85, Math.max(pr, 15)) + '%">' + pr + '%</div></div><span class="tc r">' + esc(m.red.code) + '</span></div>' + fdo;
+      hist.push({t: Date.now(), p: g.pBlue}); checkMomentum(s); showFight(s); return;
+    }
     html += '<div class="seg prob"><span class="tc b">' + esc(m.blue.code) + '</span>' +
       '<div class="bar"><div class="pb' + lb + '" style="width:' + Math.min(85, Math.max(pb, 15)) + '%">' + pb + '%</div><div class="pr' + lr + '" style="width:' + Math.min(85, Math.max(pr, 15)) + '%">' + pr + '%</div></div>' +
       '<span class="tc r">' + esc(m.red.code) + '</span></div>';
@@ -219,6 +225,7 @@
       html += '<div class="seg spark">' + miniSpark(g.samples || []) + '<div style="display:flex;flex-direction:column"><span class="sl">trayectoria</span><span class="sv">' + esc(pb >= pr ? m.blue.code : m.red.code) + ' ' + Math.max(pb, pr) + '%</span></div></div>';
     }
     // el acierto medido del modelo en este minuto del juego (sube a medida que avanza)
+    html += fdo;
     html += '<div class="seg acc" title="Con lo que se sabe a este minuto, el modelo acertó este porcentaje de juegos que no había visto"><span class="n">' + (g.acc != null ? Math.round(g.acc * 100) + '%' : '—') + '</span><span class="l">acierta al min ' + Math.floor(g.gt / 60) + '</span></div>';
 
     body.innerHTML = html;

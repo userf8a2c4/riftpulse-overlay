@@ -1906,6 +1906,8 @@ function renderCuadro() {
 document.addEventListener('click', e => { const b = e.target.closest('#fsTabs [data-fase]'); if (!b) return; FASE = b.dataset.fase; renderCuadro(); });
 
 function renderCopa() {
+  // la fuerza de cada equipo (Elo de la app) pasa al motor: la serie estima con ella los mapas que faltan
+  if (C.rows && window.RiftEngine && RiftEngine.setFuerza) RiftEngine.setFuerza(Object.fromEntries(C.rows.map(r => [r.t, r.elo])));
   renderCuadro();
   renderFiab();
   if (!C.rows) return;
@@ -2485,7 +2487,47 @@ function renderH2hPanel(a, b, ev) {
       <section><h3>Probabilidad</h3>${ps != null ? `<div class="pk2">Por serie (Bo${bo})</div>${predBar(ps, a, b, true)}<div class="pk2" style="margin-top:8px">Por mapa</div>${predBar(pm, a, b, true)}` : '<div class="pm">Calculando con el Elo…</div>'}
         ${why.length ? `<div class="pk2" style="margin-top:8px">Por qué</div><ul class="idet-why">${why.map(w => `<li>${w}</li>`).join('')}</ul>` : ''}</section>
       <section><h3>Comparativa</h3>${cmp}</section>
-    </div>`;
+    </div>
+    <div class="mx-row" style="margin-top:12px">${ps != null ? `<button class="mx-btn gold" data-act="sharepron" data-arg="${esc(a)}|${esc(b)}|${bo}|${ev || ''}">🖼 Compartir pronóstico</button>` : ''}
+      ${e && e.state === 'unstarted' ? `<button class="mx-btn${avisos()[e.match.id] ? ' on' : ''}" data-act="aviso" data-arg="${esc(e.match.id)}">${avisos()[e.match.id] ? '🔔 Te aviso al empezar' : '🔔 Avisarme cuando empiece'}</button>` : ''}</div>`;
+}
+// ---------- para el fan: aviso de partido y pronóstico para compartir ----------
+// Avisos sin servidor: suenan mientras la app (o el panel de la extensión) esté abierta.
+function avisos() { try { return JSON.parse(store('avisos') || '{}'); } catch (e) { return {}; } }
+async function toggleAviso(id) {
+  const a = avisos(), e = schedule.find(x => x.match && x.match.id === id);
+  if (a[id]) delete a[id];
+  else {
+    if ('Notification' in window && Notification.permission === 'default') { try { await Notification.requestPermission(); } catch (x) {} }
+    if (e) a[id] = {at: e.startTime, txt: e.match.teams.map(t => t.code).join(' vs ')};
+  }
+  store('avisos', JSON.stringify(a)); renderIniDetalle();
+}
+setInterval(() => {
+  const a = avisos(); let cambio = false;
+  for (const id in a) {
+    if (Date.parse(a[id].at) - Date.now() > 120000) continue;  // avisa 2 minutos antes
+    try { if ('Notification' in window && Notification.permission === 'granted') new Notification('RiftPulse · empieza ' + a[id].txt, {body: 'El partido del Mundial arranca ahora. Abrí la app para el pronóstico en vivo.', icon: 'logo.svg'}); } catch (e) {}
+    status('🔔 Empieza ' + a[id].txt, false, 10000);
+    delete a[id]; cambio = true;
+  }
+  if (cambio) store('avisos', JSON.stringify(a));
+}, 30000);
+function sharePron(a, b, bo, ev) {
+  const ps = probSerie(a, b, bo), pm = probSerie(a, b, 1), e = schedule.find(x => x.match && x.match.id === ev);
+  if (ps == null) return;
+  const W = 1200, H = 675, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
+  const bg = c.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#0a1530'); bg.addColorStop(1, '#050a17'); c.fillStyle = bg; c.fillRect(0, 0, W, H);
+  c.fillStyle = '#f2c14e'; c.fillRect(60, 60, 120, 4);
+  c.fillStyle = '#8fa0c2'; c.font = '600 22px Oswald, Inter, sans-serif'; c.fillText(('RIFTPULSE · PRONÓSTICO' + (e ? ' · ' + (e.blockName || '').toUpperCase() : '')).slice(0, 60), 60, 104);
+  if (e) { c.font = '500 22px Inter, sans-serif'; c.fillText(new Date(e.startTime).toLocaleString('es', {weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'}), 60, 140); }
+  c.font = '400 120px Anton, Oswald, sans-serif'; c.fillStyle = '#6fb8ff'; c.fillText(a, 60, 300); c.textAlign = 'right'; c.fillStyle = '#ff7a86'; c.fillText(b, W - 60, 300); c.textAlign = 'left';
+  const bar = (y, p, lab) => { const w = W - 120; c.fillStyle = '#2f7fe0'; c.fillRect(60, y, w * p, 56); c.fillStyle = '#c93a52'; c.fillRect(60 + w * p, y, w * (1 - p), 56);
+    c.fillStyle = '#04101f'; c.font = '700 30px Oswald, Inter, sans-serif'; c.fillText(Math.round(p * 100) + '%', 76, y + 39); c.fillStyle = '#fff'; c.textAlign = 'right'; c.fillText(Math.round((1 - p) * 100) + '%', W - 76, y + 39); c.textAlign = 'left';
+    c.fillStyle = '#8fa0c2'; c.font = '600 20px Inter, sans-serif'; c.fillText(lab, 60, y - 12); };
+  bar(380, ps, 'De ganar la serie (Bo' + bo + ')'); bar(510, pm, 'De ganar cada mapa');
+  c.fillStyle = '#6a7a9c'; c.font = '500 16px Inter, sans-serif'; c.fillText('Pronóstico de un modelo propio (Elo 2025–26), sin apuestas. No avalado por Riot Games. #Worlds2026', 60, H - 30);
+  const l = document.createElement('a'); l.href = cv.toDataURL('image/png'); l.download = 'riftpulse-' + a + '-vs-' + b + '.png'; l.click();
 }
 function renderInicio() {
   if ($('#vistaInicio').hidden) return;
@@ -2797,6 +2839,8 @@ document.addEventListener('click', e => {
   else if (act === 'team') openIniDet({type: 'team', code: arg});
   else if (act === 'h2h') { const [a, b, ev] = arg.split('|'); openIniDet({type: 'h2h', a, b, ev}); }
   else if (act === 'inidet-close') { INIDET = null; renderIniDetalle(); }
+  else if (act === 'aviso') toggleAviso(arg);
+  else if (act === 'sharepron') { const [a, b, bo, ev] = arg.split('|'); sharePron(a, b, +bo, ev); }
 });
 
 // ---------- centro de mando: operar el stream en vivo (streamers y analistas) ----------
@@ -2948,7 +2992,8 @@ function renderMando() {
   MX.clip = clip ? `🎬 Momento clave: min ${mmss(clip.a)}–${mmss(clip.b)}, ${clip.code} +${Math.round(Math.abs(clip.d) * 100)} puntos de probabilidad (${clip.cause}). Según RiftPulse · #Worlds2026` : null;
   if (se && se.bo > 1) chips.push(`<div class="mx-k">Serie Bo${se.bo} <b>${se.score[0]}–${se.score[1]}</b> · si gana <b class="b">${esc(m.blue.code)}</b> ${mxPct(se.ifBlue)} · si gana <b class="r">${esc(m.red.code)}</b> ${mxPct(1 - se.ifRed)}</div>`);
   if (im) chips.push(`<div class="mx-k">Próx. <b>${esc(im.obj)}</b> en ${mmss(Math.max(0, im.at - g.gt))}: <b class="b">${esc(m.blue.code)} ${im.blue >= 0 ? '+' : ''}${im.blue}</b> · <b class="r">${esc(m.red.code)} ${im.red >= 0 ? '+' : ''}${im.red}</b> pts</div>`);
-  air.innerHTML = `<div class="mx-h"><h2>Al aire ahora</h2>${segBtn}${s.demo ? '<button class="mx-btn" data-mx="live">⏹ Volver al vivo</button>' : ''}</div><div class="mx-top">${badge}<span>${esc(m.league || '')}</span></div>
+  const fdt = s.feed && s.feed.estado !== 'ok' && s.feed.estado !== 'demo' ? `<span class="mx-badge demo">${esc(s.feed.txt)}</span>` : '';
+  air.innerHTML = `<div class="mx-h"><h2>Al aire ahora</h2>${segBtn}${s.demo ? '<button class="mx-btn" data-mx="live">⏹ Volver al vivo</button>' : ''}</div><div class="mx-top">${badge}${fdt}<span>${esc(m.league || '')}</span></div>
     <div class="mx-teams"><span class="b">${esc(m.blue.code)}</span><span class="sc">${m.blue.wins == null ? 'vs' : m.blue.wins + ' – ' + m.red.wins}</span><span class="r">${esc(m.red.code)}</span></div>
     <div class="mx-bar"><div class="pb" style="width:${Math.min(85, Math.max(pb, 15))}%">${pb}%</div><div class="pr" style="width:${Math.min(85, Math.max(pr, 15))}%">${pr}%</div></div>
     <div class="mx-row">${chips.join('')}</div>${clip ? `<div class="mx-clip">🎬 <span><b>Momento para clip</b> · min ${mmss(clip.a)}–${mmss(clip.b)}: <b class="${mxSc(clip.side)}">${esc(clip.code)} +${Math.round(Math.abs(clip.d) * 100)}</b> (${esc(clip.cause)})</span><button class="mx-btn${MX.copied === 'clip' ? ' on' : ''}" data-mx="cp" data-k="clip">${MX.copied === 'clip' ? '✓' : '📋 Texto'}</button></div>` : ''}${mxSpark(g)}`;
@@ -2989,7 +3034,7 @@ function renderMxOv() {
   $('#mxOv').innerHTML = `<div class="mx-h"><h2>Overlay en el stream</h2></div><div class="mx-scroll">
     <div class="mx-sub">En la barra</div><div class="mx-row" style="margin-top:0">${chip('obj', 'Próximo objetivo')}${chip('pg', 'Trayectoria')}
       <button class="mx-btn${o.dmg ? ' on' : ''}" data-mx="dmg"${dis}>Daño tras cada pelea</button></div>
-    <div class="mx-sub">Paneles debajo de la barra</div><div class="mx-row" style="margin-top:0">${chip('oro', 'Gráfico de oro')}${chip('imp', 'Impacto y remontada')}${chip('duelos', 'Duelos por línea')}${chip('dano', 'Daño de los 10')}</div>
+    <div class="mx-sub">Paneles debajo de la barra</div><div class="mx-row" style="margin-top:0">${chip('oro', 'Gráfico de oro')}${chip('imp', 'Impacto y remontada')}${chip('duelos', 'Duelos por línea')}${chip('dano', 'Daño de los 10')}${chip('mini', 'Barra mínima (solo %)')}</div>
     <div class="mx-sub">Posición y visibilidad</div><div class="mx-row" style="margin-top:0">
       <button class="mx-btn${o.pos === 'top' ? ' on' : ''}" data-mx="pos" data-k="top"${dis}>Arriba</button><button class="mx-btn${o.pos === 'bottom' ? ' on' : ''}" data-mx="pos" data-k="bottom"${dis}>Abajo</button>
       <button class="mx-btn" data-mx="hide"${dis}>${o.hidden ? '👁 Mostrar overlay' : '🙈 Ocultar overlay'}</button></div>
@@ -2999,11 +3044,12 @@ function renderMxOv() {
     <div class="mx-note">${ext ? (MX.msg || 'Los cambios se aplican al instante en el overlay de Twitch o lolesports. Con «auto-sync» encendido no hace falta clavar el minuto: el overlay lee el reloj del video.') : 'Estos controles mueven el overlay de la extensión sobre Twitch o lolesports. Ábralos desde el panel lateral de la extensión.'}</div></div>`;
 }
 function renderMxObs() {
-  const items = [['Barra en vivo', 'overlay.html'], ['Serie', 'overlay.html?view=serie'], ['Duelos por línea', 'overlay.html?view=duelos'], ['Para remontar (sola)', 'overlay.html?view=remontada'],
+  const items = [['Preset · solo barra (lower-third)', 'overlay.html?view=bar&modules=prob,timers,brand&pos=bottom'], ['Preset · alertas de giro (escena aparte)', 'overlay.html?view=alert'], ['Preset · entre mapas (serie)', 'overlay.html?view=serie'], ['Preset · cierre de juego (resumen)', 'overlay.html?view=recap'],
+    ['Barra en vivo (completa)', 'overlay.html'], ['Serie', 'overlay.html?view=serie'], ['Duelos por línea', 'overlay.html?view=duelos'], ['Para remontar (sola)', 'overlay.html?view=remontada'],
     ['Resumen del juego (solo)', 'overlay.html?view=recap'], ['Cuadro de eliminatorias', 'overlay.html?view=cuadro'], ['Predicciones del stream', 'overlay.html?view=predicciones'], ['Claves del momento', 'overlay.html?view=keys'], ['Alerta de giro', 'overlay.html?view=alert'], ['Mesa de análisis', 'analista.html'], ['Control de producción (dock)', 'control.html']];
   MX.obsAll = items.map(([l, u]) => l + ': ' + OBS_BASE + u).join('\n');
   $('#mxObs').innerHTML = `<div class="mx-h"><h2>Piezas para OBS</h2><button class="mx-btn${MX.copied === 'obsall' ? ' on' : ''}" data-mx="cp" data-k="obsall">${MX.copied === 'obsall' ? '✓ Copiadas' : '📋 Copiar todas'}</button></div><ul class="mx-obs">${items.map(([l, u], i) => `<li><b style="flex:none">${l}</b><span class="u">${OBS_BASE}${u}</span><button class="mx-cp${MX.copied === 'o' + i ? ' ok' : ''}" data-mx="cp" data-k="o${i}" data-u="${OBS_BASE}${u}">${MX.copied === 'o' + i ? '✓' : '📋'}</button></li>`).join('')}</ul>
-    <div class="mx-note">Cada pieza va como <b>Navegador</b> (Browser Source) en OBS, 1920 × 1080. Con <code>?demo</code> al final se ven con un partido real ya jugado.</div>`;
+    <div class="mx-note">Cada pieza va como <b>Navegador</b> (Browser Source) en OBS, 1920 × 1080. Agregá <code>&delay=42</code> para tu retraso, <code>&accent=ff8800</code> y <code>&logo=https://…</code> para tus colores y logo, <code>&safe=1</code> para márgenes amplios y <code>&brand=0</code> para quitar la marca. Con <code>?demo</code> se ven con un partido ya jugado.</div>`;
 }
 function mxCopy(key, text) {
   const done = () => { MX.copied = key; MX.copiedAt = Date.now(); renderMando(); renderMxObs(); setTimeout(() => { renderMando(); renderMxObs(); }, 1600); };
