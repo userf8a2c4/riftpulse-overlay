@@ -261,7 +261,7 @@
 
     if (EXT.indexOf('obj') >= 0 && g.impact) {
       var im = g.impact, ib = Math.max(0, im.blue), ir = Math.max(0, im.red), bigB = ib >= ir;
-      html += '<div class="seg obj"><span class="sl">Próx. ' + esc(im.obj) + ' · ' + mmss(Math.max(0, im.at - g.gt)) + '</span>' +
+      html += '<div class="seg obj"><span class="sl">' + (im.at <= g.gt ? esc(im.obj) + ' · ya está' : 'Próx. ' + esc(im.obj) + ' · ' + mmss(im.at - g.gt)) + '</span>' +
         '<span class="sv"><b class="' + (bigB ? 'b' : 'r') + '">' + esc(bigB ? m.blue.code : m.red.code) + ' +' + Math.max(ib, ir) + '</b> <span class="mut">' + esc(bigB ? m.red.code : m.blue.code) + ' +' + Math.min(ib, ir) + '</span></span></div>';
     }
     if (EXT.indexOf('pg') >= 0) {
@@ -305,7 +305,7 @@
   }
   function grafImpacto(s) {
     var g = s.game, m = s.match, im = g.impact, c = g.comeback; if (!im && !c) return '';
-    var h = '<div class="cd"><div class="ch"><span>Impacto' + (im ? ' · próx. ' + esc(im.obj) : '') + '</span>' + (im ? '<span class="mut">en ' + mmss(Math.max(0, im.at - g.gt)) + '</span>' : '') + '</div>';
+    var h = '<div class="cd"><div class="ch"><span>Impacto' + (im ? ' · próx. ' + esc(im.obj) : '') + '</span>' + (im ? '<span class="mut">' + (im.at <= g.gt ? 'ya está' : 'en ' + mmss(im.at - g.gt)) + '</span>' : '') + '</div>';
     if (im) h += '<div class="ir"><span>Si lo toma <b class="b">' + esc(m.blue.code) + '</b></span><span class="big b">' + (im.blue >= 0 ? '+' : '') + im.blue + '</span></div><div class="ir"><span>Si lo toma <b class="r">' + esc(m.red.code) + '</b></span><span class="big r">' + (im.red >= 0 ? '+' : '') + im.red + '</span></div>';
     if (c && c.paths && c.paths[0]) h += '<div class="in"><b class="' + (c.side === 'blue' ? 'b' : 'r') + '">' + esc(c.code) + '</b> (' + Math.round(c.p * 100) + '%) ' + (c.reached ? 'remonta con' : 'se acerca con') + ' <b>' + esc(c.paths[0].txt) + '</b> → ' + Math.round(c.paths[0].p * 100) + '%</div>';
     return h + '</div>';

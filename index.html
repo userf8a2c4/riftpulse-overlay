@@ -3229,7 +3229,7 @@ function renderMando() {
   const clip = (g.swings || []).filter(x => Math.abs(x.d) >= 0.2 && g.gt - x.b <= 150).slice(-1)[0];
   MX.clip = clip ? `🎬 Momento clave: min ${mmss(clip.a)}–${mmss(clip.b)}, ${clip.code} +${Math.round(Math.abs(clip.d) * 100)} puntos de probabilidad (${clip.cause}). Según RiftPulse · #Worlds2026` : null;
   if (se && se.bo > 1) chips.push(`<div class="mx-k">Serie Bo${se.bo} <b>${se.score[0]}–${se.score[1]}</b> · si gana <b class="b">${esc(m.blue.code)}</b> ${mxPct(se.ifBlue)} · si gana <b class="r">${esc(m.red.code)}</b> ${mxPct(1 - se.ifRed)}</div>`);
-  if (im) chips.push(`<div class="mx-k">Próx. <b>${esc(im.obj)}</b> en ${mmss(Math.max(0, im.at - g.gt))}: <b class="b">${esc(m.blue.code)} ${im.blue >= 0 ? '+' : ''}${im.blue}</b> · <b class="r">${esc(m.red.code)} ${im.red >= 0 ? '+' : ''}${im.red}</b> pts</div>`);
+  if (im) chips.push(`<div class="mx-k">${im.at <= g.gt ? `<b>${esc(im.obj)}</b> ya está en el mapa` : `Próx. <b>${esc(im.obj)}</b> en ${mmss(im.at - g.gt)}`}: <b class="b">${esc(m.blue.code)} ${im.blue >= 0 ? '+' : ''}${im.blue}</b> · <b class="r">${esc(m.red.code)} ${im.red >= 0 ? '+' : ''}${im.red}</b> pts</div>`);
   const fdt = s.feed && s.feed.estado !== 'ok' && s.feed.estado !== 'demo' ? `<span class="mx-badge demo">${esc(s.feed.txt)}</span>` : '';
   air.innerHTML = `<div class="mx-h"><h2>Al aire ahora</h2>${segBtn}${s.demo ? '<button class="mx-btn" data-mx="live">⏹ Volver al vivo</button>' : ''}</div><div class="mx-top">${badge}${fdt}<span>${esc(m.league || '')}</span></div>
     <div class="mx-teams"><span class="b">${esc(m.blue.code)}</span><span class="sc">${m.blue.wins == null || sinSpoilers() ? 'vs' : m.blue.wins + ' – ' + m.red.wins}</span><span class="r">${esc(m.red.code)}</span></div>
