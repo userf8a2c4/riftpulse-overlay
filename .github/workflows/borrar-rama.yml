@@ -13,4 +13,6 @@ jobs:
       - name: Borrar cz/exciting-maxwell-gfseig
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: git push "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" --delete cz/exciting-maxwell-gfseig
+        run: |
+          git init -q repo && cd repo
+          git push "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" --delete cz/exciting-maxwell-gfseig
