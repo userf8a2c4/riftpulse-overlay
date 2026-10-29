@@ -459,7 +459,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
 .fs-day{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);margin:14px 0 6px;font-weight:700}.fs-day:first-child{margin-top:0}
 .fs-rec{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:6px}
 .fs-rc{background:var(--surface-3);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px}
-.fs-rc h4{margin:0 0 6px;font-family:var(--ff-display);font-size:15px;display:flex;justify-content:space-between}.fs-rc h4 span{font-size:10.5px;color:var(--muted);font-family:var(--ff);font-weight:600;letter-spacing:.6px;text-transform:uppercase}
+.fs-rc h4{margin:0 0 6px;font-family:var(--ff-display);font-size:15px;display:flex;justify-content:space-between}.fs-rc h4 span{font-size:12px;color:var(--muted);font-family:var(--ff);font-weight:600;letter-spacing:.6px;text-transform:uppercase}
 .fs-rc.q{border-color:rgba(61,220,151,.45)}.fs-rc.q h4 span{color:#3ddc97}.fs-rc.x{opacity:.6}
 .fs-rc .tl{display:flex;align-items:center;gap:6px;font-size:13px;padding:2px 0}.fs-rc .tl img{width:16px;height:16px;object-fit:contain}
 .br-m{padding:5px 7px !important}.br-t{font-size:12.5px !important;padding:2px 0 !important}.br-t img,.br-nl{width:16px !important;height:16px !important}.br-mh{font-size:10px !important}
@@ -507,6 +507,9 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
 .ext-aviso{display:flex;gap:10px;align-items:flex-start;margin:10px 0 0;padding:10px 12px;border-radius:6px;background:rgba(242,193,78,.1);border:1px solid rgba(242,193,78,.45);color:#f6e7c1;font-size:13px;line-height:1.45}
 .ext-aviso b{color:#f2c14e}.ext-aviso .x{margin-left:auto;flex:none;background:transparent;border:1px solid rgba(242,193,78,.5);color:#f6e7c1;border-radius:4px;width:26px;height:26px;cursor:pointer;font-size:14px;line-height:1}
 .ext-aviso .x:hover{background:rgba(242,193,78,.2)}.ext-aviso a{color:#f2c14e}
+.su-p{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line-2);font-size:13.5px}.su-p:first-of-type{border-top:0}
+.su-i{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;flex:none;background:rgba(242,193,78,.15);color:#f2c14e;font-weight:700}.su-p.ok .su-i{background:rgba(61,220,151,.15);color:#3ddc97}
+.mx-clip{display:flex;gap:10px;align-items:center;margin-top:8px;padding:8px 10px;border-radius:6px;background:rgba(242,193,78,.1);border:1px solid rgba(242,193,78,.45);font-size:13px}.mx-clip .mx-btn{margin-left:auto;flex:none;padding:4px 10px}
 .mx-badge.vid{color:#3ddc97;border-color:rgba(61,220,151,.5);background:rgba(61,220,151,.08)}
 .mx-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
 .mx-badge{font-weight:700;font-size:11px;letter-spacing:.6px;padding:2px 9px;border-radius:99px;border:1px solid}
@@ -550,7 +553,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
 <div class="wrap">
   <header class="top">
     <div class="brand"><img class="logo" src="logo.svg" alt="RiftPulse"><div><div class="brand-t">RiftPulse</div><div class="brand-s">League of Legends · Mundial 2026</div><div class="brand-p" id="precHdr"></div></div></div>
-    <nav class="tabs"><button id="tabInicio">Inicio</button><button id="tabPartido">En Vivo</button><button id="tabCopa">Mundial</button><button id="tabHist">Historial</button><button id="tabPickem">Pick'Em</button><button id="tabMando" title="Centro de mando para streamers y analistas">Mando</button></nav>
+    <nav class="tabs"><button id="tabInicio">Inicio</button><button id="tabPartido">En Vivo</button><button id="tabCopa">Mundial</button><button id="tabHist">Historial</button><button id="tabMando" title="Centro de mando para streamers y analistas">Mando</button></nav>
     <div class="hstat">
       <select id="sel" title="Partido en vivo" hidden></select>
       <span class="badge" id="estado">—</span>
@@ -610,6 +613,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
   </div>
   <div id="vistaMando" hidden>
     <div class="mx">
+      <section class="card mx-wide" id="mxSetup" hidden></section>
       <section class="card mx-wide" id="mxAir"><div class="empty">Cargando…</div></section>
       <section class="card mx-fix" id="mxOv"></section>
       <section class="card mx-fix" id="mxTalk"></section>
@@ -619,6 +623,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
     </div>
   </div>
   <div id="vistaPickem" hidden>
+    <div class="mx-row" style="margin-top:12px"><button class="mx-btn" onclick="setVista('copa')">← Volver a Mundial</button></div>
     <section class="card" style="margin-top:8px"><h2>Pick'Em y Bola de Cristal</h2><p class="card-help">Sugerencias del sistema para el Pick'Em oficial de Worlds. Usted registra sus picks en lolesports; aquí solo le ayudamos a decidir.</p><div id="pickemView"><div class="empty">Calculando…</div></div></section>
   </div>
   <div id="vistaHist" hidden>
@@ -628,6 +633,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
     </div>
   </div>
   <div id="vistaCopa" hidden>
+    <div class="mx-row" style="margin-top:12px"><button class="mx-btn gold" onclick="setVista('pickem')">🎯 Pick'Em y Bola de Cristal</button></div>
     <section class="card" style="margin-top:12px"><div class="fs-head"><h2>Fases del Mundial · en vivo</h2><div class="seg fs-tabs" id="fsTabs"><button data-fase="pi">Play-In</button><button data-fase="sw">Fase suiza</button><button data-fase="ko">Eliminatorias</button></div></div><div id="cuadro"><div class="empty">Cargando…</div></div></section>
     <section class="card" style="margin-top:12px"><h2>Favoritos al título</h2><p class="card-help">Probabilidad de que cada equipo gane Worlds 2026, según 20,000 simulaciones del torneo con su formato oficial.</p><div id="copaTop"><div class="empty">Calculando…</div></div></section>
     <section class="card" style="margin-top:12px"><h2>Camino de cada equipo</h2><p class="card-help">Probabilidad de llegar a cada fase del torneo. Cuanto más intenso el color, más probable.</p><div id="copa"><div class="empty">Calculando…</div></div></section>
@@ -2740,10 +2746,10 @@ function tinte() {
 }
 
 function setVista(v) {
-  for (const [vista, tab] of [['inicio', 'Inicio'], ['partido', 'Partido'], ['mando', 'Mando'], ['copa', 'Copa'], ['hist', 'Hist'], ['pickem', 'Pickem']]) {
+  for (const [vista, tab] of [['inicio', 'Inicio'], ['partido', 'Partido'], ['mando', 'Mando'], ['copa', 'Copa'], ['hist', 'Hist'], ['pickem', 'Copa']]) {
     $('#vista' + (vista === 'hist' ? 'Hist' : vista === 'pickem' ? 'Pickem' : vista[0].toUpperCase() + vista.slice(1))).hidden = v !== vista;
-    $('#tab' + tab).classList.toggle('on', v === vista);
   }
+  for (const [tab, vs] of [['Inicio', ['inicio']], ['Partido', ['partido']], ['Mando', ['mando']], ['Copa', ['copa', 'pickem']], ['Hist', ['hist']]]) { const b = $('#tab' + tab); if (b) b.classList.toggle('on', vs.includes(v)); }
   store('vista', v);
   if (v === 'copa') { loadCopa(); renderCuadro(); }
   if (v === 'hist') renderHistList();
@@ -2782,7 +2788,7 @@ $('#tabPartido').addEventListener('click', () => setVista('partido'));
 $('#tabMando').addEventListener('click', () => setVista('mando'));
 $('#tabCopa').addEventListener('click', () => setVista('copa'));
 $('#tabHist').addEventListener('click', () => setVista('hist'));
-$('#tabPickem').addEventListener('click', () => setVista('pickem'));
+
 document.addEventListener('click', e => {
   const a = e.target.closest('[data-act]'); if (!a) return;
   const act = a.dataset.act, arg = a.dataset.arg;
@@ -2899,7 +2905,24 @@ function mxPost(s) {
   if (s.series && s.series.bo > 1) t += `\nSerie ${s.series.score[0]}–${s.series.score[1]}: si gana ${oc} este juego, queda con ${mxPct(lead ? 1 - s.series.ifRed : s.series.ifBlue)} de llevársela.`;
   return t + '\n#Worlds2026';
 }
+// puesta a punto de la extensión: los 3 pasos, con su estado real
+function renderSetup() {
+  const box = $('#mxSetup'); if (!box) return;
+  if (!mxEmb || store('aviso_setup') === '1') { box.hidden = true; return; }
+  const pan = EXTST.pantalla && Date.now() - EXTST.pantalla.at < 15000;
+  const pasos = [
+    [EXTST.shell >= 3, 'Extensión actualizada', `Si no está en verde: bajá el <a href="${ZIP_URL}" target="_blank" rel="noopener">ZIP</a>, quitá la vieja en chrome://extensions y «Cargar descomprimida» con la carpeta <b>extension</b>.`],
+    [EXTST.origen && EXTST.origen.origen === 'web', 'Overlay que se actualiza solo', 'En chrome://extensions → RiftPulse → <b>Detalles</b>, activá <b>«Permitir scripts de usuario»</b> y tocá ↻.'],
+    [pan, 'Video detectado', 'Abrí un partido del Mundial en Twitch o lolesports (en vivo o un VOD), con <b>auto-sync</b> encendido en la barra del overlay.']];
+  const listos = pasos.filter(p => p[0]).length;
+  if (listos === 3 && store('setup_ok') === '1') { box.hidden = true; return; }
+  if (listos === 3) store('setup_ok', '1');
+  box.hidden = false;
+  box.innerHTML = `<div class="mx-h"><h2>Puesta a punto · ${listos} de 3</h2><button class="mx-btn" data-aviso="setup">Ocultar</button></div>` +
+    pasos.map(([ok, t, h]) => `<div class="su-p${ok ? ' ok' : ''}"><span class="su-i">${ok ? '✓' : '•'}</span><div><b>${t}</b>${ok ? '' : `<div class="mx-note" style="margin-top:2px">${h}</div>`}</div></div>`).join('');
+}
 function renderMando() {
+  renderSetup();
   const s = MX.s, air = $('#mxAir');
   if (!air) return;
   const pan = EXTST.pantalla && Date.now() - EXTST.pantalla.at < 60000 ? EXTST.pantalla : null;
@@ -2920,12 +2943,15 @@ function renderMando() {
   const badge = s.follow ? (sinSenal() ? `<span class="mx-badge demo">📺 SIN SEÑAL DEL VIDEO · se mantiene el último juego</span>` : `<span class="mx-badge vid">📺 SINCRONIZADO CON TU VIDEO</span>`) : s.demo ? `<span class="mx-badge demo">DEMO · partido real del ${s.demo.date.slice(8, 10)}/${s.demo.date.slice(5, 7)} · ×${s.demo.vel}</span>` : g.ended ? '<span class="mx-badge fin">FINAL</span>' : '<span class="mx-badge live">● EN VIVO</span>';
   const se = s.series, im = g.impact, chips = [];
   chips.push(`<div class="mx-k">Min <b>${mmss(g.gt)}</b>${m.gameNo ? ` · juego ${m.gameNo}` : ''}</div>`);
+  if (g.acc != null) chips.push(`<div class="mx-k" title="Acierto medido del modelo a este minuto, sobre 589 juegos que no había visto">A este minuto acierta <b>${mxPct(g.acc)}</b></div>`);
+  const clip = (g.swings || []).filter(x => Math.abs(x.d) >= 0.2 && g.gt - x.b <= 150).slice(-1)[0];
+  MX.clip = clip ? `🎬 Momento clave: min ${mmss(clip.a)}–${mmss(clip.b)}, ${clip.code} +${Math.round(Math.abs(clip.d) * 100)} puntos de probabilidad (${clip.cause}). Según RiftPulse · #Worlds2026` : null;
   if (se && se.bo > 1) chips.push(`<div class="mx-k">Serie Bo${se.bo} <b>${se.score[0]}–${se.score[1]}</b> · si gana <b class="b">${esc(m.blue.code)}</b> ${mxPct(se.ifBlue)} · si gana <b class="r">${esc(m.red.code)}</b> ${mxPct(1 - se.ifRed)}</div>`);
   if (im) chips.push(`<div class="mx-k">Próx. <b>${esc(im.obj)}</b> en ${mmss(Math.max(0, im.at - g.gt))}: <b class="b">${esc(m.blue.code)} ${im.blue >= 0 ? '+' : ''}${im.blue}</b> · <b class="r">${esc(m.red.code)} ${im.red >= 0 ? '+' : ''}${im.red}</b> pts</div>`);
   air.innerHTML = `<div class="mx-h"><h2>Al aire ahora</h2>${segBtn}${s.demo ? '<button class="mx-btn" data-mx="live">⏹ Volver al vivo</button>' : ''}</div><div class="mx-top">${badge}<span>${esc(m.league || '')}</span></div>
     <div class="mx-teams"><span class="b">${esc(m.blue.code)}</span><span class="sc">${m.blue.wins == null ? 'vs' : m.blue.wins + ' – ' + m.red.wins}</span><span class="r">${esc(m.red.code)}</span></div>
     <div class="mx-bar"><div class="pb" style="width:${Math.min(85, Math.max(pb, 15))}%">${pb}%</div><div class="pr" style="width:${Math.min(85, Math.max(pr, 15))}%">${pr}%</div></div>
-    <div class="mx-row">${chips.join('')}</div>${mxSpark(g)}`;
+    <div class="mx-row">${chips.join('')}</div>${clip ? `<div class="mx-clip">🎬 <span><b>Momento para clip</b> · min ${mmss(clip.a)}–${mmss(clip.b)}: <b class="${mxSc(clip.side)}">${esc(clip.code)} +${Math.round(Math.abs(clip.d) * 100)}</b> (${esc(clip.cause)})</span><button class="mx-btn${MX.copied === 'clip' ? ' on' : ''}" data-mx="cp" data-k="clip">${MX.copied === 'clip' ? '✓' : '📋 Texto'}</button></div>` : ''}${mxSpark(g)}`;
 
   // guion: frases con botón para copiar
   const talk = RiftEngine.talk(s);
@@ -2947,10 +2973,12 @@ function renderMando() {
   // redes
   const post = mxPost(s);
   MX.post = post;
+  MX.tw = `¿Quién gana el juego ${m.gameNo || ''}: ${m.blue.code} o ${m.red.code}?`.replace('  ', ' ').slice(0, 45) + `\n1) ${m.blue.code} (RiftPulse: ${pb}%)\n2) ${m.red.code} (RiftPulse: ${pr}%)`;
   $('#mxSoc').innerHTML = `<div class="mx-h"><h2>Para redes</h2></div>
     <div class="mx-row" style="margin-top:0;flex-wrap:nowrap"><button class="mx-btn${MX.copied === 'post' ? ' on' : ''}" data-mx="cp" data-k="post">${MX.copied === 'post' ? '✓ Copiado' : '📋 Copiar post'}</button>
     <a class="mx-btn" href="https://x.com/intent/post?text=${encodeURIComponent(post)}" target="_blank" rel="noopener" style="text-decoration:none">Publicar en X</a>
     <button class="mx-btn gold" data-mx="png"${g.recap ? '' : ' disabled title="Disponible al terminar el juego"'}>⬇ Imagen del resumen</button></div>
+    <div class="mx-row" style="margin-top:6px"><button class="mx-btn${MX.copied === 'tw' ? ' on' : ''}" data-mx="cp" data-k="tw" title="Título y opciones listos para una predicción de Twitch">${MX.copied === 'tw' ? '✓ Copiado' : '🎲 Predicción de Twitch'}</button></div>
     <div class="mx-scroll" style="margin-top:10px"><div class="mx-post">${esc(post)}</div>
     <div class="mx-note">${g.recap ? 'El juego terminó: el post y la imagen resumen quién ganó, el giro decisivo y el jugador clave.' : 'Se actualiza solo con el partido. Al terminar el juego se habilita la imagen del resumen.'}</div></div>`;
 }
@@ -2973,7 +3001,8 @@ function renderMxOv() {
 function renderMxObs() {
   const items = [['Barra en vivo', 'overlay.html'], ['Serie', 'overlay.html?view=serie'], ['Duelos por línea', 'overlay.html?view=duelos'], ['Para remontar (sola)', 'overlay.html?view=remontada'],
     ['Resumen del juego (solo)', 'overlay.html?view=recap'], ['Cuadro de eliminatorias', 'overlay.html?view=cuadro'], ['Predicciones del stream', 'overlay.html?view=predicciones'], ['Claves del momento', 'overlay.html?view=keys'], ['Alerta de giro', 'overlay.html?view=alert'], ['Mesa de análisis', 'analista.html'], ['Control de producción (dock)', 'control.html']];
-  $('#mxObs').innerHTML = `<h2>Piezas para OBS</h2><ul class="mx-obs">${items.map(([l, u], i) => `<li><b style="flex:none">${l}</b><span class="u">${OBS_BASE}${u}</span><button class="mx-cp${MX.copied === 'o' + i ? ' ok' : ''}" data-mx="cp" data-k="o${i}" data-u="${OBS_BASE}${u}">${MX.copied === 'o' + i ? '✓' : '📋'}</button></li>`).join('')}</ul>
+  MX.obsAll = items.map(([l, u]) => l + ': ' + OBS_BASE + u).join('\n');
+  $('#mxObs').innerHTML = `<div class="mx-h"><h2>Piezas para OBS</h2><button class="mx-btn${MX.copied === 'obsall' ? ' on' : ''}" data-mx="cp" data-k="obsall">${MX.copied === 'obsall' ? '✓ Copiadas' : '📋 Copiar todas'}</button></div><ul class="mx-obs">${items.map(([l, u], i) => `<li><b style="flex:none">${l}</b><span class="u">${OBS_BASE}${u}</span><button class="mx-cp${MX.copied === 'o' + i ? ' ok' : ''}" data-mx="cp" data-k="o${i}" data-u="${OBS_BASE}${u}">${MX.copied === 'o' + i ? '✓' : '📋'}</button></li>`).join('')}</ul>
     <div class="mx-note">Cada pieza va como <b>Navegador</b> (Browser Source) en OBS, 1920 × 1080. Con <code>?demo</code> al final se ven con un partido real ya jugado.</div>`;
 }
 function mxCopy(key, text) {
@@ -2986,7 +3015,7 @@ $('#vistaMando').addEventListener('click', e => {
   if (a === 'live') { RiftEngine.live(); return; }
   if (a === 'seguir') { EXTST.seguir = !EXTST.seguir; store('mxSeguir', EXTST.seguir ? '1' : '0'); seguirVideo(); renderMando(); return; }
   if (a === 'cp') {
-    const text = k === 'all' ? (MX.talk || []).map((t, i) => (i + 1) + '. ' + t.text).join('\n') : k === 'post' ? MX.post : k[0] === 'o' ? b.dataset.u : ((MX.talk || [])[+k.slice(1)] || {}).text;
+    const text = k === 'all' ? (MX.talk || []).map((t, i) => (i + 1) + '. ' + t.text).join('\n') : k === 'post' ? MX.post : k === 'clip' ? MX.clip : k === 'tw' ? MX.tw : k === 'obsall' ? MX.obsAll : k[0] === 'o' ? b.dataset.u : ((MX.talk || [])[+k.slice(1)] || {}).text;
     if (text) mxCopy(k, text); return;
   }
   if (a === 'png') { const u = RiftEngine.recapPNG(MX.s); if (u) { const l = document.createElement('a'); l.href = u; l.download = 'riftpulse-resumen.png'; l.click(); } return; }

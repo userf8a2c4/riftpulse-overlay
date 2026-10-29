@@ -62,13 +62,13 @@
   .pr{display:flex;align-items:center;justify-content:flex-end;padding:0 12px;color:#fff;font-weight:700;font-size:14px;letter-spacing:.4px;font-variant-numeric:tabular-nums;background:linear-gradient(180deg,#ff7684,#c93a52);transition:width .8s cubic-bezier(.4,0,.2,1)}\
   .pb.lead{background:linear-gradient(180deg,#a3d6ff,#4aa3ff 45%,#2f7fe0);box-shadow:inset 0 0 14px rgba(255,255,255,.35)}\
   .pr.lead{background:linear-gradient(180deg,#ffa0aa,#ff4d5e 45%,#c93a52);box-shadow:inset 0 0 14px rgba(255,255,255,.3)}\
-  .sl{font-size:9px;letter-spacing:1.6px;text-transform:uppercase;color:#8fa0c2;line-height:1.3}\
+  .sl{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:#8fa0c2;line-height:1.3}\
   .sv{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.25;color:#eef3fb;letter-spacing:.4px}\
   .sv b{font-weight:700}.sv b.b{color:#6fb8ff}.sv b.r{color:#ff7a86}.sv .mut{color:#8fa0c2;font-weight:400;font-size:11px}\
   .obj .sv2{font-size:11px;color:#8fa0c2}\
   .spark{display:flex;align-items:center;gap:8px}\
   .spark svg{display:block;width:96px;height:30px}\
-  .acc{align-items:center;background:linear-gradient(270deg,rgba(61,220,151,.08),rgba(61,220,151,0))}.acc .n{font-size:16px;font-weight:700;color:#3ddc97;font-variant-numeric:tabular-nums}.acc .l{font-size:8.5px;letter-spacing:1.6px;text-transform:uppercase;color:#8fa0c2}\
+  .acc{align-items:center;background:linear-gradient(270deg,rgba(61,220,151,.08),rgba(61,220,151,0))}.acc .n{font-size:16px;font-weight:700;color:#3ddc97;font-variant-numeric:tabular-nums}.acc .l{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:#8fa0c2}\
   .next{flex-direction:row;align-items:center;gap:8px;font-weight:700}\
   .next .vs{font-family:Anton,Oswald,sans-serif;font-weight:400;font-size:16px;letter-spacing:1px}.next .vs .b{color:#6fb8ff}.next .vs .r{color:#ff7a86}\
   .next .in{font-size:11px;color:#8fa0c2;font-weight:400;letter-spacing:.6px}\
@@ -218,7 +218,8 @@
     if (EXT.indexOf('pg') >= 0) {
       html += '<div class="seg spark">' + miniSpark(g.samples || []) + '<div style="display:flex;flex-direction:column"><span class="sl">trayectoria</span><span class="sv">' + esc(pb >= pr ? m.blue.code : m.red.code) + ' ' + Math.max(pb, pr) + '%</span></div></div>';
     }
-    html += '<div class="seg acc"><span class="n">' + (s.precision ? Math.round(s.precision.acc15 * 100) + '%' : '—') + '</span><span class="l">acierto</span></div>';
+    // el acierto medido del modelo en este minuto del juego (sube a medida que avanza)
+    html += '<div class="seg acc" title="Con lo que se sabe a este minuto, el modelo acertó este porcentaje de juegos que no había visto"><span class="n">' + (g.acc != null ? Math.round(g.acc * 100) + '%' : '—') + '</span><span class="l">acierta al min ' + Math.floor(g.gt / 60) + '</span></div>';
 
     body.innerHTML = html;
     hist.push({t: Date.now(), p: g.pBlue}); checkMomentum(s); showFight(s);
@@ -241,7 +242,7 @@
     return '<div class="cd"><div class="ch"><span>Diferencia de oro</span><b class="' + lado + '">' + esc(d >= 0 ? m.blue.code : m.red.code) + ' +' + kc(d) + '</b></div>' +
       '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none"><defs><linearGradient id="og" x1="0" y1="0" x2="0" y2="' + H + '" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4aa3ff" stop-opacity=".55"/><stop offset=".5" stop-color="#4aa3ff" stop-opacity=".05"/><stop offset=".5" stop-color="#ff4d5e" stop-opacity=".05"/><stop offset="1" stop-color="#ff4d5e" stop-opacity=".55"/></linearGradient></defs>' +
       '<line x1="0" y1="' + H / 2 + '" x2="' + W + '" y2="' + H / 2 + '" stroke="#38415c" stroke-dasharray="3 3"/><path d="' + area + '" fill="url(#og)"/><path d="' + line + '" fill="none" stroke="#e6eefc" stroke-width="1.6" vector-effect="non-scaling-stroke"/>' + marcas + '</svg>' +
-      '<div class="lg"><span>' + mmss(t0) + '</span><span style="margin-left:auto">D dragón · B Barón · A ancestral · I inhibidor</span><span>' + mmss(g.gt) + '</span></div></div>';
+      '<div class="lg"><span>' + mmss(t0) + '</span><span style="margin-left:auto">D dragón · B Barón · I inhib.</span><span>' + mmss(g.gt) + '</span></div></div>';
   }
   function grafDano(s) {
     var L = s.game.lanes; if (!L || !L.length) return '';
