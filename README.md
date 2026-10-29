@@ -18,11 +18,15 @@ Es un solo archivo HTML, sin instalación ni servidor. Proyecto de código abier
 - **¿Quién va a ganar?** Un modelo de probabilidad entrenado con ~2,200 juegos profesionales reales, que se actualiza minuto a minuto y **explica por qué** (oro, torres, dragones, barón, draft, fuerza de los equipos).
 - **Fiabilidad transparente.** La pestaña muestra cuánto acierta el sistema, medido **sin trampa** (cada predicción se hizo sin conocer el resultado), e incluye los juegos en que **falló**. En torneos previos acierta ~75 % del ganador al minuto 15.
 - **Reproductor** para retroceder y adelantar cualquier juego, como un reproductor de video.
+<p align="center"><img src="docs/img/cuadro.png" alt="Cuadro de eliminatorias en vivo"><br><sub>Cuadro de eliminatorias en la pestaña <b>Mundial</b> (datos de ejemplo).</sub></p>
+
 - **Cuadro de eliminatorias en vivo** (pestaña «Mundial»): cuartos, semis y final con el marcador de cada serie, la que se está jugando y la probabilidad de cada equipo de ganarla o de llegar a cada llave.
 - **Copa:** favoritos al título y el camino de cada equipo por fases, con 20,000 simulaciones del torneo.
 - **Pick'Em y Bola de Cristal:** sugerencias del sistema para el Pick'Em oficial (Sistema Suizo, eliminatorias) y para la Bola de Cristal (campeón más elegido, mejor % de victorias, mejor KDA), con enlace para registrarlos en lolesports.
 - **Historial:** resumen de cada juego con el veredicto del sistema, comparación de equipos, jugadores, fotos y objetivos.
 - **Centro de mando (pestaña «Mando»):** para streamers y analistas. Lo que está al aire (probabilidad, serie, próximo objetivo y trayectoria con los giros), un guion de frases para comentar con botón para copiarlas, la lectura del juego (giros clave, qué necesita el que va abajo, jugador clave), el control del overlay sobre el stream (piezas, posición, ocultar y sincronía al minuto que se ve), un post listo para X con la imagen del resumen al terminar, y las URL de cada pieza para OBS. Sin partido en vivo se puede probar con un partido real ya jugado.
+<p align="center"><img src="docs/img/mando.png" alt="Pestaña Mando"><br><sub>Pestaña <b>Mando</b> (datos de ejemplo).</sub></p>
+
 - **Overlay sobre el stream:** con la extensión, una barra horizontal se acopla al HUD de la transmisión en Twitch o lolesports: probabilidad, impacto del próximo objetivo, trayectoria y acierto. Tras cada pelea de equipo aparece sola el **reparto de daño por jugador** y se oculta a los pocos segundos.
 - Iconos de objetivos (dragones por elemento, barón, torres, inhibidores), fotos de jugadores y nombres de campeones e ítems.
 
