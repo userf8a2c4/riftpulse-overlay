@@ -15,6 +15,7 @@ Más allá del lower-third, el overlay ofrece **varias piezas** que producción 
 | `duelos` | `overlay.html?view=duelos` | Duelos por línea (oro) y jugador clave |
 | `remontada` | `overlay.html?view=remontada` | Qué necesita el que va abajo para volver al 50 %. **Aparece sola** cuando un equipo pasa del 65 % |
 | `recap` | `overlay.html?view=recap` | Resumen del juego. **Aparece solo** ~25 s al terminar cada juego |
+| `predicciones` | `overlay.html?view=predicciones` | **Predicciones del stream**: los picks de cada integrante para un día o una fase completa, con foto, aciertos automáticos y marcador. Se cargan desde el [Control de producción](Control-de-producción) |
 | `cuadro` | `overlay.html?view=cuadro` | Cuadro de eliminatorias del Mundial en vivo (cuartos → semis → final): marcador de cada serie, la que se está jugando y quién puede llegar a cada llave |
 
 <p align="center"><img src="https://raw.githubusercontent.com/userf8a2c4/riftpulse-overlay/main/docs/img/piezas-casters.png" width="480" alt="Piezas serie, remontada, duelos y resumen"><br><sub>serie · remontada · duelos · recap (datos simulados)</sub></p>
@@ -28,7 +29,7 @@ Más allá del lower-third, el overlay ofrece **varias piezas** que producción 
 
 | Parámetro | Qué hace |
 |---|---|
-| `?view=` | `bar` (por defecto) · `big` · `alert` · `objectives` · `keys` · `serie` · `duelos` · `remontada` · `recap` · `cuadro` |
+| `?view=` | `bar` (por defecto) · `big` · `alert` · `objectives` · `keys` · `serie` · `duelos` · `remontada` · `recap` · `cuadro` · `predicciones` |
 | `?pos=` | `bottom` (por defecto) o `top` (vista `bar`) |
 | `?scale=` | tamaño, p. ej. `1.2` (de 0.6 a 2.4) |
 | `?modules=` | qué muestra la barra: `prob,pregame,momentum,timers,brand` |

@@ -6,6 +6,7 @@
      serie (probabilidad de la serie) · duelos (duelo por línea y jugador clave)
      remontada (aparece sola cuando un equipo pasa del 65 %) · recap (resumen al terminar el juego)
      cuadro (eliminatorias del Mundial en vivo: cuartos → semis → final)
+     predicciones (picks de los integrantes del stream, cargados desde control.html, con aciertos automáticos)
    La vista "bar" además obedece al panel de control (control.html) en vivo por
    BroadcastChannel + localStorage (ambos dentro de OBS comparten navegador).
    Nota: el pronóstico previo (Elo) y "lo predijimos" requieren portar el Elo al motor;
@@ -126,6 +127,29 @@
   .rp-br .tm.won .w{color:#3ddc97}.rp-br .tm.lost{opacity:.4}.rp-br .tm.tbd{color:#8b97b0;font-size:' + (12.5 * S) + 'px}\
   .rp-br .lvt{font-size:' + (10.5 * S) + 'px;color:#ff8a8f;font-weight:700;margin-bottom:2px}\
   .rp-br .ch{text-align:center;font-family:"Chakra Petch",sans-serif;font-size:' + (22 * S) + 'px;font-weight:700;color:#f2c14e}\
+  /* predicciones del stream */\
+  .rp-pd{padding:' + (20 * S) + 'px ' + (24 * S) + 'px}\
+  .rp-pd .tt{font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:' + (40 * S) + 'px;letter-spacing:1px;text-transform:uppercase;line-height:1}\
+  .rp-pd .st{color:#8b97b0;font-size:' + (14 * S) + 'px;margin:' + (6 * S) + 'px 0 ' + (16 * S) + 'px}\
+  .rp-pd .gd{display:grid;align-items:center;column-gap:' + (8 * S) + 'px}\
+  .rp-pd .mh{display:flex;flex-direction:column;align-items:center;gap:' + (6 * S) + 'px;padding-bottom:' + (8 * S) + 'px}\
+  .rp-pd .ph{width:var(--av);height:var(--av);border-radius:12px;object-fit:cover;border:1px solid rgba(255,255,255,.12)}\
+  .rp-pd .ini{width:var(--av);height:var(--av);border-radius:12px;display:grid;place-items:center;font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:calc(var(--av) * .36);color:#06121f}\
+  .rp-pd .nmp{width:100%;text-align:center;font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:var(--nf);text-transform:uppercase;letter-spacing:.4px;background:#d9c7a3;color:#0b1220;border-radius:4px;padding:2px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\
+  .rp-pd .mt{display:flex;align-items:center;gap:' + (8 * S) + 'px;height:var(--rh);border-top:1px solid rgba(120,150,200,.18);font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:' + (16 * S) + 'px}\
+  .rp-pd .mt img{width:calc(var(--rh) * .5);height:calc(var(--rh) * .5);object-fit:contain}\
+  .rp-pd .mt .vs{color:#8b97b0;font-size:.75em}\
+  .rp-pd .c{height:var(--rh);display:grid;place-items:center;border-top:1px solid rgba(120,150,200,.18);position:relative}\
+  .rp-pd .c img{width:calc(var(--rh) * .62);height:calc(var(--rh) * .62);object-fit:contain}\
+  .rp-pd .c b{font-family:"Chakra Petch",sans-serif;font-size:calc(var(--rh) * .3)}\
+  .rp-pd .c.no img,.rp-pd .c.no b{opacity:.3}.rp-pd .c.ok::after,.rp-pd .c.no::after{position:absolute;right:6%;bottom:8%;font-weight:700;font-size:calc(var(--rh) * .26)}\
+  .rp-pd .c.ok::after{content:"✓";color:#3ddc97}.rp-pd .c.no::after{content:"✗";color:#ff5a5f}\
+  .rp-pd .mt .lv{color:#ff6b70;font-size:.6em;letter-spacing:.6px;margin-left:auto;padding-right:6px}\
+  .rp-pd .c.ok img,.rp-pd .c.ok b{filter:drop-shadow(0 0 8px rgba(61,220,151,.55))}\
+  .rp-pd .c.none{color:#56627a}\
+  .rp-pd .ac{border-top:2px solid rgba(242,193,78,.45);padding-top:' + (6 * S) + 'px;text-align:center;font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:var(--nf)}\
+  .rp-pd .ac.lead{color:#f2c14e}\
+  .rp-pd .acl{border-top:2px solid rgba(242,193,78,.45);padding-top:' + (6 * S) + 'px;color:#f2c14e;font-family:"Chakra Petch",sans-serif;font-size:' + (13 * S) + 'px;text-transform:uppercase;letter-spacing:.8px}\
   .rp-rc ul{margin:0;padding-left:' + (18 * S) + 'px;font-size:' + (15 * S) + 'px;line-height:1.6}\
   ';
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
@@ -141,7 +165,7 @@
   }
 
   // ---------- contenedor ----------
-  var posClass = VIEW === 'bar' ? cfg.pos : VIEW === 'alert' || VIEW === 'serie' || VIEW === 'remontada' ? 'tc' : VIEW === 'recap' || VIEW === 'cuadro' ? 'mid'
+  var posClass = VIEW === 'bar' ? cfg.pos : VIEW === 'alert' || VIEW === 'serie' || VIEW === 'remontada' ? 'tc' : VIEW === 'recap' || VIEW === 'cuadro' || VIEW === 'predicciones' ? 'mid'
     : VIEW === 'objectives' || VIEW === 'big' || VIEW === 'keys' || VIEW === 'duelos' ? 'tl' : 'bottom';
   var ovl = document.createElement('div'); ovl.className = 'rp-ovl ' + posClass;
   var callout = document.createElement('div'); callout.className = 'rp-callout';
@@ -166,6 +190,7 @@
     if (VIEW === 'remontada') return renderRemontada(s);
     if (VIEW === 'recap') return renderRecap(s);
     if (VIEW === 'cuadro') return renderCuadro(s);
+    if (VIEW === 'predicciones') return renderPred(s);
     if (VIEW === 'alert') { if (s.game && s.game.pBlue != null) { hist.push({t: Date.now(), p: s.game.pBlue}); checkMomentum(s); } return; }
     renderBar(s);
   }
@@ -298,6 +323,47 @@
       col('Final', m(B.f[0]) + (B.champion ? '<div class="ch">🏆 ' + esc(B.champion) + '</div>' : '')) + '</div>';
   }
 
+  // Predicciones del stream: integrantes y picks vienen de control.html (mismo navegador de OBS); los resultados, del calendario.
+  var PRED = (function () { try { return JSON.parse(localStorage.getItem('rp_pred') || 'null'); } catch (e) { return null; } })();
+  function renderPred() {
+    R.loadMatches();
+    var P = PRED, all = R.matches, ms = R.predMatches(all, P && P.day);
+    if (!P || P.hidden || !P.members || !P.members.length || !ms.length) { if (main.innerHTML) card(false); else main.style.display = 'none'; return; }
+    card(true); main.classList.add('rp-pd');
+    var n = P.members.length, r = ms.length;
+    // columnas y filas se ajustan a cuántos integrantes y partidos haya (sin límite)
+    var cw = Math.max(54, Math.min(130, Math.floor((1700 - 250) / n))), rh = Math.max(34, Math.min(92, Math.floor(640 / r)));
+    main.style.setProperty('--rh', rh * S + 'px');
+    main.style.setProperty('--av', Math.min(96, cw - 12) * S + 'px');
+    main.style.setProperty('--nf', Math.max(9, Math.min(14, cw / 8.5)) * S + 'px');
+    var winner = function (x) { return x.state === 'completed' ? (x.teams[0].won ? x.teams[0].code : x.teams[1].won ? x.teams[1].code : null) : null; };
+    var img = function (x, code) { var t = x.teams.filter(function (t) { return t.code === code; })[0]; return t && t.img ? '<img src="' + esc(t.img) + '" alt="">' : '<b>' + esc(code) + '</b>'; };
+    // aciertos de todo el torneo
+    var hits = {}, tot = {};
+    all.forEach(function (x) { var w = winner(x), pk = P.picks[x.id] || {}; if (!w) return; for (var m in pk) { tot[m] = (tot[m] || 0) + 1; if (pk[m] === w) hits[m] = (hits[m] || 0) + 1; } });
+    var best = Math.max.apply(null, P.members.map(function (m) { return hits[m.id] || 0; }));
+    var blocks = ms.map(function (x) { return x.block; }).filter(function (b, i, a) { return b && a.indexOf(b) === i; });
+    var days = ms.map(function (x) { return new Date(x.start).toLocaleDateString('es', {weekday: 'long', day: 'numeric', month: 'numeric'}); }).filter(function (d, i, a) { return a.indexOf(d) === i; });
+    var bo = ms[0].bo;
+    var h = '<div class="t">' + LOGO + 'RiftPulse</div><div class="tt">' + esc(P.title || 'Predicciones del stream') + '</div>' +
+      '<div class="st">' + esc(blocks.join(' · ')) + (ms.every(function (x) { return x.bo === bo; }) ? ' · al mejor de ' + bo : '') + (days.length === 1 ? ' · ' + esc(days[0]) : '') + '</div>' +
+      '<div class="gd" style="grid-template-columns:' + 250 * S + 'px repeat(' + n + ',' + cw * S + 'px)"><div></div>';
+    P.members.forEach(function (m) {
+      h += '<div class="mh">' + (m.photo ? '<img class="ph" src="' + m.photo + '" alt="">' : '<div class="ini" style="background:hsl(' + (m.id * 67 % 360) + ' 70% 65%)">' + esc(m.name.slice(0, 2).toUpperCase()) + '</div>') + '<div class="nmp">' + esc(m.name) + '</div></div>';
+    });
+    ms.forEach(function (x) {
+      var a = x.teams[0], b = x.teams[1], w = winner(x), pk = P.picks[x.id] || {};
+      h += '<div class="mt">' + (a.img ? '<img src="' + esc(a.img) + '" alt="">' : '') + esc(a.code || 'TBD') + ' <span class="vs">vs</span> ' + esc(b.code || 'TBD') + (b.img ? '<img src="' + esc(b.img) + '" alt="">' : '') + (x.state === 'inProgress' ? '<span class="lv">● EN VIVO</span>' : '') + '</div>';
+      P.members.forEach(function (m) {
+        var t = pk[m.id];
+        h += t ? '<div class="c' + (w ? (t === w ? ' ok' : ' no') : '') + '">' + img(x, t) + '</div>' : '<div class="c none">—</div>';
+      });
+    });
+    h += '<div class="acl">Aciertos</div>';
+    P.members.forEach(function (m) { var k = hits[m.id] || 0; h += '<div class="ac' + (tot[m.id] && k === best && best > 0 ? ' lead' : '') + '">' + k + '/' + (tot[m.id] || 0) + '</div>'; });
+    main.innerHTML = h + '</div>';
+  }
+
   function showCallout(html) { callout.innerHTML = html; callout.classList.add('show'); setTimeout(function () { callout.classList.remove('show'); }, 7000); }
   function checkMomentum(s) {
     var now = Date.now(); hist = hist.filter(function (x) { return now - x.t <= 90000; });
@@ -321,11 +387,15 @@
       if (o.testAlert) showCallout('<span class="zap">⚡</span><span class="cc b">Alerta de prueba</span>');
     }
     if (o.auto) cfg.auto = o.auto;
+    if (o.pred) PRED = o.pred;
     if (o.showRecap && VIEW === 'recap') { recapUntil = Date.now() + 25000; setTimeout(function () { if (R.state) render(R.state); }, 25100); }
     if (R.state) render(R.state);
   }
   try { var bc = new BroadcastChannel('riftpulse-ctrl'); bc.onmessage = function (e) { applyCtrl(e.data); }; } catch (e) {}
-  window.addEventListener('storage', function (e) { if (e.key === 'rp_ctrl') { try { applyCtrl(JSON.parse(e.newValue || 'null')); } catch (x) {} } });
+  window.addEventListener('storage', function (e) {
+    if (e.key === 'rp_ctrl') { try { applyCtrl(JSON.parse(e.newValue || 'null')); } catch (x) {} }
+    if (e.key === 'rp_pred') { try { applyCtrl({pred: JSON.parse(e.newValue || 'null')}); } catch (x) {} }
+  });
 
   R.onUpdate(render);
   R.auto();

@@ -20,5 +20,15 @@ El overlay y el control se sincronizan cuando **ambos corren en OBS** (comparten
 - **Piezas automáticas:** encender o apagar *Para remontar* y *Resumen al terminar*.
 - **🏁 Mostrar resumen del juego** — vuelve a sacar el resumen del último juego en la vista `recap`.
 
+## Predicciones del stream
+La gráfica de picks del equipo del stream, como la de las transmisiones oficiales, pero con aciertos automáticos.
+1. Ponle **título** (por ejemplo, «Predicciones del Boom»).
+2. Agrega a los **integrantes**, todos los que quieras: nombre y, si quieres, una **foto** (se sube desde la computadora y se ajusta sola).
+3. Elige **qué partidos**: el próximo día con partidos (automático), cualquier día del torneo o una **fase completa** (por ejemplo, todos los cuartos).
+4. Toca el equipo que elige cada integrante en cada partido.
+5. En OBS, añade `overlay.html?view=predicciones` como Browser Source.
+
+Cuando un partido termina, cada pick se marca solo como ✓ acierto o ✗ fallo, y la fila **Aciertos** lleva el marcador de todo el torneo (el líder en dorado). Las columnas y filas se achican solas según cuántos integrantes y partidos haya. Los datos se guardan en el navegador de OBS; nada sale de tu computadora.
+
 ## Detalle técnico
 La sincronía usa `BroadcastChannel` + `localStorage`: funciona entre pestañas/paneles del **mismo navegador y origen**, que es justo el caso dentro de OBS. No necesita servidor.

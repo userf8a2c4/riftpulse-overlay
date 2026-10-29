@@ -33,6 +33,28 @@
   .btn.hide{margin-top:8px}
   .note{font-size:11px;color:var(--muted);line-height:1.5;margin-top:10px}
   .ok{color:var(--ok);font-weight:700}
+  /* predicciones del stream */
+  .in{width:100%;background:var(--s3);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 10px;font:inherit}
+  .in:focus{outline:none;border-color:var(--blue)}
+  .mem{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line2)}
+  .mem:first-child{border-top:0}
+  .av{width:30px;height:30px;border-radius:8px;object-fit:cover;flex:none;background:var(--s3);display:grid;place-items:center;font-family:var(--ffd);font-size:12px;color:#06121f}
+  .mem .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+  .x{background:none;border:1px solid var(--line);color:var(--muted);border-radius:7px;width:26px;height:26px;cursor:pointer;flex:none}
+  .x:hover{color:#ff8a8f;border-color:#ff8a8f}
+  .add{display:flex;gap:6px;margin-top:8px}
+  .add .in{flex:1}
+  .file{flex:none;font-size:12px;border:1px dashed var(--line);border-radius:8px;padding:8px 10px;color:var(--muted);cursor:pointer;white-space:nowrap}
+  .file input{display:none}
+  .file.has{color:var(--ok);border-color:var(--ok)}
+  .pm{background:var(--s3);border:1px solid var(--line2);border-radius:10px;padding:8px 10px;margin-top:8px}
+  .pm .hd{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);margin-bottom:6px}
+  .pm .hd b{color:var(--text);font-family:var(--ffd);font-size:13px}
+  .pk{display:flex;align-items:center;gap:6px;padding:3px 0}
+  .pk .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px}
+  .pk button{font-family:var(--ffd);font-size:12px;font-weight:700;min-width:56px;padding:5px 8px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer}
+  .pk button.on{background:linear-gradient(180deg,var(--blue),var(--blue2));color:#06121f;border-color:var(--blue)}
+  .pk button.ok{border-color:var(--ok)}.pk button.no{opacity:.5}
 </style>
 </head>
 <body>
@@ -61,9 +83,20 @@
     <button class="btn hide" id="hide">Ocultar overlay</button>
   </div>
 
+  <div class="grp"><h2>Predicciones del stream</h2>
+    <input class="in" id="pTitle" maxlength="40" placeholder="Título (ej.: Predicciones del stream)">
+    <div style="margin-top:10px" id="pMembers"></div>
+    <div class="add"><input class="in" id="pName" maxlength="18" placeholder="Nombre del integrante"><label class="file" id="pFileL">📷 Foto<input type="file" id="pFile" accept="image/*"></label><button class="x" id="pAdd" title="Agregar" style="width:auto;padding:0 10px;color:var(--text)">＋</button></div>
+    <div style="margin-top:10px"><select class="in" id="pDay"></select></div>
+    <div id="pMatches"><div class="note">Cargando partidos…</div></div>
+    <button class="btn hide" id="pShow">Ocultar predicciones en pantalla</button>
+    <div class="note">En OBS, añade <b>overlay.html?view=predicciones</b> como <b>Browser Source</b>. Cuando un partido termina, cada pick se marca solo como acierto o fallo y se suma al marcador de aciertos.</div>
+  </div>
+
   <div class="note" id="msg"></div>
   <div class="note">Para que controle el overlay en OBS: añade esta página como <b>Dock de navegador personalizado</b> (Ver → Docks → Docks de navegador personalizados) y el overlay como <b>Browser Source</b>. Comparten el mismo navegador y se sincronizan solos.</div>
 
+<script src="engine.js"></script>
 <script>
   var bc; try { bc = new BroadcastChannel('riftpulse-ctrl'); } catch (e) {}
   var hidden = false;
@@ -95,6 +128,69 @@
     if (sv.auto) document.querySelectorAll('input[data-a]').forEach(function(i){ var k=i.getAttribute('data-a'); if (sv.auto[k]!=null) i.checked = sv.auto[k]; });
     hidden = !!sv.hidden; document.getElementById('hide').textContent = hidden ? 'Mostrar overlay' : 'Ocultar overlay';
   }} catch(e){}
+
+  // ---------- predicciones del stream ----------
+  var P = (function(){ try { return JSON.parse(localStorage.getItem('rp_pred')||'null'); } catch(e){ return null; } })() || {};
+  P.title = P.title || ''; P.members = P.members || []; P.picks = P.picks || {}; P.day = P.day || 'auto'; P.hidden = !!P.hidden;
+  var MATCHES = [], photo = '';
+  function escH(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function saveP(){ try { localStorage.setItem('rp_pred', JSON.stringify(P)); } catch(e){ msg('No se pudo guardar (¿fotos muy pesadas?)'); } if (bc) bc.postMessage({pred: P}); }
+  function avatar(m){ return m.photo ? '<img class="av" src="'+m.photo+'" alt="">' : '<span class="av" style="background:hsl('+(m.id*67%360)+' 70% 65%)">'+escH(m.name.slice(0,2).toUpperCase())+'</span>'; }
+  function renderMembers(){
+    document.getElementById('pMembers').innerHTML = P.members.map(function(m){ return '<div class="mem">'+avatar(m)+'<span class="nm">'+escH(m.name)+'</span><button class="x" data-del="'+m.id+'" title="Quitar">✕</button></div>'; }).join('') || '<div class="note" style="margin-top:0">Agrega a los integrantes del stream (nombre y foto opcional).</div>';
+  }
+  function renderMatches(){
+    var sel = document.getElementById('pDay'), days = RiftEngine.predDays(MATCHES);
+    sel.innerHTML = '<option value="auto">Partidos: automático (el próximo día con partidos)</option>' + days.map(function(d){ return '<option value="'+d.key+'"'+(P.day===d.key?' selected':'')+'>'+escH(d.label)+'</option>'; }).join('');
+    var list = RiftEngine.predMatches(MATCHES, P.day), box = document.getElementById('pMatches');
+    if (!list.length){ box.innerHTML = '<div class="note">No hay partidos para ese día.</div>'; return; }
+    box.innerHTML = list.map(function(x){
+      var a = x.teams[0].code, b = x.teams[1].code, done = x.state==='completed', win = done ? (x.teams[0].won ? a : b) : null;
+      var st = x.state==='inProgress' ? '● en vivo' : done ? 'terminó '+x.teams[0].wins+'–'+x.teams[1].wins : new Date(x.start).toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+      var rows = P.members.map(function(m){
+        var pk = (P.picks[x.id]||{})[m.id];
+        var btn = function(t){ return '<button data-m="'+escH(x.id)+'" data-who="'+m.id+'" data-t="'+escH(t)+'" class="'+(pk===t?'on':'')+(done&&pk===t?(t===win?' ok':' no'):'')+'">'+escH(t)+'</button>'; };
+        return '<div class="pk"><span class="nm">'+escH(m.name)+'</span>'+(a&&b?btn(a)+btn(b):'<span class="note" style="margin:0">por definir</span>')+'</div>';
+      }).join('') || '<div class="note" style="margin:0">Agrega integrantes para cargar sus picks.</div>';
+      return '<div class="pm"><div class="hd"><b>'+escH(a||'TBD')+' vs '+escH(b||'TBD')+'</b><span>Bo'+x.bo+' · '+st+'</span></div>'+rows+'</div>';
+    }).join('');
+  }
+  document.getElementById('pTitle').value = P.title;
+  document.getElementById('pTitle').addEventListener('input', function(){ P.title = this.value; saveP(); });
+  document.getElementById('pFile').addEventListener('change', function(){
+    var f = this.files[0]; if (!f) return;
+    var img = new Image(), url = URL.createObjectURL(f);
+    img.onload = function(){ var c = document.createElement('canvas'), z = 160; c.width = c.height = z; var k = Math.max(z/img.width, z/img.height), w = img.width*k, h = img.height*k;
+      c.getContext('2d').drawImage(img, (z-w)/2, (z-h)/2, w, h); photo = c.toDataURL('image/jpeg', .85); URL.revokeObjectURL(url);
+      var l = document.getElementById('pFileL'); l.classList.add('has'); l.firstChild.textContent = '✓ Foto'; };
+    img.src = url;
+  });
+  function addMember(){
+    var n = document.getElementById('pName').value.trim(); if (!n) { msg('Escribe el nombre del integrante.'); return; }
+    P.members.push({id: (P.members.reduce(function(a,m){ return Math.max(a,m.id); },0)+1), name: n, photo: photo});
+    document.getElementById('pName').value = ''; photo = ''; var l = document.getElementById('pFileL'); l.classList.remove('has'); l.firstChild.textContent = '📷 Foto'; document.getElementById('pFile').value = '';
+    saveP(); renderMembers(); renderMatches();
+  }
+  document.getElementById('pAdd').addEventListener('click', addMember);
+  document.getElementById('pName').addEventListener('keydown', function(e){ if (e.key==='Enter') addMember(); });
+  document.getElementById('pMembers').addEventListener('click', function(e){
+    var b = e.target.closest('[data-del]'); if (!b) return; var id = +b.getAttribute('data-del');
+    P.members = P.members.filter(function(m){ return m.id!==id; }); for (var k in P.picks) delete P.picks[k][id];
+    saveP(); renderMembers(); renderMatches();
+  });
+  document.getElementById('pMatches').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-m]'); if (!b) return;
+    var mid = b.getAttribute('data-m'), who = b.getAttribute('data-who'), t = b.getAttribute('data-t');
+    P.picks[mid] = P.picks[mid] || {}; if (P.picks[mid][who]===t) delete P.picks[mid][who]; else P.picks[mid][who] = t;
+    saveP(); renderMatches();
+  });
+  document.getElementById('pDay').addEventListener('change', function(){ P.day = this.value; saveP(); renderMatches(); });
+  var pShow = document.getElementById('pShow');
+  function showLbl(){ pShow.textContent = P.hidden ? 'Mostrar predicciones en pantalla' : 'Ocultar predicciones en pantalla'; }
+  pShow.addEventListener('click', function(){ P.hidden = !P.hidden; showLbl(); saveP(); });
+  showLbl(); renderMembers();
+  function loadM(){ RiftEngine.loadMatches().then(function(l){ MATCHES = l; renderMatches(); }); }
+  loadM(); setInterval(loadM, 60000);
 </script>
 </body>
 </html>
