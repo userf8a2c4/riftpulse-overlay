@@ -1,0 +1,10 @@
+# Notas privadas (borrador del mensaje a Nick): no se publican
+para-nick.md
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.vscode/
+.idea/

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RiftPulse — Control</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Chakra+Petch:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0e16;--s1:#121a2a;--s3:#0d1320;--line:#263352;--line2:#1b2439;--text:#e8edf7;--muted:#8b97b0;--blue:#4aa3ff;--blue2:#2f7fe0;--ok:#3ddc97;--gold:#f2c14e;--ffd:'Chakra Petch',system-ui,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:400 14px/1.5 'Inter',system-ui,sans-serif;padding:16px}
+  .top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .top img{width:28px;height:28px}
+  h1{font-family:var(--ffd);font-size:15px;margin:0;letter-spacing:.5px}
+  .sub{font-size:11px;color:var(--muted)}
+  .grp{background:linear-gradient(180deg,#141d30,#0f1623);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px}
+  .grp h2{font-family:var(--ffd);font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:0 0 10px}
+  .row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-top:1px solid var(--line2)}
+  .row:first-of-type{border-top:0}
+  .sw{position:relative;width:44px;height:24px;flex:none}
+  .sw input{opacity:0;width:0;height:0;position:absolute}
+  .sl{position:absolute;inset:0;background:var(--s3);border:1px solid var(--line);border-radius:99px;cursor:pointer;transition:.15s}
+  .sl::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;border-radius:50%;background:#6b7791;transition:.15s}
+  input:checked + .sl{background:linear-gradient(180deg,var(--blue),var(--blue2));border-color:var(--blue)}
+  input:checked + .sl::before{transform:translateX(20px);background:#fff}
+  .seg{display:flex;gap:6px}
+  .seg button{font-family:var(--ffd);font-size:12px;font-weight:700;padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--s3);color:var(--muted);cursor:pointer}
+  .seg button.on{background:linear-gradient(180deg,var(--blue),var(--blue2));color:#06121f;border-color:var(--blue)}
+  .btn{width:100%;font-family:var(--ffd);font-weight:700;font-size:14px;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--s1);color:var(--text);cursor:pointer}
+  .btn.alert{background:linear-gradient(180deg,#f2c14e,#d9a429);color:#201700;border-color:var(--gold)}
+  .btn.hide{margin-top:8px}
+  .note{font-size:11px;color:var(--muted);line-height:1.5;margin-top:10px}
+  .ok{color:var(--ok);font-weight:700}
+</style>
+</head>
+<body>
+  <div class="top"><img src="logo.svg" alt="RiftPulse"><div><h1>Control de producción</h1><div class="sub">controla el overlay (vista bar) en vivo</div></div></div>
+
+  <div class="grp"><h2>Módulos</h2>
+    <div class="row"><span>Probabilidad</span><label class="sw"><input type="checkbox" data-m="prob" checked disabled><span class="sl"></span></label></div>
+    <div class="row"><span>Pronóstico (previa)</span><label class="sw"><input type="checkbox" data-m="pregame" checked><span class="sl"></span></label></div>
+    <div class="row"><span>Momentum (alertas)</span><label class="sw"><input type="checkbox" data-m="momentum" checked><span class="sl"></span></label></div>
+    <div class="row"><span>Timers de objetivos</span><label class="sw"><input type="checkbox" data-m="timers" checked><span class="sl"></span></label></div>
+    <div class="row"><span>Marca + precisión</span><label class="sw"><input type="checkbox" data-m="brand" checked><span class="sl"></span></label></div>
+  </div>
+
+  <div class="grp"><h2>Posición</h2>
+    <div class="seg"><button data-pos="bottom" class="on">Abajo</button><button data-pos="top">Arriba</button></div>
+  </div>
+
+  <div class="grp"><h2>Acciones</h2>
+    <button class="btn alert" id="alert">⚡ Disparar alerta de prueba</button>
+    <button class="btn hide" id="hide">Ocultar overlay</button>
+  </div>
+
+  <div class="note" id="msg"></div>
+  <div class="note">Para que controle el overlay en OBS: añade esta página como <b>Dock de navegador personalizado</b> (Ver → Docks → Docks de navegador personalizados) y el overlay como <b>Browser Source</b>. Comparten el mismo navegador y se sincronizan solos.</div>
+
+<script>
+  var bc; try { bc = new BroadcastChannel('riftpulse-ctrl'); } catch (e) {}
+  var hidden = false;
+  function state(){
+    var mods = Array.prototype.map.call(document.querySelectorAll('input[data-m]'), function(i){ return i.checked ? i.getAttribute('data-m') : null; }).filter(Boolean);
+    var pos = document.querySelector('.seg button.on').getAttribute('data-pos');
+    return { modules: mods, pos: pos, hidden: hidden };
+  }
+  function send(extra){
+    var s = state(); if (extra) for (var k in extra) s[k] = extra[k];
+    try { localStorage.setItem('rp_ctrl', JSON.stringify(state())); } catch(e){}  // persiste sin testAlert
+    if (bc) bc.postMessage(s);
+    msg('Aplicado ✓');
+  }
+  function msg(t){ var m=document.getElementById('msg'); m.textContent=t; m.className='note ok'; setTimeout(function(){m.textContent='';m.className='note';},1500); }
+
+  document.querySelectorAll('input[data-m]').forEach(function(i){ i.addEventListener('change', function(){ send(); }); });
+  document.querySelectorAll('.seg button').forEach(function(b){ b.addEventListener('click', function(){
+    document.querySelectorAll('.seg button').forEach(function(x){x.classList.remove('on');}); b.classList.add('on'); send(); }); });
+  document.getElementById('alert').addEventListener('click', function(){ send({ testAlert: true }); });
+  document.getElementById('hide').addEventListener('click', function(){ hidden=!hidden; this.textContent = hidden ? 'Mostrar overlay' : 'Ocultar overlay'; send(); });
+
+  // cargar estado guardado
+  try { var sv = JSON.parse(localStorage.getItem('rp_ctrl')||'null'); if (sv){
+    document.querySelectorAll('input[data-m]').forEach(function(i){ if(i.disabled) return; i.checked = sv.modules ? sv.modules.indexOf(i.getAttribute('data-m'))>=0 : i.checked; });
+    if (sv.pos){ document.querySelectorAll('.seg button').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-pos')===sv.pos); }); }
+    hidden = !!sv.hidden; document.getElementById('hide').textContent = hidden ? 'Mostrar overlay' : 'Ocultar overlay';
+  }} catch(e){}
+</script>
+</body>
+</html>

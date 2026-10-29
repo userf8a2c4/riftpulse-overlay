@@ -1,0 +1,46 @@
+{
+  "current_scene": "RiftPulse",
+  "current_program_scene": "RiftPulse",
+  "scene_order": [
+    { "name": "RiftPulse" }
+  ],
+  "name": "RiftPulse",
+  "sources": [
+    {
+      "prev_ver": 503447557,
+      "name": "RiftPulse",
+      "id": "scene",
+      "versioned_id": "scene",
+      "settings": {
+        "custom_size": false,
+        "items": [
+          {
+            "name": "RiftPulse Overlay",
+            "source_uuid": "",
+            "visible": true,
+            "locked": false,
+            "pos": { "x": 0, "y": 0 },
+            "scale": { "x": 1.0, "y": 1.0 },
+            "align": 5,
+            "bounds_type": 0,
+            "bounds": { "x": 0.0, "y": 0.0 },
+            "rot": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "prev_ver": 503447557,
+      "name": "RiftPulse Overlay",
+      "id": "browser_source",
+      "versioned_id": "browser_source",
+      "settings": {
+        "url": "https://userf8a2c4.github.io/riftpulse-overlay/overlay.html",
+        "width": 1920,
+        "height": 1080,
+        "reroute_audio": false,
+        "css": ""
+      }
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+RIFTPULSE OVERLAY - PASOS PARA SUBIR
+====================================
+
+Repo ya creado: https://github.com/userf8a2c4/riftpulse-overlay
+Carpeta lista: esta misma. Ya tiene tu usuario (userf8a2c4) y la URL de Pages puesta.
+
+1) SUBIR EL CODIGO (desde esta carpeta)
+   Abre una terminal AQUI y corre:
+
+     git init
+     git add .
+     git commit -m "RiftPulse overlay para OBS"
+     git branch -M main
+     git remote add origin https://github.com/userf8a2c4/riftpulse-overlay.git
+     git push -u origin main
+
+2) ACTIVAR GITHUB PAGES
+   En el repo: Settings -> Pages -> Branch: main -> /(root) -> Save.
+   En ~1 min queda:
+     Pagina:  https://userf8a2c4.github.io/riftpulse-overlay/
+     Overlay: https://userf8a2c4.github.io/riftpulse-overlay/overlay.html
+
+3) PUBLICAR LA WIKI (es un repo aparte)
+   - En el repo: pestana Wiki -> Create the first page -> guarda cualquier cosa.
+   - Luego, en otra carpeta:
+     git clone https://github.com/userf8a2c4/riftpulse-overlay.wiki.git
+     (copia dentro los .md de la carpeta wiki/ de aqui)
+     cd riftpulse-overlay.wiki
+     git add . && git commit -m "Wiki" && git push
+
+4) LO DE NICK
+   El mensaje (ES+EN) esta en la carpeta de trabajo como para-nick.md (no se sube).
+   Ya trae la URL. Cuando Pages este arriba, le mandas ese mensaje con el link.
+
+Nota: la nota privada para-nick.md NO esta en esta carpeta a proposito (es tuya).
+INSTRUCCIONES-NICK.md si va (es la guia publica).
