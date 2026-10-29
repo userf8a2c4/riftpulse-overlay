@@ -2724,7 +2724,10 @@ const OBS_BASE = 'https://userf8a2c4.github.io/riftpulse-overlay/';
 const mxPct = x => Math.round(x * 100) + '%';
 const mxK = g => (Math.abs(g) / 1000).toFixed(1).replace('.', ',') + 'k';
 const mxSc = side => side === 'blue' ? 'b' : 'r';
-const mxHasExt = () => !!(window.chrome && chrome.storage && chrome.storage.local);
+// dentro del panel de la extensión la app llega desde la web (?ext=1): las órdenes pasan al panel por mensaje
+const mxEmb = window.parent !== window && /[?&]ext=1/.test(location.search);
+const mxStorage = () => !!(window.chrome && chrome.storage && chrome.storage.local);
+const mxHasExt = () => mxStorage() || mxEmb;
 function mxOv() {
   if (!MX.ov) { try { MX.ov = JSON.parse(store('mandoOv') || 'null'); } catch (e) {} MX.ov = Object.assign({ext: ['obj', 'pg'], pos: 'top', hidden: false, dmg: true}, MX.ov || {}); }
   return MX.ov;
@@ -2732,7 +2735,9 @@ function mxOv() {
 // manda la orden al overlay del stream (content script) por chrome.storage; sync/nudge son de un solo uso
 function mxSend(extra) {
   const o = mxOv(); store('mandoOv', JSON.stringify(o));
-  if (mxHasExt()) chrome.storage.local.set({rp_cmd: Object.assign({ext: o.ext, pos: o.pos, hidden: o.hidden, dmg: o.dmg, n: Date.now()}, extra || {})});
+  const data = {rp_cmd: Object.assign({ext: o.ext, pos: o.pos, hidden: o.hidden, dmg: o.dmg, n: Date.now()}, extra || {})};
+  if (mxStorage()) chrome.storage.local.set(data);
+  else if (mxEmb) window.parent.postMessage({rp: 'set', data}, '*');
 }
 function mandoOn() {
   if (!window.RiftEngine) { $('#mxAir').innerHTML = '<div class="empty">No cargó el motor (engine.js).</div>'; return; }
@@ -2968,6 +2973,7 @@ async function pinGame(matchId, gameId) {
 }
 
 (async function main() {
+  if (mxEmb) window.parent.postMessage({rp: 'ready'}, '*');  // avisa al panel de la extensión que la app cargó
   renderDelay();
   render();
   await tickSchedule();

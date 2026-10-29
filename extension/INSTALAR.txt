@@ -1,50 +1,26 @@
-WORLDS EN VIVO — PANEL LATERAL DEL NAVEGADOR
-============================================
-
-Pone "RiftPulse" fijo en el panel derecho del navegador, para tenerlo al
-lado mientras ve el stream del Mundial en la pestaña principal.
-
-Sirve en Brave, Chrome o Edge (versiones recientes).
+RIFTPULSE — EXTENSION (se actualiza sola)
+=========================================
 
 INSTALAR (una sola vez)
 -----------------------
-1. Abra la pagina de extensiones del navegador:
-   - Brave:  brave://extensions
-   - Chrome: chrome://extensions
-   - Edge:   edge://extensions
-2. Active, arriba a la derecha, el "Modo de desarrollador" (Developer mode).
-3. Clic en "Cargar descomprimida" (Load unpacked).
-4. Seleccione ESTA carpeta:
-   ...\Documents\github\Worlds2026\extension
-5. Aparece "RiftPulse" en la lista. Fijela en la barra (icono de pieza de
-   rompecabezas -> alfiler) para tenerla a mano.
-
-Si la movio de sitio y aparece "ERR_FILE_NOT_FOUND" o "movido/borrado":
-quite la extension vieja con "Quitar" (Remove) y repita los pasos 3-4
-seleccionando la carpeta en su ubicacion actual.
-
-USAR — PANEL LATERAL
---------------------
-1. Abra el stream del Mundial en una pestana normal.
-2. Clic en el icono azul "RiftPulse": se abre el panel a la derecha, con
-   todo el sistema (predicciones, copa, historial, Pick'Em).
-
-USAR — OVERLAY SOBRE EL STREAM (nuevo)
---------------------------------------
-No hay que configurar nada. Con la extension instalada, abra el partido en
-twitch.tv o en lolesports.com: aparece solo, encima de la pagina, un widget
-"RiftPulse" con la prediccion en vivo (probabilidad, marcador y objetivos).
-Solo lo ve usted; no se transmite.
-- Arrastrelo (desde su barra de titulo) a donde prefiera. Recuerda el lugar.
-- El boton "—" lo pliega.
-- Si los datos van adelantados o atrasados respecto a lo que ve en el video,
-  ajuste el retraso con los botones "-" y "+" abajo a la derecha del widget.
+1. Abra chrome://extensions (o brave://extensions / edge://extensions).
+2. Active el "Modo de desarrollador" (arriba a la derecha).
+3. Si ya tenia RiftPulse, toque "Quitar" en la vieja.
+4. "Cargar descomprimida" -> elija ESTA carpeta (extension).
+5. En RiftPulse -> "Detalles", active "Permitir scripts de usuario"
+   (Allow user scripts). Asi el overlay del stream se actualiza solo.
+6. Fije el icono en la barra (pieza de rompecabezas -> alfiler).
 
 ACTUALIZAR
 ----------
-Si cambia algo de la pagina (index.html), haga doble clic en
-"actualizar-extension.bat" (en la carpeta de arriba) y luego, en la pagina de
-extensiones, toque el boton de recargar de "RiftPulse".
+Nada que descargar: toque el boton de recargar de RiftPulse en
+chrome://extensions. El panel siempre abre la ultima version desde la web,
+y el overlay del stream se descarga de nuevo al recargar (y solo cada 6 horas).
 
-Nota: la extension no lee ni envia nada de ninguna cuenta. Solo muestra el
-sistema al lado del stream. No esta afiliada a Riot Games.
+USAR
+----
+- Clic en el icono de RiftPulse: se abre el panel lateral con todo el sistema.
+- En twitch.tv o lolesports.com aparece el overlay sobre el video. Pase el
+  mouse por la barra para ver los controles (auto-sync, piezas, sincronia).
+
+La extension no lee ni envia nada de ninguna cuenta. No esta afiliada a Riot Games.

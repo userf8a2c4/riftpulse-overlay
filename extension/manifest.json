@@ -1,31 +1,24 @@
 {
   "manifest_version": 3,
   "name": "RiftPulse",
-  "version": "1.0",
-  "description": "Panel lateral con predicciones, copa, historial y Pick'Em de Worlds 2026.",
+  "version": "2.0",
+  "description": "Panel lateral y overlay de RiftPulse para el Mundial. Se actualiza solo desde la web.",
   "permissions": [
     "sidePanel",
     "storage",
-    "offscreen"
+    "offscreen",
+    "userScripts",
+    "scripting",
+    "alarms"
   ],
   "host_permissions": [
     "https://esports-api.lolesports.com/*",
     "https://feed.lolesports.com/*",
     "https://ddragon.leagueoflegends.com/*",
-    "https://static.lolesports.com/*"
-  ],
-  "content_scripts": [
-    {
-      "matches": [
-        "*://*.twitch.tv/*",
-        "*://*.lolesports.com/*"
-      ],
-      "js": [
-        "engine.js",
-        "overlay.js"
-      ],
-      "run_at": "document_idle"
-    }
+    "https://static.lolesports.com/*",
+    "https://userf8a2c4.github.io/*",
+    "*://*.twitch.tv/*",
+    "*://*.lolesports.com/*"
   ],
   "action": {
     "default_title": "Abrir RiftPulse"

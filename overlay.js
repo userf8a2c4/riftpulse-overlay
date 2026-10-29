@@ -223,10 +223,22 @@
     if (!inicial && c.nudge) R.nudge(c.nudge);
     if (LAST) render(LAST);
   }
-  try {
+  var hayStorage = false;
+  try { hayStorage = !!(chrome.storage && chrome.storage.local); } catch (e) {}
+  if (hayStorage) {
     chrome.storage.local.get('rp_cmd', function (o) { applyCmd(o && o.rp_cmd, true); });
     chrome.storage.onChanged.addListener(function (ch, area) { if (area === 'local' && ch.rp_cmd) applyCmd(ch.rp_cmd.newValue, false); });
-  } catch (e) {}
+  } else {
+    // cargado desde la web como «script de usuario»: no ve el almacenamiento, se lo pide al proceso de fondo
+    var ultimaN = null;
+    var pedir = function (inicial) {
+      try { chrome.runtime.sendMessage({type: 'rp-cmd-get'}, function (o) {
+        var c = o && o.rp_cmd; if (!c || c.n === ultimaN) return;
+        ultimaN = c.n; applyCmd(c, inicial);
+      }); } catch (e) {}
+    };
+    pedir(true); setInterval(function () { pedir(false); }, 1500);
+  }
 
   // ---------- sincronía automática: lee del video el reloj del juego, los equipos y el marcador ----------
   // Zonas del HUD de la transmisión del Mundial, relativas al cuadro del video.
