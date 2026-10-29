@@ -2832,7 +2832,7 @@ function renderMxOv() {
 }
 function renderMxObs() {
   const items = [['Barra en vivo', 'overlay.html'], ['Serie', 'overlay.html?view=serie'], ['Duelos por línea', 'overlay.html?view=duelos'], ['Para remontar (sola)', 'overlay.html?view=remontada'],
-    ['Resumen del juego (solo)', 'overlay.html?view=recap'], ['Cuadro de eliminatorias', 'overlay.html?view=cuadro'], ['Claves del momento', 'overlay.html?view=keys'], ['Alerta de giro', 'overlay.html?view=alert'], ['Mesa de análisis', 'analista.html'], ['Control de producción (dock)', 'control.html']];
+    ['Resumen del juego (solo)', 'overlay.html?view=recap'], ['Cuadro de eliminatorias', 'overlay.html?view=cuadro'], ['Predicciones del stream', 'overlay.html?view=predicciones'], ['Claves del momento', 'overlay.html?view=keys'], ['Alerta de giro', 'overlay.html?view=alert'], ['Mesa de análisis', 'analista.html'], ['Control de producción (dock)', 'control.html']];
   $('#mxObs').innerHTML = `<h2>Piezas para OBS</h2><ul class="mx-obs">${items.map(([l, u], i) => `<li><b style="flex:none">${l}</b><span class="u">${OBS_BASE}${u}</span><button class="mx-cp${MX.copied === 'o' + i ? ' ok' : ''}" data-mx="cp" data-k="o${i}" data-u="${OBS_BASE}${u}">${MX.copied === 'o' + i ? '✓' : '📋'}</button></li>`).join('')}</ul>
     <div class="mx-note">Cada pieza va como <b>Navegador</b> (Browser Source) en OBS, 1920 × 1080. Con <code>?demo</code> al final se ven con un partido real ya jugado.</div>`;
 }

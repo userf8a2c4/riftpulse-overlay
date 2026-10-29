@@ -662,27 +662,69 @@
     R.champion = ch ? ch.code : null;
     return R;
   }
-  var BR = {data: null, at: 0, loading: false};
-  async function loadBracket() {
-    if (BR.loading || Date.now() - BR.at < 60000) return BR.data;
-    BR.loading = true;
-    try {
-      var evs = [], tok = null;
-      for (var n = 0; n < 3; n++) {
-        var params = {leagueId: WORLDS}; if (tok) params.pageToken = tok;
-        var d = await api('getSchedule', params);
-        evs = evs.concat(d.schedule.events || []);
-        tok = d.schedule.pages && d.schedule.pages.older; if (!tok) break;
-      }
-      BR.data = buildBracket(evs); BR.at = Date.now();
-    } catch (e) {}
-    BR.loading = false;
-    emit();
-    return BR.data;
+  // calendario del Mundial (para el cuadro y las predicciones): se pide como mucho una vez por minuto
+  var SCH = {events: [], at: 0, loading: null}, BR = {data: null};
+  async function loadSchedule() {
+    if (SCH.loading) return SCH.loading;
+    if (Date.now() - SCH.at < 60000) return SCH.events;
+    SCH.loading = (async function () {
+      try {
+        var evs = [], tok = null;
+        for (var n = 0; n < 3; n++) {
+          var params = {leagueId: WORLDS}; if (tok) params.pageToken = tok;
+          var d = await api('getSchedule', params);
+          evs = evs.concat(d.schedule.events || []);
+          tok = d.schedule.pages && d.schedule.pages.older; if (!tok) break;
+        }
+        var seen = {};
+        SCH.events = evs.filter(function (e) { return e.match && e.match.id && !seen[e.match.id] && (seen[e.match.id] = 1); });
+        SCH.at = Date.now();
+        BR.data = buildBracket(SCH.events);
+      } catch (e) {}
+      SCH.loading = null;
+      emit();
+      return SCH.events;
+    })();
+    return SCH.loading;
+  }
+  async function loadBracket() { await loadSchedule(); return BR.data; }
+  // partidos del Mundial con logos y resultado, en orden: {id, start, block, bo, state, teams:[{code, img, wins, won}]}
+  function matchList() {
+    return SCH.events.filter(function (e) { return (e.match.teams || []).length === 2; })
+      .sort(function (a, b) { return a.startTime < b.startTime ? -1 : 1; })
+      .map(function (e) { var x = koSeries(e); x.block = e.blockName || ''; return x; });
   }
   RiftEngine.buildBracket = buildBracket;   // la app lo usa con su propio calendario
   RiftEngine.loadBracket = loadBracket;     // el overlay lo pide solo (se refresca cada minuto)
   Object.defineProperty(RiftEngine, 'bracket', {get: function () { return BR.data; }});
+  RiftEngine.loadMatches = async function () { await loadSchedule(); return matchList(); };
+  // predicciones del stream: opciones para elegir qué partidos mostrar (un día o una fase completa) y los partidos de esa opción
+  var dayKey = function (iso) { var d = new Date(iso); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  RiftEngine.predDays = function (ms) {
+    var days = {}, blocks = {}, out = [];
+    (ms || []).forEach(function (x) {
+      var k = dayKey(x.start); (days[k] = days[k] || {n: 0, b: x.block, at: x.start}).n++;
+      if (x.block) (blocks[x.block] = blocks[x.block] || {n: 0, at: x.start}).n++;
+    });
+    Object.keys(blocks).sort(function (a, b) { return blocks[a].at < blocks[b].at ? -1 : 1; }).forEach(function (b) {
+      out.push({key: 'b:' + b, label: 'Fase completa: ' + b + ' · ' + blocks[b].n + ' partidos'});
+    });
+    Object.keys(days).sort().forEach(function (k) {
+      var d = new Date(days[k].at);
+      out.push({key: k, label: d.toLocaleDateString('es', {weekday: 'short', day: 'numeric', month: 'short'}) + ' · ' + days[k].b + ' · ' + days[k].n + (days[k].n === 1 ? ' partido' : ' partidos')});
+    });
+    return out;
+  };
+  RiftEngine.predMatches = function (ms, sel) {
+    ms = ms || [];
+    if (sel && sel.indexOf('b:') === 0) return ms.filter(function (x) { return x.block === sel.slice(2); });
+    if (!sel || sel === 'auto') {  // el próximo día con partidos sin terminar; si ya no hay, el último
+      var hoy = dayKey(Date.now()), next = ms.filter(function (x) { return x.state !== 'completed' && dayKey(x.start) >= hoy; })[0] || ms.filter(function (x) { return x.state !== 'completed'; })[0];
+      sel = next ? dayKey(next.start) : ms.length ? dayKey(ms[ms.length - 1].start) : '';
+    }
+    return ms.filter(function (x) { return dayKey(x.start) === sel; });
+  };
+  Object.defineProperty(RiftEngine, 'matches', {get: matchList});
 
   RiftEngine.MODELO = MODELO;       // fuente única de los pesos del modelo (la app los lee de aquí)
   RiftEngine.PRECISION = PRECISION;
