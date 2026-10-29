@@ -65,7 +65,7 @@
   .tk .b{color:var(--gold);font-weight:800;flex:none;font-family:var(--ffd)}
   .empty{color:var(--muted);text-align:center;padding:24px 0}
   .b{color:var(--team-a-txt)}.r{color:var(--team-b-txt)}
-  .note{font-size:11.5px;color:var(--muted);margin-top:8px}
+  .note{font-size:12px;color:var(--muted);margin-top:8px}
   /* giros clave */
   .sw{list-style:none;margin:8px 0 0;padding:0}
   .sw li{display:flex;gap:10px;align-items:baseline;padding:5px 0;border-top:1px solid var(--line2);font-size:13px;color:var(--text)}
@@ -89,7 +89,24 @@
   .ln .rl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.5px;width:58px}
   .ln .pn{font-weight:600}.ln .ch{color:var(--muted);font-size:12px;display:block}
   .ln .df{text-align:center;font-family:var(--ffd);font-weight:700;width:120px}
-  .ln .df small{display:block;font-family:var(--ff);font-weight:400;color:var(--muted);font-size:11px}
+  .ln .df small{display:block;font-family:var(--ff);font-weight:400;color:var(--muted);font-size:12px}
+  /* la historia del juego, qué cambió y qué mirar */
+  .hist{margin:0;padding:0;list-style:none;counter-reset:h}
+  .hist li{position:relative;padding:8px 0 8px 30px;border-top:1px solid var(--line2);font-size:16px;line-height:1.5}
+  .hist li:first-child{border-top:0}
+  .hist li::before{counter-increment:h;content:counter(h);position:absolute;left:0;top:10px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font:700 12px var(--ffm);color:var(--signal-ink);background:var(--signal)}
+  .chg{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .chg span{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:999px;font-size:13.5px;font-weight:600;background:var(--g2);border:1px solid var(--line)}
+  .chg span.b{border-color:rgba(var(--team-a-rgb),.55)}.chg span.r{border-color:rgba(var(--team-b-rgb),.55)}
+  .chg span i{font-style:normal;font-family:var(--ffd);font-weight:800;font-size:14px}
+  .big2{font-family:var(--ffd);font-weight:800;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+  .mir{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:baseline;font-size:14px}
+  .mir .k{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.8px}
+  .jg{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+  .jg td{padding:6px 4px;border-top:1px solid var(--line2)}.jg tr:first-child td{border-top:0}
+  .jg td:first-child{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.6px}
+  .jg td.v{text-align:center;font-family:var(--ffd);font-weight:700;font-size:16px;width:90px}
+  .pico{font-size:13px;padding:5px 0;border-top:1px solid var(--line2)}.pico:first-of-type{border-top:0}.pico .t{color:var(--muted);font-family:var(--ffm);font-size:12px;margin-right:6px}
   .ln .rt{text-align:right}
   .kp{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(var(--signal-rgb),.08);border:1px solid rgba(var(--signal-rgb),.3);font-size:13.5px}
   .kp b.g{color:var(--gold)}
@@ -183,17 +200,53 @@
   var k1=function(g){ return (Math.abs(g)/1000).toFixed(1).replace('.',',')+'k'; };
   var sc=function(side){ return side==='blue'?'b':'r'; };
 
+  function historiaCard(s){
+    var h=R.historia?R.historia(s):[];
+    return h.length?'<ol class="hist">'+h.map(function(x){ return '<li>'+x.html+'</li>'; }).join('')+'</ol>':'<div class="empty">Se escribe sola a medida que avanza el juego (desde el min 7).</div>';
+  }
+  function cambioCard(s){
+    var c=R.cambio?R.cambio(s):null, m=s.match;
+    if (!c) return '<div class="empty">Aparece después del primer minuto de juego.</div>';
+    var lado=c.dp>=0?'blue':'red';
+    return '<div style="display:flex;align-items:baseline;gap:10px"><span class="big2 '+sc(lado)+'">'+(c.dp?(lado==='blue'?m.blue.code:m.red.code)+' +'+Math.abs(c.dp):'±0')+'</span><span class="delta" style="margin:0">puntos de probabilidad desde el min '+mmss(c.desde)+'</span></div>'+
+      (c.items.length?'<div class="chg" style="margin-top:10px">'+c.items.map(function(x){ return '<span class="'+sc(x.side)+'"><i class="'+sc(x.side)+'">'+esc(x.code)+'</i>'+esc(x.txt)+'</span>'; }).join('')+'</div>':'<div class="delta">Sin cambios en el mapa: el modelo se mueve solo por el reloj.</div>');
+  }
+  function mirarCard(s){
+    var o=R.mirar?R.mirar(s):null, m=s.match;
+    if (!o) return '<div class="empty">Sin objetivos grandes a la vista.</div>';
+    var h='<div class="mir"><span class="k">Próximo</span><span><b>'+esc(o.obj)+'</b> '+(o.vivo?'<b>ya está en el mapa</b>':'en <b>'+mmss(o.en)+'</b>')+'</span>';
+    if (o.impacto) h+='<span class="k">Mueve</span><span>si lo toma <b class="b">'+esc(m.blue.code)+'</b> '+(o.impacto.blue>=0?'+':'')+o.impacto.blue+' pts · si lo toma <b class="r">'+esc(m.red.code)+'</b> '+(o.impacto.red>=0?'+':'')+o.impacto.red+' pts</span>';
+    h+='<span class="k">Llega mejor</span><span>'+(o.mejor?'<b class="'+sc(o.mejor)+'">'+esc(o.code)+'</b>: '+o.por.map(function(x){ return esc(x.txt); }).join(' y '):'parejo')+'</span></div>';
+    return h;
+  }
+  function jugCard(s){
+    var J=s.game.jugadores, m=s.match;
+    if (!J) return '<div class="empty">Llega con los datos de los jugadores.</div>';
+    var f=function(a,b,fmt){ var x=a>b?'b':a<b?'r':''; return '<td class="v'+(x==='b'?' b':'')+'">'+fmt(a)+'</td><td class="v'+(x==='r'?' r':'')+'">'+fmt(b)+'</td>'; };
+    var dec=function(v){ return v.toFixed(1).replace('.',','); }, ent=function(v){ return String(v); };
+    var rows='<tr><td></td><td class="v b">'+esc(m.blue.code)+'</td><td class="v r">'+esc(m.red.code)+'</td></tr>'+
+      '<tr><td>Nivel medio</td>'+f(J.blue.lvl,J.red.lvl,dec)+'</tr>'+
+      '<tr><td>Con nivel 6 / 11 / 16</td><td class="v">'+J.blue.n6+' / '+J.blue.n11+' / '+J.blue.n16+'</td><td class="v">'+J.red.n6+' / '+J.red.n11+' / '+J.red.n16+'</td></tr>';
+    if (J.items) rows+='<tr><td>Ítems completos</td>'+f(J.blue.items,J.red.items,ent)+'</tr>';
+    if (J.wards) rows+='<tr><td>Wards puestas</td>'+f(J.blue.wp,J.red.wp,ent)+'</tr><tr><td>Wards destruidas</td>'+f(J.blue.wd,J.red.wd,ent)+'</tr>';
+    var pk=(J.picos||[]).slice().reverse().slice(0,4).map(function(p){ return '<div class="pico"><span class="t">'+mmss(p.gt)+'</span><b class="'+sc(p.side)+'">'+esc(p.name)+'</b> ('+esc(p.champ)+') completó <b>'+esc(p.item)+'</b> · '+p.n+'.º ítem</div>'; }).join('');
+    return '<table class="jg">'+rows+'</table>'+(pk?'<div class="delta" style="margin-top:10px">Picos de poder</div>'+pk:'')+
+      (!J.items||!J.wards?'<div class="note">'+(!J.wards?'El feed no trae la visión en este juego. ':'')+(!J.items?'El feed no trae los ítems en este juego.':'')+'</div>':'');
+  }
   // Trayectoria del juego entero (tiempo de juego), con los giros clave marcados.
   function sparkline(pts, swings){
     if (pts.length < 2) return '<div class="spk-note">Se dibuja conforme avanza el juego…</div>';
     var W=520, H=84, t0=pts[0].gt, span=Math.max(1,pts[pts.length-1].gt-t0);
     var X=function(gt){ return (gt-t0)/span*W; }, Y=function(p){ return H-8-p*(H-16); };
     var d='M'+pts.map(function(p){return X(p.gt).toFixed(1)+' '+Y(p.p).toFixed(1);}).join(' L');
+    // banda de confianza: más ancha en los minutos en que el modelo acierta menos
+    var bw=function(p){ return R.banda?R.banda(p.gt)||0:0; };
+    var band='M'+pts.map(function(p){ return X(p.gt).toFixed(1)+' '+Y(Math.min(1,p.p+bw(p))).toFixed(1); }).join(' L')+' L'+pts.slice().reverse().map(function(p){ return X(p.gt).toFixed(1)+' '+Y(Math.max(0,p.p-bw(p))).toFixed(1); }).join(' L')+' Z';
     var mid=H/2, marks=(swings||[]).map(function(m){
       var c=m.side==='blue'?RPC.a:RPC.b;
       return '<rect x="'+X(m.a).toFixed(1)+'" y="0" width="'+Math.max(2,X(m.b)-X(m.a)).toFixed(1)+'" height="'+H+'" fill="'+c+'" opacity=".09"/>';
     }).join('');
-    return '<svg class="spark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'+marks+
+    return '<svg class="spark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" role="img" aria-label="Probabilidad en todo el juego con su banda de confianza">'+marks+'<path d="'+band+'" fill="#ffffff" opacity=".07"/>'+
       '<line x1="0" y1="'+mid+'" x2="'+W+'" y2="'+mid+'" stroke="#2a2f3a" stroke-width="1" stroke-dasharray="4 4"/>'+
       '<path d="'+d+'" fill="none" stroke="url(#spg)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>'+
       '<defs><linearGradient id="spg" x1="0" y1="0" x2="0" y2="'+H+'" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="'+RPC.a+'"/><stop offset="1" stop-color="'+RPC.b+'"/></linearGradient></defs></svg>';
@@ -432,12 +485,16 @@
         '<div class="card"><h2>Ahora</h2><div class="tms">'+tms+'</div>'+
           (im?'<div class="delta" style="margin-top:10px">Próx. '+esc(im.obj)+': si lo toma <b class="b">'+esc(m.blue.code)+'</b> '+(im.blue>=0?'+':'')+im.blue+' pts · <b class="r">'+esc(m.red.code)+'</b> '+(im.red>=0?'+':'')+im.red+' pts</div>':'')+
           (k?'<div class="delta" style="margin-top:8px">⭐ Jugador clave: <b>'+esc(k.name)+'</b> ('+esc(k.code)+', '+esc(k.champ)+') · '+Math.round(k.share*100)+'% del daño</div>':'')+'</div>'+
+        '<div class="card"><h2>Qué mirar ahora</h2>'+mirarCard(s)+'</div>'+
+        '<div class="card"><h2>Qué cambió en el último minuto</h2>'+cambioCard(s)+'</div>'+
+        '<div class="card wide"><h2>La historia del juego</h2>'+historiaCard(s)+'</div>'+
         '<div class="card talk"><h2>Para comentar</h2>'+talkingPoints(s,5)+'</div>'+
       '</div>';
       return;
     }
     content.innerHTML =
       '<div class="grid">'+(g.recap?recapCard(s):'')+
+        '<div class="card wide"><h2>La historia del juego</h2>'+historiaCard(s)+'</div>'+
         '<div class="card">'+
           '<div class="sc"><span class="tc b">'+esc(m.blue.code)+'</span><span class="vs">'+(m.blue.wins==null?'vs':m.blue.wins+' – '+m.red.wins)+'</span><span class="tc r">'+esc(m.red.code)+'</span></div>'+
           '<h2>Probabilidad en vivo</h2>'+
@@ -446,13 +503,16 @@
           '<div class="delta">Minuto '+mmss(g.gt)+' · el modelo se actualiza con oro, torres, dragones, almas, Barón e inhibidores.</div>'+
         '</div>'+
         '<div class="card"><h2>Por qué</h2><ul class="rz">'+reasons+'</ul></div>'+
-        '<div class="card"><h2>Momentum y giros clave</h2>'+sparkline(g.samples||[],g.swings)+'<div class="spk-note">Probabilidad de '+esc(m.blue.code)+' (arriba) frente a '+esc(m.red.code)+' (abajo) en todo el juego. Sombreado: giros clave.</div>'+swingList(g.swings)+'</div>'+
+        '<div class="card"><h2>Qué cambió en el último minuto</h2>'+cambioCard(s)+'</div>'+
+        '<div class="card"><h2>Qué mirar ahora</h2>'+mirarCard(s)+'</div>'+
+        '<div class="card"><h2>Momentum y giros clave</h2>'+sparkline(g.samples||[],g.swings)+'<div class="spk-note">Probabilidad de '+esc(m.blue.code)+' (arriba) frente a '+esc(m.red.code)+' (abajo) en todo el juego. Sombreado: giros clave. La banda clara: cuánta confianza darle en cada minuto (más ancha cuando el modelo acierta menos).</div>'+swingList(g.swings)+'</div>'+
         '<div class="card"><h2>Objetivos y eventos</h2><div class="tms">'+tms+'</div><ul class="ev">'+evs+'</ul></div>'+
         '<div class="card talk"><h2>Puntos para comentar</h2>'+talkingPoints(s)+'</div>'+
         '<div class="card wide"><h2>Mapa de la Grieta</h2>'+riftCard(s)+'</div>'+
         '<div class="card wide"><h2>Oro y objetivos</h2>'+goldChart(s)+'</div>'+
         '<div class="card"><h2>Kills en el tiempo</h2>'+killsChart(s)+'</div>'+
         '<div class="card"><h2>Rendimiento por jugador</h2>'+perfCard(s)+'</div>'+
+        '<div class="card"><h2>Niveles, visión e ítems</h2>'+jugCard(s)+'</div>'+
         '<div class="card"><h2>Duelos por línea</h2>'+lanesCard(s)+'</div>'+
         '<div class="card"><h2>Serie</h2>'+seriesCard(s)+'</div>'+
         '<div class="card"><h2>Draft y ventana de poder</h2>'+draftCard(s)+'</div>'+

@@ -152,6 +152,7 @@
       </table>
     </div>
     <p class="note"><b>Error Brier:</b> mide qué tan buenas son las probabilidades, no solo si acierta. Decir 95 % y fallar suma mucho error; decir 60 % y fallar, poco. Una moneda da 0,250: menos es mejor. Por eso, en la barra del overlay, el número de acierto cambia con el minuto del juego.</p>
+    <p class="note"><b>La banda clara del gráfico:</b> alrededor de la línea de probabilidad hay una franja que se angosta a medida que avanza el juego. Su ancho sale de este acierto medido en cada minuto: es ancha al principio, cuando el modelo acierta 62 %, y fina al final, cuando acierta más de 83 %. Es una guía de cuánta confianza darle al número en ese momento, no un intervalo estadístico.</p>
   </section>
 
   <section class="card">
@@ -161,7 +162,7 @@
         <ul class="lista">
           <li><b>Una pelea decide todo.</b> Un Barón robado, un ace en el minuto 35 o un error en la base dan vuelta un juego que el modelo daba por ganado. Lo ve recién cuando pasa.</li>
           <li><b>Los primeros minutos.</b> Con poco oro de diferencia, el número se apoya en la fuerza previa y el lado del mapa: es una estimación floja, y por eso el acierto arranca en 62 %.</li>
-          <li><b>Lo que el feed no cuenta.</b> No sabe dónde está cada jugador, quién tiene las habilidades definitivas listas ni cómo está el mapa de visión.</li>
+          <li><b>Lo que el feed no cuenta.</b> No sabe dónde está cada jugador ni quién tiene las habilidades definitivas listas. Los niveles, las wards y los ítems completos se muestran aparte cuando el feed los trae, pero no entran al cálculo.</li>
           <li><b>Composiciones tardías.</b> Un equipo que va abajo pero escala mejor puede remontar; la curva del draft lo tiene en cuenta solo en parte.</li>
         </ul>
         <p class="note">Por eso habla de probabilidad: 75 % quiere decir que, de cada 4 juegos parecidos, 1 lo termina ganando el otro.</p>

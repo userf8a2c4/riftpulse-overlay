@@ -89,7 +89,7 @@
     <div class="dz"><button id="dirSaltar"><kbd>0</kbd>Saltar la pieza</button><button id="dirRetener"><kbd>R</kbd>Retener 30 s</button></div>
     <div class="dz" id="dirPiezas"></div>
     <ul class="dlog" id="dirLog"></ul>
-    <div class="note">En OBS alcanza con <b>una sola Browser Source</b>: <b>overlay.html?view=auto</b>. Muestra siempre la barra y, en cada momento, la pieza que aporta: el impacto antes del dragón o el Barón, el daño tras una pelea, la alerta en un giro, qué necesita el que va abajo, el resumen al terminar y la serie entre juegos. Nunca dos piezas grandes a la vez. Atajos con este panel enfocado: <b>1–8</b> piden una pieza, <b>0</b> la quita, <b>R</b> la retiene y <b>H</b> oculta todo.</div>
+    <div class="note">En OBS alcanza con <b>una sola Browser Source</b>: <b>overlay.html?view=auto</b>. Muestra siempre la barra y, en cada momento, la pieza que aporta: el impacto antes del dragón o el Barón, el daño tras una pelea, la alerta en un giro, qué necesita el que va abajo, el resumen al terminar y la serie entre juegos. Nunca dos piezas grandes a la vez. Atajos con este panel enfocado: <b>1–9</b> piden una pieza, <b>0</b> la quita, <b>R</b> la retiene y <b>H</b> oculta todo.</div>
   </div>
 
   <div class="grp"><h2>Retraso frente al stream</h2>
@@ -182,8 +182,8 @@
   document.getElementById('hide').addEventListener('click', function(){ hidden=!hidden; this.textContent = hidden ? 'Mostrar overlay' : 'Ocultar overlay'; send(); });
 
   // ---------- director automático ----------
-  var PIEZAS = {objetivo: 'Impacto del objetivo', pelea: 'Daño de la pelea', oro: 'Diferencia de oro', duelos: 'Duelos por línea', serie: 'Serie', resumen: 'Resumen del juego', claves: 'Claves del momento', remontada: 'Para remontar', giro: 'Alerta de giro'};
-  var ATAJOS = ['objetivo', 'pelea', 'oro', 'duelos', 'serie', 'resumen', 'claves', 'remontada'], DIRV = null, DIRAT = 0;
+  var PIEZAS = {objetivo: 'Impacto del objetivo', pelea: 'Daño de la pelea', oro: 'Diferencia de oro', duelos: 'Duelos por línea', serie: 'Serie', resumen: 'Resumen del juego', claves: 'Claves del momento', remontada: 'Para remontar', historia: 'La historia del juego', giro: 'Alerta de giro'};
+  var ATAJOS = ['objetivo', 'pelea', 'oro', 'duelos', 'serie', 'resumen', 'claves', 'remontada', 'historia'], DIRV = null, DIRAT = 0;
   document.getElementById('dirPiezas').innerHTML = ATAJOS.map(function(p, i){ return '<button data-k="' + (i + 1) + '"><kbd>' + (i + 1) + '</kbd>' + PIEZAS[p] + '</button>'; }).join('');
   function dirSegPaint(){ document.querySelectorAll('#dirSeg button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-n') === dirNivel); }); }
   document.getElementById('dirSeg').addEventListener('click', function(e){ var b = e.target.closest('[data-n]'); if (!b) return; dirNivel = b.getAttribute('data-n'); dirSegPaint(); send({director: dirNivel}); });
@@ -192,7 +192,7 @@
     if (k === 'h') { panic.click(); return true; }
     if (k === '0' || k === 'escape') { send({dirSaltar: Date.now()}); return true; }
     if (k === 'r') { send({dirRetener: 30}); return true; }
-    if (/^[1-8]$/.test(k)) { send({dirAtajo: k}); return true; }
+    if (/^[1-9]$/.test(k)) { send({dirAtajo: k}); return true; }
     return false;
   }
   document.getElementById('dirPiezas').addEventListener('click', function(e){ var b = e.target.closest('[data-k]'); if (b) dirAtajo(b.getAttribute('data-k')); });

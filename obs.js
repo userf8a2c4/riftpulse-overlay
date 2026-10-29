@@ -251,6 +251,7 @@
     '.rp-dr .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rp-dr .pc{text-align:right;font-family:JetBrains Mono,monospace;font-size:' + (12 * S) + 'px;color:var(--muted)}' +
     '.rp-dr .br{height:' + (8 * S) + 'px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden}.rp-dr .br i{display:block;height:100%;background:var(--team-a)}.rp-dc .r .rp-dr .br i{background:var(--team-b)}' +
     '.rp-gold svg{display:block;width:' + (540 * S) + 'px;height:' + (120 * S) + 'px}.rp-gold .lg{display:flex;justify-content:space-between;font-family:JetBrains Mono,monospace;font-size:' + (12 * S) + 'px;color:var(--muted);margin-top:' + (4 * S) + 'px}' +
+    '.rp-hs{margin:0;padding:0 0 0 ' + (22 * S) + 'px;font-size:' + (17 * S) + 'px;line-height:1.5;max-width:' + (560 * S) + 'px}.rp-hs li{padding:' + (3 * S) + 'px 0}.rp-hs li::marker{color:var(--signal);font-family:JetBrains Mono,monospace;font-weight:700}' +
     '.rp-card .t .tag{margin-left:auto;color:var(--muted);letter-spacing:1px;font-family:JetBrains Mono,monospace;font-size:' + (12 * S) + 'px}';
   // tema «minimal»: superficies planas, sin brillo ni filo de color
   if (TEMA === 'minimal') css += '.rp-bar,.rp-big,.rp-keys,.rp-obj,.rp-card,.rp-ser,.rp-callout{box-shadow:none !important;backdrop-filter:none !important;background:rgba(var(--g0-rgb),.88) !important;border-color:rgba(var(--line-rgb),.08) !important}' +
@@ -524,7 +525,7 @@
   var DIR = VIEW === 'auto' && R.crearDirector ? R.crearDirector(Q.get('director') || cfg.director || 'estandar') : null;
   if (DIR && Q.get('director')) DIR.fijoURL = true;
   // atajos (control o esta misma página): 1–8 piden una pieza, 0 la quita, R la retiene 30 s, H oculta todo
-  var ATAJOS = {'1': 'objetivo', '2': 'pelea', '3': 'oro', '4': 'duelos', '5': 'serie', '6': 'resumen', '7': 'claves', '8': 'remontada'};
+  var ATAJOS = {'1': 'objetivo', '2': 'pelea', '3': 'oro', '4': 'duelos', '5': 'serie', '6': 'resumen', '7': 'claves', '8': 'remontada', '9': 'historia'};
   var stCur = '', giroVisto = '', dirSig = '';
   function tarjeta(t, cuerpo, tag) { return '<div class="rp-card"><div class="t">' + LOGO + esc(t) + (tag ? '<span class="tag">' + tag + '</span>' : '') + '</div>' + cuerpo + '</div>'; }
   function piezaHTML(p, s) {
@@ -532,7 +533,7 @@
     if (p === 'objetivo') { var im = g.impact; if (!im) return '';
       return tarjeta('Impacto · próx. ' + im.obj, '<div class="rp-ir"><span>Si lo toma <b class="b">' + esc(m.blue.code) + '</b></span><span class="big b">' + pts(im.blue) + '</span></div>' +
         '<div class="rp-ir"><span>Si lo toma <b class="r">' + esc(m.red.code) + '</b></span><span class="big r">' + pts(im.red) + '</span></div>' +
-        '<div class="rp-in">Cuánto mueve la probabilidad de ganar este juego, según el modelo de RiftPulse.</div>', 'en ' + mmss(Math.max(0, im.at - g.gt))); }
+        '<div class="rp-in">Cuánto mueve la probabilidad de ganar este juego, según el modelo de RiftPulse.</div>', im.at <= g.gt ? 'ya está' : 'en ' + mmss(im.at - g.gt)); }
     if (p === 'pelea') { var L = g.lanes, ev = (g.events || []).filter(function (e) { return e.kind === 'fight'; }).slice(-1)[0]; if (!L || !L.length) return '';
       var col = function (side) { return '<div class="' + sc(side) + '">' + L.map(function (l) { var x = l[side]; return '<div class="rp-dr"><span class="nm">' + esc(x.name) + '</span><span class="br"><i style="width:' + Math.round((x.share || 0) * 100 / 0.4) + '%"></i></span><span class="pc">' + Math.round((x.share || 0) * 100) + '%</span></div>'; }).join('') + '</div>'; };
       var fw = ev && ev.side;
@@ -552,6 +553,8 @@
     if (p === 'resumen') return g.recap && g.samples && g.samples.length ? '<div class="rp-card rp-rc">' + recapHTML(s) + '</div>' : '';
     if (p === 'claves') { var rs = g.reasons; if (!rs || !rs.length) return '';
       return '<div class="rp-keys"><div class="t">' + LOGO + 'Claves del momento</div><ul>' + rs.slice(0, 4).map(function (x) { var b = x.z >= 0; return '<li><span class="d ' + (b ? 'b' : 'r') + '"></span>' + esc(x.txt) + ' <span style="color:var(--muted);margin-left:auto;font-size:.8em">' + esc(b ? m.blue.code : m.red.code) + '</span></li>'; }).join('') + '</ul></div>'; }
+    if (p === 'historia') { var hs = R.historia ? R.historia(s) : []; if (!hs.length) return '';
+      return tarjeta('La historia del juego', '<ol class="rp-hs">' + hs.map(function (x) { return '<li>' + x.html + '</li>'; }).join('') + '</ol>', 'min ' + mmss(g.gt)); }
     if (p === 'remontada') { var c = g.comeback; if (!c || !c.paths || !c.paths[0]) return ''; var x = c.paths[0];
       return tarjeta('Para remontar', '<div class="rp-cb"><b class="' + sc(c.side) + '">' + esc(c.code) + '</b> está en ' + pct(c.p) + '. ' +
         (c.reached ? 'Necesita <b>' + esc(x.txt) + '</b> para volver al <span class="p ' + sc(c.side) + '">' + pct(x.p) + '</span>.' : 'Lo que más lo acerca: <b>' + esc(x.txt) + '</b> → <span class="p ' + sc(c.side) + '">' + pct(x.p) + '</span>.') +

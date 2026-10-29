@@ -22,7 +22,8 @@ const detalle = (t, id) => {
   const participants = [];
   for (let i = 0; i < 10; i++) { const r = i % 5, lado = i < 5 ? 0 : 1;
     participants.push({participantId: i + 1, level: Math.min(18, 1 + Math.floor(gt / 95)), kills: Math.round(k[lado] * f * [0.2, 0.2, 0.3, 0.3, 0][r]), deaths: Math.round(k[1 - lado] * f * 0.2), assists: Math.round(k[lado] * f * 0.5),
-      creepScore: Math.round(gt / 60 * [7.5, 5.5, 8, 8.5, 1][r]), totalGoldEarned: Math.round(500 + gt * [6.4, 5.2, 6.8, 7, 4][r] + (lado ? 0 : 40) * r), championDamageShare: DSH[(r + lado) % 5], killParticipation: 0.5 + r * 0.05}); }
+      creepScore: Math.round(gt / 60 * [7.5, 5.5, 8, 8.5, 1][r]), wardsPlaced: Math.round(gt / 60 * [0.4, 0.8, 0.5, 0.4, 1.6][r] * (lado ? 0.85 : 1)), wardsDestroyed: Math.round(gt / 60 * [0.1, 0.3, 0.1, 0.1, 0.4][r]),
+      items: [1055, 3006].concat(gt > 600 + r * 60 + lado * 90 ? [3031] : []).concat(gt > 1100 + r * 60 ? [3089] : []), totalGoldEarned: Math.round(500 + gt * [6.4, 5.2, 6.8, 7, 4][r] + (lado ? 0 : 40) * r), championDamageShare: DSH[(r + lado) % 5], killParticipation: 0.5 + r * 0.05}); }
   return {rfc460Timestamp: new Date(t).toISOString(), participants};
 };
 const ev = (id, st, start, a, b, games, bloque) => ({type: 'match', startTime: new Date(start).toISOString(), blockName: bloque || 'Fase Suiza', state: st, league: {name: 'Worlds', slug: 'worlds'}, match: {id, strategy: {count: games.length}, teams: [a, b], games}});
@@ -36,7 +37,7 @@ const HDR = {'access-control-allow-origin': '*', 'access-control-allow-headers':
 
 // estado: {modo: 'ok' | 'caido' | 'congelado', cong: ms}
 async function montar(ctx, o) {
-  o = o || {}; const st = {modo: 'ok', cong: 0, video: o.video || 'vod.webm'};
+  o = o || {}; const st = {modo: 'ok', cong: 0, video: o.video || 'vod.webm', detalles: o.detalles !== false};
   await ctx.route(/lolesports\.com/, r => {
     if (st.modo === 'caido') return r.fulfill({status: 500, body: 'x'});
     const u = new URL(r.request().url()); let data = {};
@@ -50,7 +51,7 @@ async function montar(ctx, o) {
       return r.fulfill({contentType: 'application/json', headers: HDR, body: JSON.stringify({gameMetadata: gs.meta, frames: s ? [frame(t, id), frame(t + 5000, id), frame(t + 9000, id)] : [frame(gs.start, id)]})});
     } else if (/\/details\//.test(u.pathname)) {
       const id = u.pathname.split('/').pop(), gs = GAMES[id], s = u.searchParams.get('startingTime');
-      if (!gs || !s) return r.fulfill({status: 204, headers: HDR, body: ''});
+      if (!gs || !s || !st.detalles) return r.fulfill({status: 204, headers: HDR, body: ''});
       let t = Date.parse(s); if (st.modo === 'congelado') t = Math.min(t, st.cong);
       return r.fulfill({contentType: 'application/json', headers: HDR, body: JSON.stringify({frames: [detalle(t, id), detalle(t + 5000, id)]})});
     }
@@ -59,6 +60,9 @@ async function montar(ctx, o) {
   await ctx.route(/ddragon/, r => {
     const u = new URL(r.request().url());
     if (u.pathname.endsWith('versions.json')) return r.fulfill({contentType: 'application/json', headers: HDR, body: '["15.1.1"]'});
+    if (u.pathname.endsWith('item.json')) return r.fulfill({contentType: 'application/json', headers: HDR, body: JSON.stringify({data: {
+      1055: {name: 'Espada de Doran', gold: {total: 450}, tags: ['Damage']}, 3006: {name: 'Grebas del berserker', gold: {total: 1100}, tags: ['Boots']},
+      3031: {name: 'Filo del infinito', gold: {total: 3450}, tags: ['Damage']}, 3089: {name: 'Sombrero mortal de Rabadon', gold: {total: 3600}, tags: ['SpellDamage']}}})});
     const f = path.join(GEN, 'iconos', path.basename(u.pathname));
     if (!fs.existsSync(f)) return r.fulfill({status: 404, headers: HDR, body: ''});
     r.fulfill({contentType: 'image/png', headers: HDR, body: fs.readFileSync(f)});
