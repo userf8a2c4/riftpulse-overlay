@@ -13,10 +13,5 @@
 | `docs/img/` | Imágenes del README y de esta wiki |
 | `wiki/` | Fuente de esta wiki |
 
-## Publicar con GitHub Pages
-GitHub no ejecuta archivos HTML: para usar el overlay hay que publicarlo.
-1. **Settings → Pages → Branch: `main` → /(root) → Save**.
-2. En ~1 minuto queda la URL: `https://userf8a2c4.github.io/riftpulse-overlay/` (la página) y `…/overlay.html` (el overlay). La página calcula sola las URLs correctas; no hay que editar nada.
-
 ## Cómo se actualiza esta wiki
 Las páginas viven en la carpeta `wiki/` del repositorio. Cada vez que cambian en `main`, la acción **Publicar wiki** (`.github/workflows/wiki.yml`) las copia aquí automáticamente. También se puede lanzar a mano desde **Actions → Publicar wiki → Run workflow**.
