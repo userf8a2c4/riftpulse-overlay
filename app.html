@@ -1186,11 +1186,12 @@ function renderHead() {
   if (!M) { $('#titulo').textContent = 'Worlds 2026'; $('#titulo').dataset.k = ''; $('#subtitulo').textContent = nextText(); st.textContent = 'SIN PARTIDO'; st.className = 'badge'; $('#reloj').textContent = '—'; return; }
   // los colores de los dos equipos en toda la app (lado azul primero); se aprende el color de logos que no están en la tabla
   if (window.RPUI) { const ta = G && G.meta ? code('blue') : M.teams[0].code, tb = G && G.meta ? code('red') : M.teams[1].code; RPUI.colores(ta, tb); M.teams.forEach(t => t.image && RPUI.colorDeLogo(t.code, https(t.image))); }
-  const kTit = M.id + '|' + M.teams.map(t => (t.result || {}).gameWins ?? 0).join('-');
+  const kTit = M.id + '|' + M.teams.map(t => (t.result || {}).gameWins ?? 0).join('-') + (sinSpoilers() ? '|s' : '');
   if ($('#titulo').dataset.k !== kTit) {
     const [A, B] = M.teams, lg = t => t.image ? `<img src="${esc(https(t.image))}" alt="">` : '';
     $('#titulo').dataset.k = kTit;
-    $('#titulo').innerHTML = `${lg(A)}<span>${esc(A.code)}</span><span class="sc">${(A.result || {}).gameWins ?? 0} – ${(B.result || {}).gameWins ?? 0}</span><span>${esc(B.code)}</span>${lg(B)}`;
+    const tapa = sinSpoilers() && EXTST.pantalla.matchId === M.id;
+    $('#titulo').innerHTML = `${lg(A)}<span>${esc(A.code)}</span><span class="sc">${tapa ? 'vs' : ((A.result || {}).gameWins ?? 0) + ' – ' + ((B.result || {}).gameWins ?? 0)}</span><span>${esc(B.code)}</span>${lg(B)}`;
   }
   const n = G ? (M.games.find(g => g.id === G.id) || {}).number : null;
   $('#subtitulo').textContent = [M.league && M.league.name, M.block, M.strategy && 'Mejor de ' + M.strategy.count, n && 'Juego ' + n, (REPLAY || PIN) && (SIGUE ? 'SINCRONIZADO CON TU VIDEO' : 'REPETICIÓN')].filter(Boolean).join(' · ');
@@ -1850,20 +1851,31 @@ function koHTML() {
 // Fases del Mundial: Play-In, Fase suiza y Eliminatorias (se abre en la que se está jugando)
 let FASE = null;
 const faseDe = e => /play/i.test(e.blockName || '') ? 'pi' : /suiz|swiss/i.test(e.blockName || '') ? 'sw' : 'ko';
+// ---------- modo sin spoilers: mirando un VOD, no se muestran resultados de ese partido ni de los posteriores ----------
+const REVEL = new Set();
+function sinSpoilers() { return typeof EXTST !== 'undefined' && EXTST.seguir && EXTST.pantalla && EXTST.pantalla.vod && store('spoilers') !== 'ver'; }
+function corteSpoiler() {  // fecha del partido que se está viendo: desde ahí en adelante, todo tapado
+  const p = EXTST.pantalla, e = p && schedule.find(x => x.match && x.match.id === p.matchId);
+  return e ? e.startTime : null;
+}
+function tapado(e) { if (!sinSpoilers() || REVEL.has(e.match.id)) return false; const c = corteSpoiler(); return !!c && e.startTime >= c && e.state !== 'unstarted'; }
 function serieHTML(e) {
-  const [a, b] = e.match.teams, wa = (a.result || {}).gameWins ?? 0, wb = (b.result || {}).gameWins ?? 0, done = e.state === 'completed', live = e.state === 'inProgress';
+  const [a, b] = e.match.teams, tap = tapado(e), wa = tap ? '•' : (a.result || {}).gameWins ?? 0, wb = tap ? '•' : (b.result || {}).gameWins ?? 0, done = e.state === 'completed' && !tap, live = e.state === 'inProgress';
+  if (tap) return `<div class="fs-m" data-act="revelar" data-arg="${esc(e.match.id)}" title="Oculto para no spoilear: tocá para ver"><span class="fs-tm">${lg0(a)}<b>${esc(a.code)}</b></span><span class="sc">• – •<small>tocá para ver</small></span><span class="fs-tm r"><b>${esc(b.code)}</b>${lg0(b)}</span></div>`;
   const lg = t => C.img && C.img[t.code] ? `<img src="${esc(C.img[t.code])}" alt="">` : '';
   const ok = a.code && b.code && a.code !== 'TBD' && b.code !== 'TBD';
   const sc = done || live ? `${wa} – ${wb}<small>${live ? '● en vivo' : 'Bo' + e.match.strategy.count}</small>` : `vs<small>${new Date(e.startTime).toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit'})}</small>`;
   return `<div class="fs-m${live ? ' live' : ''}"${ok ? ` data-act="h2h" data-arg="${esc(a.code)}|${esc(b.code)}|${esc(e.match.id)}"` : ''}>
     <span class="fs-tm${done && wa < wb ? ' lost' : ''}">${lg(a)}<b>${esc(a.code || 'Por definir')}</b></span><span class="sc">${sc}</span><span class="fs-tm r${done && wb < wa ? ' lost' : ''}"><b>${esc(b.code || 'Por definir')}</b>${lg(b)}</span></div>`;
 }
+function lg0(t) { return C.img && C.img[t.code] ? `<img src="${esc(C.img[t.code])}" alt="">` : ''; }
 function porDia(list) {
   const g = {};
   list.forEach(e => { const k = new Date(e.startTime).toLocaleDateString('es', {weekday: 'long', day: 'numeric', month: 'long'}); (g[k] = g[k] || []).push(e); });
   return Object.keys(g).map((k, i) => `<div class="fs-day">${list === null ? '' : ''}${esc(k)}</div><div class="fs-sm">${g[k].map(serieHTML).join('')}</div>`).join('');
 }
 function suizaHTML(list) {
+  if (sinSpoilers() && list.some(tapado)) return `<div class="empty">La tabla por récord queda oculta para no spoilear el VOD que estás viendo. <button class="mx-btn" data-act="spoilers" data-arg="ver">Mostrar resultados</button></div>` + '<div class="fs-day" style="margin-top:14px">Todos los partidos</div>' + porDia(list);
   const rec = {};
   list.forEach(e => { e.match.teams.forEach(t => { if (t.code && t.code !== 'TBD') rec[t.code] = rec[t.code] || {w: 0, l: 0}; }); });
   list.filter(e => e.state === 'completed').forEach(e => {
@@ -2797,6 +2809,7 @@ function renderRepList() {
   el.innerHTML = ms.map(e => {
     const [a, b] = e.match.teams, open = repOpen === e.match.id, ev = HI.events[e.match.id];
     const games = open && ev ? `<div class="repgames">${ev.games.filter(g => g.state === 'completed').map(g => `<button data-rep-g="${esc(g.id)}" data-rep-m="${esc(e.match.id)}">Juego ${g.number}</button>`).join('') || '<span class="pm">sin juegos terminados</span>'}</div>` : open ? '<div class="pm">Cargando…</div>' : '';
+    if (tapado(e)) return `<div class="repm" data-act="revelar" data-arg="${esc(e.match.id)}"><b>${esc(a.code)} •–• ${esc(b.code)}</b> <span class="pm">· oculto para no spoilear, tocá para ver · ${fmtDate(e.startTime)}</span></div>`;
     return `<div class="repm" data-rep-m="${esc(e.match.id)}"><b>${esc(a.code)} ${(a.result || {}).gameWins ?? 0}–${(b.result || {}).gameWins ?? 0} ${esc(b.code)}</b> <span class="pm">· ${esc(e.blockName || '')} · ${fmtDate(e.startTime)}</span>${games}</div>`;
   }).join('');
 }
@@ -2826,6 +2839,8 @@ document.addEventListener('click', e => {
   else if (act === 'h2h') { const [a, b, ev] = arg.split('|'); openIniDet({type: 'h2h', a, b, ev}); }
   else if (act === 'inidet-close') { INIDET = null; renderIniDetalle(); }
   else if (act === 'aviso') toggleAviso(arg);
+  else if (act === 'revelar') { REVEL.add(arg); renderCuadro(); renderHistList(); }
+  else if (act === 'spoilers') { store('spoilers', arg); renderCuadro(); renderHistList(); renderHead(); renderAvisos(); }
   else if (act === 'sharepron') { const [a, b, bo, ev] = arg.split('|'); sharePron(a, b, +bo, ev); }
 });
 
@@ -2849,6 +2864,8 @@ function renderAvisos() {
   const out = [];
   if (mxEmb && EXTST.viejo && !avisoCerrado('shell3'))
     out.push(['shell3', `Hay una versión nueva de la extensión que sincroniza sola con el video. Se instala <b>una sola vez</b>: bajá el <a href="${ZIP_URL}" target="_blank" rel="noopener">ZIP</a>, descomprimilo, quitá la RiftPulse vieja en <b>chrome://extensions</b> y tocá <b>«Cargar descomprimida»</b> con la carpeta <b>extension</b>. Después solo se refresca.`]);
+  if (sinSpoilers()) out.push(['sp', '🙈 <b>Modo sin spoilers</b>: estás viendo un VOD, así que se ocultan los resultados de este partido y de los siguientes. <button class="mx-btn" data-act="spoilers" data-arg="ver" style="margin-left:6px">Mostrar resultados</button>']);
+  else if (EXTST.pantalla && EXTST.pantalla.vod && store('spoilers') === 'ver') out.push(['sp2', 'Resultados visibles. <button class="mx-btn" data-act="spoilers" data-arg="" style="margin-left:6px">🙈 Volver a ocultarlos</button>']);
   if (EXTST.origen && EXTST.origen.origen === 'local' && !avisoCerrado('us'))
     out.push(['us', 'Para que el <b>overlay del stream</b> se actualice solo: en <b>chrome://extensions</b> → RiftPulse → <b>Detalles</b>, activá <b>«Permitir scripts de usuario»</b> y tocá ↻ en la extensión.']);
   box.innerHTML = out.map(([k, t]) => `<div class="ext-aviso"><span>${t}</span><button class="x" data-aviso="${k}" title="Cerrar" aria-label="Cerrar">✕</button></div>`).join('');
@@ -2897,7 +2914,7 @@ function mxOv() {
 // manda la orden al overlay del stream (content script) por chrome.storage; sync/nudge son de un solo uso
 function mxSend(extra) {
   const o = mxOv(); store('mandoOv', JSON.stringify(o));
-  const data = {rp_cmd: Object.assign({ext: o.ext, pos: o.pos, hidden: o.hidden, dmg: o.dmg, n: Date.now()}, extra || {})};
+  const data = {rp_cmd: Object.assign({ext: o.ext, pos: o.pos, hidden: o.hidden, dmg: o.dmg, director: o.director || 'estandar', n: Date.now()}, extra || {})};
   if (mxStorage()) chrome.storage.local.set(data);
   else if (mxEmb) window.parent.postMessage({rp: 'set', data}, '*');
 }
@@ -2981,7 +2998,7 @@ function renderMando() {
   if (im) chips.push(`<div class="mx-k">Próx. <b>${esc(im.obj)}</b> en ${mmss(Math.max(0, im.at - g.gt))}: <b class="b">${esc(m.blue.code)} ${im.blue >= 0 ? '+' : ''}${im.blue}</b> · <b class="r">${esc(m.red.code)} ${im.red >= 0 ? '+' : ''}${im.red}</b> pts</div>`);
   const fdt = s.feed && s.feed.estado !== 'ok' && s.feed.estado !== 'demo' ? `<span class="mx-badge demo">${esc(s.feed.txt)}</span>` : '';
   air.innerHTML = `<div class="mx-h"><h2>Al aire ahora</h2>${segBtn}${s.demo ? '<button class="mx-btn" data-mx="live">⏹ Volver al vivo</button>' : ''}</div><div class="mx-top">${badge}${fdt}<span>${esc(m.league || '')}</span></div>
-    <div class="mx-teams"><span class="b">${esc(m.blue.code)}</span><span class="sc">${m.blue.wins == null ? 'vs' : m.blue.wins + ' – ' + m.red.wins}</span><span class="r">${esc(m.red.code)}</span></div>
+    <div class="mx-teams"><span class="b">${esc(m.blue.code)}</span><span class="sc">${m.blue.wins == null || sinSpoilers() ? 'vs' : m.blue.wins + ' – ' + m.red.wins}</span><span class="r">${esc(m.red.code)}</span></div>
     <div class="mx-bar"><div class="pb" style="width:${Math.min(85, Math.max(pb, 15))}%">${pb}%</div><div class="pr" style="width:${Math.min(85, Math.max(pr, 15))}%">${pr}%</div></div>
     <div class="mx-row">${chips.join('')}</div>${clip ? `<div class="mx-clip">🎬 <span><b>Momento para clip</b> · min ${mmss(clip.a)}–${mmss(clip.b)}: <b class="${mxSc(clip.side)}">${esc(clip.code)} +${Math.round(Math.abs(clip.d) * 100)}</b> (${esc(clip.cause)})</span><button class="mx-btn${MX.copied === 'clip' ? ' on' : ''}" data-mx="cp" data-k="clip">${MX.copied === 'clip' ? '✓' : '📋 Texto'}</button></div>` : ''}${mxSpark(g)}`;
 
@@ -3021,7 +3038,9 @@ function renderMxOv() {
   $('#mxOv').innerHTML = `<div class="mx-h"><h2>Overlay en el stream</h2></div><div class="mx-scroll">
     <div class="mx-sub">En la barra</div><div class="mx-row" style="margin-top:0">${chip('obj', 'Próximo objetivo')}${chip('pg', 'Trayectoria')}
       <button class="mx-btn${o.dmg ? ' on' : ''}" data-mx="dmg"${dis}>Daño tras cada pelea</button></div>
-    <div class="mx-sub">Paneles debajo de la barra</div><div class="mx-row" style="margin-top:0">${chip('oro', 'Gráfico de oro')}${chip('imp', 'Impacto y remontada')}${chip('duelos', 'Duelos por línea')}${chip('dano', 'Daño de los 10')}${chip('mini', 'Barra mínima (solo %)')}</div>
+    <div class="mx-sub">Paneles automáticos (aparecen solos cuando aportan)</div><div class="mx-row" style="margin-top:0">${['minimo', 'estandar', 'show'].map(k => `<button class="mx-btn${(o.director || 'estandar') === k ? ' on' : ''}" data-mx="dir" data-k="${k}"${dis}>${{minimo: 'Mínimo', estandar: 'Estándar', show: 'Show'}[k]}</button>`).join('')}<button class="mx-btn" data-mx="dirSaltar"${dis} title="Quita el panel automático que se está mostrando">⏭ Saltar panel</button></div>
+    <div class="mx-note" style="margin-top:4px">Mínimo: la barra y los giros. Estándar: además el objetivo que viene, el daño tras cada pelea y el resumen. Show: además el oro y los duelos de vez en cuando.</div>
+    <div class="mx-sub">Paneles fijos debajo de la barra</div><div class="mx-row" style="margin-top:0">${chip('oro', 'Gráfico de oro')}${chip('imp', 'Impacto y remontada')}${chip('duelos', 'Duelos por línea')}${chip('dano', 'Daño de los 10')}${chip('mini', 'Barra mínima (solo %)')}</div>
     <div class="mx-sub">Posición y visibilidad</div><div class="mx-row" style="margin-top:0">
       <button class="mx-btn${o.pos === 'top' ? ' on' : ''}" data-mx="pos" data-k="top"${dis}>Arriba</button><button class="mx-btn${o.pos === 'bottom' ? ' on' : ''}" data-mx="pos" data-k="bottom"${dis}>Abajo</button>
       <button class="mx-btn" data-mx="hide"${dis}>${o.hidden ? '👁 Mostrar overlay' : '🙈 Ocultar overlay'}</button></div>
@@ -3054,6 +3073,8 @@ $('#vistaMando').addEventListener('click', e => {
   if (a === 'png') { const u = RiftEngine.recapPNG(MX.s); if (u) { const l = document.createElement('a'); l.href = u; l.download = 'riftpulse-resumen.png'; l.click(); } return; }
   if (a === 'ext') { o.ext = o.ext.includes(k) ? o.ext.filter(x => x !== k) : o.ext.concat([k]); mxSend(); }
   else if (a === 'dmg') { o.dmg = !o.dmg; mxSend(); }
+  else if (a === 'dir') { o.director = k; mxSend(); }
+  else if (a === 'dirSaltar') { mxSend({dirSaltar: Date.now()}); MX.msg = 'Panel automático quitado.'; }
   else if (a === 'pos') { o.pos = k; mxSend(); }
   else if (a === 'hide') { o.hidden = !o.hidden; mxSend(); }
   else if (a === 'nudge') { mxSend({nudge: +k}); MX.msg = `Overlay movido ${+k > 0 ? '+' : ''}${k} s.`; }

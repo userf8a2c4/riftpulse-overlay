@@ -57,7 +57,12 @@ async function montar(ctx, o) {
   });
   await ctx.route(/www\.twitch\.tv/, r => {
     const u = new URL(r.request().url());
-    if (u.pathname.endsWith('.webm')) return r.fulfill({contentType: 'video/webm', body: fs.readFileSync(path.join(GEN, st.video))});
+    if (u.pathname.endsWith('.webm')) {  // con rangos (206), como un servidor de video real: así se puede saltar dentro del video
+      const buf = fs.readFileSync(path.join(GEN, st.video)), rg = /bytes=(\d+)-(\d*)/.exec(r.request().headers()['range'] || '');
+      if (!rg) return r.fulfill({status: 200, contentType: 'video/webm', headers: {'accept-ranges': 'bytes'}, body: buf});
+      const a = +rg[1], z = rg[2] ? Math.min(+rg[2], buf.length - 1) : buf.length - 1;
+      return r.fulfill({status: 206, contentType: 'video/webm', headers: {'accept-ranges': 'bytes', 'content-range': 'bytes ' + a + '-' + z + '/' + buf.length}, body: buf.slice(a, z + 1)});
+    }
     r.fulfill({contentType: 'text/html', body: '<!doctype html><meta charset=utf-8><body style="margin:0;background:#000"><video id="v" src="/video.webm" muted style="position:absolute;left:100px;top:60px;width:1280px;height:720px"></video></body>'});
   });
   return st;
