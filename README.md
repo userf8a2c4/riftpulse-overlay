@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="logo.png" width="104" alt="RiftPulse">
+<img src="docs/img/banner.jpg" alt="RiftPulse: pronóstico en vivo de LoL Esports sobre tu transmisión">
 
 # RiftPulse
 
@@ -26,6 +26,13 @@ RiftPulse estima, **en tiempo real**, la probabilidad de victoria de cada equipo
 
 Un **motor**, varias caras: el overlay para la transmisión, una **mesa de análisis** para el equipo de comentaristas y un **panel de control** para producción — todo del mismo modelo.
 
+## Así se ve
+
+<p align="center">
+<img src="docs/img/overlay-en-transmision.jpg" alt="Overlay de RiftPulse sobre una transmisión: barra de probabilidad, claves del momento y alerta de giro">
+<br><sub>La barra en vivo abajo, las <b>claves del momento</b> arriba a la izquierda y una <b>alerta</b> cuando la probabilidad da un giro fuerte. Fondo transparente en OBS.</sub>
+</p>
+
 ## Lo que incluye
 
 <table>
@@ -35,11 +42,15 @@ Un **motor**, varias caras: el overlay para la transmisión, una **mesa de anál
 ### 🎬 Overlay para OBS
 Un lower-third limpio con la **probabilidad en vivo**, el marcador, los objetivos y la precisión del modelo. Varias piezas conmutables con `?view=` (barra, tarjeta grande, alerta, objetivos, claves).
 
+<img src="docs/img/pagina.png" alt="Página para streamers con vista previa y botón para copiar la URL del overlay">
+
 </td>
 <td width="50%" valign="top">
 
 ### 🎛 Mesa de análisis
 Segunda pantalla para casters: probabilidad, **el porqué**, la línea de momentum y **frases listas para comentar** generadas del modelo.
+
+<img src="docs/img/mesa-de-analisis.png" alt="Mesa de análisis: probabilidad, por qué, momentum, objetivos y puntos para comentar">
 
 </td>
 </tr>
@@ -48,6 +59,8 @@ Segunda pantalla para casters: probabilidad, **el porqué**, la línea de moment
 
 ### 🎚 Control de producción
 Enciende/apaga módulos, cambia la posición y **dispara alertas en vivo**. Se añade en OBS como *Dock de navegador* y habla con el overlay sin recargar.
+
+<p align="center"><img src="docs/img/control.png" width="300" alt="Panel de control de producción"></p>
 
 </td>
 <td width="50%" valign="top">
@@ -58,6 +71,8 @@ Cada gráfico lleva el acierto real del modelo. Nada inflado: es el resultado de
 </td>
 </tr>
 </table>
+
+<sub>Las capturas usan un partido de ejemplo con datos simulados; en vivo, los datos salen del feed de LoL Esports.</sub>
 
 ## Instalar en OBS
 
@@ -136,6 +151,7 @@ Sin parámetros, ya funciona.
 | `index.html` | Página "para streamers" (copiar URL, descargar escena, pack) |
 | `engine.js` | Motor: datos + modelo (misma fuente que la app) |
 | `logo.svg` | Marca |
+| `docs/img/` | Imágenes de este README |
 | `riftpulse.obs-scene.json` | Escena de OBS de respaldo (OBS 28+) |
 | `INSTRUCCIONES-NICK.md` | Guía rápida de instalación (ES + EN) |
 
