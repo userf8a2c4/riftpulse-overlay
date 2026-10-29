@@ -54,7 +54,7 @@ module.exports = async function () {
   const hay = await e.evaluate(() => { const h = document.getElementById('rp-overlay-host'); return !!(h && h.shadowRoot.querySelector('.bv')); });
   ok = chequear('extensión: la primera vez pregunta «¿Qué querés ver?»', hay) && ok;
   await e.evaluate(() => document.getElementById('rp-overlay-host').shadowRoot.querySelector('.bv [data-bv="estandar"]').click()); await e.waitForTimeout(400);
-  const tras = await e.evaluate(() => ({ext: localStorage.getItem('rp_ext6'), dir: localStorage.getItem('rp_dir'), bv: !!document.getElementById('rp-overlay-host').shadowRoot.querySelector('.bv')}));
+  const tras = await e.evaluate(() => ({ext: localStorage.getItem('rp_ext7'), dir: localStorage.getItem('rp_dir'), bv: !!document.getElementById('rp-overlay-host').shadowRoot.querySelector('.bv')}));
   ok = chequear('extensión: «La barra y la historia» deja el director estándar y se cierra', tras.ext === '["obj"]' && tras.dir === 'estandar' && !tras.bv, JSON.stringify(tras)) && ok;
   await e.reload(); await e.addScriptTag({content: fs.readFileSync(path.join(RAIZ, 'engine.js'), 'utf8')}); await e.addScriptTag({content: fs.readFileSync(path.join(RAIZ, 'ext-overlay.js'), 'utf8')}); await e.waitForTimeout(1500);
   ok = chequear('extensión: no vuelve a preguntar', await e.evaluate(() => !document.getElementById('rp-overlay-host').shadowRoot.querySelector('.bv'))) && ok;

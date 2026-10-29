@@ -8,8 +8,8 @@ const RAIZ = path.join(__dirname, '..'), VIDEO = process.argv[2];
     const u = new URL(r.request().url());
     if (u.pathname.endsWith('.webm')) {
       const buf = fs.readFileSync(VIDEO), rg = /bytes=(\d+)-(\d*)/.exec(r.request().headers()['range'] || '');
-      if (!rg) return r.fulfill({status: 200, contentType: 'video/webm', headers: {'accept-ranges': 'bytes'}, body: buf});
-      const a = +rg[1], z = rg[2] ? Math.min(+rg[2], buf.length - 1) : buf.length - 1;
+      // de a pedazos de 4 MB (un video largo entero no pasa por el protocolo del navegador)
+      const a = rg ? +rg[1] : 0, z = Math.min(rg && rg[2] ? +rg[2] : buf.length - 1, a + 4e6 - 1, buf.length - 1);
       return r.fulfill({status: 206, contentType: 'video/webm', headers: {'accept-ranges': 'bytes', 'content-range': 'bytes ' + a + '-' + z + '/' + buf.length}, body: buf.slice(a, z + 1)});
     }
     r.fulfill({contentType: 'text/html', body: '<!doctype html><meta charset=utf-8><body style="margin:0;background:#000"><video id="v" src="/video.webm" muted style="position:absolute;left:100px;top:60px;width:1280px;height:720px"></video></body>'});

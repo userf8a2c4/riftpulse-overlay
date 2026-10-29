@@ -10,18 +10,21 @@ module.exports = async function () {
   await p.evaluate(() => { const v = document.getElementById('v'); return new Promise(r => { v.addEventListener('loadeddata', r, {once: true}); v.load(); }); });
   await p.evaluate(() => { window.RP_DEBUG = true; document.getElementById('v').play(); });
   for (const f of ['engine.js', 'ext-overlay.js']) await p.addScriptTag({content: fs.readFileSync(path.join(RAIZ, f), 'utf8')});
-  const est = () => p.evaluate(() => { const sh = document.getElementById('rp-overlay-host').shadowRoot; return {toast: sh.getElementById('toast').classList.contains('show') ? sh.getElementById('toast').textContent : '', chico: sh.getElementById('w').classList.contains('chico'), body: sh.getElementById('body').textContent, ct: document.getElementById('v').currentTime}; });
-  let toast = '', chicoEn = null, vuelveEn = null;
+  const est = () => p.evaluate(() => { const sh = document.getElementById('rp-overlay-host').shadowRoot, sh2 = () => document.getElementById('rp-overlay-paneles').shadowRoot; return {toast: sh.getElementById('toast').classList.contains('show') ? sh.getElementById('toast').textContent : '', oculto: sh.getElementById('w').classList.contains('oculto'), cards: sh2().getElementById('cardsx').innerText.trim(), body: sh.getElementById('body').textContent, ct: document.getElementById('v').currentTime}; });
+  let toast = '', ocultoEn = null, vuelveEn = null, visibleAntes = false, panelesOculto = false;
   for (let i = 0; i < 60; i++) {
     await p.waitForTimeout(1000); const e = await est();
     if (e.toast && !toast) toast = e.toast;
-    if (e.chico && chicoEn == null) chicoEn = e.ct;
-    if (chicoEn != null && !e.chico && vuelveEn == null && e.ct > 44) vuelveEn = e.ct;
+    if (!e.oculto && e.ct < 20) visibleAntes = true;
+    if (e.oculto && e.ct > 19 && ocultoEn == null) ocultoEn = e.ct;
+    if (e.oculto && e.cards) panelesOculto = true;
+    if (ocultoEn != null && !e.oculto && vuelveEn == null && e.ct > 44) vuelveEn = e.ct;
     if (vuelveEn != null) break;
   }
   ok = chequear('aviso «Sincronizado» con el partido, el juego y el minuto', /Sincronizado · IG vs LYON · juego 1 · 4:2\d/.test(toast), toast) && ok;
-  ok = chequear('sin marcador más de 12 s (desk): la barra se contrae', chicoEn != null && chicoEn >= 31 && chicoEn <= 37, chicoEn != null ? 'a los ' + chicoEn.toFixed(0) + ' s del video' : 'nunca') && ok;
-  ok = chequear('vuelve el juego: la barra se expande en menos de 4 s', vuelveEn != null && vuelveEn <= 49, vuelveEn != null ? 'a los ' + vuelveEn.toFixed(0) + ' s (el marcador vuelve a los 45)' : 'nunca') && ok;
+  ok = chequear('con el juego en pantalla, el overlay se ve', visibleAntes) && ok;
+  ok = chequear('sin el HUD (desk, repetición): el overlay se oculta entero en menos de 7 s', ocultoEn != null && ocultoEn <= 27 && !panelesOculto, ocultoEn != null ? 'a los ' + ocultoEn.toFixed(0) + ' s (el HUD se va a los 20)' + (panelesOculto ? ', pero quedaron paneles' : '') : 'nunca') && ok;
+  ok = chequear('vuelve el juego: el overlay reaparece en menos de 4 s', vuelveEn != null && vuelveEn <= 49, vuelveEn != null ? 'a los ' + vuelveEn.toFixed(0) + ' s (el HUD vuelve a los 45)' : 'nunca') && ok;
   // línea de tiempo: −10 s salta el video
   await p.hover('#w'); await p.waitForTimeout(1800);
   const antes = (await est()).ct, hay = await p.evaluate(() => !!document.getElementById('rp-overlay-host').shadowRoot.querySelector('[data-salto="-10"]'));
@@ -36,19 +39,20 @@ module.exports = async function () {
   await q.evaluate(() => { const v = document.getElementById('v'); return new Promise(r => { v.addEventListener('loadeddata', r, {once: true}); v.load(); }); });
   await q.evaluate(() => { window.RP_DEBUG = true; document.getElementById('v').play(); });
   for (const f of ['engine.js', 'ext-overlay.js']) await q.addScriptTag({content: fs.readFileSync(path.join(RAIZ, f), 'utf8')});
-  const eq = () => q.evaluate(() => { const sh = document.getElementById('rp-overlay-host').shadowRoot, c = sh.getElementById('cards'); return {chico: sh.getElementById('w').classList.contains('chico'), body: sh.getElementById('body').textContent, cards: c ? c.textContent.trim() : '', ct: document.getElementById('v').currentTime}; });
-  let sinc = false, chicoLimpio = null, suelta = null;
+  const eq = () => q.evaluate(() => { const sh = document.getElementById('rp-overlay-host').shadowRoot, c = document.getElementById('rp-overlay-paneles').shadowRoot.getElementById('cardsx'), AS = window.__rpAS || {};
+    return {oculto: sh.getElementById('w').classList.contains('oculto'), body: sh.getElementById('body').textContent, cards: c ? c.textContent.trim() : '', id: AS.id ? AS.id.codes.join('-') : '', ct: document.getElementById('v').currentTime}; });
+  let sinc = false, limpio = null, suelta = null;
   for (let i = 0; i < 58; i++) {
     await q.waitForTimeout(1000); const e = await eq();
-    if (/IG/.test(e.body) && e.ct < 15) sinc = true;
-    if (e.chico && chicoLimpio == null) chicoLimpio = !e.cards;
-    if (e.ct > 15 && !e.chico && !/IG|LYON/.test(e.body) && suelta == null) suelta = e.ct;
+    if (/IG/.test(e.body) && !e.oculto && e.ct < 15) sinc = true;
+    if (e.ct > 15 && e.oculto && limpio == null) limpio = !e.cards;
+    if (e.ct > 15 && !e.id && suelta == null) suelta = e.ct;
     if (suelta != null && e.ct > suelta + 3) break;
   }
   const fin = await eq();
   ok = chequear('clip en la previa: se sincroniza con el partido del clip', sinc) && ok;
-  ok = chequear('al volver el desk, la pastilla no deja paneles del clip', chicoLimpio === true, chicoLimpio == null ? 'no se contrajo' : chicoLimpio ? 'sin paneles' : 'quedaron paneles del clip') && ok;
-  ok = chequear('sin reloj ~25 s, suelta el partido del clip y vuelve al vivo', suelta != null && suelta <= 46 && !/IG|LYON/.test(fin.body + fin.cards), suelta != null ? 'a los ' + suelta.toFixed(0) + ' s · ' + fin.body.slice(0, 50) : fin.body.slice(0, 60)) && ok;
+  ok = chequear('al volver el desk, no queda nada del clip a la vista', limpio === true && fin.oculto && !fin.cards, limpio == null ? 'no se ocultó' : limpio ? 'oculto, sin paneles' : 'quedaron paneles del clip') && ok;
+  ok = chequear('sin reloj ~25 s, suelta el partido del clip', suelta != null && suelta <= 46, suelta != null ? 'a los ' + suelta.toFixed(0) + ' s' : 'sigue con ' + fin.id) && ok;
   await c1.close();
   // modo sin spoilers en la app (mirando el VOD de IG vs LYON)
   const c2 = await b.newContext({viewport: {width: 1200, height: 900}}); await montar(c2);

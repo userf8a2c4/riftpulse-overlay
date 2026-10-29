@@ -32,7 +32,7 @@ jobs:
       - name: Bajar el tramo del VOD
         run: |
           yt-dlp --playlist-items 1 --download-sections "*${{ inputs.desde }}-${{ inputs.hasta }}" -f "best[height<=720]/best" -o vod.mp4 "${{ inputs.url }}"
-          ffmpeg -loglevel error -i vod.mp4 -an -vf scale=1280:720 -c:v libvpx -b:v 3M -deadline realtime -cpu-used 8 pruebas/real.webm
+          ffmpeg -loglevel error -i vod.mp4 -an -vf scale=1280:720 -c:v libvpx -b:v 1M -deadline realtime -cpu-used 8 pruebas/real.webm
           mkdir -p hud && ffmpeg -loglevel error -i vod.mp4 -vf "fps=1/15,crop=iw*0.5:ih*0.16:iw*0.25:0,scale=560:-1" -q:v 6 hud/h%02d.jpg
           ffmpeg -loglevel error -i vod.mp4 -vf "fps=1/30,scale=320:-1" -q:v 8 hud/f%02d.jpg
       - run: npm i --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
