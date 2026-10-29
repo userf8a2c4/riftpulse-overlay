@@ -2,7 +2,9 @@
    Reutiliza EL MISMO modelo logístico (pesos MODELO) y el feed oficial de LoL Esports
    que la app. v1: probabilidad en vivo desde el feed (oro, kills, torres, dragones,
    almas, barón, inhibidores). El previo de Elo y la curva de draft quedan en 0
-   (no se cargan aquí para mantener el motor ligero y sin DDragon). */
+   (no se cargan aquí para mantener el motor ligero y sin DDragon).
+   Extras para casters: giros clave, ruta de remontada, serie en vivo, draft (descriptivo),
+   cara a cara, duelos por línea, jugador clave y resumen post-juego. */
 (function (root) {
   'use strict';
 
@@ -182,6 +184,7 @@
     var d = await api('getEventDetails', {id: id});
     var e = d.event;
     M = {id: id, league: e.league, strategy: e.match.strategy, teams: e.match.teams, games: e.match.games};
+    if (M.teams.length === 2) loadH2H(M.teams[0].code, M.teams[1].code).catch(function () {});
     return M.games.find(function (x) { return x.state === 'inProgress'; });
   }
   var NEXTM = null;  // próximo partido (cuando no hay nada en vivo)
@@ -193,6 +196,7 @@
   async function startGame(id) {
     var gen = ++GEN;
     G = newGame(id);
+    if (M) G.score0 = [(sideTeam('blue').result || {}).gameWins || 0, (sideTeam('red').result || {}).gameWins || 0];
     var w0;
     try { w0 = await feed('window', id); } catch (e) { w0 = null; }
     if (gen !== GEN) return;
@@ -211,16 +215,22 @@
     if (G !== g0 || G.loading) return;
     var f = w && lastBefore(w.frames, t);
     if (f) processFrame(f);
-    try { var dd = await feed('details', G.id, t); if (G === g0) { var df = dd && lastBefore(dd.frames, t); if (df) updatePlayers(df); } } catch (e) {}
+    try { var dd = await feed('details', G.id, t); if (G === g0) { var df = dd && lastBefore(dd.frames, t); if (df) { updatePlayers(df); emit(); } } } catch (e) {}
   }
   function shortName(s) { s = String(s || ''); var i = s.indexOf(' '); return i > 0 ? s.slice(i + 1) : s; }
   function updatePlayers(df) {
     if (!G || !G.meta || !df || !df.participants) return;
     function sideP(key) {
       var md = (G.meta[key] || {}).participantMetadata || [];
-      return md.map(function (p) { var st = df.participants.find(function (x) { return x.participantId === p.participantId; }); return {name: shortName(p.summonerName), role: p.role, share: st ? (st.championDamageShare || 0) : 0}; }).sort(function (a, b) { return b.share - a.share; });
+      return md.map(function (p) {
+        var st = df.participants.find(function (x) { return x.participantId === p.participantId; }) || {};
+        return {name: shortName(p.summonerName), role: p.role, champ: champName(p.championId), share: st.championDamageShare || 0, kp: st.killParticipation || 0,
+          k: st.kills || 0, d: st.deaths || 0, a: st.assists || 0, cs: st.creepScore || 0, gold: st.totalGoldEarned || 0, lvl: st.level || 1};
+      });
     }
-    G.players = {blue: sideP('blueTeamMetadata'), red: sideP('redTeamMetadata')};
+    G.roster = {blue: sideP('blueTeamMetadata'), red: sideP('redTeamMetadata')};
+    var byShare = function (a, b) { return b.share - a.share; };
+    G.players = {blue: G.roster.blue.slice().sort(byShare), red: G.roster.red.slice().sort(byShare)};
   }
 
   // ---------- suscripción / snapshot ----------
@@ -244,13 +254,184 @@
     }
     return {obj: pick.name, at: pick.at, blue: Math.round((sim('blue') - base) * 100), red: Math.round((base - sim('red')) * 100)};
   }
+
+  // ---------- extras para casters y streamers ----------
+  // Estadísticas pro por campeón (~2,200 juegos 2025–26, misma tabla que la app). Solo descriptivo: no entra al modelo.
+  var CHAMP = {"RekSai":{"wr":0.5823,"res":0.0359,"scale":-0.1604,"g":67,"pres":0.0149},"Qiyana":{"wr":0.4899,"res":-0.0094,"scale":0.0293,"g":137,"pres":0.0305},"Ryze":{"wr":0.5256,"res":0.0302,"scale":0.0257,"g":614,"pres":0.1366},"Corki":{"wr":0.4707,"res":-0.0141,"scale":0.026,"g":398,"pres":0.0886},"Neeko":{"wr":0.5117,"res":0.0155,"scale":-0.0383,"g":287,"pres":0.0639},"Ambessa":{"wr":0.4786,"res":-0.0205,"scale":0.0897,"g":479,"pres":0.1066},"Trundle":{"wr":0.5442,"res":0.0227,"scale":0.0488,"g":203,"pres":0.0452},"Taliyah":{"wr":0.4898,"res":0.0018,"scale":-0.045,"g":282,"pres":0.0628},"Sivir":{"wr":0.5751,"res":0.0521,"scale":0.1019,"g":261,"pres":0.0581},"Alistar":{"wr":0.5275,"res":0.0159,"scale":-0.1359,"g":333,"pres":0.0741},"Sion":{"wr":0.4932,"res":-0.0094,"scale":0.0316,"g":353,"pres":0.0785},"MonkeyKing":{"wr":0.4597,"res":-0.0443,"scale":-0.0668,"g":360,"pres":0.0801},"Orianna":{"wr":0.5341,"res":0.0348,"scale":-0.0403,"g":413,"pres":0.0919},"Caitlyn":{"wr":0.5153,"res":0.0018,"scale":-0.0705,"g":283,"pres":0.063},"Karma":{"wr":0.5015,"res":-0.0034,"scale":-0.0317,"g":329,"pres":0.0732},"KSante":{"wr":0.4521,"res":-0.0378,"scale":0.1444,"g":479,"pres":0.1066},"JarvanIV":{"wr":0.5201,"res":0.0171,"scale":0.0565,"g":584,"pres":0.13},"Akali":{"wr":0.5492,"res":0.0449,"scale":0.0059,"g":232,"pres":0.0516},"MissFortune":{"wr":0.4695,"res":0.0012,"scale":0.0195,"g":152,"pres":0.0338},"Rakan":{"wr":0.5804,"res":0.0598,"scale":0.1214,"g":274,"pres":0.061},"Galio":{"wr":0.4856,"res":-0.0224,"scale":0.046,"g":231,"pres":0.0514},"XinZhao":{"wr":0.4648,"res":-0.0393,"scale":-0.0763,"g":528,"pres":0.1175},"Annie":{"wr":0.5263,"res":0.0094,"scale":0.0119,"g":254,"pres":0.0565},"Yunara":{"wr":0.4793,"res":-0.0291,"scale":-0.0387,"g":470,"pres":0.1046},"Renata":{"wr":0.4887,"res":-0.0311,"scale":0.1102,"g":121,"pres":0.0269},"Rumble":{"wr":0.522,"res":0.0336,"scale":0.0193,"g":555,"pres":0.1235},"Vi":{"wr":0.5346,"res":0.0295,"scale":-0.0308,"g":465,"pres":0.1035},"Hwei":{"wr":0.4314,"res":-0.0632,"scale":-0.2344,"g":39,"pres":0.0087},"Smolder":{"wr":0.3333,"res":-0.1251,"scale":-0.1545,"g":15,"pres":0.0033},"Leona":{"wr":0.5079,"res":0.0184,"scale":-0.0484,"g":179,"pres":0.0398},"Varus":{"wr":0.5225,"res":0.0192,"scale":-0.0069,"g":344,"pres":0.0765},"Pantheon":{"wr":0.5116,"res":0.0062,"scale":0.1159,"g":463,"pres":0.103},"Sylas":{"wr":0.4805,"res":-0.0299,"scale":0.0169,"g":142,"pres":0.0316},"Ziggs":{"wr":0.4383,"res":-0.0579,"scale":-0.1133,"g":150,"pres":0.0334},"Nautilus":{"wr":0.4261,"res":-0.0405,"scale":0.0041,"g":387,"pres":0.0861},"Ornn":{"wr":0.5763,"res":0.0603,"scale":0.071,"g":106,"pres":0.0236},"Nocturne":{"wr":0.4934,"res":0.0102,"scale":0.0474,"g":292,"pres":0.065},"Leblanc":{"wr":0.5269,"res":0.0137,"scale":-0.0173,"g":81,"pres":0.018},"Ashe":{"wr":0.6074,"res":0.0818,"scale":-0.0077,"g":314,"pres":0.0699},"Lulu":{"wr":0.4706,"res":-0.0298,"scale":-0.0967,"g":379,"pres":0.0843},"Renekton":{"wr":0.455,"res":-0.0395,"scale":0.021,"g":366,"pres":0.0814},"Aurora":{"wr":0.4392,"res":-0.0509,"scale":0.1509,"g":325,"pres":0.0723},"Kaisa":{"wr":0.4898,"res":-0.0108,"scale":0.0273,"g":184,"pres":0.0409},"Rell":{"wr":0.4304,"res":-0.0311,"scale":0.0868,"g":225,"pres":0.0501},"Ezreal":{"wr":0.5098,"res":0.0132,"scale":-0.0188,"g":549,"pres":0.1222},"Braum":{"wr":0.5213,"res":0.002,"scale":-0.0246,"g":82,"pres":0.0182},"Elise":{"wr":0.4857,"res":0.0341,"scale":0.0455,"g":23,"pres":0.0051},"Mordekaiser":{"wr":0.4167,"res":-0.0515,"scale":-0.1871,"g":12,"pres":0.0027},"Xayah":{"wr":0.6259,"res":0.1064,"scale":0.1444,"g":135,"pres":0.03},"Bard":{"wr":0.5246,"res":0.0124,"scale":0.0093,"g":436,"pres":0.097},"Azir":{"wr":0.4246,"res":-0.0861,"scale":0.0595,"g":313,"pres":0.0696},"Aatrox":{"wr":0.4688,"res":-0.0387,"scale":0.0479,"g":148,"pres":0.0329},"Lucian":{"wr":0.4417,"res":-0.0476,"scale":-0.032,"g":348,"pres":0.0774},"Swain":{"wr":0.5,"res":0.0026,"scale":0.0819,"g":12,"pres":0.0027},"Viktor":{"wr":0.5324,"res":0.0342,"scale":0.0749,"g":266,"pres":0.0592},"Jax":{"wr":0.4861,"res":0.0011,"scale":-0.0364,"g":132,"pres":0.0294},"Draven":{"wr":0.5,"res":0.0162,"scale":-0.1455,"g":16,"pres":0.0036},"Cassiopeia":{"wr":0.5634,"res":0.0538,"scale":-0.0698,"g":256,"pres":0.057},"Poppy":{"wr":0.5694,"res":0.0682,"scale":0.0393,"g":132,"pres":0.0294},"Naafiri":{"wr":0.5016,"res":0.0029,"scale":-0.0903,"g":293,"pres":0.0652},"Yorick":{"wr":0.5172,"res":0.0334,"scale":0.0221,"g":162,"pres":0.036},"Nami":{"wr":0.4745,"res":-0.0178,"scale":-0.0215,"g":243,"pres":0.0541},"Kled":{"wr":0.5814,"res":0.0471,"scale":0.0706,"g":31,"pres":0.0069},"Maokai":{"wr":0.4944,"res":0.0091,"scale":-0.1441,"g":77,"pres":0.0171},"Jhin":{"wr":0.4165,"res":-0.072,"scale":0.0558,"g":377,"pres":0.0839},"Anivia":{"wr":0.416,"res":-0.0776,"scale":-0.0864,"g":226,"pres":0.0503},"Senna":{"wr":0.5167,"res":0.031,"scale":0.0613,"g":48,"pres":0.0107},"Zeri":{"wr":0.4516,"res":-0.0514,"scale":-0.1016,"g":50,"pres":0.0111},"Vayne":{"wr":0.5347,"res":0.0205,"scale":-0.0476,"g":89,"pres":0.0198},"Sejuani":{"wr":0.4605,"res":-0.0258,"scale":-0.0051,"g":64,"pres":0.0142},"DrMundo":{"wr":0.4918,"res":0.0262,"scale":0.1961,"g":110,"pres":0.0245},"Jayce":{"wr":0.4354,"res":-0.0575,"scale":-0.1057,"g":367,"pres":0.0817},"Ahri":{"wr":0.5362,"res":0.0267,"scale":-0.1684,"g":292,"pres":0.065},"Yone":{"wr":0.4773,"res":0.0123,"scale":0.0465,"g":120,"pres":0.0267},"Viego":{"wr":0.3913,"res":-0.0494,"scale":0.0118,"g":11,"pres":0.0024},"Zoe":{"wr":0.5345,"res":0.0314,"scale":0.1277,"g":46,"pres":0.0102},"Skarner":{"wr":0.4897,"res":-0.0036,"scale":-0.138,"g":182,"pres":0.0405},"Ivern":{"wr":0.5882,"res":0.0554,"scale":0.1154,"g":5,"pres":0.0011},"Thresh":{"wr":0.4941,"res":0.0101,"scale":-0.0077,"g":73,"pres":0.0162},"Syndra":{"wr":0.4799,"res":-0.0103,"scale":-0.0718,"g":261,"pres":0.0581},"Gnar":{"wr":0.5482,"res":0.0261,"scale":-0.0464,"g":444,"pres":0.0988},"Kalista":{"wr":0.4836,"res":-0.0326,"scale":0.1657,"g":110,"pres":0.0245},"Camille":{"wr":0.5385,"res":0.0081,"scale":-0.1279,"g":157,"pres":0.0349},"Mel":{"wr":0.4091,"res":-0.0977,"scale":-0.0638,"g":98,"pres":0.0218},"Gragas":{"wr":0.4762,"res":-0.0069,"scale":-0.1911,"g":30,"pres":0.0067},"TahmKench":{"wr":0.4211,"res":-0.0468,"scale":-0.1,"g":7,"pres":0.0016},"Malphite":{"wr":0.4769,"res":-0.0196,"scale":-0.0273,"g":53,"pres":0.0118},"Aphelios":{"wr":0.458,"res":-0.0346,"scale":-0.0319,"g":119,"pres":0.0265},"Kennen":{"wr":0.5231,"res":0.022,"scale":-0.0063,"g":53,"pres":0.0118},"Zaahen":{"wr":0.5091,"res":0.0183,"scale":0.0963,"g":153,"pres":0.034},"LeeSin":{"wr":0.5321,"res":0.0421,"scale":-0.0149,"g":300,"pres":0.0668},"Gwen":{"wr":0.5079,"res":-0.0015,"scale":0.1058,"g":114,"pres":0.0254},"Ekko":{"wr":0.4118,"res":-0.0477,"scale":-0.1364,"g":5,"pres":0.0011},"Blitzcrank":{"wr":0.5333,"res":0.0278,"scale":0.0417,"g":18,"pres":0.004},"Jinx":{"wr":0.5217,"res":0.0295,"scale":-0.0833,"g":34,"pres":0.0076},"Shen":{"wr":0.5714,"res":0.07,"scale":-0.0441,"g":184,"pres":0.0409},"Olaf":{"wr":0.5217,"res":0.0217,"scale":-0.1111,"g":172,"pres":0.0383},"Volibear":{"wr":0.6061,"res":0.071,"scale":0.2152,"g":21,"pres":0.0047},"AurelionSol":{"wr":0.5,"res":0.0204,"scale":0.1833,"g":6,"pres":0.0013},"TwistedFate":{"wr":0.5584,"res":0.0206,"scale":0.1096,"g":142,"pres":0.0316},"Udyr":{"wr":0.3889,"res":-0.0871,"scale":-0.0598,"g":6,"pres":0.0013},"Seraphine":{"wr":0.5623,"res":0.0365,"scale":0.0252,"g":349,"pres":0.0777},"Nidalee":{"wr":0.5714,"res":0.0541,"scale":0.026,"g":16,"pres":0.0036},"Tristana":{"wr":0.5,"res":0.0228,"scale":0.0335,"g":46,"pres":0.0102},"Yuumi":{"wr":0.4783,"res":-0.0297,"scale":0.1143,"g":34,"pres":0.0076},"Milio":{"wr":0.4513,"res":-0.0352,"scale":0.0872,"g":265,"pres":0.059},"Chogath":{"wr":0.439,"res":-0.0538,"scale":0.0841,"g":29,"pres":0.0065},"Yasuo":{"wr":0.56,"res":0.0863,"scale":0.0101,"g":13,"pres":0.0029},"Pyke":{"wr":0.4737,"res":-0.0199,"scale":0.0116,"g":45,"pres":0.01},"Nasus":{"wr":0.5926,"res":0.0871,"scale":0.0375,"g":15,"pres":0.0033},"Khazix":{"wr":0.5,"res":0.0107,"scale":-0.0749,"g":12,"pres":0.0027},"Irelia":{"wr":0.4762,"res":0.0433,"scale":-0.0333,"g":9,"pres":0.002},"Lissandra":{"wr":0.4792,"res":-0.014,"scale":0.0151,"g":36,"pres":0.008},"KogMaw":{"wr":0.5357,"res":0.0318,"scale":-0.0833,"g":16,"pres":0.0036},"Vex":{"wr":0.4211,"res":-0.0384,"scale":-0.1984,"g":7,"pres":0.0016},"Lux":{"wr":0.6739,"res":0.1005,"scale":0.0303,"g":34,"pres":0.0076},"Xerath":{"wr":0.44,"res":-0.0417,"scale":-0.0714,"g":13,"pres":0.0029},"Shyvana":{"wr":0.5333,"res":0.0063,"scale":0.05,"g":18,"pres":0.004},"Urgot":{"wr":0.5294,"res":0.0015,"scale":0.1389,"g":5,"pres":0.0011},"Locke":{"wr":0.4432,"res":-0.0444,"scale":0.0221,"g":76,"pres":0.0169}};
+  var ROLES = ['top', 'jungle', 'mid', 'bottom', 'support'];
+  var ROL_ES = {top: 'Top', jungle: 'Jungla', mid: 'Mid', bottom: 'ADC', support: 'Soporte'};
+  var CHAMP_ES = {MonkeyKing: 'Wukong', KSante: "K'Sante", Kaisa: "Kai'Sa", Khazix: "Kha'Zix", Chogath: "Cho'Gath", KogMaw: "Kog'Maw",
+    RekSai: "Rek'Sai", Leblanc: 'LeBlanc', DrMundo: 'Dr. Mundo', JarvanIV: 'Jarvan IV', Velkoz: "Vel'Koz", Belveth: "Bel'Veth", Nunu: 'Nunu y Willump'};
+  var champName = function (id) { id = String(id || ''); return CHAMP_ES[id] || id.replace(/([a-z])([A-Z])/g, '$1 $2'); };
+  var other = function (side) { return side === 'blue' ? 'red' : 'blue'; };
+
+  // Giros clave: tramos donde la probabilidad saltó 9 pts o más, con la causa más probable (eventos de ese equipo en el tramo).
+  function keyMoments(maxN) {
+    var S = G ? G.samples : null, out = [];
+    if (!S || S.length < 3) return out;
+    var base = S[0];
+    for (var i = 1; i < S.length; i++) {
+      var dir = Math.sign(S[i].p - base.p);
+      if (!dir || Math.abs(S[i].p - base.p) < 0.09) continue;
+      var j = i;  // se extiende mientras la ventaja siga creciendo en esa dirección (tolera 2 pts de ruido)
+      while (j + 1 < S.length && (S[j + 1].p - base.p) * dir >= (S[j].p - base.p) * dir - 0.02) j++;
+      var end = S[j], side = dir > 0 ? 'blue' : 'red', seen = {};
+      var evs = G.events.filter(function (e) { return e.gt >= base.gt - 8 && e.gt <= end.gt + 4 && e.side === side && e.kind !== 'tower'; })
+        .map(function (e) { return e.txt; }).filter(function (t) { return seen[t] ? false : (seen[t] = true); });
+      out.push({a: base.gt, b: end.gt, d: end.p - base.p, side: side, code: code(side), cause: evs.length ? evs.slice(0, 2).join(', ') : 'ventaja de oro y presión en el mapa'});
+      base = end; i = j;
+    }
+    return out.sort(function (x, y) { return Math.abs(y.d) - Math.abs(x.d); }).slice(0, maxN || 3).sort(function (x, y) { return x.a - y.a; });
+  }
+
+  // Qué necesita el que va abajo para volver al 50 %: prueba combinaciones pequeñas de objetivos con el mismo modelo.
+  function comebackPaths() {
+    if (!G || !G.last || !G.wp || G.ended || G.gt < 300) return null;
+    var side = G.wp.p < 0.5 ? 'blue' : 'red', pNow = side === 'blue' ? G.wp.p : 1 - G.wp.p;
+    if (pNow > 0.45) return null;
+    var f0 = G.last, tm0 = f0[side + 'Team'], soulAny = elementals(f0.blueTeam).length >= 4 || elementals(f0.redTeam).length >= 4;
+    var atoms = [];  // {txt, cost, grp, fn(team)}
+    if (G.gt >= 1200) atoms.push({txt: 'Barón', cost: 2, grp: 'baron', fn: function (t) { t.barons = (t.barons || 0) + 1; }});
+    if (soulAny) atoms.push({txt: 'Ancestral', cost: 2, grp: 'drag', fn: function (t) { t.dragons = t.dragons.concat(['elder']); }});
+    else if (elementals(tm0).length === 3) atoms.push({txt: 'el alma', cost: 2, grp: 'drag', fn: function (t) { t.dragons = t.dragons.concat(['mountain']); }});
+    else atoms.push({txt: 'un dragón', cost: 1, grp: 'drag', fn: function (t) { t.dragons = t.dragons.concat(['mountain']); }});
+    [1, 2, 3].forEach(function (n) { if (tm0.towers + n <= 11) atoms.push({txt: n === 1 ? '1 torre' : n + ' torres', cost: n, grp: 'tower', fn: function (t) { t.towers += n; }}); });
+    if (tm0.towers >= 3) atoms.push({txt: 'un inhibidor', cost: 2, grp: 'inhib', fn: function (t) { t.inhibitors += 1; }});
+    atoms.push({txt: 'una pelea ganada (+3 kills)', cost: 1, grp: 'fight', fn: function (t) { t.totalKills += 3; t.totalGold += 1500; }});
+    function evalSet(set) {
+      var f; try { f = JSON.parse(JSON.stringify(f0)); } catch (e) { return 0; }
+      set.forEach(function (a) { a.fn(f[side + 'Team']); });
+      var p = winProb(f, G.gt).p; return side === 'blue' ? p : 1 - p;
+    }
+    var cands = [];
+    function walk(start, set) {
+      if (set.length) cands.push({set: set, cost: set.reduce(function (c, a) { return c + a.cost; }, 0), p: evalSet(set)});
+      if (set.length === 3) return;
+      for (var i = start; i < atoms.length; i++) {
+        if (set.some(function (a) { return a.grp === atoms[i].grp; })) continue;
+        walk(i + 1, set.concat([atoms[i]]));
+      }
+    }
+    walk(0, []);
+    var ok = cands.filter(function (c) { return c.p >= 0.5; }).sort(function (a, b) { return a.cost - b.cost || b.p - a.p; });
+    var pick = ok.length ? ok.slice(0, 2) : cands.sort(function (a, b) { return b.p - a.p; }).slice(0, 1);
+    var txt = function (c) { var t = c.set.map(function (a) { return a.txt; }); return t.length > 1 ? t.slice(0, -1).join(', ') + ' y ' + t[t.length - 1] : t[0]; };
+    return {side: side, code: code(side), p: pNow, reached: ok.length > 0, paths: pick.map(function (c) { return {txt: txt(c), p: c.p}; })};
+  }
+
+  // Serie en vivo: probabilidad de llevarse la serie, si se gana o se pierde este juego (los juegos que faltan cuentan 50/50).
+  function seriesNow() {
+    if (!M || !G || !G.wp || G.ended || !M.strategy) return null;
+    var bo = M.strategy.count || 1, need = Math.ceil(bo / 2);
+    var wb = (sideTeam('blue').result || {}).gameWins || 0, wr = (sideTeam('red').result || {}).gameWins || 0;
+    if (wb >= need || wr >= need) return null;
+    function f(x, y) { return x >= need ? 1 : y >= need ? 0 : 0.5 * f(x + 1, y) + 0.5 * f(x, y + 1); }
+    var ifB = f(wb + 1, wr), ifR = f(wb, wr + 1), p = G.wp.p;
+    return {bo: bo, need: need, score: [wb, wr], ifBlue: ifB, ifRed: ifR, pNow: p * ifB + (1 - p) * ifR};
+  }
+
+  // Draft: plan y ventana de poder de cada equipo según la escala de sus campeones (datos pro). No cambia la probabilidad.
+  function draftInfo() {
+    if (!G || !G.meta) return null;
+    if (G.dinfo) return G.dinfo;
+    var out = {};
+    ['blue', 'red'].forEach(function (side) {
+      var ps = (G.meta[side + 'TeamMetadata'] || {}).participantMetadata || [];
+      var list = ps.map(function (p) { var st = CHAMP[p.championId]; return {champ: champName(p.championId), role: p.role, wr: st ? st.wr : null, scale: st ? st.scale : 0}; });
+      var sc = list.reduce(function (a, c) { return a + c.scale; }, 0) / (list.length || 1);
+      var plan = sc >= 0.04 ? 'juego tardío, quiere llegar a peleas grandes' : sc <= -0.04 ? 'juego temprano, quiere ventaja antes del min 20'
+        : sc > 0.012 ? 'equilibrado, algo más tardío' : sc < -0.012 ? 'equilibrado, algo más temprano' : 'equilibrado';
+      var wrs = list.filter(function (c) { return c.wr != null; });
+      out[side] = {code: code(side), scale: sc, plan: plan, champs: list, wr: wrs.length ? wrs.reduce(function (a, c) { return a + c.wr; }, 0) / wrs.length : null};
+    });
+    out.diff = out.blue.scale - out.red.scale;
+    out.window = Math.abs(out.diff) > 0.02 ? {early: code(out.diff > 0 ? 'red' : 'blue'), late: code(out.diff > 0 ? 'blue' : 'red')} : null;
+    G.dinfo = out;
+    return out;
+  }
+
+  // Cara a cara de los dos equipos (2025–26, todas las ligas principales e internacionales). Se guarda 6 h por pareja.
+  var LIGAS = ['98767975604431411', '98767991325878492', '113464388705111224', '98767991310872058', '98767991314006698',
+    '98767991302996019', '98767991299243165', '98767991332355509', '113476371197627891', '113470291645289904', '113475181634818701',
+    '113475149040947852', '116096325848746167', '116838530616006090'];
+  var H2H = {};
+  async function loadH2H(a, b) {
+    var key = [a, b].sort().join('|');
+    if (H2H[key]) return;
+    try { var c = JSON.parse(localStorage.getItem('rp_h2h_' + key) || 'null'); if (c && Date.now() - c.at < 6 * 3600e3) { H2H[key] = c; emit(); return; } } catch (e) {}
+    H2H[key] = {loading: true};
+    var evs = [], tok = null;
+    try {
+      for (var n = 0; n < 15; n++) {
+        var params = {leagueId: LIGAS.join(',')}; if (tok) params.pageToken = tok;
+        var d = await api('getSchedule', params);
+        evs = evs.concat(d.schedule.events || []); tok = d.schedule.pages && d.schedule.pages.older;
+        if (!tok || !(d.schedule.events || []).length || d.schedule.events[0].startTime < '2025-01-01') break;
+      }
+    } catch (e) {}
+    var list = evs.filter(function (e) {
+      return e.state === 'completed' && e.match && e.startTime >= '2025-01-01' && (e.match.teams || []).length === 2 &&
+        e.match.teams.every(function (t) { return t.code === a || t.code === b; }) && e.match.teams[0].code !== e.match.teams[1].code;
+    }).sort(function (x, y) { return x.startTime < y.startTime ? 1 : -1; }).map(function (e) {
+      var ta = e.match.teams.find(function (t) { return t.code === a; }), tb = e.match.teams.find(function (t) { return t.code === b; });
+      return {date: e.startTime.slice(0, 10), league: e.league ? e.league.name : '', ga: (ta.result || {}).gameWins || 0, gb: (tb.result || {}).gameWins || 0};
+    });
+    var seenD = {}; list = list.filter(function (x) { var k = x.date + x.ga + x.gb; return seenD[k] ? false : (seenD[k] = true); });
+    var res = {at: Date.now(), a: a, b: b, wa: list.filter(function (x) { return x.ga > x.gb; }).length, wb: list.filter(function (x) { return x.gb > x.ga; }).length, last: list.slice(0, 5)};
+    H2H[key] = res;
+    try { localStorage.setItem('rp_h2h_' + key, JSON.stringify(res)); } catch (e) {}
+    emit();
+  }
+  function h2hFor(a, b) {
+    var h = H2H[[a, b].sort().join('|')];
+    if (!h || h.loading) return null;
+    if (h.a === a) return h;  // orientarlo a (azul, rojo)
+    return {a: a, b: b, wa: h.wb, wb: h.wa, last: h.last.map(function (x) { return {date: x.date, league: x.league, ga: x.gb, gb: x.ga}; })};
+  }
+
+  // Duelo por línea y jugador clave (feed de detalles: oro, CS, K/D/A, % del daño, participación en kills).
+  function lanes() {
+    if (!G || !G.roster) return null;
+    return ROLES.map(function (role) {
+      var b = G.roster.blue.find(function (p) { return p.role === role; }), r = G.roster.red.find(function (p) { return p.role === role; });
+      if (!b || !r) return null;
+      return {role: role, label: ROL_ES[role], blue: b, red: r, gd: b.gold - r.gold, csd: b.cs - r.cs};
+    }).filter(Boolean);
+  }
+  function keyPlayer(L) {
+    if (!L || !L.length || G.gt < 300) return null;
+    var best = null;
+    L.forEach(function (l) {
+      ['blue', 'red'].forEach(function (side) {
+        var p = l[side], gd = side === 'blue' ? l.gd : -l.gd;
+        var sc = gd / 1000 + p.share * 8 + p.kp * 3 + (p.k - p.d) * 0.3;
+        if (!best || sc > best.sc) best = {sc: sc, side: side, code: code(side), name: p.name, champ: p.champ, role: l.label, vs: l[other(side)].name, gd: gd, share: p.share, kp: p.kp, k: p.k, d: p.d, a: p.a};
+      });
+    });
+    return best;
+  }
+
+  // Resumen post-juego: quién ganó, cómo lo vio el modelo, el giro decisivo y el jugador clave.
+  function recap() {
+    if (!G || !G.ended || !G.samples.length) return null;
+    var bw = (sideTeam('blue').result || {}).gameWins || 0, rw = (sideTeam('red').result || {}).gameWins || 0, win = null;
+    if (G.score0) { if (bw > G.score0[0]) win = 'blue'; else if (rw > G.score0[1]) win = 'red'; }
+    if (!win) win = G.wp && G.wp.p >= 0.5 ? 'blue' : 'red';
+    var pw = function (s) { return win === 'blue' ? s.p : 1 - s.p; }, low = G.samples[0];
+    G.samples.forEach(function (s) { if (pw(s) < pw(low)) low = s; });
+    var sw = keyMoments(3).filter(function (m) { return m.side === win; }).sort(function (x, y) { return Math.abs(y.d) - Math.abs(x.d); })[0] || null;
+    var st = G.last ? {blue: tstat(G.last.blueTeam), red: tstat(G.last.redTeam)} : null;
+    return {win: win, code: code(win), lose: code(other(win)), dur: G.gt, pre: pw(G.samples[0]), low: {p: pw(low), gt: low.gt},
+      comeback: pw(low) < 0.35, swing: sw, key: keyPlayer(lanes()), stats: st, score: [bw, rw]};
+  }
   function snapshot() {
     var blueCode = code('blue'), redCode = code('red');
     var bt = sideTeam('blue'), rt = sideTeam('red');
-    var score = M ? M.teams.map(function (t) { return (t.result || {}).gameWins; }) : null;
+    var L = G ? lanes() : null;
     return {
       ok: !!(G && G.wp),
       match: M ? {id: M.id, league: M.league ? M.league.name : '', strategy: M.strategy,
+        gameNo: G ? (M.games || []).findIndex(function (x) { return x.id === G.id; }) + 1 : 0,
         blue: {code: bt.code, img: https(bt.image || ''), wins: (bt.result || {}).gameWins},
         red: {code: rt.code, img: https(rt.image || ''), wins: (rt.result || {}).gameWins}} : null,
       game: G ? {id: G.id, gt: G.gt, state: G.last ? G.last.gameState : null, ended: !!G.ended,
@@ -258,7 +439,9 @@
         reasons: G.wp ? G.wp.parts : [], events: G.events.slice(-8), timers: G.t,
         stats: G.last ? {blue: tstat(G.last.blueTeam), red: tstat(G.last.redTeam)} : null,
         samples: G.samples ? G.samples.slice() : [], impact: impactNext(),
-        fight: G.fight && G.fight.players ? {gt: G.fight.gt, win: G.fight.win, blue: G.fight.players.blue, red: G.fight.players.red} : null} : null,
+        fight: G.fight && G.fight.players ? {gt: G.fight.gt, win: G.fight.win, blue: G.fight.players.blue, red: G.fight.players.red} : null,
+        swings: keyMoments(3), comeback: comebackPaths(), draft: draftInfo(), lanes: L, keyPlayer: keyPlayer(L), recap: recap()} : null,
+      series: seriesNow(), h2h: M ? h2hFor(bt.code, rt.code) : null,
       blueCode: blueCode, redCode: redCode, delay: delay, precision: PRECISION, next: NEXTM, at: Date.now()
     };
   }
@@ -310,6 +493,7 @@
       this.stop(); running = true; REPLAY = null; M = null; G = null;
       var d = await api('getEventDetails', {id: eventId}); var e = d.event;
       M = {id: eventId, league: e.league, strategy: e.match.strategy, teams: e.match.teams, games: e.match.games};
+      if (M.teams.length === 2) loadH2H(M.teams[0].code, M.teams[1].code).catch(function () {});
       var g = M.games[(juego || 1) - 1] || M.games.find(function (x) { return x.state !== 'unstarted'; });
       if (!g) { emit(); return; }
       var w0; try { w0 = await feed('window', g.id); } catch (ex) { w0 = null; }
