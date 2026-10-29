@@ -4,7 +4,7 @@
 - El overlay sobre el stream (motor + ext-overlay.js) se descarga de la web al recargar la extensión,
   al abrir el navegador y cada 6 horas, y se instala como «script de usuario». Si el navegador todavía
   no permite scripts de usuario, se usa la copia local de esta carpeta.
-- La lectura del video (OCR) va empaquetada en extension/ocr/.
+- La lectura del video (reloj, marcador y siglas) la hace lector.js, sin librerías externas.
 
 También publica la app y el overlay en la carpeta del repo web (../riftpulse-overlay) si está al lado.
 """
@@ -23,18 +23,22 @@ def escribir(nombre, texto):
 
 
 # copia local del overlay (respaldo si no hay scripts de usuario) y recursos de marca
-for f in ('engine.js', 'overlay.js', 'logo.svg', 'icon128.png'):
+for f in ('engine.js', 'logo.svg', 'icon128.png'):
     shutil.copy(os.path.join(AQUI, f), os.path.join(ext, f))
-for viejo in ('panel.js', 'rp-design.css'):  # de la versión anterior, ya no se usan
+# el overlay va junto con su lector en un solo archivo (así lo baja también la extensión ya instalada)
+OVERLAY = open(os.path.join(AQUI, 'lector.js'), encoding='utf-8').read() + '\n' + open(os.path.join(AQUI, 'overlay.js'), encoding='utf-8').read()
+escribir('overlay.js', OVERLAY)
+for viejo in ('rp-design.css', 'ocr.html', 'ocr.js'):  # de versiones anteriores, ya no se usan
     if os.path.exists(os.path.join(ext, viejo)):
         os.remove(os.path.join(ext, viejo))
+shutil.rmtree(os.path.join(ext, 'ocr'), ignore_errors=True)
 
 manifest = {
     "manifest_version": 3,
     "name": "RiftPulse",
-    "version": "2.0",
+    "version": "3.0",
     "description": "Panel lateral y overlay de RiftPulse para el Mundial. Se actualiza solo desde la web.",
-    "permissions": ["sidePanel", "storage", "offscreen", "userScripts", "scripting", "alarms"],
+    "permissions": ["sidePanel", "storage", "userScripts", "scripting", "alarms"],
     "host_permissions": [
         "https://esports-api.lolesports.com/*", "https://feed.lolesports.com/*",
         "https://ddragon.leagueoflegends.com/*", "https://static.lolesports.com/*",
@@ -43,8 +47,7 @@ manifest = {
     "action": {"default_title": "Abrir RiftPulse"},
     "side_panel": {"default_path": "panel.html"},
     "background": {"service_worker": "background.js"},
-    "icons": {"128": "icon128.png"},
-    "content_security_policy": {"extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"}
+    "icons": {"128": "icon128.png"}
 }
 escribir('manifest.json', json.dumps(manifest, ensure_ascii=False, indent=2))
 
@@ -88,49 +91,15 @@ chrome.alarms.create('rp-actualizar', {periodInMinutes: 360});
 chrome.alarms.onAlarm.addListener(a => { if (a.name === 'rp-actualizar') instalarOverlay(); });
 
 // ---------- mensajes del overlay (como content script o como script de usuario) ----------
-async function documentoOCR() {
-  if (await chrome.offscreen.hasDocument()) return;
-  await chrome.offscreen.createDocument({url: 'ocr.html', reasons: ['WORKERS'], justification: 'Leer el reloj y el marcador del video para sincronizar el overlay'});
-}
 function atender(msg, sender, send) {
   if (!msg) return;
-  if (msg.type === 'rp-ocr') {
-    documentoOCR()
-      .then(() => chrome.runtime.sendMessage({target: 'ocr', images: msg.images, wl: msg.wl, psm: msg.psm}))
-      .then(r => send(r || {}), e => send({error: String(e)}));
-    return true;
-  }
   if (msg.type === 'rp-cmd-get') { chrome.storage.local.get(['rp_cmd'], o => send(o || {})); return true; }
+  if (msg.type === 'rp-pantalla') { chrome.storage.local.set({rp_pantalla: msg.data || null}).then(() => send({ok: true})); return true; }
   if (msg.type === 'rp-reinstalar') { instalarOverlay().then(() => send({ok: true})); return true; }
 }
 chrome.runtime.onMessage.addListener(atender);
 if (chrome.runtime.onUserScriptMessage) chrome.runtime.onUserScriptMessage.addListener(atender);
 """.replace('__WEB__', WEB))
-
-escribir('ocr.html', '<!doctype html><meta charset="utf-8"><script src="ocr/tesseract.min.js"></script><script src="ocr.js"></script>\n')
-escribir('ocr.js', r"""// Lee los recortes del video que manda el overlay (reloj, equipos, oro, kills).
-let lector = null;
-function obtener() {
-  if (!lector) lector = Tesseract.createWorker('eng', 1, {
-    workerPath: chrome.runtime.getURL('ocr/worker.min.js'), corePath: chrome.runtime.getURL('ocr/'),
-    langPath: chrome.runtime.getURL('ocr'), gzip: true, cacheMethod: 'none', workerBlobURL: false
-  });
-  return lector;
-}
-chrome.runtime.onMessage.addListener((msg, sender, send) => {
-  if (!msg || msg.target !== 'ocr') return;
-  (async () => {
-    const w = await obtener(), out = {};
-    for (const k of Object.keys(msg.images)) {
-      await w.setParameters({tessedit_char_whitelist: msg.wl[k] || '', tessedit_pageseg_mode: msg.psm[k] || '7'});
-      out[k] = (await w.recognize(msg.images[k])).data.text.trim();
-    }
-    send(out);
-  })().catch(e => send({error: String(e)}));
-  return true;
-});
-""")
-# Los archivos del lector (Tesseract.js, Apache-2.0) viven directamente en extension/ocr/.
 
 # ---------- panel lateral: cascarón que carga la app desde la web ----------
 escribir('panel.html', """<!doctype html>
@@ -138,39 +107,36 @@ escribir('panel.html', """<!doctype html>
 <style>
   html,body{margin:0;height:100%;background:#050a17;color:#eef3fb;font:13px/1.5 system-ui,"Segoe UI",sans-serif}
   #app{position:absolute;inset:0;width:100%;height:100%;border:0}
-  body.aviso #app{top:auto;height:calc(100% - 64px)}
-  #aviso{display:none;height:64px;box-sizing:border-box;padding:8px 12px;background:#2a2008;border-bottom:1px solid #6b5418;color:#f6e7c1;font-size:12px}
-  body.aviso #aviso{display:block}
-  #aviso b{color:#f2c14e}
   #carga{position:absolute;inset:0;display:grid;place-items:center;color:#8fa0c2;text-align:center;padding:20px}
 </style></head>
 <body>
-<div id="aviso"></div>
 <div id="carga">Cargando RiftPulse…</div>
 <iframe id="app" title="RiftPulse" allow="clipboard-write"></iframe>
 <script src="panel.js"></script>
 </body></html>
 """)
-escribir('panel.js', r"""// Cascarón del panel: carga la app desde la web y le presta el almacenamiento de la extensión.
-const WEB = '__WEB__';
+escribir('panel.js', r"""// Cascarón del panel: carga la app desde la web y le pasa el almacenamiento de la extensión.
+// Todo lo visible (avisos incluidos) lo dibuja la app, así que se actualiza solo desde la web.
+const WEB = '__WEB__', CASCARON = 3;
 const app = document.getElementById('app'), carga = document.getElementById('carga');
 app.src = WEB + 'app.html?ext=1&v=' + Date.now();
 let lista = false;
+const CLAVES = ['rp_origen', 'rp_pantalla', 'rp_cmd'];
+function enviar(data) { try { app.contentWindow.postMessage({rp: 'store', shell: CASCARON, data}, '*'); } catch (e) {} }
 window.addEventListener('message', e => {
   if (e.source !== app.contentWindow || !e.data || !e.data.rp) return;
-  if (e.data.rp === 'ready') { lista = true; carga.style.display = 'none'; }
+  if (e.data.rp === 'ready') { lista = true; carga.style.display = 'none'; chrome.storage.local.get(CLAVES, enviar); }
   if (e.data.rp === 'set' && e.data.data) chrome.storage.local.set(e.data.data);
+  if (e.data.rp === 'reinstalar') chrome.runtime.sendMessage({type: 'rp-reinstalar'}, () => chrome.storage.local.get(CLAVES, enviar));
+});
+chrome.storage.onChanged.addListener((ch, area) => {
+  if (area !== 'local') return;
+  const d = {}; let hay = false;
+  CLAVES.forEach(k => { if (ch[k]) { d[k] = ch[k].newValue; hay = true; } });
+  if (hay) enviar(d);
 });
 app.addEventListener('load', () => setTimeout(() => { carga.style.display = 'none'; }, 400));
 setTimeout(() => { if (!lista) carga.innerHTML = 'No pude cargar RiftPulse desde la web.<br>Revisá la conexión y volvé a abrir el panel.'; }, 15000);
-// aviso si el overlay del stream no se está actualizando desde la web
-chrome.storage.local.get('rp_origen', o => {
-  const r = o && o.rp_origen;
-  if (r && r.origen === 'local') {
-    document.body.classList.add('aviso');
-    document.getElementById('aviso').innerHTML = 'Para que el <b>overlay del stream</b> se actualice solo: en <b>chrome://extensions</b> → RiftPulse → <b>Detalles</b>, activá <b>«Permitir scripts de usuario»</b> y recargá la extensión.';
-  }
-});
 """.replace('__WEB__', WEB))
 
 escribir('INSTALAR.txt', """RIFTPULSE — EXTENSION (se actualiza sola)
@@ -205,7 +171,7 @@ La extension no lee ni envia nada de ninguna cuenta. No esta afiliada a Riot Gam
 web = os.path.join(os.path.dirname(AQUI), 'riftpulse-overlay')
 if os.path.isdir(web):
     shutil.copy(os.path.join(AQUI, 'index.html'), os.path.join(web, 'app.html'))
-    shutil.copy(os.path.join(AQUI, 'overlay.js'), os.path.join(web, 'ext-overlay.js'))
+    open(os.path.join(web, 'ext-overlay.js'), 'w', encoding='utf-8').write(OVERLAY)
     # la extensión en un ZIP, para instalarla sin git (enlace directo desde la web)
     shutil.make_archive(os.path.join(web, 'riftpulse-extension'), 'zip', AQUI, 'extension')
     print('Publicado en la carpeta web:', web)

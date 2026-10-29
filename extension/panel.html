@@ -3,14 +3,9 @@
 <style>
   html,body{margin:0;height:100%;background:#050a17;color:#eef3fb;font:13px/1.5 system-ui,"Segoe UI",sans-serif}
   #app{position:absolute;inset:0;width:100%;height:100%;border:0}
-  body.aviso #app{top:auto;height:calc(100% - 64px)}
-  #aviso{display:none;height:64px;box-sizing:border-box;padding:8px 12px;background:#2a2008;border-bottom:1px solid #6b5418;color:#f6e7c1;font-size:12px}
-  body.aviso #aviso{display:block}
-  #aviso b{color:#f2c14e}
   #carga{position:absolute;inset:0;display:grid;place-items:center;color:#8fa0c2;text-align:center;padding:20px}
 </style></head>
 <body>
-<div id="aviso"></div>
 <div id="carga">Cargando RiftPulse…</div>
 <iframe id="app" title="RiftPulse" allow="clipboard-write"></iframe>
 <script src="panel.js"></script>

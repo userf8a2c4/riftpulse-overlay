@@ -9,7 +9,7 @@
   var R = window.RiftEngine;
 
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
-  var EXT = (function () { try { return JSON.parse(ls('rp_ext6') || '["obj","pg"]'); } catch (e) { return ['obj', 'pg']; } })();
+  var EXT = (function () { try { return JSON.parse(ls('rp_ext6') || '["obj","pg","oro"]'); } catch (e) { return ['obj', 'pg', 'oro']; } })();
   var POS = ls('rp_pos6') || 'top';
   var DMG = ls('rp_dmg6') !== '0';  // reparto de daño automático tras cada pelea
   var XY = (function () { try { return JSON.parse(ls('rp_xy6') || 'null'); } catch (e) { return null; } })();
@@ -84,9 +84,23 @@
   .ctl button.ic:hover{color:#fff;border-color:#4aa3ff}\
   .mom{position:absolute;left:50%;top:-22px;transform:translateX(-50%);display:none;align-items:center;gap:6px;background:rgba(6,12,28,.96);border:1px solid rgba(242,193,78,.6);border-radius:3px;padding:2px 10px;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:#f6e7c1;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.5);z-index:3}\
   .mom.show{display:flex}.mom .zap{color:#f2c14e}.mom .k.b{color:#7cc0ff}.mom .k.r{color:#ff8a8f}\
-  .dmg{position:absolute;left:50%;top:calc(100% + 9px);transform:translateX(-50%);display:none;width:470px;max-width:92vw;\
+  .cards{position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:max-content;max-width:94vw;z-index:2;pointer-events:none}\
+  .cards.up{top:auto;bottom:calc(100% + 8px);flex-wrap:wrap-reverse}\
+  .w:hover .cards:not(.up){top:calc(100% + 42px)}\
+  .cd{width:300px;background:linear-gradient(180deg,rgba(16,30,62,.95),rgba(6,12,28,.96));border:1px solid rgba(150,180,230,.24);border-radius:5px;padding:9px 12px 10px;box-shadow:0 12px 30px rgba(0,0,0,.55);position:relative}\
+  .cd::after{content:"";position:absolute;left:-1px;top:-1px;width:50px;height:2px;background:linear-gradient(90deg,#f2c14e,rgba(242,193,78,0))}\
+  .ch{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#c8d3ea;margin-bottom:6px}.ch b{font-size:14px;letter-spacing:.5px;font-variant-numeric:tabular-nums}\
+  .ch b.b,.cd .b{color:#6fb8ff}.ch b.r,.cd .r{color:#ff7a86}.cd .mut{color:#8fa0c2}\
+  .cd svg{display:block;width:100%;height:84px}\
+  .lg{display:flex;gap:10px;font-size:10.5px;color:#8fa0c2;margin-top:4px;letter-spacing:.4px}\
+  .du{display:grid;grid-template-columns:1fr 34px 1fr;align-items:center;gap:6px;font-size:12.5px;padding:3px 0;border-top:1px solid rgba(150,180,230,.1)}.du:first-of-type{border-top:0}\
+  .du .rl{text-align:center;font-size:10px;color:#8fa0c2;letter-spacing:1px;text-transform:uppercase}.du .nb{display:flex;gap:6px;align-items:center;min-width:0}.du .nr{justify-content:flex-end}\
+  .du .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.du .gd{font-size:11px;font-variant-numeric:tabular-nums;font-weight:700;flex:none}\
+  .ir{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:4px 0}.ir .big{font-family:Anton,Oswald,sans-serif;font-size:22px;letter-spacing:.5px}\
+  .in{font-size:12px;color:#c8d3ea;line-height:1.45;margin-top:4px;border-top:1px solid rgba(150,180,230,.12);padding-top:6px}\
+  .dmg{display:none;width:470px;max-width:92vw;pointer-events:auto;\
      background:linear-gradient(180deg,rgba(16,30,62,.96),rgba(6,12,28,.97));border:1px solid rgba(150,180,230,.24);border-radius:5px;padding:10px 13px;box-shadow:0 12px 32px rgba(0,0,0,.6);z-index:4}\
-  .dmg.show{display:block}\
+  .dmg.show{display:block;position:relative}\
   .dh{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#f2c14e;margin-bottom:7px;display:flex;justify-content:space-between}.dh .wl{color:#cdd7ea;font-weight:700}\
   .dcols{display:grid;grid-template-columns:1fr 1fr;gap:3px 16px}\
   .drow{display:flex;align-items:center;gap:7px;padding:1px 0}\
@@ -100,16 +114,20 @@
   .syncg input:focus{outline:none;border-color:#4aa3ff}.syncg input.bad{border-color:#ff5a5f}\
   .ast{font-size:9.5px;letter-spacing:1px;color:#8fa0c2;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:4px}\
   .ast.ok{color:#3ddc97}\
+  .diag{position:absolute;right:0;top:calc(100% + 40px);display:none;width:340px;background:rgba(6,12,28,.97);border:1px solid rgba(242,193,78,.45);border-radius:5px;padding:10px 12px;box-shadow:0 12px 32px rgba(0,0,0,.6);z-index:5;cursor:default}\
+  .diag.show{display:block}.dg-t{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:#f2c14e;margin-bottom:6px}\
+  .dg-r{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:2px 0;border-bottom:1px solid rgba(150,180,230,.1)}.dg-r span{color:#8fa0c2;flex:none}.dg-r b{color:#eef3fb;font-weight:500;text-align:right;font-family:Inter,system-ui,sans-serif}\
+  .dg-i{display:block;max-width:100%;height:34px;margin:4px 0;border:1px solid rgba(150,180,230,.2);image-rendering:pixelated}.dg-n{font-size:11px;color:#8fa0c2;margin-top:6px}\
   .syncg .gt{font-variant-numeric:tabular-nums;color:#aab6cc;font-weight:700}\
   ';
 
   var LOGO = '<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="rplg" x1="8" y1="40" x2="56" y2="26" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4aa3ff"/><stop offset=".5" stop-color="#9ab0e6"/><stop offset="1" stop-color="#ff5a5f"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="15" fill="#0d1320" stroke="#2b3c62" stroke-width="3"/><path d="M10 35 H21 L25 35 L30 17 L36 49 L40 35 H54" fill="none" stroke="url(#rplg)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-  sh.innerHTML = '<style>' + CSS + '</style><div class="w" id="w"><div class="mom" id="mom"></div><div class="dmg" id="dmg"></div><div id="body" style="display:inline-flex"></div>' +
-    '<div class="ctl" id="ctl"><span class="chip" id="autoc" title="Lee el reloj y el marcador del video y se sincroniza solo">auto-sync</span><span class="ast" id="ast"></span><span class="chip" data-ext="obj">objetivo</span><span class="chip" data-ext="pg">trayectoria</span>' +
+  sh.innerHTML = '<style>' + CSS + '</style><div class="w" id="w"><div class="mom" id="mom"></div><div class="diag" id="diag"></div><div class="cards" id="cards"><div class="dmg" id="dmg"></div><div id="cardsx" style="display:contents"></div></div><div id="body" style="display:inline-flex"></div>' +
+    '<div class="ctl" id="ctl"><span class="chip" id="autoc" title="Lee el reloj y el marcador del video y se sincroniza solo">auto-sync</span><span class="ast" id="ast"></span><button class="ic" id="diagb" title="diagnóstico del auto-sync: qué está leyendo del video">?</button><span class="chip" data-ext="obj">objetivo</span><span class="chip" data-ext="pg">trayectoria</span><span class="chip" data-ext="oro">oro</span><span class="chip" data-ext="dano">daño</span><span class="chip" data-ext="imp">impacto</span><span class="chip" data-ext="duelos">duelos</span>' +
     '<button class="ic" id="posbtn" title="arriba/abajo">↑↓</button><button class="ic" data-d="-5" title="atrasar">−</button><button class="ic" data-d="5" title="adelantar">+</button>' +
     '<span class="syncg" title="Escribe el minuto que ves en el stream y pulsa ⟲ (o Enter) para clavar el overlay a ese momento">ves <input id="scm" placeholder="mm:ss" maxlength="5"><button class="ic" id="syncb" title="sincronizar al minuto que ves">⟲</button> va <span class="gt" id="gtnow">—</span></span></div></div>';
-  var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom'), dmgEl = sh.getElementById('dmg');
+  var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom'), dmgEl = sh.getElementById('dmg'), cardsEl = sh.getElementById('cards'), cardsX = sh.getElementById('cardsx');
 
   function syncChips() { ctl.querySelectorAll('.chip[data-ext]').forEach(function (c) { c.classList.toggle('on', EXT.indexOf(c.getAttribute('data-ext')) >= 0); }); }
   syncChips();
@@ -162,9 +180,16 @@
     dmgEl.classList.add('show');
     clearTimeout(fightTimer); fightTimer = setTimeout(function () { dmgEl.classList.remove('show'); }, 8500);
   }
-  function render(s) {
+  function render(s) { render0(s); tarjetas(body.querySelector('.wait') ? null : s); }
+  function render0(s) {
     LAST = s;
     gtnowEl.textContent = s.game && s.game.pBlue != null ? mmss(s.game.gt) : '—';
+    // con el auto-sync activo nunca se muestra otro partido: mientras reconoce el del video, lo dice
+    var leyendo = typeof AS !== 'undefined' && AS.on && Date.now() - AS.visto < 20000;
+    if (leyendo && (!AS.id || !s.match || s.match.id !== AS.id.matchId)) {
+      body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div><div class="wait">' + (AS.id ? 'Cargando ' + esc(AS.id.codes.join(' vs ')) + ' · juego ' + AS.id.juego + '…' : 'Sincronizando con el video…') + '</div>';
+      return;
+    }
     if (!s.match) {
       if (s.next) { body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div>' +
         '<div class="seg next"><span class="sl">Próximo partido</span><span class="vs"><span class="b">' + esc(s.next.blue) + '</span> vs <span class="r">' + esc(s.next.red) + '</span></span></div>'; }
@@ -197,6 +222,59 @@
 
     body.innerHTML = html;
     hist.push({t: Date.now(), p: g.pBlue}); checkMomentum(s); showFight(s);
+  }
+
+  // ---------- paneles para el espectador: oro, daño, impacto y duelos (se eligen con los chips o desde Mando) ----------
+  var kc = function (g) { return (Math.abs(g) / 1000).toFixed(1).replace('.', ',') + 'k'; };
+  function grafOro(s) {
+    var g = s.game, m = s.match, sm = (g.samples || []).filter(function (x) { return x.diff != null; });
+    if (sm.length < 2) return '';
+    var W = 300, H = 84, t0 = sm[0].gt, span = Math.max(60, sm[sm.length - 1].gt - t0), mx = Math.max(1500, Math.max.apply(null, sm.map(function (x) { return Math.abs(x.diff); }))) * 1.1;
+    var X = function (t) { return (t - t0) / span * W; }, Y = function (d) { return H / 2 - d / mx * (H / 2 - 4); };
+    var line = sm.map(function (x, i) { return (i ? 'L' : 'M') + X(x.gt).toFixed(1) + ' ' + Y(x.diff).toFixed(1); }).join(' ');
+    var area = line + ' L' + X(sm[sm.length - 1].gt).toFixed(1) + ' ' + H / 2 + ' L0 ' + H / 2 + ' Z';
+    var marcas = (g.events || []).filter(function (e) { return ['dragon', 'baron', 'elder', 'inhib'].indexOf(e.kind) >= 0 && e.gt >= t0; }).map(function (e) {
+      var c = e.side === 'blue' ? '#6fb8ff' : '#ff7a86', L = {dragon: 'D', baron: 'B', elder: 'A', inhib: 'I'}[e.kind];
+      return '<g><circle cx="' + X(e.gt).toFixed(1) + '" cy="' + (e.side === 'blue' ? 9 : H - 9) + '" r="7" fill="#0b1630" stroke="' + c + '"/><text x="' + X(e.gt).toFixed(1) + '" y="' + (e.side === 'blue' ? 12.5 : H - 5.5) + '" fill="' + c + '" font-size="9" font-weight="700" text-anchor="middle">' + L + '</text></g>';
+    }).join('');
+    var d = sm[sm.length - 1].diff, lado = d >= 0 ? 'b' : 'r';
+    return '<div class="cd"><div class="ch"><span>Diferencia de oro</span><b class="' + lado + '">' + esc(d >= 0 ? m.blue.code : m.red.code) + ' +' + kc(d) + '</b></div>' +
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none"><defs><linearGradient id="og" x1="0" y1="0" x2="0" y2="' + H + '" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4aa3ff" stop-opacity=".55"/><stop offset=".5" stop-color="#4aa3ff" stop-opacity=".05"/><stop offset=".5" stop-color="#ff4d5e" stop-opacity=".05"/><stop offset="1" stop-color="#ff4d5e" stop-opacity=".55"/></linearGradient></defs>' +
+      '<line x1="0" y1="' + H / 2 + '" x2="' + W + '" y2="' + H / 2 + '" stroke="#38415c" stroke-dasharray="3 3"/><path d="' + area + '" fill="url(#og)"/><path d="' + line + '" fill="none" stroke="#e6eefc" stroke-width="1.6" vector-effect="non-scaling-stroke"/>' + marcas + '</svg>' +
+      '<div class="lg"><span>' + mmss(t0) + '</span><span style="margin-left:auto">D dragón · B Barón · A ancestral · I inhibidor</span><span>' + mmss(g.gt) + '</span></div></div>';
+  }
+  function grafDano(s) {
+    var L = s.game.lanes; if (!L || !L.length) return '';
+    var all = []; L.forEach(function (l) { all.push(l.blue, l.red); });
+    var mx = Math.max(0.01, Math.max.apply(null, all.map(function (p) { return p.share || 0; })));
+    var col = function (side, cls) { return '<div class="dcol ' + cls + '">' + L.map(function (l) { var p = l[side]; return '<div class="drow"><span class="dn">' + esc(p.name) + '</span><div class="dbar"><div style="width:' + Math.round((p.share || 0) / mx * 100) + '%"></div></div><span class="dp">' + Math.round((p.share || 0) * 100) + '%</span></div>'; }).join('') + '</div>'; };
+    return '<div class="cd" style="width:420px"><div class="ch"><span>Daño a campeones · todo el juego</span><span class="mut" style="letter-spacing:.5px;text-transform:none">% de su equipo</span></div><div class="dcols">' + col('blue', 'b') + col('red', 'r') + '</div></div>';
+  }
+  function grafImpacto(s) {
+    var g = s.game, m = s.match, im = g.impact, c = g.comeback; if (!im && !c) return '';
+    var h = '<div class="cd"><div class="ch"><span>Impacto' + (im ? ' · próx. ' + esc(im.obj) : '') + '</span>' + (im ? '<span class="mut">en ' + mmss(Math.max(0, im.at - g.gt)) + '</span>' : '') + '</div>';
+    if (im) h += '<div class="ir"><span>Si lo toma <b class="b">' + esc(m.blue.code) + '</b></span><span class="big b">' + (im.blue >= 0 ? '+' : '') + im.blue + '</span></div><div class="ir"><span>Si lo toma <b class="r">' + esc(m.red.code) + '</b></span><span class="big r">' + (im.red >= 0 ? '+' : '') + im.red + '</span></div>';
+    if (c && c.paths && c.paths[0]) h += '<div class="in"><b class="' + (c.side === 'blue' ? 'b' : 'r') + '">' + esc(c.code) + '</b> (' + Math.round(c.p * 100) + '%) ' + (c.reached ? 'remonta con' : 'se acerca con') + ' <b>' + esc(c.paths[0].txt) + '</b> → ' + Math.round(c.paths[0].p * 100) + '%</div>';
+    return h + '</div>';
+  }
+  function grafDuelos(s) {
+    var L = s.game.lanes; if (!L || !L.length) return '';
+    return '<div class="cd"><div class="ch"><span>Duelos por línea</span><span class="mut" style="letter-spacing:.5px;text-transform:none">oro de diferencia</span></div>' + L.map(function (l) {
+      var gb = l.gd >= 0;
+      return '<div class="du"><span class="nb"><span class="nm b">' + esc(l.blue.name) + '</span>' + (gb && l.gd > 99 ? '<span class="gd b">+' + kc(l.gd) + '</span>' : '') + '</span><span class="rl">' + esc(l.label) + '</span><span class="nb nr">' + (!gb && l.gd < -99 ? '<span class="gd r">+' + kc(l.gd) + '</span>' : '') + '<span class="nm r">' + esc(l.red.name) + '</span></span></div>';
+    }).join('') + '</div>';
+  }
+  var cardsSig = '';
+  function tarjetas(s) {
+    cardsEl.classList.toggle('up', POS === 'bottom' && !XY);
+    var h = '';
+    if (s && s.game && s.game.pBlue != null) {
+      if (EXT.indexOf('oro') >= 0) h += grafOro(s);
+      if (EXT.indexOf('imp') >= 0) h += grafImpacto(s);
+      if (EXT.indexOf('duelos') >= 0) h += grafDuelos(s);
+      if (EXT.indexOf('dano') >= 0) h += grafDano(s);
+    }
+    if (h !== cardsSig) { cardsSig = h; cardsX.innerHTML = h; }
   }
 
   function checkMomentum(s) {
@@ -241,83 +319,179 @@
   }
 
   // ---------- sincronía automática: lee del video el reloj del juego, los equipos y el marcador ----------
-  // Zonas del HUD de la transmisión del Mundial, relativas al cuadro del video.
-  var ZONAS = {
-    reloj: [0.455, 0.062, 0.545, 0.112, 'blanco'],
-    tagI: [0.29, 0.0, 0.375, 0.055, 'color'], tagD: [0.625, 0.0, 0.715, 0.055, 'color'],
-    oroI: [0.415, 0.012, 0.458, 0.058, 'blanco'], oroD: [0.548, 0.012, 0.59, 0.058, 'blanco'],
-    killI: [0.468, 0.01, 0.497, 0.065, 'blanco'], killD: [0.503, 0.01, 0.533, 0.065, 'blanco']
+  // Sirve en vivo o en repetición, a cualquier hora: el minuto se ata a la posición del video (pausa, velocidad,
+  // saltos y cortes de carga incluidos). El lector (lector.js) no usa librerías ni servicios externos.
+  var L = window.RiftLector;
+  // HUD de la transmisión del Mundial 2026, relativo al cuadro del video
+  var HUD = {
+    reloj: [0.455, 0.062, 0.545, 0.112],
+    tagI: [0.29, 0.0, 0.375, 0.055], tagD: [0.625, 0.0, 0.715, 0.055],
+    oroI: [0.415, 0.012, 0.458, 0.058], oroD: [0.548, 0.012, 0.59, 0.058],
+    killI: [0.468, 0.01, 0.497, 0.065], killD: [0.503, 0.01, 0.533, 0.065],
+    camI: [0.372, 0.393], camD: [0.607, 0.628], camY: [0.761, 0.81, 0.859, 0.907, 0.953], camH: 0.042
   };
-  var LISTA = {reloj: '0123456789:', tagI: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', tagD: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', oroI: '0123456789.K', oroD: '0123456789.K', killI: '0123456789', killD: '0123456789'};
-  var MODO = {reloj: '7', tagI: '8', tagD: '8', oroI: '7', oroD: '7', killI: '8', killD: '8'};  // línea / palabra
-  var AS = {on: ls('rp_auto6') !== '0', busy: false, id: null, anchor: null, prev: null, err: '', tries: 0};
-  // recorta una zona del cuadro y la deja en negro sobre blanco, ampliada, lista para leer
-  function zona(v, z) {
-    var vw = v.videoWidth, vh = v.videoHeight, sx = z[0] * vw, sy = z[1] * vh, sw = (z[2] - z[0]) * vw, sh2 = (z[3] - z[1]) * vh;
-    var k = Math.max(1, Math.min(4, 110 / sh2)), c = document.createElement('canvas');
-    c.width = Math.round(sw * k); c.height = Math.round(sh2 * k);
-    var x = c.getContext('2d', {willReadFrequently: true});
-    x.imageSmoothingQuality = 'high'; x.drawImage(v, sx, sy, sw, sh2, 0, 0, c.width, c.height);
-    var d = x.getImageData(0, 0, c.width, c.height), p = d.data;  // falla si el video está protegido
-    for (var i = 0; i < p.length; i += 4) {
-      var mx = Math.max(p[i], p[i + 1], p[i + 2]), mn = Math.min(p[i], p[i + 1], p[i + 2]);
-      var tinta = z[4] === 'color' ? (mx > 110 && mx - mn > 80) : mn > 165;
-      p[i] = p[i + 1] = p[i + 2] = tinta ? 0 : 255; p[i + 3] = 255;
-    }
-    x.putImageData(d, 0, 0);
-    return c.toDataURL('image/png');
+  // si el reloj no está ahí (otra transmisión u otro HUD), se busca en estas otras franjas
+  var RELOJES = [HUD.reloj, [0.45, 0.0, 0.55, 0.05], [0.44, 0.025, 0.56, 0.085], [0.44, 0.085, 0.56, 0.15], [0.45, 0.9, 0.55, 0.97], [0.0, 0.0, 0.12, 0.07], [0.88, 0.0, 1.0, 0.07]];
+  var AS = {on: ls('rp_auto6') !== '0', busy: false, zona: null, fallas: 0, lect: [], off: null, id: null, visto: 0, codes: null, codesAt: 0, n: 0, diag: {}, err: ''};
+  function parseReloj(s) {
+    s = String(s || '').replace(/[^\d:]/g, '');
+    var m = s.match(/(\d{1,2}):(\d{2})$/) || s.match(/^(\d{1,2})(\d{2})$/);
+    if (!m || +m[2] > 59 || +m[1] > 75) return null;
+    return +m[1] * 60 + +m[2];
   }
-  function leer(imgs) {
-    var wl = {}, psm = {}; Object.keys(imgs).forEach(function (k) { wl[k] = LISTA[k]; psm[k] = MODO[k]; });
-    if (window.RP_OCR) return window.RP_OCR(imgs, wl, psm);
-    return new Promise(function (res) { try { chrome.runtime.sendMessage({type: 'rp-ocr', images: imgs, wl: wl, psm: psm}, function (r) { res(r || {}); }); } catch (e) { res({}); } });
+  function oro(s) {  // «3.1K», «31K» o «3.1» -> 3.1 (miles)
+    s = String(s || '').replace(/[^\d.]/g, ''); if (!s) return null;
+    if (s.indexOf('.') < 0 && s.length >= 2) s = s.slice(0, -1) + '.' + s.slice(-1);
+    var v = parseFloat(s); return v > 0 && v < 150 ? v : null;
   }
-  var autoc = sh.getElementById('autoc'), astEl = sh.getElementById('ast');
-  function asEstado(t, ok) { astEl.textContent = t; astEl.classList.toggle('ok', !!ok); }
+  var autoc = sh.getElementById('autoc'), astEl = sh.getElementById('ast'), diagEl = sh.getElementById('diag');
+  function asEstado(t, ok) { astEl.textContent = t; astEl.classList.toggle('ok', !!ok); AS.diag.estado = t; }
   function asChip() { autoc.classList.toggle('on', AS.on); if (!AS.on) asEstado(''); }
   asChip();
   autoc.addEventListener('mousedown', function (e) { e.stopPropagation(); });
-  autoc.addEventListener('click', function (e) { e.stopPropagation(); AS.on = !AS.on; ls('rp_auto6', AS.on ? '1' : '0'); AS.id = null; AS.anchor = null; asChip(); if (!AS.on) R.follow(null); });
-  // minuto de juego esperado según el último anclaje (sigue la pausa y la velocidad del video)
-  function esperado(v) { var a = AS.anchor; return a ? a.gt + (a.playing ? (Date.now() - a.at) / 1000 * a.speed : 0) : null; }
-  function anclar(v, gt) {
-    AS.anchor = {gt: gt, at: Date.now(), playing: !v.paused, speed: v.playbackRate || 1};
-    R.follow({matchId: AS.id.matchId, juego: AS.id.juego, gt: gt, playing: AS.anchor.playing, speed: AS.anchor.speed, at: AS.anchor.at});
+  autoc.addEventListener('click', function (e) { e.stopPropagation(); AS.on = !AS.on; ls('rp_auto6', AS.on ? '1' : '0'); AS.id = null; AS.off = null; AS.lect = []; asChip(); if (!AS.on) R.follow(null); if (LAST) render(LAST); });
+  sh.getElementById('diagb').addEventListener('mousedown', function (e) { e.stopPropagation(); });
+  sh.getElementById('diagb').addEventListener('click', function (e) { e.stopPropagation(); diagEl.classList.toggle('show'); pintarDiag(); });
+  // lo que se ve en pantalla, para el centro de mando del panel
+  function publicar() {
+    var d = AS.id ? {matchId: AS.id.matchId, juego: AS.id.juego, gameId: AS.id.gameId, codes: AS.id.codes, gt: AS.off != null ? AS.off + (mainVideo() || {}).currentTime : null, playing: !(mainVideo() || {}).paused, at: Date.now()} : null;
+    try { if (chrome.storage && chrome.storage.local) chrome.storage.local.set({rp_pantalla: d}); else chrome.runtime.sendMessage({type: 'rp-pantalla', data: d}, function () { void chrome.runtime.lastError; }); } catch (e) {}
+  }
+  // atar el motor al video: minuto = desfase + posición del video
+  function seguir(v) {
+    if (!AS.id || AS.off == null || !v) return;
+    var gt = Math.max(0, AS.off + v.currentTime), g = LAST && LAST.game, playing = !v.paused && !v.ended && v.readyState > 2;
+    var esp = g && g.gt != null && LAST.match && LAST.match.id === AS.id.matchId ? g.gt : null;
+    if (esp == null || Math.abs(esp - gt) > 1.5 || AS.playing !== playing || AS.speed !== v.playbackRate) {
+      AS.playing = playing; AS.speed = v.playbackRate;
+      R.follow({matchId: AS.id.matchId, juego: AS.id.juego, gt: gt, playing: playing, speed: v.playbackRate || 1, at: Date.now()});
+    }
+  }
+  async function codigos() {
+    if (AS.codes && Date.now() - AS.codesAt < 600000) return AS.codes;
+    var ms = await R.loadMatches(), set = {};
+    (ms || []).forEach(function (x) { x.teams.forEach(function (t) { if (t.code) set[t.code] = 1; }); });
+    AS.codes = Object.keys(set); AS.codesAt = Date.now(); return AS.codes;
+  }
+  // ---------- campeones en pantalla (para distinguir juegos de una misma serie) ----------
+  var DDV = null, ICONOS = {};
+  function icono(id) {
+    if (ICONOS[id]) return ICONOS[id];
+    return (ICONOS[id] = (async function () {
+      if (!DDV) DDV = (await (await fetch('https://ddragon.leagueoflegends.com/api/versions.json')).json())[0];
+      var im = new Image(); im.crossOrigin = 'anonymous'; im.src = 'https://ddragon.leagueoflegends.com/cdn/' + DDV + '/img/champion/' + encodeURIComponent(id) + '.png';
+      await im.decode(); return firma(im, [0.1, 0.1, 0.9, 0.9]);
+    })().catch(function () { return null; }));
+  }
+  function firma(src, z) {  // 8×8 en color, normalizada
+    var c = document.createElement('canvas'); c.width = c.height = 8;
+    var x = c.getContext('2d', {willReadFrequently: true}), w = src.videoWidth || src.naturalWidth, h = src.videoHeight || src.naturalHeight;
+    x.drawImage(src, z[0] * w, z[1] * h, (z[2] - z[0]) * w, (z[3] - z[1]) * h, 0, 0, 8, 8);
+    var d = x.getImageData(0, 0, 8, 8).data, v = [], s = 0, n = 0, i;
+    for (i = 0; i < d.length; i += 4) v.push(d[i], d[i + 1], d[i + 2]);
+    for (i = 0; i < v.length; i++) s += v[i]; s /= v.length;
+    for (i = 0; i < v.length; i++) { v[i] -= s; n += v[i] * v[i]; }
+    n = Math.sqrt(n) || 1; return v.map(function (a) { return a / n; });
+  }
+  async function porCampeones(v, cands) {
+    var caras = {blue: [], red: []};
+    HUD.camY.forEach(function (y) {
+      caras.blue.push(firma(v, [HUD.camI[0], y, HUD.camI[1], y + HUD.camH]));
+      caras.red.push(firma(v, [HUD.camD[0], y, HUD.camD[1], y + HUD.camH]));
+    });
+    var mejor = null;
+    for (var i = 0; i < cands.length; i++) {
+      var c = cands[i], tot = 0, n = 0;
+      for (var side in caras) {
+        var ics = await Promise.all((c.champs[side] || []).map(icono));
+        caras[side].forEach(function (f) { var b = -1; ics.forEach(function (ic) { if (ic) { var s = 0; for (var k = 0; k < f.length; k++) s += f[k] * ic[k]; b = Math.max(b, s); } }); if (b > -1) { tot += b; n++; } });
+      }
+      c.caras = n ? tot / n : null;
+      if (c.caras != null && (!mejor || c.caras > mejor.caras)) mejor = c;
+    }
+    return mejor;
+  }
+  async function identificar(v, gt) {
+    var C = await codigos(), lee = function (z, m) { return L.numeros(L.recorte(v, z, 'blanco'), m); };
+    var sI = L.siglas(L.recorte(v, HUD.tagI, 'color'), C), sD = L.siglas(L.recorte(v, HUD.tagD, 'color'), C);
+    var sig = function (s) { return s[0] && s[0].s > 0.15 && (!s[1] || s[0].s - s[1].s > 0.1) ? s[0].code : ''; };
+    var kI = parseInt(lee(HUD.killI), 10), kD = parseInt(lee(HUD.killD), 10), oI = oro(lee(HUD.oroI, '0123456789K')), oD = oro(lee(HUD.oroD, '0123456789K'));
+    // el oro de un equipo tiene que ser posible para ese minuto (si no, es una mala lectura y no se usa)
+    var oroOk = function (x) { return x != null && x >= 2.3 + gt / 60 * 0.8 && x <= 2.8 + gt / 60 * 2.6; };
+    if (!oroOk(oI) || !oroOk(oD)) { oI = oD = null; }
+    if (kI > 80 || kD > 80) kI = kD = NaN;
+    var mapa = function (s) { var m = {}; s.forEach(function (x) { m[x.code] = x.s; }); return m; };
+    var o = {gt: gt, tags: [sig(sI), sig(sD)], sig: sI.length && sD.length ? [mapa(sI), mapa(sD)] : null, kills: isFinite(kI) && isFinite(kD) ? [kI, kD] : null, gold: oI != null && oD != null ? [oI, oD] : null};
+    AS.diag.siglas = [sI.slice(0, 3), sD.slice(0, 3)]; AS.diag.marcador = o;
+    var id = await R.identify(o);
+    if (id && id.alts && id.alts.length) {  // empate (por ejemplo, juegos de la misma serie al principio): mirar los campeones
+      var cerca = [id].concat(id.alts.filter(function (a) { return a.score - id.score < 1.5; }));
+      if (cerca.length > 1) { var c = await porCampeones(v, cerca).catch(function () { return null; }); if (c && c.caras > 0.2) id = c; AS.diag.campeones = cerca.map(function (x) { return x.codes.join('-') + ' J' + x.juego + ': ' + (x.caras == null ? '—' : x.caras.toFixed(2)); }); }
+    }
+    AS.diag.partido = id ? id.codes.join(' vs ') + ' · J' + id.juego + ' (dif. ' + id.score.toFixed(1) + ', ' + id.revisados + ' juegos revisados)' : 'ninguno';
+    return id;
   }
   async function asTick() {
-    if (!AS.on || AS.busy) return;
+    if (!AS.on || AS.busy || !L) return;
     var v = mainVideo(); if (!v || v.readyState < 2 || !v.videoWidth) return;
-    AS.busy = true;
+    AS.busy = true; AS.n++;
     try {
-      var t0 = Date.now(), need = !AS.id || (++AS.tries % 8 === 0), imgs = {reloj: zona(v, ZONAS.reloj)};
-      if (need) ['tagI', 'tagD', 'oroI', 'oroD', 'killI', 'killD'].forEach(function (k) { imgs[k] = zona(v, ZONAS[k]); });
-      // el reloj puede llegar sin los dos puntos («112» = 1:12): con 3 o 4 cifras, las dos últimas son los segundos
-      var r = await leer(imgs), rl = String(r.reloj || '').replace(/[^\d:]/g, ''), m = rl.match(/(\d{1,2}):(\d{2})/) || rl.match(/^(\d{1,2})(\d{2})$/);
-      if (!m || +m[2] > 59) { asEstado(AS.id ? 'sincronizado · sin reloj a la vista' : 'buscando el reloj del juego…', !!AS.id); return; }
-      var gt = +m[1] * 60 + +m[2] + (v.paused ? 0 : (Date.now() - t0) / 1000 * (v.playbackRate || 1) * 0.5);
-      // dos lecturas coherentes seguidas antes de confiar
-      var p = AS.prev; AS.prev = {gt: gt, at: Date.now(), rate: v.paused ? 0 : (v.playbackRate || 1)};
-      if (!p || Math.abs((gt - p.gt) - (AS.prev.at - p.at) / 1000 * AS.prev.rate) > 3) { if (!AS.id) asEstado('leyendo el reloj… ' + m[1] + ':' + m[2]); return; }
-      if (need) {
-        var num = function (x) { var q = String(x || '').match(/\d+(\.\d)?/); return q ? parseFloat(q[0]) : null; };
-        var tags = [String(r.tagI || '').trim(), String(r.tagD || '').trim()];
-        var gold = [num(r.oroI), num(r.oroD)], kills = [num(r.killI), num(r.killD)];
-        var id = await R.identify({gt: gt, tags: tags, gold: gold[0] != null && gold[1] != null ? gold : null, kills: kills[0] != null && kills[1] != null ? kills : null});
-        if (id && (!AS.id || id.matchId !== AS.id.matchId || id.juego !== AS.id.juego)) { AS.id = id; anclar(v, gt); }
+      var ct = v.currentTime, gt = null, zi = null, txt = '', zonas = AS.zona != null ? [AS.zona] : RELOJES.map(function (z, i) { return i; });
+      for (var i = 0; i < zonas.length; i++) {
+        var m = L.recorte(v, RELOJES[zonas[i]], 'blanco'); txt = L.numeros(m, '0123456789'); gt = parseReloj(txt);
+        if (diagEl.classList.contains('show') && (gt != null || i === 0)) AS.diag.img = L.png(m);
+        if (gt != null) { zi = zonas[i]; break; }
       }
-      if (!AS.id) { asEstado('no reconozco el partido todavía…'); return; }
-      var e = esperado(v);
-      if (e == null || Math.abs(gt - e) > 2) anclar(v, gt);
-      asEstado('auto · ' + AS.id.codes.join(' vs ') + ' · J' + AS.id.juego + ' · ' + m[1] + ':' + m[2], true);
+      AS.diag.reloj = txt || '(nada)'; AS.diag.zona = zi;
+      if (gt == null) {
+        if (++AS.fallas >= 5) AS.zona = null;
+        asEstado(AS.id ? 'sincronizado · ' + AS.id.codes.join(' vs ') + ' · sin reloj a la vista' : 'buscando el reloj del juego…', !!AS.id);
+        seguir(v); return;
+      }
+      AS.fallas = 0; AS.visto = Date.now();
+      AS.lect.push({gt: gt, ct: ct}); if (AS.lect.length > 6) AS.lect.shift();
+      // dos lecturas que avanzan igual que el video antes de confiar (descarta errores sueltos del lector)
+      var off = gt - ct, apoyo = AS.lect.filter(function (r) { return Math.abs((r.gt - r.ct) - off) <= 1.6; }).length;
+      if (apoyo < 2) { if (!AS.id) asEstado('leyendo el reloj… ' + mmss(gt)); return; }
+      AS.zona = zi;
+      var salto = AS.off == null || Math.abs(off - AS.off) > 30;
+      if (AS.off == null || Math.abs(off - AS.off) > 1.2) AS.off = off;
+      AS.diag.desfase = off;
+      if (!AS.id || salto || AS.n % 30 === 0) {
+        asEstado('reconociendo el partido…', !!AS.id);
+        var id = await identificar(v, gt);
+        if (id && (!AS.id || id.matchId !== AS.id.matchId || id.juego !== AS.id.juego)) { AS.id = id; AS.playing = null; publicar(); }
+      }
+      if (!AS.id) { asEstado('no reconozco el partido (mirá el diagnóstico)'); return; }
+      seguir(v);
+      asEstado('auto · ' + AS.id.codes.join(' vs ') + ' · J' + AS.id.juego + ' · ' + mmss(gt), true);
+      if (AS.n % 5 === 0) publicar();
     } catch (err) {
-      asEstado(/insecure|tainted|SecurityError/i.test(String(err)) ? 'este video no se puede leer (protegido)' : 'auto-sync: ' + String(err).slice(0, 40));
-    } finally { AS.busy = false; }
+      asEstado(/insecure|tainted|SecurityError/i.test(String(err)) ? 'este video no se puede leer (protegido)' : 'auto-sync: ' + String(err).slice(0, 60));
+    } finally { AS.busy = false; pintarDiag(); if (LAST) render(LAST); }
   }
-  setInterval(function () { asTick(); }, 2000);
-  // pausa, velocidad o salto del video: re-anclar al instante con lo que ya sabemos
-  ['pause', 'play', 'ratechange'].forEach(function (ev) { document.addEventListener(ev, function (e) {
-    if (!AS.on || !AS.id || e.target !== mainVideo()) return; var g = esperado(e.target); if (g != null) anclar(e.target, g); }, true); });
-  document.addEventListener('seeked', function (e) { if (AS.on && e.target === mainVideo()) { AS.anchor = null; AS.prev = null; } }, true);
+  function pintarDiag() {
+    if (!diagEl.classList.contains('show')) return;
+    var d = AS.diag, sg = function (s) { return (s || []).map(function (x) { return esc(x.code) + ' ' + x.s.toFixed(2); }).join(', ') || '—'; };
+    var mk = d.marcador || {};
+    diagEl.innerHTML = '<div class="dg-t">Diagnóstico del auto-sync</div>' +
+      '<div class="dg-r"><span>Estado</span><b>' + esc(d.estado || '—') + '</b></div>' +
+      '<div class="dg-r"><span>Reloj leído</span><b>' + esc(d.reloj || '—') + (d.zona != null ? ' · zona ' + (d.zona + 1) : '') + '</b></div>' +
+      (d.img ? '<img class="dg-i" src="' + d.img + '" alt="">' : '') +
+      '<div class="dg-r"><span>Siglas izq.</span><b>' + sg(d.siglas && d.siglas[0]) + '</b></div>' +
+      '<div class="dg-r"><span>Siglas der.</span><b>' + sg(d.siglas && d.siglas[1]) + '</b></div>' +
+      '<div class="dg-r"><span>Kills · oro</span><b>' + (mk.kills ? mk.kills.join('–') : '—') + ' · ' + (mk.gold ? mk.gold.join('k – ') + 'k' : '—') + '</b></div>' +
+      '<div class="dg-r"><span>Partido</span><b>' + esc(d.partido || '—') + '</b></div>' +
+      (d.campeones ? '<div class="dg-r"><span>Campeones</span><b>' + esc(d.campeones.join(' · ')) + '</b></div>' : '') +
+      '<div class="dg-r"><span>Video</span><b>' + (function () { var v = mainVideo(); return v ? v.videoWidth + '×' + v.videoHeight + ' · ' + mmss(v.currentTime) + (v.paused ? ' · en pausa' : '') : 'no hay video'; })() + '</b></div>' +
+      '<div class="dg-n">Si no sincroniza, sacá una captura de este cuadro.</div>';
+  }
+  setInterval(function () { asTick(); }, 1500);
+  // pausa, velocidad o salto del video: el minuto sale de la posición del video, así que basta con volver a atar
+  ['pause', 'play', 'ratechange', 'seeked', 'waiting', 'playing'].forEach(function (ev) { document.addEventListener(ev, function (e) {
+    if (!AS.on || e.target !== mainVideo()) return;
+    if (ev === 'seeked') AS.lect = [];  // tras un salto, confirmar de nuevo con el reloj
+    AS.playing = null; seguir(e.target); }, true); });
 
   R.onUpdate(render);
   if (!window.RP_NO_AUTOSTART) R.start();

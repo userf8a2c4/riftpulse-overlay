@@ -38,19 +38,10 @@ chrome.alarms.create('rp-actualizar', {periodInMinutes: 360});
 chrome.alarms.onAlarm.addListener(a => { if (a.name === 'rp-actualizar') instalarOverlay(); });
 
 // ---------- mensajes del overlay (como content script o como script de usuario) ----------
-async function documentoOCR() {
-  if (await chrome.offscreen.hasDocument()) return;
-  await chrome.offscreen.createDocument({url: 'ocr.html', reasons: ['WORKERS'], justification: 'Leer el reloj y el marcador del video para sincronizar el overlay'});
-}
 function atender(msg, sender, send) {
   if (!msg) return;
-  if (msg.type === 'rp-ocr') {
-    documentoOCR()
-      .then(() => chrome.runtime.sendMessage({target: 'ocr', images: msg.images, wl: msg.wl, psm: msg.psm}))
-      .then(r => send(r || {}), e => send({error: String(e)}));
-    return true;
-  }
   if (msg.type === 'rp-cmd-get') { chrome.storage.local.get(['rp_cmd'], o => send(o || {})); return true; }
+  if (msg.type === 'rp-pantalla') { chrome.storage.local.set({rp_pantalla: msg.data || null}).then(() => send({ok: true})); return true; }
   if (msg.type === 'rp-reinstalar') { instalarOverlay().then(() => send({ok: true})); return true; }
 }
 chrome.runtime.onMessage.addListener(atender);
