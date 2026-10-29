@@ -100,7 +100,7 @@
   .rift{display:grid;grid-template-columns:minmax(260px,380px) 1fr;gap:18px;align-items:start}
   @media(max-width:820px){.rift{grid-template-columns:1fr}}
   .rift svg{width:100%;height:auto;display:block}
-  .rift .pt{cursor:pointer}
+  .rift .pt,.rift [data-pt]{cursor:pointer}
   .rift .pt circle.r{transition:r .2s}
   .rift .pt:hover circle.r,.rift .pt.on circle.r{stroke:#f2c14e;stroke-width:1.2}
   .rift .pls{animation:rpp 1.6s ease-out infinite;transform-origin:center;transform-box:fill-box}
@@ -245,29 +245,61 @@
   // ---------- mapa de la Grieta: puntos con datos, se tocan para ver el detalle ----------
   var RSEL='dragon';
   var DRAGCOL={Infernal:'#ff6b3d',Océano:'#3db7ff',Montaña:'#c9a46b',Nube:'#cfd8e6',Hextech:'#5ee0e6',Quimtech:'#9be35a',Ancestral:'#b48cff'};
+  // Torres en el mapa (lado azul; el rojo es el reflejo): [línea, nivel, x, y]. El feed oficial dice cuántas cayeron,
+  // no cuáles: se marcan en el orden habitual de caída y se avisa que es estimado.
+  var TORRES=[['bot',1,72,91],['top',1,9,28],['mid',1,41,59],['bot',2,50,89],['mid',2,34,66],['top',2,10,50],['mid',3,27,73],['bot',3,31,89],['top',3,11,69],['nex',1,16,80],['nex',2,20,84]];
+  var INHIBS=[['mid',22,78],['bot',26,89],['top',11,75]];
+  var LINEA={top:'Top',mid:'Mid',bot:'Bot',nex:'Nexo'};
+  function refl(x,y,side){ return side==='blue'?[x,y]:[100-x,100-y]; }
+  function killsDe(g){  // cronología de kills a partir del feed (cada ~10 s): {gt, side, n}
+    var out=[], sm=g.samples||[], pb=0, pr=0;
+    sm.forEach(function(x){ if(x.kb==null) return; if(x.kb>pb) out.push({gt:x.gt,side:'blue',n:x.kb-pb}); if(x.kr>pr) out.push({gt:x.gt,side:'red',n:x.kr-pr}); pb=Math.max(pb,x.kb); pr=Math.max(pr,x.kr); });
+    return out;
+  }
   function riftCard(s){
     var m=s.match, g=s.game, t=g.timers||{}, ev=g.events||[], st=g.stats||{blue:{},red:{}};
     var recent=function(kinds){ return ev.some(function(e){ return kinds.indexOf(e.kind)>=0 && g.gt-e.gt<=60; }); };
     var lastOf=function(kinds){ return ev.filter(function(e){ return kinds.indexOf(e.kind)>=0; }).slice(-1)[0]; };
     var dl=lastOf(['dragon','elder']), bl=lastOf(['baron']);
     var col=function(e,def){ return e?(e.side==='blue'?'#4aa3ff':'#ff5a5f'):def; };
-    var pt=function(id,x,y,c,label,pulse){
-      return '<g class="pt'+(RSEL===id?' on':'')+'" data-pt="'+id+'">'+(pulse?'<circle class="pls" cx="'+x+'" cy="'+y+'" r="4" fill="'+c+'"/>':'')+
-        '<circle class="r" cx="'+x+'" cy="'+y+'" r="4.2" fill="'+c+'" stroke="#0b1220" stroke-width=".8"/><text x="'+x+'" y="'+(y+8.6)+'" text-anchor="middle" font-size="3.4" fill="#c8d3ea" font-family="Oswald,sans-serif" letter-spacing=".3">'+label+'</text></g>';
+    var kl=killsDe(g), kRec=kl.filter(function(k){ return g.gt-k.gt<=40; }).length>0;
+    var pt=function(id,x,y,c,label,pulse,r,arriba){
+      r=r||4.2;
+      return '<g class="pt'+(RSEL===id?' on':'')+'" data-pt="'+id+'">'+(pulse?'<circle class="pls" cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+c+'"/>':'')+
+        '<circle class="r" cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+c+'" stroke="#0b1220" stroke-width=".8"/><text x="'+x+'" y="'+(arriba?y-r-2:y+r+4.4)+'" text-anchor="middle" font-size="3.4" fill="#c8d3ea" font-family="Oswald,sans-serif" letter-spacing=".3" paint-order="stroke" stroke="#0b1220" stroke-width="1.2">'+label+'</text></g>';
     };
+    // torres e inhibidores de cada lado
+    var estr='';
+    ['blue','red'].forEach(function(side){
+      var foe=side==='blue'?'red':'blue', caidas=(st[foe]||{}).towers||0, c=side==='blue'?'#4aa3ff':'#ff5a5f';
+      TORRES.forEach(function(tw,i){ var p=refl(tw[2],tw[3],side), down=i<caidas;
+        estr+='<g data-pt="'+side+'" class="tw"><rect x="'+(p[0]-1.6)+'" y="'+(p[1]-1.6)+'" width="3.2" height="3.2" transform="rotate(45 '+p[0]+' '+p[1]+')" fill="'+(down?'#0b1220':c)+'" stroke="'+(down?'#55607a':c)+'" stroke-width=".6" opacity="'+(down?.75:1)+'"/>'+(down?'<path d="M'+(p[0]-1.4)+' '+(p[1]-1.4)+' L'+(p[0]+1.4)+' '+(p[1]+1.4)+'" stroke="#8b97b0" stroke-width=".5"/>':'')+'</g>'; });
+      var inhDown=(t.inhibs||[]).filter(function(x){ return x.side===side&&x.until>g.gt; }).length;
+      INHIBS.forEach(function(ih,i){ var p=refl(ih[1],ih[2],side), down=i<inhDown;
+        estr+='<circle data-pt="'+side+'" cx="'+p[0]+'" cy="'+p[1]+'" r="1.7" fill="'+(down?'#0b1220':'#e8edf7')+'" stroke="'+c+'" stroke-width=".7" stroke-dasharray="'+(down?'1 .8':'0')+'"/>'; });
+    });
     var svg='<svg viewBox="0 0 100 100" role="img" aria-label="Mapa de la Grieta del Invocador">'+
-      '<defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#11233f"/><stop offset="1" stop-color="#1a1426"/></linearGradient></defs>'+
+      '<defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#132a46"/><stop offset="1" stop-color="#1c1528"/></linearGradient></defs>'+
       '<rect x="1" y="1" width="98" height="98" rx="5" fill="url(#rg)" stroke="#263352"/>'+
-      '<path d="M8 8 L92 92" stroke="#1e4d73" stroke-width="9" opacity=".45"/>'+
-      '<path d="M12 88 L12 12 L88 12 M12 88 L88 88 L88 12 M14 86 L86 14" stroke="#3a4a6b" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".9"/>'+
-      '<circle cx="12" cy="88" r="9" fill="rgba(74,163,255,.18)" stroke="#4aa3ff" stroke-width=".8"/><circle cx="88" cy="12" r="9" fill="rgba(255,90,95,.16)" stroke="#ff5a5f" stroke-width=".8"/>'+
-      pt('baron',33,33,col(bl,'#8a63d2'),'BARÓN',recent(['baron']))+
-      pt('dragon',67,67,col(dl,'#e0a33a'),'DRAGÓN',recent(['dragon','elder']))+
-      pt('blue',12,88,'#4aa3ff',esc(m.blue.code),recent(['inhib','tower'])&&ev.slice(-1)[0].side==='red')+
-      pt('red',88,12,'#ff5a5f',esc(m.red.code),recent(['inhib','tower'])&&ev.slice(-1)[0].side==='blue')+
+      '<path d="M8 8 L92 92" stroke="#1e4d73" stroke-width="7" opacity=".4"/>'+  // río
+      '<path d="M10 82 L9 9 L82 10 M18 91 L91 90 L90 18 M17 83 L83 17" stroke="#3a4a6b" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".85"/>'+  // líneas
+      '<circle cx="13" cy="87" r="7.5" fill="rgba(74,163,255,.16)" stroke="#4aa3ff" stroke-width=".8"/><circle cx="87" cy="13" r="7.5" fill="rgba(255,90,95,.14)" stroke="#ff5a5f" stroke-width=".8"/>'+
+      '<text x="5" y="50" font-size="3" fill="#6a7a9c" transform="rotate(-90 5 50)" text-anchor="middle" font-family="Oswald,sans-serif">TOP</text><text x="50" y="97.5" font-size="3" fill="#6a7a9c" text-anchor="middle" font-family="Oswald,sans-serif">BOT</text>'+
+      estr+
+      pt('baron',30,30,col(bl,'#8a63d2'),'BARÓN',recent(['baron']))+
+      pt('dragon',70,70,col(dl,'#e0a33a'),'DRAGÓN',recent(['dragon','elder']))+
+      pt('kills',50,50,'#f2c14e',(st.blue.kills||0)+' – '+(st.red.kills||0)+' KILLS',kRec,5,true)+
+      pt('blue',13,87,'#4aa3ff',esc(m.blue.code),recent(['inhib','tower'])&&ev.slice(-1)[0].side==='red',3.2)+
+      pt('red',87,13,'#ff5a5f',esc(m.red.code),recent(['inhib','tower'])&&ev.slice(-1)[0].side==='blue',3.2)+
       '</svg>';
     var d='';
-    if(RSEL==='dragon'){
+    if(RSEL==='kills'){
+      var f=g.fight;
+      d='<h3>Kills · <span class="b">'+esc(m.blue.code)+' '+(st.blue.kills||0)+'</span> – <span class="r">'+(st.red.kills||0)+' '+esc(m.red.code)+'</span></h3>'+
+        (f&&f.gt!=null?'<div class="kv"><span>Última pelea: min <b>'+mmss(f.gt)+'</b> · la ganó <b class="'+sc(f.win)+'">'+esc(f.win==='blue'?m.blue.code:m.red.code)+'</b></span></div>':'')+
+        (kl.length?kl.slice().reverse().map(function(k){ return '<div class="ln"><span class="t">'+mmss(k.gt)+'</span><span><b class="'+sc(k.side)+'">'+esc(k.side==='blue'?m.blue.code:m.red.code)+'</b> '+(k.n>1?'consigue '+k.n+' kills':'consigue una kill')+'</span></div>'; }).join(''):'<div class="note">Todavía no hubo kills.</div>')+
+        '<div class="note">El feed oficial da las kills cada ~10 s, sin la posición en el mapa.</div>';
+    } else if(RSEL==='dragon'){
       var dr=ev.filter(function(e){ return e.kind==='dragon'||e.kind==='elder'; });
       var next=t.dragon&&t.dragon.at>g.gt?(t.dragon.elder?'Ancestral':'Dragón')+' en '+mmss(t.dragon.at-g.gt):'—';
       var soul=function(side){ var n=(st[side]||{}).dragons||0; return n>=4?'¡alma!':n===3?'punto de alma':n+' dragones'; };
@@ -280,13 +312,15 @@
         (ba.length?ba.map(function(e){ return '<div class="ln"><span class="t">'+mmss(e.gt)+'</span><span><b class="'+sc(e.side)+'">'+esc(e.side==='blue'?m.blue.code:m.red.code)+'</b> toma el Barón Nashor</span></div>'; }).join(''):'<div class="note">Todavía nadie tomó el Barón.</div>');
     } else {
       var side=RSEL, foe=side==='blue'?'red':'blue', code=side==='blue'?m.blue.code:m.red.code;
-      var downs=(t.inhibs||[]).filter(function(i){ return i.side===foe&&i.until>g.gt; });
-      var es=st[side]||{}, ef=st[foe]||{};
-      d='<h3 class="'+sc(side)+'">Base de '+esc(code)+'</h3><div class="kv"><span>Torres perdidas: <b>'+(ef.towers||0)+'</b></span><span>Inhibidores caídos: <b>'+downs.length+'</b></span><span>Oro: <b>'+k1(es.gold||0)+'</b></span><span>Kills: <b>'+(es.kills||0)+'</b></span></div>'+
+      var downs=(t.inhibs||[]).filter(function(i){ return i.side===side&&i.until>g.gt; });
+      var es=st[side]||{}, ef=st[foe]||{}, perd=Math.min(11,ef.towers||0);
+      var porLinea={}; TORRES.slice(0,perd).forEach(function(tw){ porLinea[tw[0]]=(porLinea[tw[0]]||0)+1; });
+      d='<h3 class="'+sc(side)+'">Base de '+esc(code)+'</h3><div class="kv"><span>Torres perdidas: <b>'+perd+' de 11</b></span><span>Torres derribadas al rival: <b>'+(es.towers||0)+'</b></span><span>Inhibidores caídos: <b>'+downs.length+'</b></span><span>Oro: <b>'+k1(es.gold||0)+'</b></span><span>Kills: <b>'+(es.kills||0)+'</b></span><span>Dragones: <b>'+(es.dragons||0)+'</b> · Barones: <b>'+(es.barons||0)+'</b></span></div>'+
+        (perd?'<div class="ln"><span class="t">estimado</span><span>'+Object.keys(porLinea).map(function(k){ return LINEA[k]+' '+porLinea[k]; }).join(' · ')+'</span></div>':'')+
         (downs.length?downs.map(function(i){ return '<div class="ln"><span class="t">reaparece en '+mmss(i.until-g.gt)+'</span><span>Inhibidor caído</span></div>'; }).join(''):'')+
-        '<div class="note">El feed da cuántas torres cayeron, no cuáles: por eso se muestran en la base.</div>';
+        '<div class="note">El feed oficial da cuántas torres cayeron, no cuáles: en el mapa se marcan en el orden habitual de caída.</div>';
     }
-    return '<div class="rift"><div>'+svg+'</div><div class="rdt">'+d+'<div class="note">Tocá un punto del mapa: dragón, Barón o cada base.</div></div></div>';
+    return '<div class="rift"><div>'+svg+'</div><div class="rdt">'+d+'<div class="note">Tocá un punto del mapa: kills, dragón, Barón o cada base.</div></div></div>';
   }
 
   // ---------- gráficos ----------
