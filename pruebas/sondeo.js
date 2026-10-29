@@ -24,7 +24,12 @@ const iso = t => { const d = new Date(Math.floor(t / 10000) * 10000); return d.t
   const p = d15 && d15.frames && d15.frames[d15.frames.length - 1].participants[0];
   out.feed = {frameVentana: Object.keys(w15.frames[0].blueTeam), participanteDetalle: p ? Object.keys(p) : null, ejemplo: p ? {level: p.level, items: p.items, wardsPlaced: p.wardsPlaced, wardsDestroyed: p.wardsDestroyed} : null};
   // el motor real sobre ese juego real, en el minuto 22
-  const b = await chromium.launch(), pg = await (await b.newContext()).newPage();
+  // las páginas salen de este repositorio (no de la publicada): así se prueba el código recién subido
+  const b = await chromium.launch(), cx = await b.newContext();
+  await cx.route(/userf8a2c4\.github\.io\/riftpulse-overlay\//, r => { const f = path.join(__dirname, '..', decodeURIComponent(new URL(r.request().url()).pathname.replace('/riftpulse-overlay/', '')) || 'index.html');
+    if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) return r.continue();
+    r.fulfill({contentType: {'.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.svg': 'image/svg+xml'}[path.extname(f)] || 'application/octet-stream', body: fs.readFileSync(f)}); });
+  const pg = await cx.newPage();
   pg.on('pageerror', e => (out.errores = out.errores || []).push(e.message));
   await pg.goto('https://userf8a2c4.github.io/riftpulse-overlay/control.html'); await pg.waitForTimeout(3000);
   await pg.evaluate(([m, n]) => RiftEngine.replay(m, n, 22, 1), [hecho.match.id, g.number]); await pg.waitForTimeout(12000);
