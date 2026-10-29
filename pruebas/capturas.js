@@ -6,8 +6,9 @@ process.env.RP_FUENTES = '1';
 const OUT = path.join(GEN, 'capturas'); fs.mkdirSync(OUT, {recursive: true});
 const filtro = process.argv[2] || '';
 const VISTAS = [
-  ['app-inicio', 'app.html', 1440, 1000, p => p.evaluate(() => setVista('inicio'))],
-  ['app-envivo', 'app.html', 1440, 1000, p => p.evaluate(() => setVista('partido'))],
+  ['app-ahora', 'app.html', 1440, 1000, p => p.evaluate(() => setVista('ahora'))],
+  ['app-ahora-celular', 'app.html', 390, 1500, p => p.evaluate(() => setVista('ahora'))],
+  ['app-detalles', 'app.html', 1440, 1000, p => p.evaluate(() => setVista('partido'))],
   ['app-mundial', 'app.html', 1440, 1000, p => p.evaluate(() => setVista('copa'))],
   ['app-mando-panel', 'app.html', 420, 900, p => p.evaluate(() => setVista('mando'))],
   ['mesa', 'analista.html', 1440, 1000, null],

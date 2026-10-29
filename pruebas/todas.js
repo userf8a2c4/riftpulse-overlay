@@ -7,7 +7,8 @@ const PRUEBAS = [['Sincronía con el video', 't_sincronia'], ['Fallos del feed, 
   .concat(fs.existsSync(path.join(__dirname, 't_contraste.js')) ? [['Contraste de colores de equipo', 't_contraste']] : [])
   .concat(fs.existsSync(path.join(__dirname, 't_director.js')) ? [['Director automático', 't_director']] : [])
   .concat(fs.existsSync(path.join(__dirname, 't_magia.js')) ? [['Overlay que lee la sala', 't_magia']] : [])
-  .concat(fs.existsSync(path.join(__dirname, 't_historia.js')) ? [['Información que cuenta la historia', 't_historia']] : []);
+  .concat(fs.existsSync(path.join(__dirname, 't_historia.js')) ? [['Información que cuenta la historia', 't_historia']] : [])
+  .concat(fs.existsSync(path.join(__dirname, 't_app.js')) ? [['App para fans', 't_app']] : []);
 (async () => {
   const solo = process.argv[2]; let mal = [];
   for (const [nombre, f] of PRUEBAS) {

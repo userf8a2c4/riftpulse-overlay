@@ -143,6 +143,32 @@ table.camino td{padding:3px 6px;border-bottom:1px solid var(--line-2)}table.cami
 .up-row:first-of-type{border-top:0}.up-row>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.up-row>span:last-child{white-space:nowrap}
 @media (max-width:1100px){.inicio{grid-template-columns:repeat(2,minmax(0,1fr))}.inicio .hero,.inicio .wide2{grid-column:1 / -1}}
 @media (max-width:700px){.inicio{grid-template-columns:minmax(0,1fr)}.inicio .hero,.inicio .mid,.inicio .foot,.inicio .wide2,.inicio .tall{grid-column:auto;height:auto}.hero-grid{grid-template-columns:1fr}}
+/* «Ahora»: el partido arriba; al lado, la historia del juego y mis equipos; abajo, el gráfico y los detalles plegables */
+.ahora{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px;margin-top:8px}
+.ahora .hero{grid-column:1 / -1}.ahora .pm{white-space:normal}
+.ahora .card{display:flex;flex-direction:column;overflow:hidden}.ahora .card>*{flex-shrink:0}
+#ahHist[hidden]+#ahFav{grid-column:1 / -1}
+@media (max-width:900px){.ahora{grid-template-columns:minmax(0,1fr)}}
+.ah-det{display:flex;align-items:center;gap:12px;margin:12px 0 0;flex-wrap:wrap}
+.pgrid.plegado{display:block}.pgrid.plegado>section:not(.a-chart){display:none}
+#vistaPartido.sinjuego .pgrid,#vistaPartido.sinjuego .ah-det{display:none}
+.ah-h{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px}
+@media (max-width:1100px){.ah-h{grid-template-columns:1fr}}
+.ah-ol{margin:0;padding:0;list-style:none;counter-reset:h}
+.ah-ol li{position:relative;padding:7px 0 7px 28px;border-top:1px solid var(--line-2);font-size:15px;line-height:1.5}
+.ah-ol li:first-child{border-top:0}
+.ah-ol li::before{counter-increment:h;content:counter(h);position:absolute;left:0;top:9px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font:700 12px var(--ffm);color:var(--signal-ink);background:var(--signal)}
+.ah-k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:10px 0 4px}.ah-k:first-child{margin-top:0}
+.ah-v{font-size:14px;line-height:1.5}
+.ah-chg{display:flex;flex-wrap:wrap;gap:6px}
+.ah-chg span{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:999px;font-size:13px;font-weight:600;background:var(--g2);border:1px solid var(--line)}
+.fav-chips{display:flex;flex-wrap:wrap;gap:6px;max-height:156px;overflow:auto}
+.fav-chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px;border-radius:999px;border:1px solid var(--line-strong);background:var(--g2);color:var(--text);font:600 13px var(--ff);cursor:pointer}
+.fav-chip img{width:18px;height:18px;object-fit:contain}.fav-chip.on{border-color:var(--signal);box-shadow:inset 0 0 0 1px var(--signal)}
+.fav-chip.on::before{content:'★';color:var(--signal)}
+.fav-ln{display:flex;align-items:center;gap:8px;min-height:36px;border-top:1px solid var(--line-2);font-size:13.5px}.fav-ln:first-child{border-top:0}
+.fav-ln img{width:22px;height:22px;object-fit:contain}.fav-ln .pm{margin-left:auto;text-align:right}
+.up-row.fav,.repm.fav{box-shadow:inset 3px 0 0 var(--signal);padding-left:8px}
 .inicio .card{display:flex;flex-direction:column;overflow:hidden}.iv-top{display:flex;align-items:center;gap:8px;font-size:18px;margin-bottom:8px;flex-wrap:wrap}
 .iv-sc{font-size:24px;font-weight:800;margin:0 6px}.iv-st{font-size:13px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .iv-bar{display:grid;grid-template-columns:70px 1fr 44px;gap:6px;align-items:center;font-size:13px;margin-top:4px}.iv-bar>div{background:var(--panel2);height:8px;border-radius:3px}.iv-bar>div>div{height:8px;border-radius:3px;background:var(--gold)}.iv-bar>span:last-child{text-align:right}
@@ -258,6 +284,8 @@ details.sync{position:relative}
 details.sync summary{list-style:none;cursor:pointer;padding:5px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--line-2);font-size:12px;color:var(--muted);white-space:nowrap}
 details.sync summary::-webkit-details-marker{display:none}details.sync summary:hover{border-color:var(--blue);color:var(--text)}
 details.sync[open] summary{border-color:var(--blue);color:var(--text)}
+details.spx.on summary{border-color:var(--signal);color:var(--signal)}
+.sp-op{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}.sp-op button{height:34px;border-radius:8px;border:1px solid var(--line-strong);background:var(--g2);color:var(--text);font:600 12.5px var(--ff);cursor:pointer}.sp-op button.on{border-color:var(--signal);box-shadow:inset 0 0 0 1px var(--signal)}
 .syncpop{position:absolute;right:0;top:calc(100% + 8px);z-index:20;width:270px;background:var(--g1);border:1px solid var(--line-strong);border-radius:12px;padding:12px;box-shadow:0 12px 32px rgba(0,0,0,.45)}
 .syncpop .row{display:flex;gap:6px;margin:8px 0}.syncpop .row button{flex:1}
 .syncpop button{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit;font-size:13px;cursor:pointer}
@@ -408,6 +436,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
 .hx-pt.up .hx-pk{color:var(--muted)}.hgames button .mk2.up{color:var(--gold)}
 .pr-verd.up{background:rgba(var(--signal-rgb),.12);border-color:rgba(var(--signal-rgb),.5)}.pr-verd.up span{background:var(--gold);color:#2a2108}
 #repbar{display:flex;align-items:center;gap:12px;margin-top:8px;flex-wrap:wrap}
+#repbar .pm{white-space:normal;min-width:0;flex:1 1 220px}
 .reppick{position:relative}
 .reppick summary{list-style:none;cursor:pointer;padding:7px 14px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);font-size:13px;font-weight:600}
 .reppick summary::-webkit-details-marker{display:none}.reppick summary:hover{border-color:var(--blue)}.reppick[open] summary{border-color:var(--blue)}
@@ -445,6 +474,24 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
 .fs-rc h4{margin:0 0 6px;font-family:var(--ff-display);font-size:15px;display:flex;justify-content:space-between}.fs-rc h4 span{font-size:12px;color:var(--muted);font-family:var(--ff);font-weight:600;letter-spacing:.6px;text-transform:uppercase}
 .fs-rc.q{border-color:rgba(61,220,151,.45)}.fs-rc.q h4 span{color:var(--ok)}.fs-rc.x{opacity:.6}
 .fs-rc .tl{display:flex;align-items:center;gap:6px;font-size:13px;padding:2px 0}.fs-rc .tl img{width:16px;height:16px;object-fit:contain}
+/* fase suiza visual: una columna por ronda, cada récord en su caja y los caminos del ganador (arriba) y del perdedor (abajo) */
+.sw-wrap{position:relative;overflow-x:auto;padding-bottom:6px}
+.sw-grid{position:relative;display:grid;grid-template-columns:repeat(6,minmax(150px,1fr));gap:0 34px;min-width:1000px;align-items:center}
+.sw-col{display:flex;flex-direction:column;gap:12px;justify-content:center}
+.sw-col h5{margin:0 0 2px;font:700 12px var(--ff);letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:center}
+.sw-box{position:relative;z-index:1;background:var(--g1);border:1px solid var(--line-strong);border-radius:10px;padding:6px 8px}
+.sw-box .hd{display:flex;justify-content:space-between;align-items:baseline;font:800 15px var(--ffd);letter-spacing:.5px;margin-bottom:3px}
+.sw-box .hd span{font:600 12px var(--ff);color:var(--muted)}
+.sw-m{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:4px;height:26px;font-size:13px;border-top:1px solid var(--line-2);cursor:pointer}
+.sw-m:first-of-type{border-top:0}.sw-m:hover{background:rgba(var(--signal-rgb),.06)}
+.sw-m .t{display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden;white-space:nowrap}.sw-m .t.r{justify-content:flex-end}
+.sw-m .t img{width:16px;height:16px;object-fit:contain;flex:none}.sw-m .t.pierde{opacity:.42}.sw-m .t.gana b{color:var(--text)}
+.sw-m .sc{font:700 12px var(--ffm);color:var(--muted);padding:0 2px}.sw-m.envivo .sc{color:var(--live)}.sw-m.envivo{background:rgba(255,77,90,.06)}
+.sw-m.fav{box-shadow:inset 2px 0 0 var(--signal)}
+.sw-box.q{border-color:rgba(var(--signal-rgb),.6);background:linear-gradient(180deg,rgba(var(--signal-rgb),.08),var(--g1))}.sw-box.q .hd{color:var(--signal)}
+.sw-box.x{opacity:.7;border-style:dashed}
+.sw-tm{display:flex;align-items:center;gap:6px;height:24px;font-size:13px;font-weight:600}.sw-tm img{width:16px;height:16px;object-fit:contain}
+.sw-svg{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:visible}
 .br-m{padding:5px 7px !important}.br-t{font-size:12.5px !important;padding:2px 0 !important}.br-t img,.br-nl{width:16px !important;height:16px !important}.br-mh{font-size:10px !important}
 .br-body,.br-pair{gap:8px !important}
 @media(max-width:560px){.br-wrap .br{display:block;min-width:0}.br-col{margin-bottom:12px}.br-pair::after,.br-pair::before{display:none}}
@@ -536,11 +583,17 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
 <div class="wrap">
   <header class="top">
     <div class="brand"><img class="logo" src="logo.svg" alt="RiftPulse"><div><div class="brand-t">RiftPulse</div><div class="brand-s">League of Legends · Mundial 2026</div><div class="brand-p" id="precHdr"></div><a class="brand-p" href="https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html" target="_blank" rel="noopener" style="color:var(--link);text-decoration:none">¿Cómo funciona? →</a></div></div>
-    <nav class="tabs"><button id="tabInicio">Inicio</button><button id="tabPartido">En Vivo</button><button id="tabCopa">Mundial</button><button id="tabHist">Historial</button><button id="tabMando" title="Centro de mando para streamers y analistas">Mando</button></nav>
+    <nav class="tabs"><button id="tabAhora">Ahora</button><button id="tabCopa">Mundial</button><button id="tabHist">Historial</button><button id="tabMando" title="Centro de mando para streamers y analistas">Mando</button></nav>
     <div class="hstat">
       <select id="sel" title="Partido en vivo" hidden></select>
       <span class="badge" id="estado">—</span>
       <span class="clock" id="reloj" title="Minuto del juego">—</span>
+      <details class="sync spx" id="spx"><summary title="Ocultar resultados que todavía no viste"><span id="spLbl">🙈 Spoilers</span></summary>
+        <div class="syncpop">
+          <div class="pm">Ocultá los resultados que todavía no viste. Se tapan los marcadores en Ahora, el Mundial, el Historial y Mando; tocá uno para verlo.</div>
+          <div class="sp-op"><button data-act="spApp" data-arg="hoy">Ocultar los de hoy</button><button data-act="spApp" data-arg="ayer">Desde ayer</button><button data-act="spApp" data-arg="todo">Todo el Mundial</button><button data-act="spApp" data-arg="">Mostrar todo</button></div>
+        </div>
+      </details>
       <details class="sync"><summary title="Sincronía con el stream">⏱ <b id="ret">60</b> s <span id="retinfo">(auto)</span></summary>
         <div class="syncpop">
           <div class="pm">Retraso frente al stream. Se calcula solo; si ve una kill antes en la página que en el video, súbalo; si va atrasada, bájelo.</div>
@@ -554,6 +607,12 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
   <div class="matchbar"><div class="mt" id="titulo">Worlds 2026</div><div class="ms" id="subtitulo">Buscando partido en vivo…</div></div>
   <div class="status" id="status"></div>
 
+  <div id="vistaAhora">
+  <div class="ahora">
+    <section class="card hero" id="iniVivo"></section>
+    <section class="card" id="ahHist" hidden></section>
+    <section class="card" id="ahFav"></section>
+  </div>
   <div id="vistaPartido">
   <div class="player off" id="player">
     <button id="pBack" class="ib" title="Atrás 30 s (flecha izquierda: 10 s)">−30</button>
@@ -567,9 +626,9 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
   </div>
   <div id="repbar">
     <details class="reppick" id="repDet"><summary>📼 Ver una repetición</summary><div class="reppop" id="repPop"><div class="pm">Cargando…</div></div></details>
-    <span class="pm">Elige un juego ya disputado para verlo aquí mismo, sin salir de Partido.</span>
+    <span class="pm">Elegí un juego ya disputado para verlo aquí mismo, con su historia y su gráfico.</span>
   </div>
-  <div class="pgrid">
+  <div class="pgrid plegado">
     <section class="card a-score"><h2>Marcador</h2><p class="card-help">Cómo va este juego. Cada barra compara a los dos equipos.</p><div id="marcador"><div class="empty">Sin partido en vivo</div></div></section>
     <section class="card a-pred"><h2>¿Quién va a ganar?</h2><p class="card-help">Probabilidad de ganar este juego según el modelo, y por qué.</p><div id="prob"><div class="empty">—</div></div></section>
     <section class="card a-chart"><h2>Cómo va el juego</h2><p class="card-help">Ventaja de oro (área) y probabilidad de ganar (la línea), minuto a minuto.</p><div id="graf"><div class="empty">—</div></div></section>
@@ -579,10 +638,10 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
     <section class="card a-draft"><h2>Draft y composición</h2><p class="card-help">Los campeones elegidos y el plan de juego que sugieren.</p><div id="draft"><div class="empty">Aparece cuando cargan los campeones (al iniciar el juego).</div></div></section>
     <ul class="ag" id="agenda" hidden></ul>
   </div>
+  <div class="ah-det"><button class="mx-btn" id="ahDet" aria-expanded="false">▾ Todos los detalles del juego</button><span class="pm">Marcador, por qué, duelos, objetivos, momentos y draft.</span></div>
   </div>
-  <div id="vistaInicio" hidden>
+  <div id="vistaInicio">
     <div class="inicio">
-      <section class="card hero" id="iniVivo"></section>
       <section class="card hero" id="iniDetalle" hidden></section>
       <section class="card mid" id="iniCopa"></section>
       <section class="card mid" id="iniBet"></section>
@@ -593,6 +652,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
       <section class="card foot" id="iniFiab"></section>
       <section class="card foot" id="iniDatos"></section>
     </div>
+  </div>
   </div>
   <div id="vistaMando" hidden>
     <div class="mx">
@@ -1147,7 +1207,8 @@ function render() {
   if (FREEZE) return;
   tinte();
   if (G && !SCRUB && !PIN && G.events.length) MARKS[G.id] = G.events;
-  renderHead(); renderScore(); renderProb(); renderChart(); renderEvents(); renderDraft(); renderLanes(); renderTimers(); }
+  renderHead(); renderScore(); renderProb(); renderChart(); renderEvents(); renderDraft(); renderLanes(); renderTimers();
+  $('#vistaPartido').classList.toggle('sinjuego', !M); }
 
 function renderDraft() {
   const el = $('#draft');
@@ -1190,10 +1251,10 @@ function renderHead() {
   if ($('#titulo').dataset.k !== kTit) {
     const [A, B] = M.teams, lg = t => t.image ? `<img src="${esc(https(t.image))}" alt="">` : '';
     $('#titulo').dataset.k = kTit;
-    const tapa = sinSpoilers() && EXTST.pantalla.matchId === M.id;
+    const ev0 = schedule.find(x => x.match && x.match.id === M.id), tapa = sinSpoilers() && (spVod() ? EXTST.pantalla.matchId === M.id : !!ev0 && tapado(ev0));
     $('#titulo').innerHTML = `${lg(A)}<span>${esc(A.code)}</span><span class="sc">${tapa ? 'vs' : ((A.result || {}).gameWins ?? 0) + ' – ' + ((B.result || {}).gameWins ?? 0)}</span><span>${esc(B.code)}</span>${lg(B)}`;
   }
-  const n = G ? (M.games.find(g => g.id === G.id) || {}).number : null;
+  const n = G ? juegoN(G.id) : null;
   $('#subtitulo').textContent = [M.league && M.league.name, M.block, M.strategy && 'Mejor de ' + M.strategy.count, n && 'Juego ' + n, (REPLAY || PIN) && (SIGUE ? 'SINCRONIZADO CON TU VIDEO' : 'REPETICIÓN')].filter(Boolean).join(' · ');
   if (!G || G.waiting || !G.last) {
     const live = G && M && (M.games.find(g => g.id === G.id) || {}).state === 'inProgress';
@@ -1233,6 +1294,8 @@ function ensureSeriesGames(ids) {
 // Resumen de la serie para la pantalla previa/entre juegos: marcador, probabilidad de serie y cada mapa jugado.
 function seriesRecap() {
   if (!M || !M.teams || M.teams.length < 2) return '';
+  const ev0 = schedule.find(x => x.match && x.match.id === M.id);
+  if (ev0 && tapado(ev0)) return `<div class="sr-g clk" data-act="revelar" data-arg="${esc(M.id)}"><b>Resultados de la serie ocultos</b> <span class="pm">· para no spoilear · tocá para verlos</span></div>`;
   const [A, B] = M.teams, bo = (M.strategy || {}).count || 1, need = Math.ceil(bo / 2);
   const wa = (A.result || {}).gameWins || 0, wb = (B.result || {}).gameWins || 0, op = ourProbs();
   const done = M.games.filter(g => g.state === 'completed').sort((x, y) => x.number - y.number);
@@ -1853,10 +1916,18 @@ let FASE = null;
 const faseDe = e => /play/i.test(e.blockName || '') ? 'pi' : /suiz|swiss/i.test(e.blockName || '') ? 'sw' : 'ko';
 // ---------- modo sin spoilers: mirando un VOD, no se muestran resultados de ese partido ni de los posteriores ----------
 const REVEL = new Set();
-function sinSpoilers() { return typeof EXTST !== 'undefined' && EXTST.seguir && EXTST.pantalla && EXTST.pantalla.vod && store('spoilers') !== 'ver'; }
-function corteSpoiler() {  // fecha del partido que se está viendo: desde ahí en adelante, todo tapado
-  const p = EXTST.pantalla, e = p && schedule.find(x => x.match && x.match.id === p.matchId);
-  return e ? e.startTime : null;
+// sin spoilers: solo en un VOD que sigue la extensión, o a mano desde el encabezado («ocultar los de hoy», «desde ayer», «todo el Mundial»)
+const spVod = () => typeof EXTST !== 'undefined' && EXTST.seguir && EXTST.pantalla && EXTST.pantalla.vod && store('spoilers') !== 'ver';
+const spApp = () => store('spDesde') || '';
+function sinSpoilers() { return spVod() || !!spApp(); }
+function corteSpoiler() {  // desde esa fecha en adelante, todo tapado: la del partido del VOD o la que eligió el usuario
+  const p = EXTST.pantalla, e = spVod() && p && schedule.find(x => x.match && x.match.id === p.matchId);
+  return e ? e.startTime : spApp() || null;
+}
+function pintarSpx() {
+  const d = $('#spx'), on = !!spApp(); if (!d) return;
+  d.classList.toggle('on', on); $('#spLbl').textContent = on ? '🙈 Sin spoilers' : '🙈 Spoilers';
+  d.querySelectorAll('[data-act="spApp"]').forEach(b => b.classList.toggle('on', (b.dataset.arg || '') === (store('spModo') || '') && (on || !b.dataset.arg)));
 }
 function tapado(e) { if (!sinSpoilers() || REVEL.has(e.match.id)) return false; const c = corteSpoiler(); return !!c && e.startTime >= c && e.state !== 'unstarted'; }
 function serieHTML(e) {
@@ -1876,21 +1947,54 @@ function porDia(list) {
 }
 function suizaHTML(list) {
   if (sinSpoilers() && list.some(tapado)) return `<div class="empty">La tabla por récord queda oculta para no spoilear el VOD que estás viendo. <button class="mx-btn" data-act="spoilers" data-arg="ver">Mostrar resultados</button></div>` + '<div class="fs-day" style="margin-top:14px">Todos los partidos</div>' + porDia(list);
-  const rec = {};
-  list.forEach(e => { e.match.teams.forEach(t => { if (t.code && t.code !== 'TBD') rec[t.code] = rec[t.code] || {w: 0, l: 0}; }); });
-  list.filter(e => e.state === 'completed').forEach(e => {
-    const [a, b] = e.match.teams; if (!rec[a.code] || !rec[b.code]) return;
-    const aw = ((a.result || {}).gameWins || 0) > ((b.result || {}).gameWins || 0);
-    rec[aw ? a.code : b.code].w++; rec[aw ? b.code : a.code].l++;
+  // el récord de cada equipo antes de cada partido (en orden): así cada partido cae en la caja de su récord
+  const rec = {}, cajas = {}, orden = list.slice().sort((a, b) => a.startTime < b.startTime ? -1 : 1);
+  const r0 = c => rec[c] || (rec[c] = {w: 0, l: 0});
+  orden.forEach(e => {
+    const [a, b] = e.match.teams; if (!a.code || !b.code || a.code === 'TBD' || b.code === 'TBD') return;
+    const ra = r0(a.code), rb = r0(b.code), k = ra.w + '-' + ra.l;  // en la suiza se cruzan equipos con el mismo récord
+    (cajas[k] = cajas[k] || []).push(e);
+    if (e.state === 'completed') { const aw = ((a.result || {}).gameWins || 0) > ((b.result || {}).gameWins || 0); (aw ? ra : rb).w++; (aw ? rb : ra).l++; }
   });
-  const grupos = {};
-  Object.keys(rec).forEach(t => { const k = rec[t].w + '-' + rec[t].l; (grupos[k] = grupos[k] || []).push(t); });
-  const orden = Object.keys(grupos).sort((x, y) => { const [a, b] = x.split('-').map(Number), [c, d] = y.split('-').map(Number); return (c - d) - (a - b) || c - a; });
   const lg = t => C.img && C.img[t] ? `<img src="${esc(C.img[t])}" alt="">` : '';
-  const tabla = orden.length ? `<div class="fs-rec">${orden.map(k => { const [w, l] = k.split('-').map(Number), q = w >= 3, x = l >= 3;
-    return `<div class="fs-rc${q ? ' q' : x ? ' x' : ''}"><h4>${k}<span>${q ? 'Clasificado' : x ? 'Eliminado' : 'En juego'}</span></h4>${grupos[k].sort().map(t => `<div class="tl">${lg(t)}<b>${esc(t)}</b></div>`).join('')}</div>`; }).join('')}</div>` : '';
-  return tabla + '<div class="fs-day" style="margin-top:14px">Todos los partidos</div>' + porDia(list);
+  const f = favs();
+  const partido = e => {
+    const [a, b] = e.match.teams, wa = (a.result || {}).gameWins || 0, wb = (b.result || {}).gameWins || 0, done = e.state === 'completed', live = e.state === 'inProgress';
+    const cl = (x, y) => done ? (x > y ? ' gana' : ' pierde') : '';
+    const sc = done ? wa + '–' + wb : live ? '●' : new Date(e.startTime).toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit'});
+    return `<div class="sw-m${live ? ' envivo' : ''}${esFav(e) ? ' fav' : ''}" data-act="h2h" data-arg="${esc(a.code)}|${esc(b.code)}|${esc(e.match.id)}"><span class="t${cl(wa, wb)}">${lg(a.code)}<b>${esc(a.code)}</b></span><span class="sc">${sc}</span><span class="t r${cl(wb, wa)}"><b>${esc(b.code)}</b>${lg(b.code)}</span></div>`;
+  };
+  const caja = (w, l) => {
+    const k = w + '-' + l, fin = w >= 3 || l >= 3;
+    if (fin) {
+      const tms = Object.keys(rec).filter(c => rec[c].w === w && rec[c].l === l).sort((x, y) => (f.includes(y) - f.includes(x)) || (x < y ? -1 : 1));
+      return `<div class="sw-box ${w >= 3 ? 'q' : 'x'}" data-k="${k}"><div class="hd">${k}<span>${w >= 3 ? 'clasifica' : 'eliminado'}</span></div>${tms.map(c => `<div class="sw-tm">${lg(c)}${f.includes(c) ? '★ ' : ''}${esc(c)}</div>`).join('') || '<div class="sw-tm pm">—</div>'}</div>`;
+    }
+    const ms = cajas[k] || [];
+    return `<div class="sw-box" data-k="${k}"><div class="hd">${k}<span>${ms.length ? ms.length + (ms.length === 1 ? ' partido' : ' partidos') : 'por definir'}</span></div>${ms.map(partido).join('')}</div>`;
+  };
+  const cols = [['Ronda 1', [[0, 0]]], ['Ronda 2', [[1, 0], [0, 1]]], ['Ronda 3', [[2, 0], [1, 1], [0, 2]]], ['Ronda 4', [[3, 0], [2, 1], [1, 2], [0, 3]]], ['Ronda 5', [[3, 1], [2, 2], [1, 3]]], ['Final', [[3, 2], [2, 3]]]];
+  const grid = `<div class="sw-wrap"><div class="sw-grid" id="swGrid"><svg class="sw-svg" id="swSvg"></svg>${cols.map(([t, ks]) => `<div class="sw-col"><h5>${t}</h5>${ks.map(([w, l]) => caja(w, l)).join('')}</div>`).join('')}</div></div>`;
+  return grid + '<div class="pm" style="margin-top:6px;white-space:normal">Cada caja es un récord: el que gana sigue por la línea de arriba y el que pierde, por la de abajo. Con 3 victorias clasifica; con 3 derrotas queda afuera.</div><div class="fs-day" style="margin-top:14px">Todos los partidos</div>' + porDia(list);
 }
+// los caminos entre cajas: del récord w-l al (w+1)-l (gana) y al w-(l+1) (pierde)
+function caminosSuiza() {
+  const g = $('#swGrid'), svg = $('#swSvg'); if (!g || !svg) return;
+  const R0 = g.getBoundingClientRect(), box = k => g.querySelector(`.sw-box[data-k="${k}"]`);
+  svg.setAttribute('width', g.scrollWidth); svg.setAttribute('height', g.scrollHeight);
+  let h = '';
+  g.querySelectorAll('.sw-box').forEach(b => {
+    const [w, l] = b.dataset.k.split('-').map(Number); if (w >= 3 || l >= 3) return;
+    const a = b.getBoundingClientRect();
+    [[w + 1, l, true], [w, l + 1, false]].forEach(([w2, l2, gana]) => {
+      const d = box(w2 + '-' + l2); if (!d) return; const c = d.getBoundingClientRect();
+      const x1 = a.right - R0.left, y1 = a.top - R0.top + a.height * (gana ? 0.35 : 0.65), x2 = c.left - R0.left, y2 = c.top - R0.top + c.height / 2, mx = (x1 + x2) / 2;
+      h += `<path d="M${x1} ${y1} C${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}" fill="none" stroke="${gana ? RPC.s : '#6e7686'}" stroke-opacity="${gana ? .55 : .45}" stroke-width="1.5"${gana ? '' : ' stroke-dasharray="4 4"'}/>`;
+    });
+  });
+  svg.innerHTML = h;
+}
+window.addEventListener('resize', () => { if (!$('#vistaCopa').hidden) caminosSuiza(); });
 function renderCuadro() {
   const el = $('#cuadro'); if (!el) return;
   const W26 = schedule.filter(e => e.startTime >= '2026-09-15' && e.match && (e.match.teams || []).length === 2);
@@ -1898,8 +2002,9 @@ function renderCuadro() {
   if (!FASE) FASE = ['ko', 'sw', 'pi'].find(f => de(f).some(e => e.state !== 'unstarted')) || 'pi';
   document.querySelectorAll('#fsTabs button').forEach(b => b.classList.toggle('on', b.dataset.fase === FASE));
   const list = de(FASE);
-  if (FASE === 'ko') { el.innerHTML = koHTML() + '<div class="pm" style="margin-top:8px;white-space:normal">A la derecha de cada equipo: probabilidad de ganar la serie según el sistema. Tocá una serie para el enfrentamiento.</div>'; return; }
-  el.innerHTML = list.length ? (FASE === 'sw' ? suizaHTML(list) : porDia(list)) + '<div class="pm" style="margin-top:8px">Tocá una serie para ver el enfrentamiento.</div>' : '<div class="empty">Todavía no hay partidos de esta fase en el calendario.</div>';
+  if (FASE === 'ko') { el.dataset.k = ''; el.innerHTML = koHTML() + '<div class="pm" style="margin-top:8px;white-space:normal">A la derecha de cada equipo: probabilidad de ganar la serie según el sistema. Tocá una serie para el enfrentamiento.</div>'; return; }
+  const html = list.length ? (FASE === 'sw' ? suizaHTML(list) : porDia(list)) + '<div class="pm" style="margin-top:8px">Tocá una serie para ver el enfrentamiento.</div>' : '<div class="empty">Todavía no hay partidos de esta fase en el calendario.</div>';
+  if (el.dataset.k !== html) { el.dataset.k = html; el.innerHTML = html; if (FASE === 'sw') requestAnimationFrame(caminosSuiza); }
 }
 document.addEventListener('click', e => { const b = e.target.closest('#fsTabs [data-fase]'); if (!b) return; FASE = b.dataset.fase; renderCuadro(); });
 
@@ -2340,11 +2445,64 @@ function fiabResumen() {
     <div class="iv-st">Worlds 2026: <b>${w26.series ? Math.round(w26.serieAcc * w26.series) + '/' + w26.series + ' series' : 'sin series terminadas'}</b></div>`;
 }
 
-// ---------- próximo partido ----------
+// ---------- próximo partido (si uno de mis equipos juega en los próximos 3 días, ese primero) ----------
 let NEXT = null;
 function tickNext() {
-  const e = schedule.find(x => x.state === 'unstarted' && x.match.teams.every(t => t.code && t.code !== 'TBD'));
-  NEXT = e ? {e} : null;
+  const ok = x => x.state === 'unstarted' && x.match.teams.every(t => t.code && t.code !== 'TBD');
+  const e = schedule.find(ok), f = schedule.find(x => ok(x) && esFav(x) && Date.parse(x.startTime) - Date.now() < 3 * 86400e3);
+  NEXT = f || e ? {e: f || e, fav: !!f} : null;
+  favAvisos();
+}
+const juegoN = id => { const i = M && M.games ? M.games.findIndex(g => g.id === id) : -1; return i < 0 ? null : M.games[i].number || i + 1; };
+// ---------- mis equipos: se destacan en todo, avisan cuando juegan y van primero ----------
+const favs = () => { try { return JSON.parse(store('favs') || '[]'); } catch (e) { return []; } };
+const esFav = e => { const f = favs(); return !!(e && e.match && f.length && e.match.teams.some(t => f.includes(t.code))); };
+function equiposMundial() {
+  const vistos = {};
+  schedule.forEach(e => (e.match.teams || []).forEach(t => { if (t.code && t.code !== 'TBD' && !vistos[t.code]) vistos[t.code] = t.image ? https(t.image) : ''; }));
+  return Object.keys(vistos).sort().map(c => ({code: c, img: vistos[c]}));
+}
+// con los avisos de mis equipos encendidos, cada partido nuevo de ellos queda con su aviso
+function favAvisos() {
+  if (store('favAvisos') !== '1') return;
+  const a = avisos(); let cambio = false;
+  schedule.filter(e => e.state === 'unstarted' && esFav(e) && Date.parse(e.startTime) > Date.now()).forEach(e => { if (!a[e.match.id]) { a[e.match.id] = {at: e.startTime, txt: e.match.teams.map(t => t.code).join(' vs ')}; cambio = true; } });
+  if (cambio) store('avisos', JSON.stringify(a));
+}
+let FAVEDIT = false;
+function renderFav() {
+  const box = $('#ahFav'); if (!box || $('#vistaAhora').hidden) return;
+  const f = favs(), todos = equiposMundial(), av = store('favAvisos') === '1';
+  const chips = `<div class="fav-chips">${todos.map(t => `<button class="fav-chip${f.includes(t.code) ? ' on' : ''}" data-act="fav" data-arg="${esc(t.code)}">${t.img ? `<img src="${esc(t.img)}" alt="">` : ''}${esc(t.code)}</button>`).join('') || '<span class="pm">Cargando los equipos del Mundial…</span>'}</div>`;
+  if (!f.length || FAVEDIT) {
+    pon(box, `<h2>★ Mis equipos</h2><p class="card-help">${f.length ? 'Tocá para sumar o quitar.' : 'Elegí tus equipos: se destacan en todo, te avisa cuando juegan y sus partidos van primero.'}</p>${chips}${f.length ? '<button class="ini-go" data-act="favListo">Listo</button>' : ''}`);
+    return;
+  }
+  const lineas = f.map(code => {
+    const t = todos.find(x => x.code === code) || {code}, mine = schedule.filter(e => e.match.teams.some(x => x.code === code));
+    const vivo = mine.find(e => e.state === 'inProgress'), prox = mine.find(e => e.state === 'unstarted'), ult = mine.filter(e => e.state === 'completed').slice(-1)[0];
+    const rival = e => esc((e.match.teams.find(x => x.code !== code) || {}).code || 'TBD');
+    let info;
+    if (vivo) info = `<b class="b">● en vivo</b> vs ${rival(vivo)}`;
+    else if (prox) info = `vs ${rival(prox)} · ${fmtDate(prox.startTime)}`;
+    else if (ult) { const me = ult.match.teams.find(x => x.code === code), ot = ult.match.teams.find(x => x.code !== code);
+      info = tapado(ult) ? `vs ${rival(ult)} · resultado oculto` : `${(me.result || {}).gameWins ?? 0}–${(ot.result || {}).gameWins ?? 0} vs ${rival(ult)}`; }
+    else info = 'sin partidos en el calendario';
+    return `<div class="fav-ln clk" data-act="team" data-arg="${esc(code)}">${t.img ? `<img src="${esc(t.img)}" alt="">` : ''}<b>${esc(code)}</b><span class="pm">${info}</span></div>`;
+  }).join('');
+  pon(box, `<h2>★ Mis equipos</h2>${lineas}<div class="mx-row" style="margin-top:8px"><button class="mx-btn${av ? ' on' : ''}" data-act="favAvisos">${av ? '🔔 Avisos encendidos' : '🔔 Avisarme cuando jueguen'}</button><button class="mx-btn" data-act="favEditar">Editar</button></div>`);
+}
+function pon(el, html) { if (el.dataset.k !== html) { el.dataset.k = html; el.innerHTML = html; } }
+// la historia del juego, qué mirar y qué cambió (del motor, cuando sigue el mismo partido que la app)
+function renderAhora() {
+  const box = $('#ahHist'); if (!box || $('#vistaAhora').hidden) return;
+  const s = MX.s, ok = s && s.match && s.game && s.game.pBlue != null && M && s.match.id === M.id && (!G || s.game.id === G.id);
+  box.hidden = !ok; if (!ok) return;
+  const m = s.match, hi = RiftEngine.historia(s), mi = RiftEngine.mirar(s), cb = RiftEngine.cambio(s), sc = mxSc;
+  const mir = mi ? `<b>${esc(mi.obj)}</b> ${mi.vivo ? 'ya está en el mapa' : `en <b>${mmss(mi.en)}</b>`}${mi.impacto ? `: si lo toma <b class="b">${esc(m.blue.code)}</b> ${mi.impacto.blue >= 0 ? '+' : ''}${mi.impacto.blue}, si lo toma <b class="r">${esc(m.red.code)}</b> ${mi.impacto.red >= 0 ? '+' : ''}${mi.impacto.red} puntos` : ''}.${mi.mejor ? ` Llega mejor <b class="${sc(mi.mejor)}">${esc(mi.code)}</b> (${mi.por.map(x => esc(x.txt)).join(' y ')}).` : ''}` : 'Sin objetivos grandes a la vista.';
+  const chg = cb ? `<div class="ah-chg">${cb.dp ? `<span><b class="${sc(cb.dp > 0 ? 'blue' : 'red')}">${esc(cb.dp > 0 ? m.blue.code : m.red.code)} +${Math.abs(cb.dp)}</b> puntos</span>` : '<span>±0 puntos</span>'}${cb.items.map(x => `<span><b class="${sc(x.side)}">${esc(x.code)}</b> ${esc(x.txt)}</span>`).join('')}</div>` : '<div class="ah-v pm">Aparece después del primer minuto que mirás.</div>';
+  pon(box, `<div class="ah-h"><div><h2>La historia del juego</h2>${hi.length ? `<ol class="ah-ol">${hi.map(x => `<li>${x.html}</li>`).join('')}</ol>` : '<div class="pm">Se escribe sola a medida que avanza el juego.</div>'}</div>
+    <div><div class="ah-k">Qué mirar ahora</div><div class="ah-v">${mir}</div><div class="ah-k">Qué cambió en el último minuto</div>${chg}</div></div>`);
 }
 // Probabilidad de ganar la serie según la fuerza (Elo), sin lado del mapa.
 function probSerie(a, b, bo) {
@@ -2511,24 +2669,66 @@ setInterval(() => {
   }
   if (cambio) store('avisos', JSON.stringify(a));
 }, 30000);
+// ---------- tarjetas para compartir (1200×675): grafito, los colores de cada equipo y la señal de RiftPulse ----------
+async function tarjeta(nombre, dibujar) {
+  try { await Promise.all(['800 120px "Saira Condensed"', '700 30px "Saira Condensed"', '600 22px "Inter Tight"', '500 16px "Inter Tight"'].map(f => document.fonts.load(f))); } catch (e) {}
+  const W = 1200, H = 675, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
+  c.fillStyle = '#0C0E12'; c.fillRect(0, 0, W, H);
+  dibujar(c, W, H);
+  c.fillStyle = '#C8FF3E'; c.fillRect(60, H - 62, 34, 3);
+  c.textAlign = 'left'; c.fillStyle = '#6E7686'; c.font = '500 16px "Inter Tight", sans-serif';
+  c.fillText('Pronóstico de un modelo propio, sin apuestas. No avalado por Riot Games. #Worlds2026', 60, H - 30);
+  c.textAlign = 'right'; c.fillStyle = '#F2F4F7'; c.font = '800 24px "Saira Condensed", sans-serif'; c.fillText('RIFTPULSE', W - 60, H - 30); c.textAlign = 'left';
+  const l = document.createElement('a'); l.href = cv.toDataURL('image/png'); l.download = nombre; l.click();
+}
+const brillo = (c, x, y, r, rgb, a) => { const g = c.createRadialGradient(x, y, 10, x, y, r); g.addColorStop(0, `rgba(${rgb},${a})`); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.fillRect(0, 0, 1200, 675); };
+const titulito = (c, txt, y) => { c.fillStyle = '#C8FF3E'; c.fillRect(60, y - 30, 90, 4); c.fillStyle = '#9AA3B2'; c.font = '700 22px "Saira Condensed", sans-serif'; c.fillText(txt.toUpperCase().slice(0, 70), 60, y); };
+// la barra de dos colores con los porcentajes adentro
+function barra2(c, x, y, w, h, p, A, B) {
+  c.fillStyle = A.main; c.fillRect(x, y, w * p, h); c.fillStyle = B.main; c.fillRect(x + w * p, y, w * (1 - p), h);
+  c.fillStyle = '#0C0E12'; c.fillRect(x + w * p - 1.5, y, 3, h);
+  c.font = `700 ${Math.round(h * 0.55)}px "Saira Condensed", sans-serif`; c.fillStyle = A.ink; c.fillText(Math.round(p * 100) + '%', x + 16, y + h * 0.7);
+  c.textAlign = 'right'; c.fillStyle = B.ink; c.fillText(Math.round((1 - p) * 100) + '%', x + w - 16, y + h * 0.7); c.textAlign = 'left';
+}
 function sharePron(a, b, bo, ev) {
   const ps = probSerie(a, b, bo), pm = probSerie(a, b, 1), e = schedule.find(x => x.match && x.match.id === ev);
   if (ps == null) return;
-  const W = 1200, H = 675, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
-  const bg = c.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#101318'); bg.addColorStop(1, '#0c0e12'); c.fillStyle = bg; c.fillRect(0, 0, W, H);
-  c.fillStyle = RPC.s; c.fillRect(60, 60, 120, 4);
-  c.fillStyle = '#9aa3b2'; c.font = '600 22px Saira Condensed, Inter, sans-serif'; c.fillText(('RIFTPULSE · PRONÓSTICO' + (e ? ' · ' + (e.blockName || '').toUpperCase() : '')).slice(0, 60), 60, 104);
-  if (e) { c.font = '500 22px Inter Tight, sans-serif'; c.fillText(new Date(e.startTime).toLocaleString('es', {weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'}), 60, 140); }
-  c.font = '400 120px Saira Condensed, sans-serif'; c.fillStyle = RPC.atxt; c.fillText(a, 60, 300); c.textAlign = 'right'; c.fillStyle = RPC.btxt; c.fillText(b, W - 60, 300); c.textAlign = 'left';
-  const bar = (y, p, lab) => { const w = W - 120; c.fillStyle = RPC.a2; c.fillRect(60, y, w * p, 56); c.fillStyle = RPC.b2; c.fillRect(60 + w * p, y, w * (1 - p), 56);
-    c.fillStyle = RPC.aink; c.font = '700 30px Saira Condensed, Inter, sans-serif'; c.fillText(Math.round(p * 100) + '%', 76, y + 39); c.fillStyle = '#fff'; c.textAlign = 'right'; c.fillText(Math.round((1 - p) * 100) + '%', W - 76, y + 39); c.textAlign = 'left';
-    c.fillStyle = '#9aa3b2'; c.font = '600 20px Inter Tight, sans-serif'; c.fillText(lab, 60, y - 12); };
-  bar(380, ps, 'De ganar la serie (Bo' + bo + ')'); bar(510, pm, 'De ganar cada mapa');
-  c.fillStyle = '#6e7686'; c.font = '500 16px Inter Tight, sans-serif'; c.fillText('Pronóstico de un modelo propio (Elo 2025–26), sin apuestas. No avalado por Riot Games. #Worlds2026', 60, H - 30);
-  const l = document.createElement('a'); l.href = cv.toDataURL('image/png'); l.download = 'riftpulse-' + a + '-vs-' + b + '.png'; l.click();
+  const P = RiftEngine.colores(a, b), A = P.a, B = P.b;
+  tarjeta('riftpulse-' + a + '-vs-' + b + '.png', (c, W) => {
+    brillo(c, 80, 0, 700, A.rgb, .28); brillo(c, W - 80, 0, 700, B.rgb, .24);
+    titulito(c, 'Pronóstico' + (e ? ' · ' + (e.blockName || '') : '') + ' · Bo' + bo, 96);
+    if (e) { c.fillStyle = '#6E7686'; c.font = '500 22px "Inter Tight", sans-serif'; c.fillText(new Date(e.startTime).toLocaleString('es', {weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'}), 60, 132); }
+    c.font = '800 150px "Saira Condensed", sans-serif'; c.fillStyle = A.txt; c.fillText(a, 56, 310); c.textAlign = 'right'; c.fillStyle = B.txt; c.fillText(b, W - 56, 310); c.textAlign = 'left';
+    c.fillStyle = '#6E7686'; c.font = '700 34px "Saira Condensed", sans-serif'; c.textAlign = 'center'; c.fillText('VS', W / 2, 296); c.textAlign = 'left';
+    c.fillStyle = '#9AA3B2'; c.font = '600 20px "Inter Tight", sans-serif'; c.fillText('De ganar la serie', 60, 382); barra2(c, 60, 396, W - 120, 64, ps, A, B);
+    c.fillStyle = '#9AA3B2'; c.font = '600 20px "Inter Tight", sans-serif'; c.fillText('De ganar cada mapa', 60, 500); barra2(c, 60, 514, W - 120, 40, pm, A, B);
+  });
+}
+// el Pick'Em de la fase suiza que sugiere RiftPulse (de la simulación del torneo)
+function sharePickem() {
+  if (!C.rows) return;
+  const by = f => C.rows.slice().sort((x, y) => f(y) - f(x));
+  const w30 = by(x => x.w30).slice(0, 2), l03 = by(x => x.l03).slice(0, 2), used = new Set([...w30, ...l03].map(x => x.t));
+  const adv = by(x => x.qf - x.w30).filter(x => !used.has(x.t)).slice(0, 5);
+  tarjeta('riftpulse-pickem.png', (c, W) => {
+    brillo(c, W - 100, 0, 760, '200,255,62', .10);
+    titulito(c, "Mi Pick'Em · Sistema Suizo", 96);
+    c.fillStyle = '#F2F4F7'; c.font = '800 64px "Saira Condensed", sans-serif'; c.fillText('Según RiftPulse', 60, 170);
+    const fila = (y, k, lista, f) => {
+      c.fillStyle = '#9AA3B2'; c.font = '700 22px "Saira Condensed", sans-serif'; c.fillText(k.toUpperCase(), 60, y + 36);
+      lista.forEach((r, i) => {
+        const x = 300 + i * 162, P = RiftEngine.colores(r.t, r.t).a;
+        c.fillStyle = '#14171D'; c.fillRect(x, y, 150, 56); c.fillStyle = P.main; c.fillRect(x, y, 6, 56);
+        c.fillStyle = '#F2F4F7'; c.font = '800 30px "Saira Condensed", sans-serif'; c.fillText(r.t, x + 18, y + 38);
+        c.fillStyle = '#9AA3B2'; c.font = '600 18px "Inter Tight", sans-serif'; c.textAlign = 'right'; c.fillText(Math.round(f(r) * 100) + '%', x + 140, y + 36); c.textAlign = 'left';
+      });
+    };
+    fila(220, 'Terminan 3-0', w30, r => r.w30); fila(300, 'Terminan 0-3', l03, r => r.l03); fila(380, 'Avanzan', adv.slice(0, 5), r => r.qf - r.w30);
+    c.fillStyle = '#6E7686'; c.font = '500 18px "Inter Tight", sans-serif'; c.fillText('Probabilidad de cada pick en 20.000 simulaciones del torneo con su formato oficial.', 60, 490);
+  });
 }
 function renderInicio() {
-  if ($('#vistaInicio').hidden) return;
+  if ($('#vistaAhora').hidden) return;
   if (!CB.loaded && !CB.loading) crystalBall();  // carga la Bola de Cristal (se cachea)
   const go = (v, t, pri) => `<button class="ini-go${pri ? ' primary' : ''}" data-act="vista" data-arg="${v}">${t}</button>`;
   const logoT = t => t && t.image ? `<img src="${esc(https(t.image))}" alt="" style="width:34px;height:34px;object-fit:contain">` : '';
@@ -2536,7 +2736,7 @@ function renderInicio() {
   let h = '<h2>En vivo ahora</h2>';
   if (M && G && G.meta && G.last && G.wp) {
     const b = G.last.blueTeam, r = G.last.redTeam, gd = b.totalGold - r.totalGold, gt = gtNow(), cb = code('blue'), cr = code('red');
-    const n = (M.games.find(g => g.id === G.id) || {}).number, [A, B] = M.teams;
+    const n = juegoN(G.id), [A, B] = M.teams;
     const tim = [];
     if (G.t.dragon) tim.push(`${G.t.dragon.elder ? 'Ancestral' : 'Dragón'} ${G.t.dragon.at > gt ? 'en ' + mmss(G.t.dragon.at - gt) : 'disponible'}`);
     tim.push('Barón ' + (G.t.baron ? (G.t.baron.at > gt ? 'en ' + mmss(G.t.baron.at - gt) : 'disponible') : 'sin tomar'));
@@ -2545,7 +2745,7 @@ function renderInicio() {
         <div><b class="b">${esc(cb)}</b><ul>${winConditions(G.draft, 'blue', favSide).map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
         <div><b class="r">${esc(cr)}</b><ul>${winConditions(G.draft, 'red', favSide).map(x => `<li>${esc(x)}</li>`).join('')}</ul></div></div>` : '';
     const pp = baronPlay(gt);
-    h += `<div class="iv-top">${logoT(A)}<b>${esc(A.code)}</b><span class="iv-sc">${(A.result || {}).gameWins ?? 0} – ${(B.result || {}).gameWins ?? 0}</span><b>${esc(B.code)}</b>${logoT(B)}
+    h += `<div class="iv-top">${logoT(A)}<b>${esc(A.code)}</b><span class="iv-sc">${(ev0 => ev0 && tapado(ev0) ? 'vs' : ((A.result || {}).gameWins ?? 0) + ' – ' + ((B.result || {}).gameWins ?? 0))(schedule.find(x => x.match && x.match.id === M.id))}</span><b>${esc(B.code)}</b>${logoT(B)}
         <span class="badge ${G.ended ? 'end' : 'live'}">${G.ended ? 'TERMINADO' : 'EN VIVO'}</span><span class="pm">· ${esc(M.block || '')} · Juego ${n}</span></div>
       <div class="hero-clock"><span class="hc-t" id="iniReloj">${mmss(gt)}</span><span class="hc-l">${G.ended ? 'tiempo final del juego' : '⏱ tiempo de juego · sincronizado con el stream'}</span></div>
       <div class="hero-grid">
@@ -2561,16 +2761,16 @@ function renderInicio() {
           ${pp ? `<div class="iv-pp"><span class="${pp.side[0]}">${oi('baron', 13)} Powerplay ${esc(code(pp.side))}: ${esc(pp.gold)}</span>${pp.chips.length ? ` <span class="pm">· ${esc(pp.chips.join(' · '))}</span>` : ''}</div>` : ''}
         </div>
       </div>
-      ${go('partido', '▶ En vivo', true)}`;
+      ${go('partido', '▾ Ver los detalles del juego', true)}`;
   } else if (M) {
     const g = G ? (M.games.find(x => x.id === G.id) || {}) : {};
     const note = g.state === 'inProgress'
       ? `<b>Juego ${g.number || ''} en vivo</b> <span class="pm">· lolesports aún no transmite su feed · reintentando</span>`
       : 'Draft / esperando que empiece el juego';
     if (M.games.some(x => x.state === 'completed'))
-      h += `<div class="pm" style="margin-bottom:8px;white-space:normal">${note}</div>${seriesRecap()}${go('partido', '▶ En vivo', true)}`;
+      h += `<div class="pm" style="margin-bottom:8px;white-space:normal">${note}</div>${seriesRecap()}${go('partido', '▾ Ver los detalles del juego', true)}`;
     else
-      h += `<div class="iv-top"><b>${esc(M.teams.map(t => t.code).join(' vs '))}</b> <span class="pm">· ${note}</span></div>${go('partido', '▶ En vivo', true)}`;
+      h += `<div class="iv-top"><b>${esc(M.teams.map(t => t.code).join(' vs '))}</b> <span class="pm">· ${note}</span></div>${go('partido', '▾ Ver los detalles del juego', true)}`;
   }
   else if (NEXT && NEXT.e) {
     const [A, B] = NEXT.e.match.teams, bo = NEXT.e.match.strategy.count, ps = probSerie(A.code, B.code, bo);
@@ -2578,7 +2778,7 @@ function renderInicio() {
       <div><div class="nm-code">${esc(t.code)}</div><div class="pm">${esc(C.reg[t.code] || '')}${C.loaded && C.r[t.code] != null ? ` · Elo ${Math.round(eloOf(t.code))}` : ''}</div><div class="nm-form">${formHtml(t.code)}</div></div></div>`;
     const dayEvents = schedule.filter(e => e.state === 'unstarted').slice(0, 4);
     const h2hArg = `${esc(A.code)}|${esc(B.code)}|${esc(NEXT.e.match.id)}`;
-    h = `<div class="ini-head"><h2>Próximo partido</h2>${go('partido', '▶ En vivo', true)}</div><div class="nm-head">${col(A, 'l')}<div class="nm-vs clk" data-act="h2h" data-arg="${h2hArg}"><div class="pm">${esc(NEXT.e.blockName || '')} · Bo${bo}</div><div class="nm-vsbig">VS</div><div class="pm">${fmtDate(NEXT.e.startTime)}</div>
+    h = `<div class="ini-head"><h2>${NEXT.fav ? '★ Próximo de tus equipos' : 'Próximo partido'}</h2>${go('partido', '▾ Ver los detalles del juego', true)}</div><div class="nm-head">${col(A, 'l')}<div class="nm-vs clk" data-act="h2h" data-arg="${h2hArg}"><div class="pm">${esc(NEXT.e.blockName || '')} · Bo${bo}</div><div class="nm-vsbig">VS</div><div class="pm">${fmtDate(NEXT.e.startTime)}</div>
         <div class="hc-t" id="iniReloj" data-start="${esc(NEXT.e.startTime)}"></div><div class="hc-l">⏱ para el partido</div></div>${col(B, 'r')}</div>
       ${ps != null ? `<div class="betrow clk" data-act="h2h" data-arg="${h2hArg}"><span class="pm">Probabilidad de serie</span>${predBar(ps, A.code, B.code, true)}</div>` : ''}
       <div class="pk2" style="margin-top:8px">Agenda <span class="pm">· tocá un partido para ver el enfrentamiento</span></div><div class="ini-day">${dayEvents.map(e => { const ok = e.match.teams.every(t => t.code && t.code !== 'TBD'); return `<span class="d${ok ? ' clk' : ''}"${ok ? ` data-act="h2h" data-arg="${e.match.teams.map(t => esc(t.code)).join('|')}|${esc(e.match.id)}"` : ''}><b>${e.match.teams.map(t => esc(t.code)).join(' vs ')}</b> <span class="pm">${fmtDate(e.startTime).replace(/^\S+,?\s/, '')}</span></span>`; }).join('') || '<span class="pm">Sin próximos partidos.</span>'}</div>`;
@@ -2627,12 +2827,13 @@ function renderInicio() {
   const done = schedule.filter(e => e.state === 'completed' && e.startTime >= '2026-10-01').slice(-4).reverse();
   h = '<h2>📜 Últimos resultados</h2>' + (done.map(e => {
     const [a, b] = e.match.teams, wa = (a.result || {}).gameWins ?? 0, wb = (b.result || {}).gameWins ?? 0, aw = wa >= wb;
-    return `<div class="up-row"><span><b class="${aw ? '' : 'pm'}">${esc(a.code)} ${wa}</b> <span class="pm">–</span> <b class="${aw ? 'pm' : ''}">${wb} ${esc(b.code)}</b></span><span class="pm">${fmtDay(e.startTime)}</span></div>`;
+    if (tapado(e)) return `<div class="up-row clk${esFav(e) ? ' fav' : ''}" data-act="revelar" data-arg="${esc(e.match.id)}" title="Oculto para no spoilear: tocá para ver"><span><b>${esc(a.code)}</b> <span class="pm">• – •</span> <b>${esc(b.code)}</b></span><span class="pm">tocá para ver</span></div>`;
+    return `<div class="up-row${esFav(e) ? ' fav' : ''}"><span><b class="${aw ? '' : 'pm'}">${esc(a.code)} ${wa}</b> <span class="pm">–</span> <b class="${aw ? 'pm' : ''}">${wb} ${esc(b.code)}</b></span><span class="pm">${fmtDay(e.startTime)}</span></div>`;
   }).join('') || '<div class="pm">Todavía no hay partidos terminados.</div>');
   setHtml('#iniRes', h + go('hist', 'Ver el historial'));
   const up = schedule.filter(e => e.state === 'unstarted').slice(0, 7);
   const tzo = -new Date().getTimezoneOffset() / 60, tzs = `GMT${tzo >= 0 ? '+' : ''}${tzo}`;
-  setHtml('#iniAgenda', `<h2>📅 Próximos partidos</h2><p class="card-help">En tu hora local (${tzs}). Tocá uno para el enfrentamiento.</p>` + (up.map(e => { const ok = e.match.teams.every(t => t.code && t.code !== 'TBD'); return `<div class="up-row${ok ? ' clk' : ''}"${ok ? ` data-act="h2h" data-arg="${e.match.teams.map(t => esc(t.code)).join('|')}|${esc(e.match.id)}"` : ''}><span><b>${e.match.teams.map(t => esc(t.code)).join(' vs ')}</b> <span class="pm">· ${esc(e.blockName || '')} · Bo${e.match.strategy.count}</span></span><span class="pm">${fmtDate(e.startTime)}</span></div>`; }).join('') || '<div class="pm">Sin agenda.</div>'));
+  setHtml('#iniAgenda', `<h2>📅 Próximos partidos</h2><p class="card-help">En tu hora local (${tzs}). Tocá uno para el enfrentamiento.</p>` + (up.map(e => { const ok = e.match.teams.every(t => t.code && t.code !== 'TBD'); return `<div class="up-row${ok ? ' clk' : ''}${esFav(e) ? ' fav' : ''}"${ok ? ` data-act="h2h" data-arg="${e.match.teams.map(t => esc(t.code)).join('|')}|${esc(e.match.id)}"` : ''}><span><b>${e.match.teams.map(t => esc(t.code)).join(' vs ')}</b> <span class="pm">· ${esc(e.blockName || '')} · Bo${e.match.strategy.count}</span></span><span class="pm">${fmtDate(e.startTime)}</span></div>`; }).join('') || '<div class="pm">Sin agenda.</div>'));
   setHtml('#iniDatos', `<h2>📡 Estado de los datos</h2>
     <div class="iv-st">Retraso frente al stream: <b>${delay} s</b> <span class="pm">(automático)</span></div>
     <div class="iv-st">Los datos de lolesports llegan con <b>${Math.round(feedLag) || '—'} s</b></div>
@@ -2640,6 +2841,7 @@ function renderInicio() {
     <div class="iv-st">${salud('esports', 'lolesports')} ${salud('feed', 'feed en vivo')} ${salud('ddragon', 'Data Dragon')}</div>
     <div class="pm" style="margin-top:6px">Esports vía feed no oficial de lolesports; campeones e ítems por Data Dragon (oficial). No afiliado a Riot Games.</div>`);
   setHtml('#iniFiab', '<h2>📈 Fiabilidad del sistema</h2>' + fiabResumen() + `<button class="ini-go" data-act="fiab">Ver la tasa de aciertos completa</button>`);
+  renderFav();
 }
 
 // ---------- Pick'Em y Bola de Cristal ----------
@@ -2707,7 +2909,7 @@ function renderPickem() {
     const used = new Set([...w30, ...l03].map(x => x.t));
     const adv = by(x => x.qf - x.w30).filter(x => !used.has(x.t)).slice(0, 5);
     const chip = (r, v) => `<span class="pk-chip">${C.img[r.t] ? `<img src="${esc(C.img[r.t])}" alt="">` : ''}<b>${esc(r.t)}</b> <span class="pm">${pct(v)}</span></span>`;
-    h += `<section class="pk-sec"><h3>Sistema Suizo · nuestra sugerencia</h3><p class="card-help">Abre el 18 de octubre, cierra el 23 antes del primer partido. Formato 2025: dos 3-0, dos 0-3 y cinco que avanzan.</p>
+    h += `<section class="pk-sec"><h3>Sistema Suizo · nuestra sugerencia <button class="mx-btn gold" data-act="sharepickem" style="margin-left:8px">🖼 Compartir mi Pick'Em</button></h3><p class="card-help">Abre el 18 de octubre, cierra el 23 antes del primer partido. Formato 2025: dos 3-0, dos 0-3 y cinco que avanzan.</p>
       <div class="pk-row"><div class="pk-k">Terminan 3-0</div>${w30.map(r => chip(r, r.w30)).join('')}</div>
       <div class="pk-row"><div class="pk-k">Terminan 0-3</div>${l03.map(r => chip(r, r.l03)).join('')}</div>
       <div class="pk-row"><div class="pk-k">Avanzan con 3-1 o 3-2</div>${adv.map(r => chip(r, r.qf - r.w30)).join('')}</div></section>`;
@@ -2786,20 +2988,31 @@ function tinte() {
 }
 
 function setVista(v) {
-  for (const [vista, tab] of [['inicio', 'Inicio'], ['partido', 'Partido'], ['mando', 'Mando'], ['copa', 'Copa'], ['hist', 'Hist'], ['pickem', 'Copa']]) {
-    $('#vista' + (vista === 'hist' ? 'Hist' : vista === 'pickem' ? 'Pickem' : vista[0].toUpperCase() + vista.slice(1))).hidden = v !== vista;
-  }
-  for (const [tab, vs] of [['Inicio', ['inicio']], ['Partido', ['partido']], ['Mando', ['mando']], ['Copa', ['copa', 'pickem']], ['Hist', ['hist']]]) { const b = $('#tab' + tab); if (b) b.classList.toggle('on', vs.includes(v)); }
+  // «Inicio» y «En vivo» ahora son una sola vista, «Ahora»; «partido» abre además los detalles del juego
+  const alPartido = v === 'partido';
+  if (v === 'inicio' || v === 'partido') v = 'ahora';
+  for (const [vista, id] of [['ahora', 'Ahora'], ['mando', 'Mando'], ['copa', 'Copa'], ['hist', 'Hist'], ['pickem', 'Pickem']]) $('#vista' + id).hidden = v !== vista;
+  for (const [tab, vs] of [['Ahora', ['ahora']], ['Mando', ['mando']], ['Copa', ['copa', 'pickem']], ['Hist', ['hist']]]) { const b = $('#tab' + tab); if (b) b.classList.toggle('on', vs.includes(v)); }
   store('vista', v);
   if (v === 'copa') { loadCopa(); renderCuadro(); }
   if (v === 'hist') renderHistList();
-  if (v === 'inicio') { loadCopa(); renderInicio(); }
+  if (v === 'ahora') { loadCopa(); renderInicio(); render(); motorOn(); renderAhora(); renderFav(); if (alPartido) { detalles(true); requestAnimationFrame(() => $('#vistaPartido').scrollIntoView({block: 'start', behavior: 'smooth'})); } }
   if (v === 'mando') mandoOn();
   if (v === 'pickem') { loadCopa(); if (!ddv || !champs || !Object.keys(champs).length) ddragon('15.20').then(renderPickem); renderPickem(); }
   tinte();
 }
-$('#tabInicio').addEventListener('click', () => setVista('inicio'));
-document.addEventListener('click', e => { const d = $('details.sync'); if (d && d.open && !d.contains(e.target)) d.open = false; });
+// los detalles del juego, plegados por defecto (lo recuerda)
+function detalles(abrir) {
+  const g = $('.pgrid'), b = $('#ahDet'); if (!g || !b) return;
+  if (abrir == null) abrir = g.classList.contains('plegado');
+  g.classList.toggle('plegado', !abrir); b.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+  b.textContent = abrir ? '▴ Menos detalles' : '▾ Todos los detalles del juego';
+  store('detalles', abrir ? '1' : '0');
+}
+$('#ahDet').addEventListener('click', () => detalles());
+if (store('detalles') === '1') detalles(true);
+$('#tabAhora').addEventListener('click', () => setVista('ahora'));
+document.addEventListener('click', e => { document.querySelectorAll('details.sync').forEach(d => { if (d.open && !d.contains(e.target)) d.open = false; }); });
 // ---------- repetición desde Partido ----------
 let repOpen = null;
 function renderRepList() {
@@ -2825,7 +3038,6 @@ document.addEventListener('click', async e => {
   renderRepList();
   if (repOpen && !HI.events[id]) { try { HI.events[id] = (await api('getEventDetails', {id})).event.match; } catch (err) { HI.events[id] = {games: [], teams: []}; } renderRepList(); }
 });
-$('#tabPartido').addEventListener('click', () => setVista('partido'));
 $('#tabMando').addEventListener('click', () => setVista('mando'));
 $('#tabCopa').addEventListener('click', () => setVista('copa'));
 $('#tabHist').addEventListener('click', () => setVista('hist'));
@@ -2834,13 +3046,26 @@ document.addEventListener('click', e => {
   const a = e.target.closest('[data-act]'); if (!a) return;
   const act = a.dataset.act, arg = a.dataset.arg;
   if (act === 'vista') setVista(arg);
+  else if (act === 'fav') { FAVEDIT = true; const f = favs(), i = f.indexOf(arg); if (i >= 0) f.splice(i, 1); else f.push(arg); store('favs', JSON.stringify(f)); tickNext(); renderFav(); renderInicio(); }
+  else if (act === 'favListo') { FAVEDIT = false; renderFav(); }
+  else if (act === 'favEditar') { FAVEDIT = true; renderFav(); }
+  else if (act === 'favAvisos') { (async () => { const on = store('favAvisos') !== '1'; if (on && 'Notification' in window && Notification.permission === 'default') { try { await Notification.requestPermission(); } catch (x) {} }
+    store('favAvisos', on ? '1' : '0'); if (on) favAvisos(); else { const a = avisos(); schedule.filter(esFav).forEach(e => delete a[e.match.id]); store('avisos', JSON.stringify(a)); } renderFav(); status(on ? '🔔 Te aviso 2 minutos antes de cada partido de tus equipos.' : 'Avisos de mis equipos apagados.', false, 5000); })(); }
   else if (act === 'fiab') { setVista('copa'); const c = $('#fiabCard'); if (c) c.scrollIntoView(); }
   else if (act === 'team') openIniDet({type: 'team', code: arg});
   else if (act === 'h2h') { const [a, b, ev] = arg.split('|'); openIniDet({type: 'h2h', a, b, ev}); }
   else if (act === 'inidet-close') { INIDET = null; renderIniDetalle(); }
   else if (act === 'aviso') toggleAviso(arg);
-  else if (act === 'revelar') { REVEL.add(arg); renderCuadro(); renderHistList(); }
+  else if (act === 'revelar') { REVEL.add(arg); renderCuadro(); renderHistList(); renderInicio(); $('#titulo').dataset.k = ''; renderHead(); }
   else if (act === 'spoilers') { store('spoilers', arg); renderCuadro(); renderHistList(); renderHead(); renderAvisos(); }
+  else if (act === 'spApp') {
+    const d0 = new Date(); d0.setHours(0, 0, 0, 0); if (arg === 'ayer') d0.setDate(d0.getDate() - 1);
+    store('spDesde', arg === 'todo' ? '2026-01-01T00:00:00Z' : arg ? d0.toISOString() : ''); store('spModo', arg); REVEL.clear();
+    const dd = $('#spx'); if (dd) dd.open = false;
+    pintarSpx(); $('#titulo').dataset.k = ''; renderCuadro(); renderHistList(); renderHead(); renderInicio(); renderAvisos(); if (!$('#vistaMando').hidden) renderMando();
+    status(arg ? '🙈 Resultados ocultos. Tocá un marcador para verlo.' : 'Resultados visibles.', false, 4000);
+  }
+  else if (act === 'sharepickem') sharePickem();
   else if (act === 'sharepron') { const [a, b, bo, ev] = arg.split('|'); sharePron(a, b, +bo, ev); }
 });
 
@@ -2918,16 +3143,23 @@ function mxSend(extra) {
   if (mxStorage()) chrome.storage.local.set(data);
   else if (mxEmb) window.parent.postMessage({rp: 'set', data}, '*');
 }
+// el motor compartido (lo usan «Ahora» para la historia del juego y Mando); arranca la primera vez que hace falta
+function motorOn() {
+  if (!window.RiftEngine || MX.motor) return;
+  MX.motor = true;
+  RiftEngine.onUpdate(s => {
+    MX.s = s;
+    if (!s.demo && RiftEngine.delay !== delay) RiftEngine.setDelay(delay);  // mismo retraso que la app
+    if (!$('#vistaMando').hidden) renderMando();
+    if (!$('#vistaAhora').hidden) renderAhora();
+  });
+  RiftEngine.start();
+}
 function mandoOn() {
   if (!window.RiftEngine) { $('#mxAir').innerHTML = '<div class="empty">No cargó el motor (engine.js).</div>'; return; }
+  motorOn();
   if (!MX.on) {
     MX.on = true;
-    RiftEngine.onUpdate(s => {
-      MX.s = s;
-      if (!s.demo && RiftEngine.delay !== delay) RiftEngine.setDelay(delay);  // mismo retraso que la app
-      if (!$('#vistaMando').hidden) renderMando();
-    });
-    RiftEngine.start();
     renderMxOv(); renderMxObs();
     seguirVideo();
   }
@@ -3205,7 +3437,7 @@ $('#pFwd').addEventListener('click', () => { if (SCRUB) seek(scrubGt() + 30); })
 $('#pLive').addEventListener('click', goLive);
 $('#pVel').addEventListener('change', e => { if (SCRUB) SCRUB = {...SCRUB, gt: scrubGt(), base: Date.now(), speed: +e.target.value}; });
 document.addEventListener('keydown', e => {
-  if ($('#vistaPartido').hidden || /INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName)) return;
+  if ($('#vistaAhora').hidden || /INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName)) return;
   if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
   else if (e.key === 'ArrowLeft') { e.preventDefault(); seek((SCRUB ? scrubGt() : edgeGt()) - 10); }
   else if (e.key === 'ArrowRight' && SCRUB) { e.preventDefault(); seek(scrubGt() + 10); }
@@ -3237,7 +3469,8 @@ async function pinGame(matchId, gameId, quedarse) {
   loadCopa().then(() => { if (G && G.start && G.pre && !G.pre.elo) rebuild(); });
   const v0 = q.get('vista') || store('vista'); // ?vista=partido abre directo en esa pestaña
   applyCity();  // fondo de ciudad aérea (se genera una vez)
-  setVista(['inicio', 'partido', 'mando', 'copa', 'hist', 'pickem'].includes(v0) ? v0 : 'inicio');
+  pintarSpx();
+  setVista(['ahora', 'inicio', 'partido', 'mando', 'copa', 'hist', 'pickem'].includes(v0) ? v0 : 'ahora');
   if (q.get('hist')) { // ?vista=hist&hist=<partido>:<juego> abre ese resumen directo
     const [mid, gid] = q.get('hist').split(':');
     try { HI.open = mid; HI.events[mid] = (await api('getEventDetails', {id: mid})).event.match; renderHistList(); showHistGame(gid); } catch (e) {}

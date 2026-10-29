@@ -835,29 +835,33 @@
       if (r.stats){ var w=r.stats[r.win], l=r.stats[r.win==='blue'?'red':'blue']; out.push('Kills '+w.kills+'–'+l.kills+' · torres '+w.towers+'–'+l.towers+' · dragones '+w.dragons+'–'+l.dragons+' · Barones '+w.barons+'–'+l.barons+'.'); }
       return out;
     }
+    // imagen del resumen (1200×675): grafito, los colores de cada equipo y la señal de RiftPulse
     function recapPNG(s){
       var m=s.match, g=s.game, r=g.recap, W=1200, H=675, cv=document.createElement('canvas'); cv.width=W; cv.height=H;
-      var c=cv.getContext('2d'), wc=r.win==='blue'?'#7cc0ff':'#ff8a8f';
-      var bg=c.createLinearGradient(0,0,W,H); bg.addColorStop(0,'#0b1220'); bg.addColorStop(1,'#140d18'); c.fillStyle=bg; c.fillRect(0,0,W,H);
-      var glow=c.createRadialGradient(r.win==='blue'?120:W-120,0,10,r.win==='blue'?120:W-120,0,620); glow.addColorStop(0,r.win==='blue'?'rgba(74,163,255,.28)':'rgba(255,90,95,.26)'); glow.addColorStop(1,'rgba(0,0,0,0)'); c.fillStyle=glow; c.fillRect(0,0,W,H);
-      var F=function(w,sz,fam){ return w+' '+sz+'px '+(fam||"'Chakra Petch', Inter, sans-serif"); };
-      c.fillStyle='#8b97b0'; c.font=F(700,18); c.fillText('RIFTPULSE · '+(m.league||'').toUpperCase()+(m.gameNo?' · JUEGO '+m.gameNo:''),60,64);
-      c.fillStyle=wc; c.font=F(700,64); c.fillText(r.code+' gana',60,140);
-      c.fillStyle='#c7d0e2'; c.font=F(500,26,'Inter, sans-serif'); c.fillText('vs '+r.lose+' · '+mmss(r.dur)+(r.comeback?' · ¡remontada desde el '+pct(r.low.p)+'!':''),60,182);
-      // trayectoria del ganador
-      var X0=60, Y0=222, CW=W-120, CH=220, sm=g.samples, t0=sm[0].gt, span=Math.max(1,sm[sm.length-1].gt-t0);
-      c.strokeStyle='#263352'; c.setLineDash([6,6]); c.beginPath(); c.moveTo(X0,Y0+CH/2); c.lineTo(X0+CW,Y0+CH/2); c.stroke(); c.setLineDash([]);
-      (g.swings||[]).forEach(function(sw){ c.fillStyle=sw.side==='blue'?'rgba(74,163,255,.12)':'rgba(255,90,95,.12)'; c.fillRect(X0+(sw.a-t0)/span*CW,Y0,Math.max(3,(sw.b-sw.a)/span*CW),CH); });
-      c.lineWidth=4; c.lineJoin='round'; c.strokeStyle=wc; c.beginPath();
+      var c=cv.getContext('2d'), P=colores(m.blue.code, m.red.code), Wn=r.win==='blue'?P.a:P.b;
+      var F=function(w,sz,fam){ return w+' '+sz+'px '+(fam||'"Saira Condensed", sans-serif'); };
+      c.fillStyle='#0C0E12'; c.fillRect(0,0,W,H);
+      var gl=c.createRadialGradient(r.win==='blue'?100:W-100,0,10,r.win==='blue'?100:W-100,0,720); gl.addColorStop(0,'rgba('+Wn.rgb+',.30)'); gl.addColorStop(1,'rgba(0,0,0,0)'); c.fillStyle=gl; c.fillRect(0,0,W,H);
+      c.fillStyle='#C8FF3E'; c.fillRect(60,66,90,4);
+      c.fillStyle='#9AA3B2'; c.font=F(700,22); c.fillText(('Fin del juego'+(m.gameNo?' '+m.gameNo:'')+' · '+(m.league||'')).toUpperCase(),60,96);
+      c.fillStyle=Wn.txt; c.font=F(800,84); c.fillText(r.code+' gana',56,176);
+      c.fillStyle='#C7CDD8'; c.font=F(500,24,'"Inter Tight", sans-serif'); c.fillText('vs '+r.lose+' · '+mmss(r.dur)+(r.comeback?' · ¡remontada desde el '+pct(r.low.p)+'!':''),60,216);
+      // la probabilidad del ganador en todo el juego, con los giros marcados
+      var X0=60, Y0=246, CW=W-120, CH=200, sm=g.samples, t0=sm[0].gt, span=Math.max(1,sm[sm.length-1].gt-t0);
+      c.fillStyle='#14171D'; c.fillRect(X0,Y0,CW,CH);
+      (g.swings||[]).forEach(function(sw){ c.fillStyle='rgba('+(sw.side==='blue'?P.a.rgb:P.b.rgb)+',.16)'; c.fillRect(X0+(sw.a-t0)/span*CW,Y0,Math.max(3,(sw.b-sw.a)/span*CW),CH); });
+      c.strokeStyle='rgba(220,226,236,.18)'; c.setLineDash([6,6]); c.beginPath(); c.moveTo(X0,Y0+CH/2); c.lineTo(X0+CW,Y0+CH/2); c.stroke(); c.setLineDash([]);
+      c.lineWidth=4; c.lineJoin='round'; c.strokeStyle=Wn.main; c.beginPath();
       sm.forEach(function(p,i){ var v=r.win==='blue'?p.p:1-p.p, x=X0+(p.gt-t0)/span*CW, y=Y0+CH-v*CH; if(i) c.lineTo(x,y); else c.moveTo(x,y); }); c.stroke();
-      c.fillStyle='#8b97b0'; c.font=F(500,15,'Inter, sans-serif'); c.fillText('Probabilidad de '+r.code+' según el modelo',X0,Y0+CH+24); c.textAlign='right'; c.fillText('50%',X0+CW,Y0+CH/2-8); c.textAlign='left';
-      var lines=recapLines(s).slice(2).map(function(t){ return t.replace(/<[^>]+>/g,''); }), y=Y0+CH+70;
-      c.fillStyle='#e8edf7'; c.font=F(500,22,'Inter, sans-serif');
-      lines.forEach(function(t){ c.fillText(t.length>92?t.slice(0,90)+'…':t,60,y); y+=38; });
-      c.fillStyle='#56627a'; c.font=F(500,14,'Inter, sans-serif');
-      c.fillText('Pronóstico y análisis, sin fines de apuestas. No avalado por Riot Games.',60,H-28);
-      c.textAlign='right'; c.fillStyle='#3ddc97'; c.font=F(700,15); if (s.precision) c.fillText(Math.round(s.precision.acc15*100)+'% DE ACIERTO AL MIN 15',W-60,H-28);
-      c.textAlign='left'; c.fillStyle='#6a7a9c'; c.font=F(500,14,'Inter, sans-serif'); c.fillText('Pronóstico de un modelo propio, sin apuestas. No avalado por Riot Games.',60,H-24);
+      c.fillStyle='#6E7686'; c.font=F(500,15,'"Inter Tight", sans-serif'); c.fillText('Probabilidad de '+r.code+' según el modelo · sombreado: giros clave',X0,Y0+CH+24); c.textAlign='right'; c.fillText('50%',X0+CW-8,Y0+CH/2-8); c.textAlign='left';
+      var lines=recapLines(s).slice(2).map(function(t){ return t.replace(/<[^>]+>/g,''); }), y=Y0+CH+66;
+      c.fillStyle='#F2F4F7'; c.font=F(500,22,'"Inter Tight", sans-serif');
+      lines.slice(0,3).forEach(function(t){ c.fillText(t.length>92?t.slice(0,90)+'…':t,60,y); y+=36; });
+      c.fillStyle='#C8FF3E'; c.fillRect(60,H-62,34,3);
+      c.fillStyle='#6E7686'; c.font=F(500,16,'"Inter Tight", sans-serif'); c.fillText('Pronóstico de un modelo propio, sin apuestas. No avalado por Riot Games. #Worlds2026',60,H-30);
+      c.textAlign='right'; c.fillStyle='#F2F4F7'; c.font=F(800,24); c.fillText('RIFTPULSE',W-60,H-30);
+      if (s.precision){ c.fillStyle='#C8FF3E'; c.font=F(700,18); c.fillText(Math.round(s.precision.acc15*100)+'% DE ACIERTO AL MIN 15',W-60,H-60); }
+      c.textAlign='left';
       return cv.toDataURL('image/png');
     }
     function talk(s){
