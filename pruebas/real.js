@@ -33,6 +33,7 @@ const RAIZ = path.join(__dirname, '..'), VIDEO = process.argv[2];
     });
     n.t++; if (e.visto != null && e.visto < 1500) n.reloj++; if (e.vis) n.visible++; if (e.cards) n.cards++; if (e.id) partidos[e.id] = (partidos[e.id] || 0) + 1;
     console.log([Math.round(e.ct), 'reloj=' + e.reloj, 'z=' + e.zona, 'hace=' + (e.visto == null ? '-' : Math.round(e.visto / 1000)), e.id || '·', e.siglas, e.mk, e.vis ? (e.chico ? 'PASTILLA' : 'VISIBLE') : 'oculto', e.cards ? 'paneles: ' + e.cards : '', '| ' + e.body].join(' '));
+    if (n.t % 45 === 0) { const jpg = await p.screenshot({type: 'jpeg', quality: 35, clip: {x: 100, y: 60, width: 1280, height: 720}}); console.log('IMG s' + String(n.t).padStart(3, '0') + '.jpg ' + jpg.toString('base64')); }
     if (e.ended || e.ct >= dur - 0.5) break;
   }
   console.log('RESUMEN segundos=' + n.t + ' reloj_leido=' + n.reloj + ' visible=' + n.visible + ' con_paneles=' + n.cards + ' partidos=' + JSON.stringify(partidos));
