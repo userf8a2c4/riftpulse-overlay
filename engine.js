@@ -159,7 +159,8 @@
     G.last = f; G.lastTs = ts; G.gt = gt;
     G.wp = winProb(f, gt);
     var s = G.samples[G.samples.length - 1];
-    if (!s || gt - s.gt >= 10) G.samples.push({gt: gt, diff: f.blueTeam.totalGold - f.redTeam.totalGold, p: G.wp.p});
+    if (!s || gt - s.gt >= 10) G.samples.push({gt: gt, diff: f.blueTeam.totalGold - f.redTeam.totalGold, p: G.wp.p,
+      kb: f.blueTeam.totalKills, kr: f.redTeam.totalKills, tb: f.blueTeam.towers, tr: f.redTeam.towers});
     if (f.gameState === 'finished') { if (!G.ended && DEMO) DEMO.next = setTimeout(demoNext, 30000); G.ended = true; }
     emit();
   }
@@ -225,7 +226,7 @@
       var md = (G.meta[key] || {}).participantMetadata || [];
       return md.map(function (p) {
         var st = df.participants.find(function (x) { return x.participantId === p.participantId; }) || {};
-        return {name: shortName(p.summonerName), role: p.role, champ: champName(p.championId), share: st.championDamageShare || 0, kp: st.killParticipation || 0,
+        return {name: shortName(p.summonerName), role: p.role, champ: champName(p.championId), champId: p.championId, share: st.championDamageShare || 0, kp: st.killParticipation || 0,
           k: st.kills || 0, d: st.deaths || 0, a: st.assists || 0, cs: st.creepScore || 0, gold: st.totalGoldEarned || 0, lvl: st.level || 1};
       });
     }
@@ -442,7 +443,7 @@
         samples: G.samples ? G.samples.slice() : [], impact: impactNext(),
         fight: G.fight && G.fight.players ? {gt: G.fight.gt, win: G.fight.win, blue: G.fight.players.blue, red: G.fight.players.red} : null,
         swings: keyMoments(3), comeback: comebackPaths(), draft: draftInfo(), lanes: L, keyPlayer: keyPlayer(L), recap: recap()} : null,
-      series: seriesNow(), h2h: M ? h2hFor(bt.code, rt.code) : null,
+      series: seriesNow(), h2h: M ? h2hFor(bt.code, rt.code) : null, maps: seriesMaps(),
       demo: DEMO && DEMO.cur ? {blue: DEMO.cur.blue, red: DEMO.cur.red, date: DEMO.cur.date, block: DEMO.cur.block, vel: DEMO.vel} : null,
       blueCode: blueCode, redCode: redCode, delay: delay, precision: PRECISION, next: NEXTM, at: Date.now()
     };
@@ -535,6 +536,50 @@
     await demoNext();
     return true;
   };
+  // ---------- alineaciones de cada juego de la serie (campeones, ganador y duración) ----------
+  // El feed oficial no trae los bloqueos (bans): solo las selecciones.
+  var MAPS = {}, MAPS_LOADING = {};
+  function winnerOf(f) {  // el feed no dice quién ganó: se deduce de lo destruido al final
+    var b = f.blueTeam, r = f.redTeam, sb = b.towers + 2 * b.inhibitors, sr = r.towers + 2 * r.inhibitors;
+    return sb !== sr ? (sb > sr ? 'blue' : 'red') : (b.totalGold >= r.totalGold ? 'blue' : 'red');
+  }
+  async function loadMap(gm, n) {
+    if (MAPS[gm.id] && (MAPS[gm.id].done || gm.state === 'inProgress')) return;
+    if (MAPS_LOADING[gm.id]) return; MAPS_LOADING[gm.id] = true;
+    try {
+      var c = null; try { c = JSON.parse(localStorage.getItem('rp_map_' + gm.id) || 'null'); } catch (e) {}
+      if (c && c.done) { MAPS[gm.id] = c; return; }
+      var gi = await gameInfo(gm.id); if (!gi || !gi.meta) return;
+      var side = function (k) {
+        var md = gi.meta[k + 'TeamMetadata'], tm = (M.teams || []).filter(function (t) { return t.id === md.esportsTeamId; })[0];
+        return {code: tm ? tm.code : '?', picks: (md.participantMetadata || []).map(function (p) { return {champId: p.championId, champ: champName(p.championId), role: p.role, name: shortName(p.summonerName)}; })};
+      };
+      var out = {id: gm.id, n: n, state: gm.state, blue: side('blue'), red: side('red'), patch: gi.meta.patchVersion || '', winner: null, dur: null, done: false};
+      if (gm.state === 'completed') {  // buscar el final del juego, de 3 en 3 minutos
+        var last = null, t = gi.start + 18 * 60000;
+        for (var k = 0; k < 30; k++, t += 180000) {
+          var w = await feed('window', gm.id, t), fr = w && w.frames && w.frames.length ? w.frames : null;
+          if (!fr) break;
+          last = fr[fr.length - 1];
+          if (last.gameState === 'finished' || Date.parse(last.rfc460Timestamp) < t - 30000) break;
+        }
+        if (last) { var ws = winnerOf(last); out.winner = out[ws].code; out.dur = (Date.parse(last.rfc460Timestamp) - gi.start) / 1000; out.done = true; }
+      }
+      MAPS[gm.id] = out;
+      if (out.done) try { localStorage.setItem('rp_map_' + gm.id, JSON.stringify(out)); } catch (e) {}
+    } catch (e) {} finally { MAPS_LOADING[gm.id] = false; emit(); }
+  }
+  function seriesMaps() {
+    if (!M || !M.games) return null;
+    var list = [];
+    M.games.forEach(function (gm, i) {
+      if (gm.state !== 'completed' && gm.state !== 'inProgress') return;
+      if (!MAPS[gm.id] || (!MAPS[gm.id].done && gm.state === 'completed')) loadMap(gm, i + 1);
+      list.push(MAPS[gm.id] || {id: gm.id, n: i + 1, state: gm.state, loading: true});
+    });
+    return list;
+  }
+
   // ---------- identificar qué juego se ve en el video (para la sincronía automática) ----------
   // o = {gt (s del reloj del juego), tags: [izq, der], gold: [izq, der] en miles | null, kills: [izq, der] | null}
   // Compara contra los datos oficiales de cada juego reciente en ese minuto. Devuelve {matchId, juego, codes, score} o null.
