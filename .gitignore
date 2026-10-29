@@ -8,3 +8,6 @@ desktop.ini
 *.swp
 .vscode/
 .idea/
+
+# Archivos que generan las pruebas (videos, capturas)
+pruebas/.gen/

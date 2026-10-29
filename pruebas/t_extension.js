@@ -1,0 +1,47 @@
+// La extensión real, instalada desde el ZIP publicado (como la instala un usuario), en sus dos modos:
+// con «Permitir scripts de usuario» (el overlay llega de la web) y sin él (copia local).
+const {chromium} = require('playwright'), fs = require('fs'), path = require('path'), os = require('os'), zlib = require('zlib');
+const {execFileSync} = require('child_process');
+const {montar, chequear, RAIZ, GEN} = require('./mocks');
+function descomprimir() {
+  const dest = path.join(GEN, 'zip'); fs.rmSync(dest, {recursive: true, force: true}); fs.mkdirSync(dest, {recursive: true});
+  execFileSync('python3', ['-I', '-c', 'import sys,zipfile;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])', path.join(RAIZ, 'riftpulse-extension.zip'), dest]);
+  return path.join(dest, 'extension');
+}
+async function una(EXT, conScripts) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rp-'));
+  const ctx = await chromium.launchPersistentContext(dir, {headless: true, channel: 'chromium', args: ['--disable-extensions-except=' + EXT, '--load-extension=' + EXT, '--enable-experimental-extension-apis'], viewport: {width: 1500, height: 900}});
+  await montar(ctx, {video: 'correr.webm'});
+  let sw = ctx.serviceWorkers()[0] || await ctx.waitForEvent('serviceworker'); const id = sw.url().split('/')[2];
+  if (conScripts) {
+    const ex = await ctx.newPage(); await ex.goto('chrome://extensions'); await ex.waitForTimeout(800);
+    await ex.evaluate(async id => { await chrome.developerPrivate.updateProfileConfiguration({inDeveloperMode: true}); await chrome.developerPrivate.updateExtensionConfiguration({extensionId: id, userScriptsAccess: true}); }, id);
+    await ex.close(); sw = ctx.serviceWorkers()[0] || sw; await sw.evaluate(() => instalarOverlay());
+  }
+  await new Promise(r => setTimeout(r, 1500));
+  const origen = await sw.evaluate(() => new Promise(r => chrome.storage.local.get('rp_origen', o => r(o.rp_origen && o.rp_origen.origen))));
+  const p = await ctx.newPage(); await p.goto('https://www.twitch.tv/videos/1');
+  await p.evaluate(() => document.getElementById('v').play());
+  let estado = '';
+  for (let i = 0; i < 12; i++) { await p.waitForTimeout(1500); estado = await p.evaluate(() => { const h = document.getElementById('rp-overlay-host'); return h ? h.shadowRoot.getElementById('ast').textContent : 'sin overlay'; }); if (/auto ·/.test(estado) && i > 3) break; }
+  const pn = await ctx.newPage(); await pn.setViewportSize({width: 420, height: 900}); await pn.goto('chrome-extension://' + id + '/panel.html'); await pn.waitForTimeout(4000);
+  const fr = pn.frames().find(f => f.url().includes('app.html')); let panel = {};
+  if (fr) { await fr.evaluate(() => setVista('mando')); await pn.waitForTimeout(3500);
+    panel = await fr.evaluate(() => ({aire: document.getElementById('mxAir').innerText.replace(/\s+/g, ' '), guion: document.getElementById('mxTalk').innerText.replace(/\s+/g, ' '),
+      alturas: ['mxAir', 'mxOv', 'mxTalk', 'mxRead', 'mxSoc'].map(i => document.getElementById(i).getBoundingClientRect().height)})); }
+  await ctx.close(); return {origen, estado, panel, fr: !!fr};
+}
+module.exports = async function () {
+  const EXT = descomprimir(); let ok = true;
+  for (const conScripts of [true, false]) {
+    const r = await una(EXT, conScripts), modo = conScripts ? '[con scripts de usuario] ' : '[sin scripts de usuario] ';
+    ok = chequear(modo + 'el overlay sale de ' + (conScripts ? 'la web' : 'la copia local'), r.origen === (conScripts ? 'web' : 'local'), r.origen) && ok;
+    ok = chequear(modo + 'sincroniza IG vs LYON juego 2', /IG vs LYON · J2/.test(r.estado), r.estado) && ok;
+    ok = chequear(modo + 'el panel carga la app desde la web', r.fr) && ok;
+    ok = chequear(modo + 'el panel sigue el mismo juego del video', /SINCRONIZADO CON TU VIDEO/.test(r.panel.aire || '') && /IG/.test(r.panel.aire || '') && /juego 2/.test(r.panel.aire || ''), (r.panel.aire || '').slice(0, 90)) && ok;
+    ok = chequear(modo + 'el guion habla del mismo partido', /IG|LYON/.test(r.panel.guion || '') && !/MKOI/.test(r.panel.guion || ''), (r.panel.guion || '').slice(0, 70)) && ok;
+    ok = chequear(modo + 'las casillas de Mando tienen altura fija', r.panel.alturas && r.panel.alturas.join() === '300,430,430,340,340', (r.panel.alturas || []).join(' ')) && ok;
+  }
+  return ok;
+};
+if (require.main === module) module.exports().then(ok => process.exit(ok ? 0 : 1));
