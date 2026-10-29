@@ -218,7 +218,7 @@
     try { w0 = await feed('window', id); } catch (e) { w0 = null; }
     if (gen !== GEN) return;
     if (!w0 || !w0.frames || !w0.frames.length) { G.waiting = true; G.loading = false; emit(); return; }
-    G.waiting = false; G.meta = w0.gameMetadata;
+    G.waiting = false; G.meta = w0.gameMetadata; previa();
     G.start = Date.parse(w0.frames[0].rfc460Timestamp);
     processFrame(w0.frames[0]);
     G.loading = false;
@@ -444,6 +444,42 @@
     return 1 / (1 + Math.pow(10, (E[b] - E[a]) / 400));
   }
 
+  // ---------- la previa: fuerza de los equipos (Elo) y draft, con los mismos pesos que la app (MODELO.pre) ----------
+  // Sin esto, el modelo en vivo solo veía el lado del mapa y lo que pasa en el juego.
+  var CAMPS = null, CAMPS_PEDIDO = false;
+  function cargarCampeones() {
+    if (CAMPS_PEDIDO || typeof fetch === 'undefined') return; CAMPS_PEDIDO = true;
+    var dd = 'https://ddragon.leagueoflegends.com/';
+    fetch(dd + 'api/versions.json').then(function (r) { return r.json(); }).then(function (v) { return fetch(dd + 'cdn/' + v[0] + '/data/es_MX/champion.json'); })
+      .then(function (r) { return r.json(); }).then(function (j) {
+        var o = {}; Object.keys(j.data || {}).forEach(function (k) { var c = j.data[k]; o[c.id] = {info: c.info || {attack: 5, magic: 5, defense: 5}, tags: c.tags || []}; });
+        CAMPS = Object.keys(o).length ? o : null; if (CAMPS && G && G.meta) { previa(); emit(); }
+      }).catch(function () {});
+  }
+  function previa() {
+    if (!G || !G.meta || !G.meta.blueTeamMetadata) return;
+    cargarCampeones();
+    var w = MODELO.pre.w, cb = code('blue'), cr = code('red'), E = FUERZA.elo || eloMundial();
+    var ok = !!(E && E[cb] != null && E[cr] != null), ez = ok ? (E[cb] - E[cr]) * Math.LN10 / 400 : 0;
+    var lado = function (side) {
+      var ps = (G.meta[side + 'TeamMetadata'] || {}).participantMetadata || [], ad = 0, ap = 0, front = 0, sc = 0;
+      ps.forEach(function (p) {
+        var c = CAMPS && CAMPS[p.championId], info = c ? c.info : {attack: 5, magic: 5, defense: 5}, tags = c ? c.tags : [];
+        var wt = p.role === 'support' ? 0.5 : 1, tot = (info.attack + info.magic) || 1;
+        ad += wt * info.attack / tot; ap += wt * info.magic / tot;
+        if (tags.indexOf('Tank') >= 0 || info.defense >= 7) front++;
+        var st = CHAMP[p.championId]; sc += st ? st.scale : 0;
+      });
+      return {ad: ad / ((ad + ap) || 1), front: front, scale: sc / (ps.length || 1)};
+    };
+    var B = lado('blue'), Rd = lado('red'), ext = function (t) { return t.ad >= 0.8 || t.ad <= 0.2 ? 1 : 0; }, nof = function (t) { return t.front ? 0 : 1; };
+    var x = [1, ez, CAMPS ? ext(Rd) - ext(B) : 0, CAMPS ? nof(Rd) - nof(B) : 0, (B.scale - Rd.scale) * 10], z = 0;
+    x.forEach(function (v, i) { z += w[i] * v; });
+    G.pre = {z: z, zNoSide: z - w[0], p: 1 / (1 + Math.exp(-z)), elo: ok, fuente: ok ? (FUERZA.elo ? 'app' : 'mundial') : null};
+    G.draft = {blue: {scale: B.scale}, red: {scale: Rd.scale}};
+    if (G.last) G.wp = winProb(G.last, G.gt);
+  }
+
   // Draft: plan y ventana de poder de cada equipo según la escala de sus campeones (datos pro). No cambia la probabilidad.
   function draftInfo() {
     if (!G || !G.meta) return null;
@@ -619,6 +655,7 @@
     start: async function () {
       if (running) return; running = true;
       var self = this, gen = ++RUNGEN;
+      loadSchedule().catch(function () {});  // el calendario da el Elo del Mundial para la previa (si la app no manda el suyo)
       async function sync() {
         try {
           var evt = await findLive();
@@ -657,7 +694,7 @@
       if (!g) { emit(); return; }
       var w0; try { w0 = await feed('window', g.id); } catch (ex) { w0 = null; }
       if (!w0 || !w0.frames || !w0.frames.length) { emit(); return; }
-      G = newGame(g.id); G.meta = w0.gameMetadata; G.start = Date.parse(w0.frames[0].rfc460Timestamp); G.waiting = false; G.loading = false;
+      G = newGame(g.id); G.meta = w0.gameMetadata; G.start = Date.parse(w0.frames[0].rfc460Timestamp); G.waiting = false; G.loading = false; previa();
       processFrame(w0.frames[0]);
       var startMs = G.start + Math.max(0.1, (min == null ? 8 : min)) * 60000;
       for (var t = G.start + 30000; t < startMs; t += 30000) { try { var w = await feed('window', g.id, t); var f = w && lastBefore(w.frames, t); if (f) processFrame(f); } catch (ex2) {} }
@@ -972,6 +1009,7 @@
         SCH.events = evs.filter(function (e) { return e.match && e.match.id && !seen[e.match.id] && (seen[e.match.id] = 1); });
         SCH.at = Date.now();
         BR.data = buildBracket(SCH.events);
+        if (G && G.meta && !(G.pre && G.pre.elo)) { previa(); emit(); }  // con el calendario ya hay Elo del Mundial para la previa
       } catch (e) {}
       SCH.loading = null;
       emit();
@@ -1021,7 +1059,7 @@
   RiftEngine.MODELO = MODELO;       // fuente única de los pesos del modelo (la app los lee de aquí)
   RiftEngine.PRECISION = PRECISION;
   RiftEngine.accAt = accAt;
-  RiftEngine.setFuerza = function (elo) { FUERZA.elo = elo && Object.keys(elo).length ? elo : null; FUERZA.fuente = FUERZA.elo ? 'app' : null; emit(); };
+  RiftEngine.setFuerza = function (elo) { FUERZA.elo = elo && Object.keys(elo).length ? elo : null; FUERZA.fuente = FUERZA.elo ? 'app' : null; previa(); emit(); };
   RiftEngine.pMapa = pMapa;
   RiftEngine.colores = colores;
   // ---------- director: qué pieza mostrar en cada momento del juego ----------
