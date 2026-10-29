@@ -1483,23 +1483,23 @@ function chartSVG(S, E, cb, cr, withProb, uid) {
   const path = S.map((s, i) => (i ? 'L' : 'M') + x(s.gt).toFixed(1) + ',' + yg(s.diff).toFixed(1)).join('');
   const area = path + `L${x(S[S.length - 1].gt).toFixed(1)},${yg(0)}L${x(S[0].gt).toFixed(1)},${yg(0)}Z`;
   let ticks = '';
-  for (let m = 5; m * 60 <= tMax; m += 5) ticks += `<line x1="${x(m * 60)}" x2="${x(m * 60)}" y1="4" y2="${gTop + gH}" stroke="#14171d"/><text x="${x(m * 60)}" y="${H - 2}" fill="#9aa3b2" font-size="10" text-anchor="middle">${m}'</text>`;
+  for (let m = 5; m * 60 <= tMax; m += 5) ticks += `<line x1="${x(m * 60)}" x2="${x(m * 60)}" y1="4" y2="${gTop + gH}" style="stroke:var(--line)"/><text x="${x(m * 60)}" y="${H - 2}" style="fill:var(--muted)" font-size="10" text-anchor="middle">${m}'</text>`;
   const marks = E.filter(e => ['dragon', 'elder', 'baron', 'inhib'].includes(e.kind)).map(e => {
     const c = e.side === 'blue' ? RPC.a : RPC.b, cx = x(e.gt), cy = e.side === 'blue' ? gTop + 8 : gTop + gH - 8;
     const sym = {dragon: 'D', elder: 'A', baron: 'B', inhib: 'I'}[e.kind];
     return `<circle cx="${cx}" cy="${cy}" r="7" fill="${c}"/><text x="${cx}" y="${cy + 3.5}" font-size="9" font-weight="800" text-anchor="middle" fill="#0b0f17">${sym}</text>`;
   }).join('');
-  const prob = withProb ? `<line x1="${padL}" x2="${W - padR}" y1="${yp(.5)}" y2="${yp(.5)}" stroke="#3a404c" stroke-dasharray="3 3"/>
+  const prob = withProb ? `<line x1="${padL}" x2="${W - padR}" y1="${yp(.5)}" y2="${yp(.5)}" style="stroke:var(--line-strong)" stroke-dasharray="3 3"/>
     <path d="${S.map((s, i) => (i ? 'L' : 'M') + x(s.gt).toFixed(1) + ',' + yp(s.p).toFixed(1)).join('')}" fill="none" stroke="${RPC.s}" stroke-width="2"/>
     <text x="${padL - 4}" y="${yp(1) + 8}" fill="${RPC.a}" font-size="9" text-anchor="end">${esc(cb)}</text>
     <text x="${padL - 4}" y="${yp(0)}" fill="${RPC.b}" font-size="9" text-anchor="end">${esc(cr)}</text>` : '';
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Diferencia de oro en el tiempo">
     <defs><clipPath id="up-${uid}"><rect x="0" y="0" width="${W}" height="${yg(0)}"/></clipPath><clipPath id="dn-${uid}"><rect x="0" y="${yg(0)}" width="${W}" height="${H}"/></clipPath></defs>
     ${ticks}${prob}
-    <line x1="${padL}" x2="${W - padR}" y1="${yg(0)}" y2="${yg(0)}" stroke="#3a404c"/>
+    <line x1="${padL}" x2="${W - padR}" y1="${yg(0)}" y2="${yg(0)}" style="stroke:var(--line-strong)"/>
     <path d="${area}" fill="${RPC.a}" fill-opacity=".35" clip-path="url(#up-${uid})"/>
     <path d="${area}" fill="${RPC.b}" fill-opacity=".35" clip-path="url(#dn-${uid})"/>
-    <path d="${path}" fill="none" stroke="#e6ebf5" stroke-width="1.5"/>
+    <path d="${path}" fill="none" style="stroke:var(--text)" stroke-width="1.5"/>
     <text x="${padL - 4}" y="${gTop + 10}" fill="${RPC.a}" font-size="10" text-anchor="end">+${lim / 1000}k</text>
     <text x="${padL - 4}" y="${gTop + gH}" fill="${RPC.b}" font-size="10" text-anchor="end">+${lim / 1000}k</text>
     ${marks}
@@ -3174,7 +3174,7 @@ function mxSpark(g) {
   const marks = (g.swings || []).map(m => `<rect x="${X(m.a).toFixed(1)}" y="0" width="${Math.max(2, X(m.b) - X(m.a)).toFixed(1)}" height="${H}" fill="${m.side === 'blue' ? RPC.a : RPC.b}" opacity=".1"/>`).join('');
   const bw = p => (RiftEngine.banda ? RiftEngine.banda(p.gt) || 0 : 0);  // banda de confianza: más ancha cuando el modelo acierta menos
   const band = 'M' + pts.map(p => X(p.gt).toFixed(1) + ' ' + Y(Math.min(1, p.p + bw(p))).toFixed(1)).join(' L') + ' L' + pts.slice().reverse().map(p => X(p.gt).toFixed(1) + ' ' + Y(Math.max(0, p.p - bw(p))).toFixed(1)).join(' L') + ' Z';
-  return `<svg class="mx-spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Probabilidad en todo el juego, con su banda de confianza">${marks}<path d="${band}" fill="#ffffff" opacity=".07"/><line x1="0" y1="${H / 2}" x2="${W}" y2="${H / 2}" stroke="#2a2f3a" stroke-dasharray="4 4"/><path d="${d}" fill="none" stroke="url(#mxg)" stroke-width="2.5" vector-effect="non-scaling-stroke"/><defs><linearGradient id="mxg" x1="0" y1="0" x2="0" y2="${H}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${RPC.a}"/><stop offset="1" stop-color="${RPC.b}"/></linearGradient></defs></svg>`;
+  return `<svg class="mx-spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Probabilidad en todo el juego, con su banda de confianza">${marks}<path d="${band}" style="fill:var(--text)" opacity=".07"/><line x1="0" y1="${H / 2}" x2="${W}" y2="${H / 2}" style="stroke:var(--line-strong)" stroke-dasharray="4 4"/><path d="${d}" fill="none" stroke="url(#mxg)" stroke-width="2.5" vector-effect="non-scaling-stroke"/><defs><linearGradient id="mxg" x1="0" y1="0" x2="0" y2="${H}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${RPC.a}"/><stop offset="1" stop-color="${RPC.b}"/></linearGradient></defs></svg>`;
 }
 function mxPost(s) {
   const m = s.match, g = s.game;

@@ -566,7 +566,7 @@
     var d = DIR && !cfg.hideAll && s.match ? DIR.decidir(s) : null, g = s.game, html = '', key = '', gi = DIR && DIR.giro;
     // el giro va en la alerta, sobre la barra (sale aunque haya una pieza grande)
     if (gi && giroVisto !== gi.clave && Date.now() - gi.at < 8000 && !cfg.hideAll) { giroVisto = gi.clave;
-      var ev = (g.events || []).filter(function (e) { return ['baron', 'elder', 'dragon', 'inhib', 'fight'].indexOf(e.kind) >= 0 && g.gt - e.gt <= 60; }).slice(-1)[0];
+      var ev = ((g && g.events) || []).filter(function (e) { return ['baron', 'elder', 'dragon', 'inhib', 'fight'].indexOf(e.kind) >= 0 && g.gt - e.gt <= 60; }).slice(-1)[0];
       showCallout('<span class="zap">⚡</span><span class="cc ' + sc(gi.side) + '">' + esc(gi.side === 'blue' ? s.match.blue.code : s.match.red.code) + ' +' + Math.abs(gi.d) + ' pts</span>' + (ev ? ' · ' + esc(ev.txt) : '')); }
     if (d) { html = piezaHTML(d.pieza, s); key = d.clave; }
     // entre juegos (o antes del primero): la serie, con la previa del modelo

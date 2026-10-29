@@ -101,9 +101,11 @@ footer{border-top-color:var(--line) !important}
     --line-rgb:20,26,38;--line:rgba(20,26,38,.1);--line-2:rgba(20,26,38,.06);--line-strong:rgba(20,26,38,.16);
     --text:#12151B;--muted:#5B6372;--text-dim:#7A8291;--link:#2563C9;
     --signal:#5E8C00;--signal-2:#4A7000;--signal-soft:#E9F5CF;--signal-rgb:94,140,0;--signal-ink:#FFFFFF;
+    --ok:#0C8A62;--warn:#A86400;--live:#D42A38;
   }
   :root:not(.rp-oscuro) body{background:radial-gradient(1100px 520px at -8% -14%,rgba(var(--team-a-rgb),.10),transparent 62%),radial-gradient(1000px 500px at 108% -12%,rgba(var(--team-b-rgb),.08),transparent 60%),var(--bg) !important}
   :root:not(.rp-oscuro) body::before{opacity:0}
+  :root:not(.rp-oscuro) .badge.live,:root:not(.rp-oscuro) .live:not(.off),:root:not(.rp-oscuro) .mx-badge.live{color:#B81E2C !important;background:rgba(212,42,56,.08) !important;border-color:rgba(212,42,56,.4) !important}
   :root:not(.rp-oscuro) .b,:root:not(.rp-oscuro) b.b{color:var(--team-a-2)}
   :root:not(.rp-oscuro) .r,:root:not(.rp-oscuro) b.r{color:var(--team-b-2)}
 }
