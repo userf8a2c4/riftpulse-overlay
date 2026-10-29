@@ -426,13 +426,13 @@
   .dg-r{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:2px 0;border-bottom:1px solid rgba(var(--line-rgb),0.055)}.dg-r span{color:var(--muted);flex:none}.dg-r b{color:var(--text);font-weight:500;text-align:right;font-family:Inter Tight,system-ui,sans-serif}\
   .dg-i{display:block;max-width:100%;height:34px;margin:4px 0;border:1px solid rgba(var(--line-rgb),0.11);image-rendering:pixelated}.dg-n{font-size:11px;color:var(--muted);margin-top:6px}\
   .syncg .gt{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:700}\
-  .bv{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;white-space:nowrap;\
+  .bv{position:absolute;left:50%;top:calc(100% + 10px);transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;white-space:nowrap;\
     background:rgba(var(--g1-rgb),.97);border:1px solid rgba(var(--signal-rgb),.55);box-shadow:0 14px 40px rgba(0,0,0,.55);font:600 13px var(--ff);color:var(--text);pointer-events:auto}\
   .bv b{font:800 15px var(--ffd);letter-spacing:.4px;margin-right:4px}\
   .bv button{height:32px;padding:0 12px;border-radius:8px;border:1px solid rgba(var(--line-rgb),.22);background:var(--g2);color:var(--text);font:600 13px var(--ff);cursor:pointer}\
   .bv button:hover{border-color:var(--signal)}.bv button.x{background:none;border:0;color:var(--muted);padding:0 4px}\
   .cd .hs{margin:0;padding-left:18px;font-size:13px;line-height:1.5}.cd .hs li{padding:2px 0}\
-  .col{display:flex;flex-direction:column;align-items:flex-start;gap:8px;overflow:hidden}\
+  .col{display:flex;flex-direction:column;align-items:flex-start;gap:8px;overflow:hidden;color:var(--text);font-family:var(--ff)}\
   .col .cd,.col .dmg{width:300px;max-width:300px}.col .cd[style]{width:340px!important;max-width:340px}.col .dmg{max-width:340px;width:340px}\
   .col .dmg .dcols{grid-template-columns:1fr;gap:6px}\
   .w.oculto{display:none}\
