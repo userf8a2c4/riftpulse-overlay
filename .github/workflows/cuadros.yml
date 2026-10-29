@@ -1,0 +1,42 @@
+# Prueba el overlay con video real de la transmisión (se lanza a mano): baja un tramo de un VOD de Twitch, lo reproduce
+# con el overlay y los datos reales, e imprime en el registro qué leyó segundo a segundo y unos recortes del HUD.
+# No se sube nada de la transmisión al repo.
+name: Probar con video real
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'VOD de Twitch (o el canal: toma el último VOD)'
+        default: 'https://www.twitch.tv/lolesportsla/videos?filter=archives&sort=time'
+      desde:
+        description: 'Desde (h:mm:ss del VOD)'
+        default: '1:08:00'
+      hasta:
+        description: 'Hasta (h:mm:ss del VOD)'
+        default: '1:14:00'
+
+permissions:
+  contents: read
+
+jobs:
+  real:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pip install yt-dlp && sudo apt-get install -y ffmpeg >/dev/null
+      - name: Bajar el tramo del VOD
+        run: |
+          yt-dlp --playlist-items 1 --download-sections "*${{ inputs.desde }}-${{ inputs.hasta }}" -f "best[height<=720]/best" -o vod.mp4 "${{ inputs.url }}"
+          ffmpeg -loglevel error -i vod.mp4 -an -vf scale=1280:720 -c:v libvpx -b:v 3M -deadline realtime -cpu-used 8 pruebas/real.webm
+          mkdir -p hud && ffmpeg -loglevel error -i vod.mp4 -vf "fps=1/15,crop=iw*0.5:ih*0.16:iw*0.25:0,scale=560:-1" -q:v 6 hud/h%02d.jpg
+          ffmpeg -loglevel error -i vod.mp4 -vf "fps=1/30,scale=320:-1" -q:v 8 hud/f%02d.jpg
+      - run: npm i --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
+      - run: node pruebas/real.js pruebas/real.webm
+      - name: Recortes (base64)
+        if: always()
+        run: for f in hud/*.jpg; do echo "IMG $(basename $f) $(base64 -w0 $f)"; done
