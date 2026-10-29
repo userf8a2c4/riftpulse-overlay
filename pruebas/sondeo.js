@@ -31,6 +31,26 @@ const iso = t => { const d = new Date(Math.floor(t / 10000) * 10000); return d.t
   out.motor = await pg.evaluate(() => { const s = RiftEngine.state, gm = s.game || {};
     return {partido: s.match && s.match.blue.code + ' vs ' + s.match.red.code, gt: Math.round(gm.gt), p: gm.pBlue, muestras: (gm.samples || []).length,
       historia: RiftEngine.historia(s).map(x => x.text), cambio: RiftEngine.cambio(s), mirar: RiftEngine.mirar(s), jugadores: gm.jugadores, giros: gm.swings, impacto: gm.impact, colores: RiftEngine.colores(s.match.blue.code, s.match.red.code)}; });
+  // muchos juegos reales: los últimos partidos terminados, en varios minutos de cada juego
+  const raros = [], textos = [];
+  const malo = t => /undefined|NaN|null|\[object|Infinity/.test(t);
+  for (const e of ev.filter(x => x.state === 'completed').slice(-8)) {
+    let gs = [];
+    try { gs = (await j(API + 'getEventDetails?hl=es-MX&id=' + e.match.id, {'x-api-key': KEY})).data.event.match.games.filter(x => x.state === 'completed'); } catch (x) { continue; }
+    for (const gm of gs) for (const min of [8, 16, 26, 60]) {
+      await pg.evaluate(([m, n, mi]) => RiftEngine.replay(m, n, mi, 1), [e.match.id, gm.number, min]); await pg.waitForTimeout(min === 60 ? 9000 : 6000);
+      const r = await pg.evaluate(() => { const s = RiftEngine.state, g = s.game || {}; const t = [];
+        RiftEngine.historia(s).forEach(x => t.push(x.text)); RiftEngine.talk(s).forEach(x => t.push(x.text)); RiftEngine.recapLines(s).forEach(x => t.push(x.replace(/<[^>]+>/g, '')));
+        const mi = RiftEngine.mirar(s), cb = RiftEngine.cambio(s);
+        return {partido: s.match && s.match.blue.code + '-' + s.match.red.code, gt: Math.round(g.gt || 0), p: g.pBlue, fin: !!g.ended, t, mirar: mi && mi.obj + (mi.vivo ? ' (ya está)' : ' en ' + Math.round(mi.en)) + (mi.mejor ? ' · mejor ' + mi.code : ''),
+          cambio: cb && (cb.dp + ' pts · ' + cb.items.map(x => x.code + ' ' + x.txt).join(', ')), jug: g.jugadores && [g.jugadores.blue.items, g.jugadores.red.items, g.jugadores.blue.wp, g.jugadores.red.wp]}; });
+      const id = r.partido + ' J' + gm.number + ' min ' + min;
+      if (r.p == null || isNaN(r.p)) raros.push(id + ': sin probabilidad');
+      r.t.forEach(x => { if (malo(x)) raros.push(id + ': ' + x); });
+      if (min === 16 || min === 60) textos.push({id, gt: r.gt, p: r.p && Math.round(r.p * 100), fin: r.fin, historia: r.t.slice(0, 5), mirar: r.mirar, cambio: r.cambio, jug: r.jug});
+    }
+  }
+  out.masivo = {revisados: textos.length, raros, textos};
   await b.close();
   console.log('=== SONDEO ===\n' + JSON.stringify(out, null, 1));
 })().catch(e => { console.log('FALLÓ: ' + e.stack); process.exit(1); });
