@@ -9,7 +9,7 @@
 | `engine.js` | Motor: datos en vivo + modelo (misma fuente que la app) |
 | `logo.svg`, `logo.png` | Marca |
 | `riftpulse.obs-scene.json` | Escena de OBS de respaldo (OBS 28+) |
-| `INSTRUCCIONES-NICK.md` | Guía rápida de instalación (ES + EN) |
+| `INSTRUCCIONES-NICK.md` | Carta de presentación para Nick Daboom |
 | `docs/img/` | Imágenes del README y de esta wiki |
 | `wiki/` | Fuente de esta wiki |
 

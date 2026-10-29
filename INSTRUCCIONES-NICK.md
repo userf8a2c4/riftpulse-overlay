@@ -1,51 +1,45 @@
-# RiftPulse — guía rápida / quick guide
+<p align="center"><img src="docs/img/banner.jpg" alt="RiftPulse"></p>
 
-> La URL ya está puesta abajo. (Si cambias de usuario o de repo, reemplázala.)
+# Nick, esto lo hice pensando en streams como el tuyo
 
----
+¡Hola, Nick! Soy **VectisDev**.
 
-## Español — en 3 pasos
+Te escribo porque tu stream es de los que más viven el LoL en español, y armé algo que creo que le puede sumar a tus partidas del Mundial: **RiftPulse**, un overlay que le muestra a tu chat **quién va ganando la partida, en vivo y en porcentaje**.
 
-**Qué es:** un overlay gratuito que muestra, sobre tu co-stream del Mundial, la **probabilidad de victoria en vivo** de cada equipo (y el pronóstico, el momentum y los objetivos). Se autodetecta el partido; no configuras nada.
+No es un número inventado: es un modelo entrenado con más de 2.200 juegos profesionales que **acierta el 75 % de las veces al minuto 15**, medido sobre 589 partidas que nunca había visto. Y lo muestra a la vista, sin esconder cuándo se equivoca.
 
-1. Abre **https://userf8a2c4.github.io/riftpulse-overlay** y toca **📋 Copiar URL del overlay**.
-2. En OBS: **＋ en Fuentes → Navegador** → pega la URL → pon **1920 × 1080** → Aceptar.
-3. ¡Listo! Aparece con fondo transparente. Arrástralo donde quieras.
+<p align="center"><img src="docs/img/overlay-en-transmision.jpg" alt="RiftPulse sobre una transmisión"></p>
 
-**Aún más rápido:** en la página, **⬇ Descargar escena de OBS** → en OBS **Escena → Importar** → elige el archivo.
+## Lo que le puede sumar a tu stream
 
-### Si algo no se ve
-- **No aparece:** ¿hay un partido de Worlds en vivo ahora? Fuera de partido queda a la espera.
-- **Se ve un fondo:** en OBS el fondo del overlay es transparente por diseño; si ves una caja, revisa que sea un *Navegador/Browser Source* (no una imagen).
-- **Va adelantado/atrasado** respecto a tu video: no pasa nada, es el overlay personal; en OBS normalmente coincide bien.
+- 🔥 **Discusión con el chat.** «RiftPulse le da 81 % a T1… ¿se la dan vuelta?». El número arma la conversación sola.
+- ⚡ **Alerta cuando la partida da vuelta.** Si tras un Barón la probabilidad salta 20 puntos, aparece un aviso en pantalla, justo en el momento que todos quieren comentar.
+- 🎙 **Datos para comentar sin buscarlos.** Una segunda pantalla con frases listas: quién gana cada línea, qué necesita el que va perdiendo para remontar y cuánto vale este juego para la serie.
+- 🏁 **Resumen al terminar cada juego.** Quién ganó, el momento que lo decidió y el jugador clave, con una imagen lista para tus redes.
 
-### Extras para tu equipo (opcional)
-- **Mesa de análisis** (`https://userf8a2c4.github.io/riftpulse-overlay/analista.html`): una pantalla para que tú o un analista tengan datos y **frases listas para comentar**.
-- **Más gráficos**: en la página hay un *paquete* (tarjeta grande, alerta de momentum, objetivos, claves) — cada uno es otra URL.
-- **Control en vivo** (`https://userf8a2c4.github.io/riftpulse-overlay/control.html`): añádelo en OBS como *Dock de navegador* para encender/apagar módulos y lanzar alertas al aire.
+<p align="center"><img src="docs/img/piezas-casters.png" width="420" alt="Piezas de RiftPulse"></p>
 
-Es gratis, es pronóstico/análisis (no apuestas) y no está afiliado a Riot. Cualquier ajuste, avísame. — VectisDev
+## Probarlo te lleva un minuto
 
----
+1. Entrá a **https://userf8a2c4.github.io/riftpulse-overlay** y tocá **📋 Copiar URL del overlay**.
+2. En OBS: **＋ en Fuentes → Navegador** → pegá la URL → **1920 × 1080** → Aceptar.
+3. Listo. Fondo transparente, detecta solo el partido del Mundial y no hay nada que configurar.
 
-## English — in 3 steps
+## Lo que te pido (y lo que no)
 
-**What it is:** a free overlay that shows, over your Worlds co-stream, each team's **live win probability** (plus the prediction, momentum and objectives). It auto-detects the match; nothing to configure.
+**Nada obligatorio.** Es gratis y no te pido nada a cambio.
 
-1. Open **https://userf8a2c4.github.io/riftpulse-overlay** and click **📋 Copy overlay URL**.
-2. In OBS: **＋ in Sources → Browser** → paste the URL → set **1920 × 1080** → OK.
-3. Done! It shows with a transparent background. Drag it anywhere.
+Si lo probás un rato en una partida y me contás qué te gustó y qué no, ya me ayudás muchísimo. Y si te convence y te dan ganas de mostrarlo en el stream, para mí sería enorme.
 
-**Even faster:** on the page, **⬇ Download OBS scene** → in OBS **Scene → Import** → pick the file.
+Si querés, **lo adapto a vos**: los colores de tu canal o del SoloBoom, tu logo, o la pieza que se te ocurra que le falta.
 
-### If something looks off
-- **Nothing shows:** is a Worlds match live right now? Between matches it waits.
-- **You see a background box:** the overlay is transparent by design; make sure it's a *Browser Source* (not an image).
-- **Timing vs your video:** it's fine for a personal overlay; in OBS it usually lines up well.
+## Para que estés tranquilo
 
-### Extras for your team (optional)
-- **Analyst desk** (`https://userf8a2c4.github.io/riftpulse-overlay/analista.html`): a screen with live data and **ready-to-say talking points** for you or an analyst.
-- **More graphics**: the page has a *pack* (big card, momentum alert, objectives, keys) — each is its own URL.
-- **Live control** (`https://userf8a2c4.github.io/riftpulse-overlay/control.html`): add it in OBS as a *Custom Browser Dock* to toggle modules and trigger alerts on air.
+- **No es de apuestas.** Es pronóstico y análisis; no hay casas de apuestas ni nada parecido.
+- **No está afiliado a Riot Games.** Usa los datos públicos de LoL Esports y lleva el aviso correspondiente.
+- **Es abierto.** Todo está en este repositorio y explicado en la [wiki](https://github.com/userf8a2c4/riftpulse-overlay/wiki), incluido cómo se mide la precisión.
 
-It's free, it's prediction/analysis (no betting) and it's not affiliated with Riot. Happy to tweak anything. — VectisDev
+¡Gracias por leer hasta acá! Ojalá lo veamos en una de tus partidas.
+
+Un abrazo,
+**VectisDev**
