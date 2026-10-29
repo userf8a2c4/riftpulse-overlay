@@ -19,7 +19,7 @@ open(os.path.join(ext, 'panel.js'), 'w', encoding='utf-8').write(m.group(1))
 
 # Overlay de espectador: motor + widget, inyectados sobre el stream (content script).
 # logo.svg: marca y favicon del panel. icon128.png: ícono de la extensión (el logo).
-for f in ('engine.js', 'overlay.js', 'logo.svg', 'icon128.png'):
+for f in ('engine.js', 'overlay.js', 'logo.svg', 'icon128.png', 'rp-design.css'):
     shutil.copy(os.path.join(AQUI, f), os.path.join(ext, f))
 
 manifest = {
