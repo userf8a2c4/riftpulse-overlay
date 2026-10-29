@@ -69,14 +69,25 @@
   .ctl button.ic:hover{color:#fff;border-color:#4aa3ff}\
   .mom{position:absolute;left:50%;top:-22px;transform:translateX(-50%);display:none;align-items:center;gap:6px;background:rgba(10,14,22,.96);border:1px solid rgba(242,193,78,.5);border-radius:7px;padding:2px 9px;font-size:11px;font-weight:700;color:#f3e3bd;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.5);z-index:3}\
   .mom.show{display:flex}.mom .zap{color:#f2c14e}.mom .k.b{color:#7cc0ff}.mom .k.r{color:#ff8a8f}\
+  .dmg{position:absolute;left:50%;top:calc(100% + 9px);transform:translateX(-50%);display:none;width:470px;max-width:92vw;\
+     background:linear-gradient(180deg,rgba(13,19,31,.96),rgba(8,12,20,.97));border:1px solid rgba(120,150,200,.32);border-radius:11px;padding:9px 12px;box-shadow:0 12px 32px rgba(0,0,0,.6);z-index:4}\
+  .dmg.show{display:block}\
+  .dh{font-size:9.5px;letter-spacing:.8px;text-transform:uppercase;color:#6b7791;margin-bottom:7px;display:flex;justify-content:space-between}.dh .wl{color:#cdd7ea;font-weight:700}\
+  .dcols{display:grid;grid-template-columns:1fr 1fr;gap:3px 16px}\
+  .drow{display:flex;align-items:center;gap:7px;padding:1px 0}\
+  .dn{font-size:11px;font-weight:700;width:60px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none}\
+  .dbar{flex:1;height:7px;border-radius:4px;background:rgba(120,150,200,.14);overflow:hidden}.dbar>div{height:7px;border-radius:4px}\
+  .dcol.b .dbar>div{background:linear-gradient(90deg,#2f7fe0,#4aa3ff)}.dcol.r .dbar>div{background:linear-gradient(90deg,#c3506a,#ff5a5f)}\
+  .dcol.b .dn{color:#7cc0ff}.dcol.r .dn{color:#ff8a8f}\
+  .dp{font-size:10.5px;font-variant-numeric:tabular-nums;color:#aeb9cf;width:30px;text-align:right;flex:none}\
   ';
 
   var LOGO = '<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="rplg" x1="8" y1="40" x2="56" y2="26" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4aa3ff"/><stop offset=".5" stop-color="#9ab0e6"/><stop offset="1" stop-color="#ff5a5f"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="15" fill="#0d1320" stroke="#2b3c62" stroke-width="3"/><path d="M10 35 H21 L25 35 L30 17 L36 49 L40 35 H54" fill="none" stroke="url(#rplg)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-  sh.innerHTML = '<style>' + CSS + '</style><div class="w" id="w"><div class="mom" id="mom"></div><div id="body" style="display:inline-flex"></div>' +
+  sh.innerHTML = '<style>' + CSS + '</style><div class="w" id="w"><div class="mom" id="mom"></div><div class="dmg" id="dmg"></div><div id="body" style="display:inline-flex"></div>' +
     '<div class="ctl" id="ctl"><span class="chip" data-ext="obj">objetivo</span><span class="chip" data-ext="pg">trayectoria</span>' +
     '<button class="ic" id="posbtn" title="arriba/abajo">↑↓</button><button class="ic" data-d="-5" title="atrasar">−</button><button class="ic" data-d="5" title="adelantar">+</button></div></div>';
-  var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom');
+  var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom'), dmgEl = sh.getElementById('dmg');
 
   function syncChips() { ctl.querySelectorAll('.chip[data-ext]').forEach(function (c) { c.classList.toggle('on', EXT.indexOf(c.getAttribute('data-ext')) >= 0); }); }
   syncChips();
@@ -102,7 +113,21 @@
     return '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none"><defs><linearGradient id="z" x1="0" y1="0" x2="0" y2="' + H + '" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4aa3ff" stop-opacity=".4"/><stop offset=".5" stop-color="#4aa3ff" stop-opacity=".05"/><stop offset=".5" stop-color="#ff5a5f" stop-opacity=".05"/><stop offset="1" stop-color="#ff5a5f" stop-opacity=".4"/></linearGradient></defs><line x1="0" y1="' + mid + '" x2="' + W + '" y2="' + mid + '" stroke="#38415c" stroke-width="1" stroke-dasharray="3 3"/><path d="' + area + '" fill="url(#z)"/><path d="' + line + '" fill="none" stroke="#dbe6fb" stroke-width="1.6" stroke-linejoin="round"/></svg>';
   }
 
-  var hist = [], lastMom = 0;
+  var hist = [], lastMom = 0, lastFightGt = -1, fightTimer = null;
+  function showFight(s) {
+    var f = s.game && s.game.fight;
+    if (!f || f.gt == null || !(f.blue || f.red)) return;
+    if (f.gt === lastFightGt) return;  // ya mostrada
+    lastFightGt = f.gt;
+    var m = s.match;
+    function col(side, cls) {
+      side = side || []; var mx = side.reduce(function (a, p) { return Math.max(a, p.share); }, 0.01);
+      return '<div class="dcol ' + cls + '">' + side.map(function (p) { return '<div class="drow"><span class="dn">' + esc(p.name) + '</span><div class="dbar"><div style="width:' + Math.round(p.share / mx * 100) + '%"></div></div><span class="dp">' + Math.round(p.share * 100) + '%</span></div>'; }).join('') + '</div>';
+    }
+    dmgEl.innerHTML = '<div class="dh"><span>Reparto de daño · tras la pelea</span><span class="wl">' + esc(f.win === 'blue' ? m.blue.code : m.red.code) + ' ganó el cambio</span></div><div class="dcols">' + col(f.blue, 'b') + col(f.red, 'r') + '</div>';
+    dmgEl.classList.add('show');
+    clearTimeout(fightTimer); fightTimer = setTimeout(function () { dmgEl.classList.remove('show'); }, 8500);
+  }
   function render(s) {
     LAST = s;
     if (!s.match) {
@@ -136,7 +161,7 @@
     html += '<div class="seg acc"><span class="n">' + (s.precision ? Math.round(s.precision.acc15 * 100) + '%' : '—') + '</span><span class="l">acierto</span></div>';
 
     body.innerHTML = html;
-    hist.push({t: Date.now(), p: g.pBlue}); checkMomentum(s);
+    hist.push({t: Date.now(), p: g.pBlue}); checkMomentum(s); showFight(s);
   }
 
   function checkMomentum(s) {
