@@ -206,6 +206,25 @@
 
   // ---------- suscripción / snapshot ----------
   var subs = [];
+  function tstat(t) { return {gold: t.totalGold, kills: t.totalKills, towers: t.towers, inhibs: t.inhibitors, barons: t.barons,
+    dragons: t.dragons.filter(function (d) { return d !== 'elder'; }).length, elders: t.dragons.filter(function (d) { return d === 'elder'; }).length}; }
+  // Impacto del próximo objetivo: cuánto movería la probabilidad si cada equipo lo toma (simulación con el modelo).
+  function impactNext() {
+    if (!G || !G.last || !G.wp || !G.t) return null;
+    var gt = G.gt, t = G.t, pick = null;
+    if (t.dragon && t.dragon.at > gt) pick = {kind: 'dragon', name: t.dragon.elder ? 'Ancestral' : 'Dragón', at: t.dragon.at};
+    if (t.baron && t.baron.at > gt && (!pick || t.baron.at < pick.at)) pick = {kind: 'baron', name: 'Barón', at: t.baron.at};
+    if (!pick) return null;
+    var base = G.wp.p;
+    function sim(side) {
+      var f; try { f = JSON.parse(JSON.stringify(G.last)); } catch (e) { return base; }
+      var tm = f[side + 'Team'];
+      if (pick.kind === 'baron') tm.barons = (tm.barons || 0) + 1;
+      else tm.dragons = (tm.dragons || []).concat([pick.name === 'Ancestral' ? 'elder' : 'mountain']);
+      return winProbModelo(f, gt).p;
+    }
+    return {obj: pick.name, at: pick.at, blue: Math.round((sim('blue') - base) * 100), red: Math.round((base - sim('red')) * 100)};
+  }
   function snapshot() {
     var blueCode = code('blue'), redCode = code('red');
     var bt = sideTeam('blue'), rt = sideTeam('red');
@@ -217,7 +236,9 @@
         red: {code: rt.code, img: https(rt.image || ''), wins: (rt.result || {}).gameWins}} : null,
       game: G ? {id: G.id, gt: G.gt, state: G.last ? G.last.gameState : null, ended: !!G.ended,
         waiting: !!G.waiting, pBlue: G.wp ? G.wp.p : null,
-        reasons: G.wp ? G.wp.parts : [], events: G.events.slice(-8), timers: G.t} : null,
+        reasons: G.wp ? G.wp.parts : [], events: G.events.slice(-8), timers: G.t,
+        stats: G.last ? {blue: tstat(G.last.blueTeam), red: tstat(G.last.redTeam)} : null,
+        samples: G.samples ? G.samples.slice() : [], impact: impactNext()} : null,
       blueCode: blueCode, redCode: redCode, delay: delay, precision: PRECISION, at: Date.now()
     };
   }
