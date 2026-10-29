@@ -815,6 +815,8 @@
         var gm = games[k];
         if (gm.state !== 'completed' && gm.state !== 'inProgress') continue;
         var gi = await gameInfo(gm.id); if (!gi || !gi.meta) continue;
+        // el juego en curso no puede ir más adelantado en el video que en la realidad
+        if (gm.state === 'inProgress' && o.gt > (Date.now() - gi.start) / 1000 + 30) continue;
         var t = gi.start + o.gt * 1000, w = await feed('window', gm.id, t), f = w && lastBefore(w.frames, t);
         if (!f) continue;
         var idOf = function (side) { return gi.meta[side + 'TeamMetadata'].esportsTeamId; };
@@ -831,6 +833,9 @@
       }
     }
     if (!all.length) return null;
+    // en una transmisión en vivo, si hay un juego en curso que cuadra con el reloj, lo que se ve es ese juego: uno ya jugado
+    // (un clip o una repetición de otro partido) solo gana si las siglas y el marcador lo distinguen con claridad
+    if (o.vivo && all.some(function (a) { return a.live; })) all.forEach(function (a) { if (!a.live) a.score += 2.5; });
     all.sort(function (a, b) { return a.score - b.score; });
     var best = all[0];
     best.alts = all.slice(1, 6);  // los más parecidos, para desempatar (por ejemplo, con los campeones en pantalla)

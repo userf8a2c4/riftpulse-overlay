@@ -9,10 +9,15 @@
   var R = window.RiftEngine;
 
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
-  var EXT = (function () { try { return JSON.parse(ls('rp_ext6') || '["obj","pg","oro"]'); } catch (e) { return ['obj', 'pg', 'oro']; } })();
-  var POS = ls('rp_pos6') || 'top';
+  // v7: los paneles ya no quedan fijos (los muestra el director en su momento) y la barra vuelve a su lugar junto al marcador
+  var EXT = (function () {
+    try { var e = JSON.parse(ls('rp_ext7') || 'null'); if (e) return e; } catch (e1) {}
+    var v6 = []; try { v6 = JSON.parse(ls('rp_ext6') || '["obj"]') || []; } catch (e2) {}
+    return v6.filter(function (k) { return k === 'obj' || k === 'pg' || k === 'mini'; });
+  })();
+  var POS = ls('rp_pos7') || 'top';
   var DMG = ls('rp_dmg6') !== '0';  // reparto de daño automático tras cada pelea
-  var XY = (function () { try { return JSON.parse(ls('rp_xy6') || 'null'); } catch (e) { return null; } })();
+  var XY = (function () { try { return JSON.parse(ls('rp_xy7') || 'null'); } catch (e) { return null; } })();
 
   if (!document.getElementById('rp-fonts')) { var fl = document.createElement('link'); fl.id = 'rp-fonts'; fl.rel = 'stylesheet';
     fl.href = 'https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap'; (document.head || document.documentElement).appendChild(fl); }
@@ -27,19 +32,33 @@
     document.querySelectorAll('video').forEach(function (v) { var r = v.getBoundingClientRect(), a = r.width * r.height; if (a > area && r.width > 200) { best = v; area = a; } });
     return best;
   }
-  // arriba = justo debajo del marcador oficial de la transmisión; abajo = encima del panel de jugadores
+  var host2 = document.createElement('div');
+  host2.id = 'rp-overlay-paneles';
+  host2.style.cssText = 'position:fixed;z-index:2147483645;pointer-events:none;transform-origin:0 0;';
+  (document.body || document.documentElement).appendChild(host2);
+  var sh2 = host2.attachShadow({mode: 'open'});
+  // integrado con la transmisión: la barra, pegada debajo del marcador de arriba (una fila más del HUD); los paneles, de a uno,
+  // en la columna izquierda a media altura (entre los timers de arriba a la izquierda y la barra de estadísticas de abajo).
+  // Nunca encima del marcador, la barra de abajo, las cámaras, el minimapa ni el centro del mapa.
   function place() {
-    if (XY) { host.style.left = XY.l + 'px'; host.style.top = XY.t + 'px'; host.style.bottom = 'auto'; host.style.transform = 'none'; return; }
     var v = mainVideo(), r = v ? v.getBoundingClientRect() : null;
-    host.style.transform = 'translateX(-50%)';
-    host.style.left = r ? (r.left + r.width / 2) + 'px' : '50%';
-    if (POS === 'bottom') { host.style.top = 'auto'; host.style.bottom = r ? Math.max(8, innerHeight - (r.top + r.height * 0.70)) + 'px' : '112px'; }
-    else { host.style.bottom = 'auto'; host.style.top = r ? Math.max(8, r.top + r.height * 0.125) + 'px' : '52px'; }
+    if (XY) { host.style.left = XY.l + 'px'; host.style.top = XY.t + 'px'; host.style.bottom = 'auto'; host.style.transform = 'none'; }
+    else {
+      host.style.transform = 'translateX(-50%)';
+      host.style.left = r ? (r.left + r.width / 2) + 'px' : '50%';
+      if (POS === 'bottom') { host.style.top = 'auto'; host.style.bottom = r ? Math.max(8, innerHeight - (r.top + r.height * 0.745)) + 'px' : '112px'; }
+      else { host.style.bottom = 'auto'; host.style.top = r ? Math.max(8, r.top + r.height * 0.118) + 'px' : '52px'; }
+    }
+    var k = r ? Math.max(0.6, Math.min(1.3, r.width / 1400)) : 1;
+    host2.style.transform = 'scale(' + k.toFixed(3) + ')';
+    if (r) { host2.style.left = (r.left + r.width * 0.012) + 'px'; host2.style.top = (r.top + r.height * 0.2) + 'px'; host2.style.maxHeight = (r.height * 0.52 / k) + 'px'; }
+    else { host2.style.left = '12px'; host2.style.top = '20vh'; }
   }
-  setInterval(place, 2000);
+  setInterval(place, 1000);
+  window.addEventListener('resize', place);
   place();
 
-  function rpFullscreen() { var fs = document.fullscreenElement || document.webkitFullscreenElement || null; var dest = fs || document.body; if (dest && host.parentNode !== dest) dest.appendChild(host); }
+  function rpFullscreen() { var fs = document.fullscreenElement || document.webkitFullscreenElement || null; var dest = fs || document.body; if (dest && host.parentNode !== dest) dest.appendChild(host); if (dest && host2.parentNode !== dest) dest.appendChild(host2); setTimeout(place, 50); }
   document.addEventListener('fullscreenchange', rpFullscreen);
   document.addEventListener('webkitfullscreenchange', rpFullscreen);
 
@@ -160,15 +179,23 @@
   .bv button{height:32px;padding:0 12px;border-radius:8px;border:1px solid rgba(var(--line-rgb),.22);background:var(--g2);color:var(--text);font:600 13px var(--ff);cursor:pointer}\
   .bv button:hover{border-color:var(--signal)}.bv button.x{background:none;border:0;color:var(--muted);padding:0 4px}\
   .cd .hs{margin:0;padding-left:18px;font-size:13px;line-height:1.5}.cd .hs li{padding:2px 0}\
+  .col{display:flex;flex-direction:column;align-items:flex-start;gap:8px;overflow:hidden}\
+  .col .cd,.col .dmg{width:300px;max-width:300px}.col .cd[style]{width:340px!important;max-width:340px}.col .dmg{max-width:340px;width:340px}\
+  .col .dmg .dcols{grid-template-columns:1fr;gap:6px}\
+  .w.oculto{display:none}\
+  .hint{display:none;align-items:center;gap:8px;height:28px;padding:0 12px 0 8px;border-radius:999px;background:rgba(var(--g1-rgb),.9);border:1px solid rgba(var(--line-rgb),.13);font:600 12px var(--ff);color:var(--muted);white-space:nowrap;cursor:pointer}\
+  .hint.show{display:inline-flex}.hint .logo{width:16px;height:16px}\
   ';
 
   var LOGO = '<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="rplg" x1="8" y1="40" x2="56" y2="26" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="'+RPC.a+'"/><stop offset=".5" stop-color="'+RPC.ahi+'"/><stop offset="1" stop-color="'+RPC.b+'"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="15" fill="#14171d" stroke="#2a2f3a" stroke-width="3"/><path d="M10 35 H21 L25 35 L30 17 L36 49 L40 35 H54" fill="none" stroke="url(#rplg)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-  sh.innerHTML = '<style>' + CSS + TOK + '</style><div class="w" id="w"><div class="mom" id="mom"></div><div class="toast" id="toast"></div><div class="diag" id="diag"></div><div class="cards" id="cards"><div class="dmg" id="dmg"></div><div id="cardsx" style="display:contents"></div></div><div id="body" style="display:inline-flex"></div>' +
+  sh.innerHTML = '<style>' + CSS + TOK + '</style><div class="w" id="w"><div class="mom" id="mom"></div><div class="toast" id="toast"></div><div class="diag" id="diag"></div><div id="body" style="display:inline-flex"></div>' +
     '<div class="ctl" id="ctl"><div class="tl" id="tl"></div><span class="chip" id="autoc" title="Lee el reloj y el marcador del video y se sincroniza solo">auto-sync</span><span class="ast" id="ast"></span><button class="ic" id="diagb" title="diagnóstico del auto-sync: qué está leyendo del video">?</button><span class="chip" data-ext="obj">objetivo</span><span class="chip" data-ext="pg">trayectoria</span><span class="chip" data-ext="oro">oro</span><span class="chip" data-ext="dano">daño</span><span class="chip" data-ext="imp">impacto</span><span class="chip" data-ext="duelos">duelos</span><span class="chip" data-ext="mini">mínimo</span>' +
     '<button class="ic" id="posbtn" title="arriba/abajo">↑↓</button><button class="ic" data-d="-5" title="atrasar">−</button><button class="ic" data-d="5" title="adelantar">+</button>' +
     '<span class="syncg" title="Escribe el minuto que ves en el stream y pulsa ⟲ (o Enter) para clavar el overlay a ese momento">ves <input id="scm" placeholder="mm:ss" maxlength="5"><button class="ic" id="syncb" title="sincronizar al minuto que ves">⟲</button> va <span class="gt" id="gtnow">—</span></span></div></div>';
-  var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom'), dmgEl = sh.getElementById('dmg'), cardsEl = sh.getElementById('cards'), cardsX = sh.getElementById('cardsx');
+  sh2.innerHTML = '<style>' + CSS + TOK + '</style><div class="col" id="cards"><div class="dmg" id="dmg"></div><div id="cardsx" style="display:contents"></div></div>';
+  var hintEl = document.createElement('div'); hintEl.className = 'hint'; sh.appendChild(hintEl);
+  var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom'), dmgEl = sh2.getElementById('dmg'), cardsEl = sh2.getElementById('cards'), cardsX = sh2.getElementById('cardsx');
 
   function syncChips() { ctl.querySelectorAll('.chip[data-ext]').forEach(function (c) { c.classList.toggle('on', EXT.indexOf(c.getAttribute('data-ext')) >= 0); }); }
   syncChips();
@@ -179,15 +206,15 @@
     bv.addEventListener('mousedown', function (e) { e.stopPropagation(); });
     bv.addEventListener('click', function (e) {
       var b = e.target.closest('[data-bv]'); if (!b) return; e.stopPropagation();
-      var n = b.getAttribute('data-bv'), ext = {minimo: [], estandar: ['obj'], show: ['obj', 'pg', 'oro']}[n];
-      if (ext) { EXT = ext.slice(); ls('rp_ext6', JSON.stringify(EXT)); syncChips(); ls('rp_dir', n); if (DIR) DIR.nivel = n; }
+      var n = b.getAttribute('data-bv'), ext = {minimo: [], estandar: ['obj'], show: ['obj', 'pg']}[n];
+      if (ext) { EXT = ext.slice(); ls('rp_ext7', JSON.stringify(EXT)); syncChips(); ls('rp_dir', n); if (DIR) DIR.nivel = n; }
       ls('rp_bienv', '1'); bv.remove(); if (LAST) render(LAST);
     });
     wEl.appendChild(bv);
   }
   var LAST = null;
-  ctl.querySelectorAll('.chip[data-ext]').forEach(function (c) { c.addEventListener('mousedown', function (e) { e.stopPropagation(); }); c.addEventListener('click', function (e) { e.stopPropagation(); var k = c.getAttribute('data-ext'), i = EXT.indexOf(k); if (i >= 0) EXT.splice(i, 1); else EXT.push(k); ls('rp_ext6', JSON.stringify(EXT)); syncChips(); if (LAST) render(LAST); }); });
-  sh.getElementById('posbtn').addEventListener('click', function (e) { e.stopPropagation(); POS = POS === 'top' ? 'bottom' : 'top'; XY = null; ls('rp_xy6', 'null'); ls('rp_pos6', POS); place(); });
+  ctl.querySelectorAll('.chip[data-ext]').forEach(function (c) { c.addEventListener('mousedown', function (e) { e.stopPropagation(); }); c.addEventListener('click', function (e) { e.stopPropagation(); var k = c.getAttribute('data-ext'), i = EXT.indexOf(k); if (i >= 0) EXT.splice(i, 1); else EXT.push(k); ls('rp_ext7', JSON.stringify(EXT)); syncChips(); if (LAST) render(LAST); }); });
+  sh.getElementById('posbtn').addEventListener('click', function (e) { e.stopPropagation(); POS = POS === 'top' ? 'bottom' : 'top'; XY = null; ls('rp_xy7', 'null'); ls('rp_pos7', POS); place(); });
   ctl.querySelectorAll('button[data-d]').forEach(function (b) { b.addEventListener('mousedown', function (e) { e.stopPropagation(); }); b.addEventListener('click', function (e) { e.stopPropagation(); R.nudge(+b.getAttribute('data-d')); }); });
   var scmEl = sh.getElementById('scm'), gtnowEl = sh.getElementById('gtnow');
   function doSync() {
@@ -204,7 +231,7 @@
   (function () { var sx, sy, ox, oy, on = false;
     wEl.addEventListener('mousedown', function (e) { if (e.target.closest('.ctl')) return; on = true; wEl.classList.add('drag'); var r = host.getBoundingClientRect(); sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top; e.preventDefault(); });
     window.addEventListener('mousemove', function (e) { if (!on) return; var l = Math.max(0, Math.min(innerWidth - 80, ox + e.clientX - sx)), t = Math.max(0, Math.min(innerHeight - 24, oy + e.clientY - sy)); host.style.left = l + 'px'; host.style.top = t + 'px'; host.style.bottom = 'auto'; host.style.transform = 'none'; });
-    window.addEventListener('mouseup', function () { if (!on) return; on = false; wEl.classList.remove('drag'); var r = host.getBoundingClientRect(); XY = {l: Math.round(r.left), t: Math.round(r.top)}; ls('rp_xy6', JSON.stringify(XY)); });
+    window.addEventListener('mouseup', function () { if (!on) return; on = false; wEl.classList.remove('drag'); var r = host.getBoundingClientRect(); XY = {l: Math.round(r.left), t: Math.round(r.top)}; ls('rp_xy7', JSON.stringify(XY)); });
   })();
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]; }); }
@@ -234,29 +261,41 @@
     dmgEl.classList.add('show');
     clearTimeout(fightTimer); fightTimer = setTimeout(function () { dmgEl.classList.remove('show'); }, 8500);
   }
+  // el overlay se ve solo cuando el juego está en pantalla (el HUD con su reloj, leído al menos dos veces seguidas).
+  // Repetición, desk, publicidad, entrevista o multivista: no queda nada a la vista. Al mover el mouse aparece un aviso chico.
+  var MOSTRAR = 0, MOUSE = 0;
+  function oculto() { return typeof AS !== 'undefined' && AS.on && !!L && Date.now() > MOSTRAR && !(AS.buenas >= 2 && Date.now() - AS.visto <= 5000); }
+  function pintarHint() {
+    var oc = wEl.classList.contains('oculto'), ver = oc && Date.now() - MOUSE < 3000;
+    hintEl.classList.toggle('show', ver);
+    if (ver) hintEl.innerHTML = LOGO + '<span>RiftPulse · ' + (typeof AS !== 'undefined' && AS.id ? 'vuelve con el juego' : 'aparece cuando el juego está en pantalla') + '</span>';
+  }
+  document.addEventListener('mousemove', function () { MOUSE = Date.now(); }, {passive: true});
+  setInterval(pintarHint, 600);
+  hintEl.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+  hintEl.addEventListener('click', function (e) { e.stopPropagation(); MOSTRAR = Date.now() + 20000; if (LAST) render(LAST); });  // ver los controles un rato
   function render(s) {
+    var oc = oculto();
+    wEl.classList.toggle('oculto', oc); pintarHint();
+    if (oc) {
+      LAST = s; tarjetas(null);
+      if (typeof tlEl !== 'undefined' && tlEl) tlEl.classList.remove('on'); dmgEl.classList.remove('show'); momEl.classList.remove('show');
+      return;
+    }
     render0(s);
-    // sin juego a la vista (sincronizando, desk, publicidad) no queda ningún panel del juego en pantalla
-    var quieto = !!(body.querySelector('.wait') || wEl.classList.contains('chico'));
+    var quieto = !!body.querySelector('.wait');
     tarjetas(quieto ? null : s);
     if (quieto) { if (typeof tlEl !== 'undefined' && tlEl) tlEl.classList.remove('on'); dmgEl.classList.remove('show'); momEl.classList.remove('show'); }
   }
   function render0(s) {
     LAST = s;
-    if (s.match && window.RPUI) RPUI.colores(s.match.blue.code, s.match.red.code, host);
+    if (s.match && window.RPUI) { RPUI.colores(s.match.blue.code, s.match.red.code, host); RPUI.colores(s.match.blue.code, s.match.red.code, host2); }
     gtnowEl.textContent = s.game && s.game.pBlue != null ? mmss(s.game.gt) : '—';
     // con el auto-sync activo nunca se muestra otro partido: mientras reconoce el del video, lo dice
     var leyendo = typeof AS !== 'undefined' && AS.on && Date.now() - AS.visto < 20000;
     if (leyendo && (!AS.id || AS.trasSalto || !s.match || s.match.id !== AS.id.matchId)) {
       body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div><div class="wait">' + (AS.id && !AS.trasSalto ? 'Cargando ' + esc(AS.id.codes.join(' vs ')) + ' · juego ' + AS.id.juego + '…' : 'Sincronizando con el video…') + '</div>';
       return;
-    }
-    // sin reloj a la vista más de 12 s (desk, publicidad, entrevista): la barra se contrae a una pastilla
-    var g0 = s.game, sinReloj = typeof AS !== 'undefined' && AS.on && AS.id && AS.visto && Date.now() - AS.visto > 12000;
-    wEl.classList.toggle('chico', !!(sinReloj && s.match));
-    if (sinReloj && s.match && g0 && g0.pBlue != null) {
-      var lider = g0.pBlue >= 0.5, pl = Math.round((lider ? g0.pBlue : 1 - g0.pBlue) * 100);
-      body.innerHTML = '<div class="mini">' + LOGO + '<span class="' + (lider ? 'b' : 'r') + '">' + esc(lider ? s.match.blue.code : s.match.red.code) + ' ' + pl + '%</span><span class="k">· vuelve con el juego</span></div>'; return;
     }
     if (!s.match) {
       if (s.next) { body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div>' +
@@ -354,7 +393,6 @@
   }
   var cardsSig = '';
   function tarjetas(s) {
-    cardsEl.classList.toggle('up', POS === 'bottom' && !XY);
     var h = '';
     if (s && s.game && s.game.pBlue != null) {
       if (EXT.indexOf('oro') >= 0) h += grafOro(s);
@@ -426,8 +464,8 @@
   // ---------- órdenes del centro de mando (pestaña «Mando» del panel lateral de la extensión) ----------
   function applyCmd(c, inicial) {
     if (!c) return;
-    if (c.ext) { EXT = c.ext.slice(); ls('rp_ext6', JSON.stringify(EXT)); syncChips(); }
-    if (c.pos) { POS = c.pos; XY = null; ls('rp_xy6', 'null'); ls('rp_pos6', POS); place(); }
+    if (c.ext) { EXT = c.ext.slice(); ls('rp_ext7', JSON.stringify(EXT)); syncChips(); }
+    if (c.pos) { POS = c.pos; XY = null; ls('rp_xy7', 'null'); ls('rp_pos7', POS); place(); }
     if (c.dmg != null) { DMG = !!c.dmg; ls('rp_dmg6', DMG ? '1' : '0'); if (!DMG) dmgEl.classList.remove('show'); }
     if (c.hidden != null) host.style.display = c.hidden ? 'none' : '';
     if (!inicial && c.sync) R.syncTo(c.sync.secs + (Date.now() - c.sync.at) / 1000);  // las órdenes de un solo uso no se repiten al recargar
@@ -457,16 +495,17 @@
   // Sirve en vivo o en repetición, a cualquier hora: el minuto se ata a la posición del video (pausa, velocidad,
   // saltos y cortes de carga incluidos). El lector (lector.js) no usa librerías ni servicios externos.
   var L = window.RiftLector;
-  // HUD de la transmisión del Mundial 2026, relativo al cuadro del video
+  // HUD de la transmisión del Mundial 2026, relativo al cuadro del video (medido sobre cuadros reales de la transmisión).
+  // El reloj y el oro se recortan justos: a los costados hay íconos (objetivos, monedas, la ventaja de oro) que ensucian la lectura
   var HUD = {
-    reloj: [0.455, 0.062, 0.545, 0.112],
+    reloj: [0.474, 0.064, 0.528, 0.1],
     tagI: [0.29, 0.0, 0.375, 0.055], tagD: [0.625, 0.0, 0.715, 0.055],
-    oroI: [0.415, 0.012, 0.458, 0.058], oroD: [0.548, 0.012, 0.59, 0.058],
+    oroI: [0.418, 0.016, 0.462, 0.049], oroD: [0.542, 0.016, 0.579, 0.049],
     killI: [0.468, 0.01, 0.497, 0.065], killD: [0.503, 0.01, 0.533, 0.065],
     camI: [0.372, 0.393], camD: [0.607, 0.628], camY: [0.761, 0.81, 0.859, 0.907, 0.953], camH: 0.042
   };
   // si el reloj no está en su lugar, se busca solo en la franja del marcador (arriba al centro), nunca en otras zonas
-  var RELOJES = [HUD.reloj, [0.44, 0.04, 0.56, 0.125], [0.44, 0.0, 0.56, 0.065], [0.44, 0.085, 0.56, 0.155]];
+  var RELOJES = [HUD.reloj, [0.466, 0.04, 0.534, 0.125], [0.466, 0.0, 0.534, 0.065], [0.466, 0.085, 0.534, 0.155]];
   var AS = {on: ls('rp_auto6') !== '0', busy: false, zona: null, fallas: 0, lect: [], contra: [], off: null, id: null, vid: null, visto: 0, codes: null, codesAt: 0, n: 0, malas: 0, pend: null, trasSalto: false, diag: {}, err: ''};
   // «mm:ss»; sin los dos puntos solo se acepta en la zona principal del reloj
   if (window.RP_DEBUG) window.__rpAS = AS;  // solo para las pruebas
@@ -489,6 +528,7 @@
   }
   function oro(s) {  // «3.1K», «31K» o «3.1» -> 3.1 (miles)
     s = String(s || '').replace(/[^\d.]/g, ''); if (!s) return null;
+    if (s.indexOf('.') < 0 && s.length >= 4) s = s.slice(0, 3);  // «1740»: la K leída como dígito (el oro nunca pasa de 99,9k)
     if (s.indexOf('.') < 0 && s.length >= 2) s = s.slice(0, -1) + '.' + s.slice(-1);
     var v = parseFloat(s); return v > 0 && v < 150 ? v : null;
   }
@@ -604,7 +644,7 @@
     if (!oroPosible(oI, gt) || !oroPosible(oD, gt)) { oI = oD = null; }
     if (kI > 80 || kD > 80) kI = kD = NaN;
     var mapa = function (s) { var m = {}; s.forEach(function (x) { m[x.code] = x.s; }); return m; };
-    var o = {gt: gt, tags: [sig(sI), sig(sD)], sig: sI.length && sD.length ? [mapa(sI), mapa(sD)] : null, kills: isFinite(kI) && isFinite(kD) ? [kI, kD] : null, gold: oI != null && oD != null ? [oI, oD] : null};
+    var o = {gt: gt, vivo: !esVod(), tags: [sig(sI), sig(sD)], sig: sI.length && sD.length ? [mapa(sI), mapa(sD)] : null, kills: isFinite(kI) && isFinite(kD) ? [kI, kD] : null, gold: oI != null && oD != null ? [oI, oD] : null};
     AS.diag.siglas = [sI.slice(0, 3), sD.slice(0, 3)]; AS.diag.marcador = o;
     var id = await R.identify(o);
     if (id && id.alts && id.alts.length) {  // empate (por ejemplo, juegos de la misma serie al principio): mirar los campeones
@@ -631,6 +671,7 @@
       if (AS.id && AS.off != null) publicar();  // el panel recibe el minuto siempre, se vea o no el reloj
       if (!vars.length) {
         if (++AS.fallas >= 5) AS.zona = null;
+        if (Date.now() - AS.visto > 5000) AS.buenas = 0;
         // el juego no vuelve (fue una repetición o un clip en la previa, o terminó): se suelta y se vuelve al vivo.
         // un clip de un partido que no se juega ahora, en una transmisión en vivo, se suelta antes
         var limite = !esVod() && AS.id && !AS.id.live ? 25000 : 90000;
@@ -638,7 +679,7 @@
         asEstado(AS.id ? 'sincronizado · ' + AS.id.codes.join(' vs ') + ' · ' + mmss(AS.off + ct) + ' (reloj tapado)' : 'buscando el reloj del juego…', !!AS.id);
         seguir(v); return;
       }
-      AS.fallas = 0; AS.visto = Date.now();
+      AS.fallas = 0; AS.visto = Date.now(); AS.buenas = (AS.buenas || 0) + 1;
       // el oro (si se lee bien) descarta minutos imposibles; sin oro confiable no descarta nada
       var esperado = AS.off != null ? AS.off + ct : null, og = oroHUD(v);
       AS.diag.oro = og ? og.join('k · ') + 'k' : 'no se lee';
@@ -662,7 +703,7 @@
           var directas = lista.filter(function (r) { return r.o != null && Math.abs(r.o - r.ct - o) <= 1; }).length;
           if (!mejor || apoyan.length > mejor.n || (apoyan.length === mejor.n && directas > mejor.d)) mejor = {gt: x.gt, off: o, n: apoyan.length, d: directas, span: rango(apoyan)};
         });
-        var hace = AS.off == null || AS.trasSalto ? 3 : 5, avanza = playing ? mejor.span >= (hace - 1) * 1.2 : true;
+        var hace = 3, avanza = playing ? mejor.span >= (hace - 1) * 1.2 : true;
         // el ganador tiene que estar en casi todas las lecturas recientes, no solo en algunas
         var mayoria = mejor.n >= Math.max(hace, Math.ceil(lista.length * 0.7));
         AS.diag.confirmando = mejor.n + '/' + lista.length + ' lecturas de ' + mmss(mejor.gt);
@@ -683,7 +724,7 @@
           colorHUD(v, id.codes);
         }
         else { asEstado('no reconozco el partido (mirá el diagnóstico)'); return; }
-      } else if (AS.n % 20 === 0) await verificar(v, gt);
+      } else if (AS.n % 7 === 0) await verificar(v, gt);  // cada ~10 s
       seguir(v); publicar();
       asEstado('auto · ' + AS.id.codes.join(' vs ') + ' · J' + AS.id.juego + ' · ' + mmss(gt), true);
     } catch (err) {
@@ -693,6 +734,12 @@
   // control de confirmación: las kills del HUD contra las del feed oficial en ese minuto. Solo se cambia de juego
   // si no coinciden 3 controles seguidos y otro juego gana por amplio margen dos veces seguidas.
   async function verificar(v, gt) {
+    // en una transmisión en vivo siguiendo un juego que no es el que se juega ahora (un clip): si el del vivo cuadra, se pasa a ese
+    if (!esVod() && !AS.id.live) {
+      var iv = await identificar(v, gt);
+      if (iv && iv.live && iv.gameId !== AS.id.gameId) { AS.id = iv; AS.playing = null; AS.malas = 0; AS.pend = null; aviso('Sincronizado · <span class="ca">' + esc(iv.codes[0]) + '</span> vs <span class="cb">' + esc(iv.codes[1]) + '</span> · juego ' + iv.juego + ' · ' + mmss(gt)); }
+      return;
+    }
     var kI = parseInt(L.numeros(L.recorte(v, HUD.killI, 'blanco')), 10), kD = parseInt(L.numeros(L.recorte(v, HUD.killD, 'blanco')), 10);
     var st = LAST && LAST.game && LAST.match && LAST.match.id === AS.id.matchId && LAST.game.stats;
     if (!st || !isFinite(kI) || !isFinite(kD)) { AS.diag.control = 'sin datos para comparar'; return; }
