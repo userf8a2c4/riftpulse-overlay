@@ -26,7 +26,8 @@ def escribir(nombre, texto):
 for f in ('engine.js', 'logo.svg', 'icon128.png'):
     shutil.copy(os.path.join(AQUI, f), os.path.join(ext, f))
 # el overlay va junto con su lector en un solo archivo (así lo baja también la extensión ya instalada)
-OVERLAY = open(os.path.join(AQUI, 'lector.js'), encoding='utf-8').read() + '\n' + open(os.path.join(AQUI, 'overlay.js'), encoding='utf-8').read()
+RPUI = os.path.join(os.path.dirname(AQUI), 'riftpulse-overlay', 'rp-ui.js')  # piezas comunes de interfaz (colores de equipo, números animados)
+OVERLAY = (open(RPUI, encoding='utf-8').read() + '\n' if os.path.exists(RPUI) else '') + open(os.path.join(AQUI, 'lector.js'), encoding='utf-8').read() + '\n' + open(os.path.join(AQUI, 'overlay.js'), encoding='utf-8').read()
 escribir('overlay.js', OVERLAY)
 for viejo in ('rp-design.css', 'ocr.html', 'ocr.js'):  # de versiones anteriores, ya no se usan
     if os.path.exists(os.path.join(ext, viejo)):

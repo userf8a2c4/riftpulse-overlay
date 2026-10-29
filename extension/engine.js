@@ -348,6 +348,48 @@
     return {bo: bo, need: need, score: [wb, wr], ifBlue: ifB, ifRed: ifR, pNow: p * ifB + (1 - p) * ifR, pMapa: q, metodo: pm == null ? 'mapas que faltan: 50/50 (sin datos de fuerza)' : FUERZA.fuente === 'app' ? 'mapas que faltan estimados con el Elo de RiftPulse' : 'mapas que faltan estimados con los resultados del Mundial'};
   }
 
+  // ---------- colores de cada equipo ----------
+  // Colores de marca conocidos (los que faltan se completan leyendo el logo o el HUD del video; si no, el color del lado del mapa).
+  var TEAMCOL = {T1: '#E2012D', GEN: '#B08D57', HLE: '#FF6B00', KT: '#E60012', DK: '#1BC3D6', BFX: '#F5C400', NS: '#E8392F',
+    BLG: '#21B6F0', TES: '#FF4E1B', JDG: '#D6001C', WBG: '#E6C14A', LNG: '#2FB7E8', IG: '#E8E8E8', AL: '#7A5CFF',
+    G2: '#E9E9E9', FNC: '#FF5900', KC: '#2D7BFF', MKOI: '#8C4DFF', TH: '#FF7A00', VIT: '#F2DE00', GX: '#C2A35E', SK: '#E3002B',
+    FLY: '#1FA552', TL: '#3E7FE0', C9: '#1BA9E1', '100': '#EB2B2B', DIG: '#F2C230', SR: '#E0453A', LYON: '#B32DE6',
+    CFO: '#2DB3E8', PSG: '#003D8F', GAM: '#D9A400', TSW: '#FF5A2B', DFM: '#4AA3FF', SHG: '#FF4A6B', VKS: '#2EE6A6', FUR: '#2B2B2B', RED: '#E3002B', LOUD: '#2BE34B', PNG: '#E8A21B'};
+  var LADO = {blue: '#3D8BFF', red: '#FF4655'};
+  var COLC = {};  // colores leídos (logo o HUD), por sigla
+  try { COLC = JSON.parse(localStorage.getItem('rp_colores') || '{}') || {}; } catch (e) {}
+  function hex2rgb(h) { h = String(h || '').replace('#', ''); if (h.length === 3) h = h.replace(/(.)/g, '$1$1'); var n = parseInt(h, 16); return isNaN(n) ? null : [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+  function rgb2hex(c) { return '#' + c.map(function (v) { return ('0' + Math.max(0, Math.min(255, Math.round(v))).toString(16)).slice(-2); }).join(''); }
+  function lum(c) { var a = c.map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2]; }
+  function contraste(c1, c2) { var a = lum(c1), b = lum(c2); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); }
+  function hsl(c) { var r = c[0] / 255, g = c[1] / 255, b = c[2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), h = 0, l = (mx + mn) / 2, d = mx - mn, s2 = d ? d / (1 - Math.abs(2 * l - 1)) : 0;
+    if (d) h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return [(h * 60 + 360) % 360, s2, l]; }
+  function mezcla(c, d, t) { return c.map(function (v, i) { return v + (d[i] - v) * t; }); }
+  var GRAFITO = [12, 14, 18];
+  // legible sobre el grafito: se aclara hasta contraste 3:1 (los colores muy oscuros, como el negro de una marca)
+  function legible(c) { var x = c.slice(), k = 0; while (contraste(x, GRAFITO) < 3 && k++ < 12) x = mezcla(x, [255, 255, 255], 0.15); return x; }
+  function variantes(c) {
+    c = legible(c);
+    var ink = contraste(c, [255, 255, 255]) >= contraste(c, [12, 14, 18]) ? [255, 255, 255] : [12, 14, 18];  // el texto sobre el color: el de más contraste
+    return {main: rgb2hex(c), dark: rgb2hex(mezcla(c, [0, 0, 0], 0.28)), hi: rgb2hex(mezcla(c, [255, 255, 255], 0.38)), ink: rgb2hex(ink), rgb: c.map(Math.round).join(','),
+      txt: rgb2hex(contraste(c, GRAFITO) >= 4.5 ? c : mezcla(c, [255, 255, 255], 0.35))};
+  }
+  function baseDe(code, lado) { var h = COLC[code] || TEAMCOL[code]; return hex2rgb(h) || hex2rgb(LADO[lado]); }
+  // colores para un partido: azul (izquierda) y rojo (derecha). Si los dos se parecen, el segundo pasa al color de su lado.
+  function colores(codeA, codeB) {
+    var a = baseDe(codeA, 'blue'), b = baseDe(codeB, 'red');
+    var ha = hsl(legible(a)), hb = hsl(legible(b)), dh = Math.min(Math.abs(ha[0] - hb[0]), 360 - Math.abs(ha[0] - hb[0]));
+    var gris = function (h) { return h[1] < 0.18; };
+    var parecidos = (gris(ha) && gris(hb)) || (!gris(ha) && !gris(hb) && dh < 40) || contraste(legible(a), legible(b)) < 1.25 && dh < 60;
+    if (parecidos) { var alt = hex2rgb(LADO.red), hAlt = hsl(alt), d2 = Math.min(Math.abs(ha[0] - hAlt[0]), 360 - Math.abs(ha[0] - hAlt[0])); b = d2 < 40 ? hex2rgb(LADO.blue) : alt; }
+    return {a: variantes(a), b: variantes(b), codes: [codeA, codeB], ajustado: !!parecidos};
+  }
+  // un color leído del logo o del HUD del video, para una sigla
+  function aprenderColor(code, hex) {
+    if (!code || !hex2rgb(hex) || COLC[code] === hex) return;
+    COLC[code] = hex; try { localStorage.setItem('rp_colores', JSON.stringify(COLC)); } catch (e) {}
+  }
+
   // ---------- fuerza de los equipos (Elo) ----------
   // La app manda su Elo completo (RiftEngine.setFuerza); si no, se calcula un Elo con los resultados del Mundial.
   var FUERZA = {elo: null, fuente: null};
@@ -916,6 +958,10 @@
   RiftEngine.accAt = accAt;
   RiftEngine.setFuerza = function (elo) { FUERZA.elo = elo && Object.keys(elo).length ? elo : null; FUERZA.fuente = FUERZA.elo ? 'app' : null; emit(); };
   RiftEngine.pMapa = pMapa;
+  RiftEngine.colores = colores;
+  RiftEngine.aprenderColor = aprenderColor;
+  RiftEngine.colorConocido = function (code) { return TEAMCOL[code] || null; };
+  RiftEngine.contraste = function (h1, h2) { return contraste(hex2rgb(h1), hex2rgb(h2)); };
   // el estado de los datos cambia aunque no lleguen datos: se avisa cada 5 s
   setInterval(function () { if (subs.length) emit(); }, 5000);
   // simulador para «Cómo funciona»: el mismo modelo, con un estado de juego a mano (todo desde el lado azul)
