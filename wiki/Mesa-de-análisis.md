@@ -4,6 +4,8 @@ Una **segunda pantalla** para el equipo de comentaristas y analistas. No va al a
 
 Ábrela en: `https://userf8a2c4.github.io/riftpulse-overlay/analista.html`
 
+Sin partido en vivo, pruébala con un partido real ya jugado: `analista.html?demo`.
+
 <p align="center"><img src="https://raw.githubusercontent.com/userf8a2c4/riftpulse-overlay/main/docs/img/mesa-de-analisis.png" width="720" alt="Mesa de análisis"><br><sub>Partido de ejemplo con datos simulados.</sub></p>
 
 ## Qué muestra

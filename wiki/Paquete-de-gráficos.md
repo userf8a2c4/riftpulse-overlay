@@ -31,6 +31,7 @@ Más allá del lower-third, el overlay ofrece **varias piezas** que producción 
 | `?pos=` | `bottom` (por defecto) o `top` (vista `bar`) |
 | `?scale=` | tamaño, p. ej. `1.2` (de 0.6 a 2.4) |
 | `?modules=` | qué muestra la barra: `prob,pregame,momentum,timers,brand` |
+| `?demo` | reproduce un **partido real del Mundial ya jugado**, acelerado (×8; `?demo=4` para ×4). Sirve para probar o mostrar el overlay cuando no hay partido en vivo |
 
 Se pueden mezclar: `overlay.html?view=bar&pos=top&scale=1.1`. Sin parámetros, ya funciona.
 
