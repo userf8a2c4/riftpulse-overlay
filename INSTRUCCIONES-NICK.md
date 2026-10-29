@@ -41,5 +41,7 @@ Si querés, **lo adapto a vos**: los colores de tu canal o del SoloBoom, tu logo
 
 ¡Gracias por leer hasta acá! Ojalá lo veamos en una de tus partidas.
 
+📩 **Escribime por X: [@CaZe_18](https://x.com/CaZe_18)** y te respondo al toque.
+
 Un abrazo,
 **VectisDev**
