@@ -844,7 +844,7 @@
       out.push('<b>'+esc(r.code)+'</b> gana en '+mmss(r.dur)+'. Al arrancar el juego el modelo le daba '+pct(r.pre)+'.');
       if (r.comeback) out.push('¡Remontada! Estuvo al <b>'+pct(r.low.p)+'</b> en el min '+mmss(r.low.gt)+'.');
       else out.push('Su peor momento: '+pct(r.low.p)+' en el min '+mmss(r.low.gt)+'.');
-      if (r.swing) out.push(r.swing.b-r.swing.a>360 ? 'Ventaja construida de a poco: <b>+'+Math.round(Math.abs(r.swing.d)*100)+' pts</b> entre el min '+mmss(r.swing.a)+' y el '+mmss(r.swing.b)+'.'
+      if (r.swing) out.push((r.swing.a<60 && r.swing.b-r.swing.a>360) || (r.swing.b-r.swing.a>600 && !/Barón|Pelea|Ancestral|Inhibidor|ALMA/.test(r.swing.cause||'')) ? 'Ventaja construida de a poco: <b>+'+Math.round(Math.abs(r.swing.d)*100)+' pts</b> entre el min '+mmss(r.swing.a)+' y el '+mmss(r.swing.b)+'.'
         : 'El giro decisivo: min '+mmss(r.swing.a)+'–'+mmss(r.swing.b)+', <b>+'+Math.round(Math.abs(r.swing.d)*100)+' pts</b> con '+esc(causaTxt(r.swing.cause, r.swing.side))+'.');
       if (r.key) out.push('Jugador clave: <b>'+esc(r.key.name)+'</b> ('+esc(r.key.code)+', '+esc(r.key.champ)+') · '+r.key.k+'/'+r.key.d+'/'+r.key.a+' · '+Math.round(r.key.share*100)+'% del daño.');
       if (r.stats){ var w=r.stats[r.win], l=r.stats[r.win==='blue'?'red':'blue']; out.push('Kills '+w.kills+'–'+l.kills+' · torres '+w.towers+'–'+l.towers+' · dragones '+w.dragons+'–'+l.dragons+' · Barones '+w.barons+'–'+l.barons+'.'); }
@@ -1102,7 +1102,9 @@
     // 2) el giro: el más grande; con el juego terminado, el decisivo del ganador (y el del que perdió, si fue mayor)
     var pts = function (w) { return '<b>+' + Math.round(Math.abs(w.d) * 100) + ' puntos</b>'; };
     var giroTxt = function (w, pre) {
-      if (w.b - w.a > 360) return C[w.side] + ' fue ampliando la ventaja de a poco: ' + pts(w) + ' entre el min ' + mmss(w.a) + ' y el ' + mmss(w.b) + '.';
+      // «de a poco» solo si la ventaja crece desde el arranque, o por más de 10 min sin un Barón ni una pelea que la explique
+      var largo = (w.a < 60 && w.b - w.a > 360) || (w.b - w.a > 600 && !/Barón|Pelea|Ancestral|Inhibidor|ALMA/.test(w.cause || ''));
+      if (largo) return C[w.side] + ' fue ampliando la ventaja de a poco: ' + pts(w) + ' entre el min ' + mmss(w.a) + ' y el ' + mmss(w.b) + '.';
       var ca = causaTxt(w.cause, w.side);
       return (pre || 'El giro') + ': entre el min ' + mmss(w.a) + ' y el ' + mmss(w.b) + ', ' + C[w.side] + ' sumó ' + pts(w) + (ca ? ' con ' + eh(ca) : '') + '.';
     };

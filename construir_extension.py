@@ -168,6 +168,21 @@ USAR
 La extension no lee ni envia nada de ninguna cuenta. No esta afiliada a Riot Games.
 """)
 
+# ---------- proceso de fondo de la versión de la tienda (sin código bajado de la web) ----------
+TIENDA_BG = r"""// RiftPulse — proceso de fondo (versión de la Chrome Web Store: el overlay viene dentro del paquete).
+chrome.sidePanel.setPanelBehavior({openPanelOnActionClick: true}).catch(() => {});
+const marcar = () => chrome.storage.local.set({rp_origen: {origen: 'tienda', detalle: '', at: Date.now()}});
+chrome.runtime.onInstalled.addListener(marcar);
+chrome.runtime.onStartup.addListener(marcar);
+// mensajes del overlay: órdenes de Mando y lo que se ve en el video
+chrome.runtime.onMessage.addListener((msg, sender, send) => {
+  if (!msg) return;
+  if (msg.type === 'rp-cmd-get') { chrome.storage.local.get(['rp_cmd'], o => send(o || {})); return true; }
+  if (msg.type === 'rp-pantalla') { chrome.storage.local.set({rp_pantalla: msg.data || null}).then(() => send({ok: true})); return true; }
+  if (msg.type === 'rp-reinstalar') { marcar().then(() => send({ok: true})); return true; }
+});
+"""
+
 # ---------- publicar la app y el overlay en el repo web (GitHub Pages) ----------
 web = os.path.join(os.path.dirname(AQUI), 'riftpulse-overlay')
 if os.path.isdir(web):
@@ -175,6 +190,22 @@ if os.path.isdir(web):
     open(os.path.join(web, 'ext-overlay.js'), 'w', encoding='utf-8').write(OVERLAY)
     # la extensión en un ZIP, para instalarla sin git (enlace directo desde la web)
     shutil.make_archive(os.path.join(web, 'riftpulse-extension'), 'zip', AQUI, 'extension')
+    # versión para la Chrome Web Store: la tienda no acepta código que se baje de la web, así que el overlay va
+    # dentro del paquete (se actualiza con cada versión de la tienda). El panel sigue abriendo la app desde la web.
+    import json, tempfile
+    tmp = tempfile.mkdtemp(); tienda = os.path.join(tmp, 'extension')
+    shutil.copytree(ext, tienda)
+    man = json.load(open(os.path.join(ext, 'manifest.json'), encoding='utf-8'))
+    man['version'] = '3.1.0'
+    man['description'] = 'Probabilidad en vivo del Mundial de LoL sobre el video de Twitch y lolesports, sincronizada sola con el minuto que ves.'
+    man['permissions'] = ['sidePanel', 'storage']
+    man['host_permissions'] = [h for h in man['host_permissions'] if 'github.io' not in h]
+    man['content_scripts'] = [{'matches': ['*://*.twitch.tv/*', '*://*.lolesports.com/*'], 'js': ['engine.js', 'overlay.js'], 'run_at': 'document_idle'}]
+    json.dump(man, open(os.path.join(tienda, 'manifest.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+    open(os.path.join(tienda, 'background.js'), 'w', encoding='utf-8').write(TIENDA_BG)
+    os.remove(os.path.join(tienda, 'INSTALAR.txt'))
+    shutil.make_archive(os.path.join(web, 'riftpulse-extension-tienda'), 'zip', tmp, 'extension')
+    shutil.rmtree(tmp)
     print('Publicado en la carpeta web:', web)
 
 print('Extensión lista en:', ext)

@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>RiftPulse</title>
 <link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0C0E12">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -149,6 +153,7 @@ table.camino td{padding:3px 6px;border-bottom:1px solid var(--line-2)}table.cami
 .ahora .card{display:flex;flex-direction:column;overflow:hidden}.ahora .card>*{flex-shrink:0}
 #ahHist[hidden]+#ahFav{grid-column:1 / -1}
 @media (max-width:900px){.ahora{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:700px){#iniVivo .pk2,#iniVivo .wincond,#iniVivo .betrow-xs{display:none}#iniVivo .hero-clock{margin:4px 0}.hstat{flex-wrap:wrap;gap:6px}.pr-grid{grid-template-columns:1fr}}
 .ah-det{display:flex;align-items:center;gap:12px;margin:12px 0 0;flex-wrap:wrap}
 .pgrid.plegado{display:block}.pgrid.plegado>section:not(.a-chart){display:none}
 #vistaPartido.sinjuego .pgrid,#vistaPartido.sinjuego .ah-det{display:none}
@@ -168,6 +173,19 @@ table.camino td{padding:3px 6px;border-bottom:1px solid var(--line-2)}table.cami
 .fav-chip.on::before{content:'★';color:var(--signal)}
 .fav-ln{display:flex;align-items:center;gap:8px;min-height:36px;border-top:1px solid var(--line-2);font-size:13.5px}.fav-ln:first-child{border-top:0}
 .fav-ln img{width:22px;height:22px;object-fit:contain}.fav-ln .pm{margin-left:auto;text-align:right}
+.ahora .ah-full{grid-column:1 / -1}
+.pr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.pr-m{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--g0)}
+.pr-m .hd{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);margin-bottom:8px}
+.pr-b{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.pr-b button{height:40px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:8px;border:1px solid var(--line-strong);background:var(--g2);color:var(--text);font:800 15px var(--ffd);letter-spacing:.5px;cursor:pointer}
+.pr-b button img{width:18px;height:18px;object-fit:contain}
+.pr-b button.on{border-color:var(--signal);box-shadow:inset 0 0 0 2px var(--signal)}
+.pr-b button:disabled{cursor:default;opacity:.55}.pr-b button.on:disabled{opacity:1}
+.pr-rp{font-size:12.5px;color:var(--muted);margin-top:6px;min-height:18px}.pr-rp b{color:var(--text)}
+.pr-rp .ok{color:var(--ok)}.pr-rp .no{color:var(--live)}
+.pr-sc{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;margin-bottom:10px}
+.pr-sc .n{font:800 26px var(--ffd);font-variant-numeric:tabular-nums}.pr-sc .k{font-size:12px;color:var(--muted);margin-left:4px}
 .up-row.fav,.repm.fav{box-shadow:inset 3px 0 0 var(--signal);padding-left:8px}
 .inicio .card{display:flex;flex-direction:column;overflow:hidden}.iv-top{display:flex;align-items:center;gap:8px;font-size:18px;margin-bottom:8px;flex-wrap:wrap}
 .iv-sc{font-size:24px;font-weight:800;margin:0 6px}.iv-st{font-size:13px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -284,6 +302,10 @@ details.sync{position:relative}
 details.sync summary{list-style:none;cursor:pointer;padding:5px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--line-2);font-size:12px;color:var(--muted);white-space:nowrap}
 details.sync summary::-webkit-details-marker{display:none}details.sync summary:hover{border-color:var(--blue);color:var(--text)}
 details.sync[open] summary{border-color:var(--blue);color:var(--text)}
+.hbtn{padding:5px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--line-2);font:500 12px var(--ff);color:var(--muted);cursor:pointer;white-space:nowrap}
+.hbtn:hover{color:var(--text)}.hbtn.on{border-color:var(--signal);color:var(--signal)}
+.glo{border-bottom:1px dotted var(--signal);cursor:help}.glo:focus{outline:2px solid var(--signal);outline-offset:1px}
+.ah-why{display:block;font-size:13px;color:var(--muted);margin-top:4px}
 details.spx.on summary{border-color:var(--signal);color:var(--signal)}
 .sp-op{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}.sp-op button{height:34px;border-radius:8px;border:1px solid var(--line-strong);background:var(--g2);color:var(--text);font:600 12.5px var(--ff);cursor:pointer}.sp-op button.on{border-color:var(--signal);box-shadow:inset 0 0 0 1px var(--signal)}
 .syncpop{position:absolute;right:0;top:calc(100% + 8px);z-index:20;width:270px;background:var(--g1);border:1px solid var(--line-strong);border-radius:12px;padding:12px;box-shadow:0 12px 32px rgba(0,0,0,.45)}
@@ -588,6 +610,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
       <select id="sel" title="Partido en vivo" hidden></select>
       <span class="badge" id="estado">—</span>
       <span class="clock" id="reloj" title="Minuto del juego">—</span>
+      <button class="hbtn" id="novBtn" data-act="novato" aria-pressed="false" title="Explica los términos del juego">📘 Para entender</button>
       <details class="sync spx" id="spx"><summary title="Ocultar resultados que todavía no viste"><span id="spLbl">🙈 Spoilers</span></summary>
         <div class="syncpop">
           <div class="pm">Ocultá los resultados que todavía no viste. Se tapan los marcadores en Ahora, el Mundial, el Historial y Mando; tocá uno para verlo.</div>
@@ -612,6 +635,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
     <section class="card hero" id="iniVivo"></section>
     <section class="card" id="ahHist" hidden></section>
     <section class="card" id="ahFav"></section>
+    <section class="card ah-full" id="ahPron"></section>
   </div>
   <div id="vistaPartido">
   <div class="player off" id="player">
@@ -733,13 +757,15 @@ function oi(kind, size = 16) {
 const evIcon = kind => oi({dragon: 'dragon', elder: 'elder', baron: 'baron', inhib: 'inhibitor', tower: 'tower', fb: 'kill', fight: 'kill'}[kind] || '', 14);
 
 const q = new URLSearchParams(location.search);
+// app instalable en el celular (no dentro del panel de la extensión ni abierta como archivo)
+if ('serviceWorker' in navigator && location.protocol === 'https:' && !q.get('ext')) navigator.serviceWorker.register('sw.js').catch(() => {});
 let REPLAY = q.get('repetir');             // id del partido para repetir uno ya jugado
 const RP = {juego: +(q.get('juego') || 1), min: +(q.get('min') || 15)};
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const https = u => (u || '').replace(/^http:/, 'https:');
 const mmss = s => { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
-const k1 = g => (g / 1000).toFixed(1) + 'k';
+const k1 = g => (g / 1000).toFixed(1).replace('.', ',') + 'k';  // decimales con coma
 const store = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
 
 // Retraso automático: el mayor entre (a) cuánto va atrasado el video frente al feed y (b) cuánto tardan en llegar los datos.
@@ -2004,7 +2030,8 @@ function renderCuadro() {
   const list = de(FASE);
   if (FASE === 'ko') { el.dataset.k = ''; el.innerHTML = koHTML() + '<div class="pm" style="margin-top:8px;white-space:normal">A la derecha de cada equipo: probabilidad de ganar la serie según el sistema. Tocá una serie para el enfrentamiento.</div>'; return; }
   const html = list.length ? (FASE === 'sw' ? suizaHTML(list) : porDia(list)) + '<div class="pm" style="margin-top:8px">Tocá una serie para ver el enfrentamiento.</div>' : '<div class="empty">Todavía no hay partidos de esta fase en el calendario.</div>';
-  if (el.dataset.k !== html) { el.dataset.k = html; el.innerHTML = html; if (FASE === 'sw') requestAnimationFrame(caminosSuiza); }
+  const k = html + (novato() ? '|n' : '');
+  if (el.dataset.k !== k) { el.dataset.k = k; el.innerHTML = html; glosario(el); if (FASE === 'sw') requestAnimationFrame(caminosSuiza); }
 }
 document.addEventListener('click', e => { const b = e.target.closest('#fsTabs [data-fase]'); if (!b) return; FASE = b.dataset.fase; renderCuadro(); });
 
@@ -2492,14 +2519,107 @@ function renderFav() {
   }).join('');
   pon(box, `<h2>★ Mis equipos</h2>${lineas}<div class="mx-row" style="margin-top:8px"><button class="mx-btn${av ? ' on' : ''}" data-act="favAvisos">${av ? '🔔 Avisos encendidos' : '🔔 Avisarme cuando jueguen'}</button><button class="mx-btn" data-act="favEditar">Editar</button></div>`);
 }
-function pon(el, html) { if (el.dataset.k !== html) { el.dataset.k = html; el.innerHTML = html; } }
+// ---------- tu pronóstico: elegís el ganador de cada serie antes de que empiece y llevás tu récord contra RiftPulse ----------
+const mp = () => { try { return JSON.parse(store('miPron') || '{}'); } catch (e) { return {}; } };
+const ganador = e => { const [a, b] = e.match.teams, wa = (a.result || {}).gameWins || 0, wb = (b.result || {}).gameWins || 0; return e.state === 'completed' && wa !== wb ? (wa > wb ? a.code : b.code) : null; };
+function pronRecord() {
+  const P = mp(), r = {n: 0, yo: 0, rp: 0, rpN: 0, gane: 0, racha: 0, mejor: 0};
+  schedule.filter(e => P[e.match.id] && e.state === 'completed').sort((x, y) => x.startTime < y.startTime ? -1 : 1).forEach(e => {
+    const w = ganador(e), p = P[e.match.id]; if (!w) return;
+    r.n++; const yo = p.yo === w, rp = p.rp ? p.rp === w : null;
+    if (yo) { r.yo++; r.racha++; r.mejor = Math.max(r.mejor, r.racha); } else r.racha = 0;
+    if (rp != null) { r.rpN++; if (rp) r.rp++; if (yo && !rp) r.gane++; }
+  });
+  return r;
+}
+function renderPron() {
+  const box = $('#ahPron'); if (!box || $('#vistaAhora').hidden) return;
+  const P = mp(), lg = c => C.img && C.img[c] ? `<img src="${esc(C.img[c])}" alt="">` : '';
+  const ok = e => e.match.teams.every(t => t.code && t.code !== 'TBD');
+  const abiertos = schedule.filter(e => e.state === 'unstarted' && ok(e)).sort((x, y) => x.startTime < y.startTime ? -1 : 1);
+  const lista = abiertos.filter(esFav).concat(abiertos.filter(e => !esFav(e))).slice(0, 4);
+  const vivos = schedule.filter(e => e.state === 'inProgress' && P[e.match.id]);
+  const hechos = schedule.filter(e => e.state === 'completed' && P[e.match.id]).sort((x, y) => x.startTime < y.startTime ? 1 : -1).slice(0, 2);
+  const tarj = e => {
+    const [a, b] = e.match.teams, p = P[e.match.id], bo = e.match.strategy.count, cerrado = e.state !== 'unstarted', w = ganador(e), tap = tapado(e);
+    const btn = t => `<button data-act="pron" data-arg="${esc(e.match.id)}|${esc(t.code)}" class="${p && p.yo === t.code ? 'on' : ''}"${cerrado ? ' disabled' : ''}>${lg(t.code)}${esc(t.code)}</button>`;
+    let pie = '';
+    if (p && p.rp) pie = `Vos: <b>${esc(p.yo)}</b> · RiftPulse: <b>${esc(p.rp)}</b> ${Math.round(p.rpP * 100)}%`;
+    else if (p) pie = `Vos: <b>${esc(p.yo)}</b>`;
+    else pie = cerrado ? 'Ya empezó' : 'Elegí tu ganador: después ves el de RiftPulse.';
+    if (w && p) pie += tap ? ' · <span>resultado oculto</span>' : ` · ganó <b>${esc(w)}</b> <span class="${p.yo === w ? 'ok' : 'no'}">${p.yo === w ? '✓ acertaste' : '✗'}</span>`;
+    else if (e.state === 'inProgress' && p) pie += ' · <span>● en juego</span>';
+    return `<div class="pr-m${esFav(e) ? ' fav' : ''}"><div class="hd"><span>${esc(e.blockName || '')} · Bo${bo}</span><span>${e.state === 'unstarted' ? fmtDate(e.startTime) : e.state === 'inProgress' ? '● en vivo' : 'terminado'}</span></div><div class="pr-b">${btn(a)}${btn(b)}</div><div class="pr-rp">${pie}</div></div>`;
+  };
+  const r = pronRecord(), sinSp = sinSpoilers();
+  const marcador = r.n && !sinSp ? `<div class="pr-sc"><span><span class="n">${r.yo}/${r.n}</span><span class="k">tus aciertos</span></span><span><span class="n">${r.rp}/${r.rpN}</span><span class="k">RiftPulse</span></span><span><span class="n">${r.gane}</span><span class="k">${r.gane === 1 ? 'vez le ganaste al modelo' : 'veces le ganaste al modelo'}</span></span><span><span class="n">${r.racha}</span><span class="k">racha · mejor ${r.mejor}</span></span>
+    <button class="mx-btn gold" data-act="sharemipron" style="margin-left:auto">🖼 Compartir mi Mundial</button></div>` : '';
+  const items = vivos.concat(lista).concat(hechos);
+  pon(box, `<h2>🎯 Tu pronóstico</h2><p class="card-help">Elegí quién gana cada serie antes de que empiece. RiftPulse muestra el suyo después de que elijas, y al final del día se ve quién acertó más.</p>${marcador}
+    <div class="pr-grid">${items.map(tarj).join('') || '<div class="pm">No hay series por jugar con los equipos definidos.</div>'}</div>`);
+}
+function pronElegir(id, code) {
+  const e = schedule.find(x => x.match && x.match.id === id); if (!e || e.state !== 'unstarted') return;
+  const P = mp(), [a, b] = e.match.teams, ps = probSerie(a.code, b.code, e.match.strategy.count);
+  // el de RiftPulse se guarda al elegir: así se compara con lo que decía el modelo en ese momento
+  P[id] = {yo: code, rp: ps == null ? (P[id] && P[id].rp) || null : ps >= 0.5 ? a.code : b.code, rpP: ps == null ? (P[id] && P[id].rpP) || null : Math.max(ps, 1 - ps), at: Date.now()};
+  store('miPron', JSON.stringify(P)); renderPron();
+}
+function shareMiPron() {
+  const r = pronRecord(); if (!r.n) return;
+  tarjeta('riftpulse-mi-mundial.png', (c, W) => {
+    brillo(c, 80, 0, 720, '200,255,62', .12);
+    titulito(c, 'Mi Mundial contra RiftPulse', 96);
+    c.fillStyle = '#F2F4F7'; c.font = '800 64px "Saira Condensed", sans-serif'; c.fillText(r.gane > 0 ? 'Le gané al modelo ' + r.gane + (r.gane === 1 ? ' vez' : ' veces') : 'Mi récord del Mundial', 60, 176);
+    const caja = (x, n, k, col) => { c.fillStyle = '#14171D'; c.fillRect(x, 230, 250, 170); c.fillStyle = col; c.fillRect(x, 230, 250, 4);
+      c.fillStyle = '#F2F4F7'; c.font = '800 76px "Saira Condensed", sans-serif'; c.fillText(n, x + 22, 330); c.fillStyle = '#9AA3B2'; c.font = '600 20px "Inter Tight", sans-serif'; c.fillText(k, x + 22, 372); };
+    caja(60, r.yo + '/' + r.n, 'mis aciertos', '#C8FF3E'); caja(330, r.rp + '/' + r.rpN, 'RiftPulse', '#9AA3B2'); caja(600, String(r.mejor), 'mejor racha', '#C8FF3E'); caja(870, String(r.gane), 'le gané al modelo', '#C8FF3E');
+    c.fillStyle = '#6E7686'; c.font = '500 18px "Inter Tight", sans-serif'; c.fillText('Series del Mundial 2026 elegidas antes de empezar. RiftPulse: probabilidad de su modelo en ese momento.', 60, 460);
+  });
+}
+// ---------- para entender: ayuda corta en los términos del juego (para quien recién empieza a mirar) ----------
+const GLOS = [
+  ['Barón', /\bBar[oó]n( Nashor)?\b/, 'Objetivo grande que aparece al min 20. Da un refuerzo a todo el equipo para empujar y cerrar el juego.'],
+  ['Ancestral', /\b(Drag[oó]n )?Ancestral\b/, 'Dragón que aparece después del alma. Da un refuerzo muy fuerte por un rato: suele decidir los juegos largos.'],
+  ['alma', /\balma\b/, 'Al juntar 4 dragones, el equipo gana el alma: una mejora muy fuerte para el resto del juego.'],
+  ['dragón', /\bdrag[oó]n(es)?\b/i, 'Objetivo que aparece cada 5 minutos. Cada uno da una mejora para siempre; con 4, el equipo gana el alma.'],
+  ['inhibidor', /\binhibidor(es)?\b/i, 'Estructura de la base. Al romperla, aparecen súbditos más fuertes por esa línea durante unos minutos.'],
+  ['torre', /\btorres?\b/i, 'Defensas de cada línea. Tirarlas da oro y abre el mapa para el equipo.'],
+  ['primera sangre', /\bprimera sangre\b/i, 'La primera vez que un jugador elimina a un rival en el juego.'],
+  ['pelea', /\bpelea\b/i, 'Cuando varios jugadores de los dos equipos se enfrentan a la vez.'],
+  ['oro', /\boro\b/, 'Lo que ganan los jugadores al eliminar rivales y tirar objetivos. Con más oro compran mejores ítems.'],
+  ['puntos', /\bpuntos\b/, 'Puntos de probabilidad: +10 puntos es pasar, por ejemplo, de 50 % a 60 % de chances de ganar.'],
+  ['Elo', /\bElo\b/, 'Una medida de la fuerza de cada equipo según sus resultados: sube al ganar y baja al perder.'],
+  ['Bo', /\bBo[135]\b/, 'Al mejor de 1, 3 o 5 juegos: gana la serie quien gana 1, 2 o 3 juegos.'],
+  ['fase suiza', /\b(fase suiza|Sistema Suizo)\b/i, 'Cada equipo juega contra rivales con su mismo récord. Con 3 victorias clasifica; con 3 derrotas queda afuera.'],
+  ['wards', /\bwards?\b/i, 'Objetos que dan visión de una zona del mapa: más wards, menos sorpresas.'],
+  ['nivel', /\bnivel\b/, 'Los campeones suben de nivel con la experiencia; en el 6, el 11 y el 16 mejora su habilidad definitiva.']];
+const novato = () => store('novato') === '1';
+function glosario(raiz) {
+  if (!raiz || !novato()) return;
+  const usados = new Set(), nodos = [], w = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT, {acceptNode: n => n.parentElement && !n.parentElement.closest('.glo,button,script,style,svg,input,select') ? 1 : 2});
+  while (w.nextNode()) nodos.push(w.currentNode);
+  nodos.forEach(n => {
+    for (const [k, re, def] of GLOS) {
+      if (usados.has(k)) continue;
+      const m = n.textContent.match(re); if (!m) continue;
+      usados.add(k);
+      const r = document.createRange(); r.setStart(n, m.index); r.setEnd(n, m.index + m[0].length);
+      const sp = document.createElement('span'); sp.className = 'glo'; sp.tabIndex = 0; sp.title = def; sp.dataset.act = 'glo'; sp.dataset.arg = def;
+      r.surroundContents(sp); return;  // un término por nodo: el resto del texto quedó en nodos nuevos
+    }
+  });
+}
+function pintarNovato() { const b = $('#novBtn'); if (b) { b.classList.toggle('on', novato()); b.setAttribute('aria-pressed', novato() ? 'true' : 'false'); } }
+function pon(el, html) { const k = html + (novato() ? '|n' : ''); if (el.dataset.k !== k) { el.dataset.k = k; el.innerHTML = html; glosario(el); } }
 // la historia del juego, qué mirar y qué cambió (del motor, cuando sigue el mismo partido que la app)
 function renderAhora() {
   const box = $('#ahHist'); if (!box || $('#vistaAhora').hidden) return;
   const s = MX.s, ok = s && s.match && s.game && s.game.pBlue != null && M && s.match.id === M.id && (!G || s.game.id === G.id);
   box.hidden = !ok; if (!ok) return;
   const m = s.match, hi = RiftEngine.historia(s), mi = RiftEngine.mirar(s), cb = RiftEngine.cambio(s), sc = mxSc;
-  const mir = mi ? `<b>${esc(mi.obj)}</b> ${mi.vivo ? 'ya está en el mapa' : `en <b>${mmss(mi.en)}</b>`}${mi.impacto ? `: si lo toma <b class="b">${esc(m.blue.code)}</b> ${mi.impacto.blue >= 0 ? '+' : ''}${mi.impacto.blue}, si lo toma <b class="r">${esc(m.red.code)}</b> ${mi.impacto.red >= 0 ? '+' : ''}${mi.impacto.red} puntos` : ''}.${mi.mejor ? ` Llega mejor <b class="${sc(mi.mejor)}">${esc(mi.code)}</b> (${mi.por.map(x => esc(x.txt)).join(' y ')}).` : ''}` : 'Sin objetivos grandes a la vista.';
+  const porque = mi && novato() ? `<span class="ah-why">${/Bar/.test(mi.obj) ? 'Por qué importa: el Barón da un refuerzo a todo el equipo para empujar y cerrar el juego.' : /Ancestral/.test(mi.obj) ? 'Por qué importa: el Ancestral da un refuerzo muy fuerte que suele decidir el juego.' : 'Por qué importa: cada dragón es una mejora para siempre, y con 4 llega el alma.'}</span>` : '';
+  const mir = mi ? `<b>${esc(mi.obj)}</b> ${mi.vivo ? 'ya está en el mapa' : `en <b>${mmss(mi.en)}</b>`}${mi.impacto ? `: si lo toma <b class="b">${esc(m.blue.code)}</b> ${mi.impacto.blue >= 0 ? '+' : ''}${mi.impacto.blue}, si lo toma <b class="r">${esc(m.red.code)}</b> ${mi.impacto.red >= 0 ? '+' : ''}${mi.impacto.red} puntos` : ''}.${mi.mejor ? ` Llega mejor <b class="${sc(mi.mejor)}">${esc(mi.code)}</b> (${mi.por.map(x => esc(x.txt)).join(' y ')}).` : ''}${porque}` : 'Sin objetivos grandes a la vista.';
   const chg = cb ? `<div class="ah-chg">${cb.dp ? `<span><b class="${sc(cb.dp > 0 ? 'blue' : 'red')}">${esc(cb.dp > 0 ? m.blue.code : m.red.code)} +${Math.abs(cb.dp)}</b> puntos</span>` : '<span>±0 puntos</span>'}${cb.items.map(x => `<span><b class="${sc(x.side)}">${esc(x.code)}</b> ${esc(x.txt)}</span>`).join('')}</div>` : '<div class="ah-v pm">Aparece después del primer minuto que mirás.</div>';
   pon(box, `<div class="ah-h"><div><h2>La historia del juego</h2>${hi.length ? `<ol class="ah-ol">${hi.map(x => `<li>${x.html}</li>`).join('')}</ol>` : '<div class="pm">Se escribe sola a medida que avanza el juego.</div>'}</div>
     <div><div class="ah-k">Qué mirar ahora</div><div class="ah-v">${mir}</div><div class="ah-k">Qué cambió en el último minuto</div>${chg}</div></div>`);
@@ -2540,7 +2660,7 @@ function teamForm(code, n = 5) {
 }
 // Solo reescribe la tarjeta si su contenido cambió: evita repintados/parpadeo en el ciclo de 2 s.
 const _iniCache = {};
-function setHtml(sel, html) { const el = $(sel); if (el && _iniCache[sel] !== html) { _iniCache[sel] = html; el.innerHTML = html; } }
+function setHtml(sel, html) { const el = $(sel), k = html + (novato() ? '|n' : ''); if (el && _iniCache[sel] !== k) { _iniCache[sel] = k; el.innerHTML = html; glosario(el); } }
 // ---------- Inicio: paneles de detalle (equipo / enfrentamiento), desplegables ----------
 let INIDET = null;  // {type:'team',code} | {type:'h2h',a,b,ev}
 const TEAMID = {};  // code -> esportsTeamId (el calendario no lo trae; se resuelve vía getEventDetails y se cachea)
@@ -2841,7 +2961,7 @@ function renderInicio() {
     <div class="iv-st">${salud('esports', 'lolesports')} ${salud('feed', 'feed en vivo')} ${salud('ddragon', 'Data Dragon')}</div>
     <div class="pm" style="margin-top:6px">Esports vía feed no oficial de lolesports; campeones e ítems por Data Dragon (oficial). No afiliado a Riot Games.</div>`);
   setHtml('#iniFiab', '<h2>📈 Fiabilidad del sistema</h2>' + fiabResumen() + `<button class="ini-go" data-act="fiab">Ver la tasa de aciertos completa</button>`);
-  renderFav();
+  renderFav(); renderPron();
 }
 
 // ---------- Pick'Em y Bola de Cristal ----------
@@ -3046,6 +3166,11 @@ document.addEventListener('click', e => {
   const a = e.target.closest('[data-act]'); if (!a) return;
   const act = a.dataset.act, arg = a.dataset.arg;
   if (act === 'vista') setVista(arg);
+  else if (act === 'novato') { store('novato', novato() ? '0' : '1'); pintarNovato(); renderInicio(); renderAhora(); renderCuadro();
+    status(novato() ? '📘 Los términos subrayados tienen una explicación: tocalos o pasá el mouse.' : 'Ayudas apagadas.', false, 5000); }
+  else if (act === 'glo') status('📘 ' + arg, false, 9000);
+  else if (act === 'pron') { const [id, code] = arg.split('|'); pronElegir(id, code); }
+  else if (act === 'sharemipron') shareMiPron();
   else if (act === 'fav') { FAVEDIT = true; const f = favs(), i = f.indexOf(arg); if (i >= 0) f.splice(i, 1); else f.push(arg); store('favs', JSON.stringify(f)); tickNext(); renderFav(); renderInicio(); }
   else if (act === 'favListo') { FAVEDIT = false; renderFav(); }
   else if (act === 'favEditar') { FAVEDIT = true; renderFav(); }
@@ -3193,7 +3318,7 @@ function renderSetup() {
   const pan = EXTST.pantalla && Date.now() - EXTST.pantalla.at < 15000;
   const pasos = [
     [EXTST.shell >= 3, 'Extensión actualizada', `Si no está en verde: bajá el <a href="${ZIP_URL}" target="_blank" rel="noopener">ZIP</a>, quitá la vieja en chrome://extensions y «Cargar descomprimida» con la carpeta <b>extension</b>.`],
-    [EXTST.origen && EXTST.origen.origen === 'web', 'Overlay que se actualiza solo', 'En chrome://extensions → RiftPulse → <b>Detalles</b>, activá <b>«Permitir scripts de usuario»</b> y tocá ↻.'],
+    [EXTST.origen && (EXTST.origen.origen === 'web' || EXTST.origen.origen === 'tienda'), 'Overlay que se actualiza solo', 'En chrome://extensions → RiftPulse → <b>Detalles</b>, activá <b>«Permitir scripts de usuario»</b> y tocá ↻.'],
     [pan, 'Video detectado', 'Abrí un partido del Mundial en Twitch o lolesports (en vivo o un VOD), con <b>auto-sync</b> encendido en la barra del overlay.']];
   const listos = pasos.filter(p => p[0]).length;
   if (listos === 3 && store('setup_ok') === '1') { box.hidden = true; return; }
@@ -3469,7 +3594,7 @@ async function pinGame(matchId, gameId, quedarse) {
   loadCopa().then(() => { if (G && G.start && G.pre && !G.pre.elo) rebuild(); });
   const v0 = q.get('vista') || store('vista'); // ?vista=partido abre directo en esa pestaña
   applyCity();  // fondo de ciudad aérea (se genera una vez)
-  pintarSpx();
+  pintarSpx(); pintarNovato();
   setVista(['ahora', 'inicio', 'partido', 'mando', 'copa', 'hist', 'pickem'].includes(v0) ? v0 : 'ahora');
   if (q.get('hist')) { // ?vista=hist&hist=<partido>:<juego> abre ese resumen directo
     const [mid, gid] = q.get('hist').split(':');

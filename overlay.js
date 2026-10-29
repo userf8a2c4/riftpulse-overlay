@@ -154,6 +154,12 @@
   .dg-r{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:2px 0;border-bottom:1px solid rgba(var(--line-rgb),0.055)}.dg-r span{color:var(--muted);flex:none}.dg-r b{color:var(--text);font-weight:500;text-align:right;font-family:Inter Tight,system-ui,sans-serif}\
   .dg-i{display:block;max-width:100%;height:34px;margin:4px 0;border:1px solid rgba(var(--line-rgb),0.11);image-rendering:pixelated}.dg-n{font-size:11px;color:var(--muted);margin-top:6px}\
   .syncg .gt{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:700}\
+  .bv{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;white-space:nowrap;\
+    background:rgba(var(--g1-rgb),.97);border:1px solid rgba(var(--signal-rgb),.55);box-shadow:0 14px 40px rgba(0,0,0,.55);font:600 13px var(--ff);color:var(--text);pointer-events:auto}\
+  .bv b{font:800 15px var(--ffd);letter-spacing:.4px;margin-right:4px}\
+  .bv button{height:32px;padding:0 12px;border-radius:8px;border:1px solid rgba(var(--line-rgb),.22);background:var(--g2);color:var(--text);font:600 13px var(--ff);cursor:pointer}\
+  .bv button:hover{border-color:var(--signal)}.bv button.x{background:none;border:0;color:var(--muted);padding:0 4px}\
+  .cd .hs{margin:0;padding-left:18px;font-size:13px;line-height:1.5}.cd .hs li{padding:2px 0}\
   ';
 
   var LOGO = '<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="rplg" x1="8" y1="40" x2="56" y2="26" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="'+RPC.a+'"/><stop offset=".5" stop-color="'+RPC.ahi+'"/><stop offset="1" stop-color="'+RPC.b+'"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="15" fill="#14171d" stroke="#2a2f3a" stroke-width="3"/><path d="M10 35 H21 L25 35 L30 17 L36 49 L40 35 H54" fill="none" stroke="url(#rplg)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -166,6 +172,19 @@
 
   function syncChips() { ctl.querySelectorAll('.chip[data-ext]').forEach(function (c) { c.classList.toggle('on', EXT.indexOf(c.getAttribute('data-ext')) >= 0); }); }
   syncChips();
+  // bienvenida (solo la primera vez): qué quiere ver el espectador, en un clic
+  if (!ls('rp_bienv')) {
+    var bv = document.createElement('div'); bv.className = 'bv';
+    bv.innerHTML = '<b>¿Qué querés ver?</b><button data-bv="minimo">Solo la barra</button><button data-bv="estandar">La barra y la historia</button><button data-bv="show">Todo</button><button class="x" data-bv="" title="Cerrar">✕</button>';
+    bv.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+    bv.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-bv]'); if (!b) return; e.stopPropagation();
+      var n = b.getAttribute('data-bv'), ext = {minimo: [], estandar: ['obj'], show: ['obj', 'pg', 'oro']}[n];
+      if (ext) { EXT = ext.slice(); ls('rp_ext6', JSON.stringify(EXT)); syncChips(); ls('rp_dir', n); if (DIR) DIR.nivel = n; }
+      ls('rp_bienv', '1'); bv.remove(); if (LAST) render(LAST);
+    });
+    wEl.appendChild(bv);
+  }
   var LAST = null;
   ctl.querySelectorAll('.chip[data-ext]').forEach(function (c) { c.addEventListener('mousedown', function (e) { e.stopPropagation(); }); c.addEventListener('click', function (e) { e.stopPropagation(); var k = c.getAttribute('data-ext'), i = EXT.indexOf(k); if (i >= 0) EXT.splice(i, 1); else EXT.push(k); ls('rp_ext6', JSON.stringify(EXT)); syncChips(); if (LAST) render(LAST); }); });
   sh.getElementById('posbtn').addEventListener('click', function (e) { e.stopPropagation(); POS = POS === 'top' ? 'bottom' : 'top'; XY = null; ls('rp_xy6', 'null'); ls('rp_pos6', POS); place(); });
@@ -305,7 +324,7 @@
   }
   function grafImpacto(s) {
     var g = s.game, m = s.match, im = g.impact, c = g.comeback; if (!im && !c) return '';
-    var h = '<div class="cd"><div class="ch"><span>Impacto' + (im ? ' · próx. ' + esc(im.obj) : '') + '</span>' + (im ? '<span class="mut">' + (im.at <= g.gt ? 'ya está' : 'en ' + mmss(im.at - g.gt)) + '</span>' : '') + '</div>';
+    var h = '<div class="cd"><div class="ch"><span>Impacto' + (im ? (im.at <= g.gt ? ' · ' : ' · próx. ') + esc(im.obj) : '') + '</span>' + (im ? '<span class="mut">' + (im.at <= g.gt ? 'ya está' : 'en ' + mmss(im.at - g.gt)) + '</span>' : '') + '</div>';
     if (im) h += '<div class="ir"><span>Si lo toma <b class="b">' + esc(m.blue.code) + '</b></span><span class="big b">' + (im.blue >= 0 ? '+' : '') + im.blue + '</span></div><div class="ir"><span>Si lo toma <b class="r">' + esc(m.red.code) + '</b></span><span class="big r">' + (im.red >= 0 ? '+' : '') + im.red + '</span></div>';
     if (c && c.paths && c.paths[0]) h += '<div class="in"><b class="' + (c.side === 'blue' ? 'b' : 'r') + '">' + esc(c.code) + '</b> (' + Math.round(c.p * 100) + '%) ' + (c.reached ? 'remonta con' : 'se acerca con') + ' <b>' + esc(c.paths[0].txt) + '</b> → ' + Math.round(c.paths[0].p * 100) + '%</div>';
     return h + '</div>';
@@ -323,6 +342,10 @@
     var lines = R.recapLines ? R.recapLines(s) : []; if (!lines.length) return '';
     return '<div class="cd rs" style="width:420px"><div class="ch"><span>Resumen del juego</span></div><ul>' + lines.map(function (l) { return '<li>' + l + '</li>'; }).join('') + '</ul></div>';
   }
+  function grafHistoria(s) {
+    var h = R.historia ? R.historia(s) : []; if (!h.length) return '';
+    return '<div class="cd" style="width:420px"><div class="ch"><span>La historia del juego</span><span class="mut">min ' + mmss(s.game.gt) + '</span></div><ol class="hs">' + h.map(function (x) { return '<li>' + x.html + '</li>'; }).join('') + '</ol></div>';
+  }
   var cardsSig = '';
   function tarjetas(s) {
     cardsEl.classList.toggle('up', POS === 'bottom' && !XY);
@@ -336,6 +359,8 @@
       if (d) {
         if (d.pieza === 'objetivo' && EXT.indexOf('imp') < 0) h += grafImpacto(s);
         else if (d.pieza === 'resumen') h += grafResumen(s);
+        else if (d.pieza === 'historia') h += grafHistoria(s);
+        else if (d.pieza === 'remontada' && EXT.indexOf('imp') < 0) h += grafImpacto(s);
         else if (d.pieza === 'oro' && EXT.indexOf('oro') < 0) h += grafOro(s);
         else if (d.pieza === 'duelos' && EXT.indexOf('duelos') < 0) h += grafDuelos(s);
       }
