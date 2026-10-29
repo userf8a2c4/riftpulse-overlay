@@ -445,7 +445,26 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
 .hgames button .mk2.hit{color:#86d9b9}.hgames button .mk2.miss{color:var(--muted)}
 /* ---------- cuadro de eliminatorias ---------- */
 .br-wrap{overflow-x:auto;padding-bottom:4px}
-.br{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr)) minmax(160px,.85fr);gap:22px;min-width:780px}
+.br{display:grid;grid-template-columns:repeat(3,minmax(128px,1fr));gap:16px;min-width:430px}
+.fs-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between}.fs-head h2{margin:0}
+.fs-tabs{display:flex;gap:4px}.fs-tabs button{background:rgba(13,24,48,.8);border:1px solid var(--line);color:var(--muted);border-radius:4px;padding:5px 10px;font-size:12px;cursor:pointer}
+.fs-tabs button.on{color:#04101f}
+#cuadro{margin-top:12px}
+.fs-sm{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.fs-m{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;background:var(--surface-3);border:1px solid var(--line-2);border-radius:6px;padding:7px 9px;font-size:13px;cursor:pointer}
+.fs-m:hover{border-color:var(--blue)}.fs-m.live{border-color:#7a1f26;box-shadow:0 0 0 1px rgba(255,90,95,.25)}
+.fs-m .fs-tm{display:flex;align-items:center;gap:6px;min-width:0}.fs-m .fs-tm.r{justify-content:flex-end}.fs-m .fs-tm img{width:18px;height:18px;object-fit:contain;flex:none}
+.fs-m .fs-tm b{font-family:var(--ff-display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fs-m .fs-tm.lost{opacity:.45}
+.fs-m .sc{font-family:var(--ff-display);font-weight:700;font-variant-numeric:tabular-nums;text-align:center;min-width:44px}.fs-m .sc small{display:block;font-family:var(--ff);font-weight:500;font-size:10.5px;color:var(--muted)}
+.fs-day{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);margin:14px 0 6px;font-weight:700}.fs-day:first-child{margin-top:0}
+.fs-rec{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:6px}
+.fs-rc{background:var(--surface-3);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px}
+.fs-rc h4{margin:0 0 6px;font-family:var(--ff-display);font-size:15px;display:flex;justify-content:space-between}.fs-rc h4 span{font-size:10.5px;color:var(--muted);font-family:var(--ff);font-weight:600;letter-spacing:.6px;text-transform:uppercase}
+.fs-rc.q{border-color:rgba(61,220,151,.45)}.fs-rc.q h4 span{color:#3ddc97}.fs-rc.x{opacity:.6}
+.fs-rc .tl{display:flex;align-items:center;gap:6px;font-size:13px;padding:2px 0}.fs-rc .tl img{width:16px;height:16px;object-fit:contain}
+.br-m{padding:5px 7px !important}.br-t{font-size:12.5px !important;padding:2px 0 !important}.br-t img,.br-nl{width:16px !important;height:16px !important}.br-mh{font-size:10px !important}
+.br-body,.br-pair{gap:8px !important}
+@media(max-width:560px){.br-wrap .br{display:block;min-width:0}.br-col{margin-bottom:12px}.br-pair::after,.br-pair::before{display:none}}
 .br-col{display:flex;flex-direction:column}
 .br-col>.br-h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin-bottom:8px}
 .br-body{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:14px}
@@ -609,7 +628,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
     </div>
   </div>
   <div id="vistaCopa" hidden>
-    <section class="card" style="margin-top:12px"><h2>Cuadro de eliminatorias · en vivo</h2><p class="card-help">Cuartos, semifinales y final. Se actualiza solo: el marcador de cada serie, la que se está jugando y, para las que faltan, la probabilidad de cada equipo según el sistema.</p><div id="cuadro"><div class="empty">Cargando…</div></div></section>
+    <section class="card" style="margin-top:12px"><div class="fs-head"><h2>Fases del Mundial · en vivo</h2><div class="seg fs-tabs" id="fsTabs"><button data-fase="pi">Play-In</button><button data-fase="sw">Fase suiza</button><button data-fase="ko">Eliminatorias</button></div></div><div id="cuadro"><div class="empty">Cargando…</div></div></section>
     <section class="card" style="margin-top:12px"><h2>Favoritos al título</h2><p class="card-help">Probabilidad de que cada equipo gane Worlds 2026, según 20,000 simulaciones del torneo con su formato oficial.</p><div id="copaTop"><div class="empty">Calculando…</div></div></section>
     <section class="card" style="margin-top:12px"><h2>Camino de cada equipo</h2><p class="card-help">Probabilidad de llegar a cada fase del torneo. Cuanto más intenso el color, más probable.</p><div id="copa"><div class="empty">Calculando…</div></div></section>
     <section class="card" style="margin-top:12px" id="fiabCard"><h2>Fiabilidad del sistema</h2><p class="card-help">Qué tan seguido acierta el sistema, medido con partidos que no había visto.</p><div id="fiab"><div class="empty">Calculando…</div></div></section>
@@ -1802,10 +1821,9 @@ function brProb(x) {
   const f = (u, v) => u >= x.need ? 1 : v >= x.need ? 0 : p * f(u + 1, v) + (1 - p) * f(u, v + 1);
   return f(a.wins || 0, b.wins || 0);
 }
-function renderCuadro() {
-  const el = $('#cuadro'); if (!el) return;
+function koHTML() {
   const B = window.RiftEngine && RiftEngine.buildBracket(schedule);
-  if (!B) { el.innerHTML = '<div class="empty">El cuadro aparece cuando se definen los cuartos de final.</div>'; return; }
+  if (!B) return '<div class="empty">El cuadro aparece cuando se definen los cuartos de final.</div>';
   const row = t => (C.rows || []).find(r => r.t === t);
   const logo = t => C.img[t] ? `<img src="${esc(C.img[t])}" alt="">` : '<span class="br-nl"></span>';
   const match = (x, reach) => {
@@ -1833,9 +1851,53 @@ function renderCuadro() {
   const champ = B.champion
     ? `<div class="br-champ"><div class="tr">🏆</div>${C.img[B.champion] ? `<img src="${esc(C.img[B.champion])}" alt="" style="width:46px;height:46px;object-fit:contain">` : ''}<div class="nm">${esc(B.champion)}</div><div class="pm">Campeón del Mundial 2026</div></div>`
     : `<div class="br-champ"><div class="tr">🏆</div><div class="pm" style="margin-bottom:6px">Favoritos al título</div>${favs.map(r => `<div class="br-fav">${logo(r.t)}<b>${esc(r.t)}</b><span class="br-p">${pct(r.c)}</span></div>`).join('') || '<div class="pm">Calculando…</div>'}</div>`;
-  el.innerHTML = `<div class="br-wrap"><div class="br">${qf}${sf}${fi}${col('Campeón', champ)}</div></div>
+  return `<div class="br-wrap"><div class="br">${qf}${sf}${fi}</div></div><div style="margin-top:12px;max-width:340px">${champ}</div>
     <div class="pm" style="margin-top:8px;white-space:normal">En cada serie, a la derecha: probabilidad de ganarla (Elo del sistema; si se está jugando, suma el juego en curso). En las llaves por definir: probabilidad de cada candidato de llegar ahí, según 20.000 simulaciones.</div>`;
 }
+
+// Fases del Mundial: Play-In, Fase suiza y Eliminatorias (se abre en la que se está jugando)
+let FASE = null;
+const faseDe = e => /play/i.test(e.blockName || '') ? 'pi' : /suiz|swiss/i.test(e.blockName || '') ? 'sw' : 'ko';
+function serieHTML(e) {
+  const [a, b] = e.match.teams, wa = (a.result || {}).gameWins ?? 0, wb = (b.result || {}).gameWins ?? 0, done = e.state === 'completed', live = e.state === 'inProgress';
+  const lg = t => C.img && C.img[t.code] ? `<img src="${esc(C.img[t.code])}" alt="">` : '';
+  const ok = a.code && b.code && a.code !== 'TBD' && b.code !== 'TBD';
+  const sc = done || live ? `${wa} – ${wb}<small>${live ? '● en vivo' : 'Bo' + e.match.strategy.count}</small>` : `vs<small>${new Date(e.startTime).toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit'})}</small>`;
+  return `<div class="fs-m${live ? ' live' : ''}"${ok ? ` data-act="h2h" data-arg="${esc(a.code)}|${esc(b.code)}|${esc(e.match.id)}"` : ''}>
+    <span class="fs-tm${done && wa < wb ? ' lost' : ''}">${lg(a)}<b>${esc(a.code || 'Por definir')}</b></span><span class="sc">${sc}</span><span class="fs-tm r${done && wb < wa ? ' lost' : ''}"><b>${esc(b.code || 'Por definir')}</b>${lg(b)}</span></div>`;
+}
+function porDia(list) {
+  const g = {};
+  list.forEach(e => { const k = new Date(e.startTime).toLocaleDateString('es', {weekday: 'long', day: 'numeric', month: 'long'}); (g[k] = g[k] || []).push(e); });
+  return Object.keys(g).map((k, i) => `<div class="fs-day">${list === null ? '' : ''}${esc(k)}</div><div class="fs-sm">${g[k].map(serieHTML).join('')}</div>`).join('');
+}
+function suizaHTML(list) {
+  const rec = {};
+  list.forEach(e => { e.match.teams.forEach(t => { if (t.code && t.code !== 'TBD') rec[t.code] = rec[t.code] || {w: 0, l: 0}; }); });
+  list.filter(e => e.state === 'completed').forEach(e => {
+    const [a, b] = e.match.teams; if (!rec[a.code] || !rec[b.code]) return;
+    const aw = ((a.result || {}).gameWins || 0) > ((b.result || {}).gameWins || 0);
+    rec[aw ? a.code : b.code].w++; rec[aw ? b.code : a.code].l++;
+  });
+  const grupos = {};
+  Object.keys(rec).forEach(t => { const k = rec[t].w + '-' + rec[t].l; (grupos[k] = grupos[k] || []).push(t); });
+  const orden = Object.keys(grupos).sort((x, y) => { const [a, b] = x.split('-').map(Number), [c, d] = y.split('-').map(Number); return (c - d) - (a - b) || c - a; });
+  const lg = t => C.img && C.img[t] ? `<img src="${esc(C.img[t])}" alt="">` : '';
+  const tabla = orden.length ? `<div class="fs-rec">${orden.map(k => { const [w, l] = k.split('-').map(Number), q = w >= 3, x = l >= 3;
+    return `<div class="fs-rc${q ? ' q' : x ? ' x' : ''}"><h4>${k}<span>${q ? 'Clasificado' : x ? 'Eliminado' : 'En juego'}</span></h4>${grupos[k].sort().map(t => `<div class="tl">${lg(t)}<b>${esc(t)}</b></div>`).join('')}</div>`; }).join('')}</div>` : '';
+  return tabla + '<div class="fs-day" style="margin-top:14px">Todos los partidos</div>' + porDia(list);
+}
+function renderCuadro() {
+  const el = $('#cuadro'); if (!el) return;
+  const W26 = schedule.filter(e => e.startTime >= '2026-09-15' && e.match && (e.match.teams || []).length === 2);
+  const de = f => W26.filter(e => faseDe(e) === f).sort((a, b) => a.startTime < b.startTime ? -1 : 1);
+  if (!FASE) FASE = ['ko', 'sw', 'pi'].find(f => de(f).some(e => e.state !== 'unstarted')) || 'pi';
+  document.querySelectorAll('#fsTabs button').forEach(b => b.classList.toggle('on', b.dataset.fase === FASE));
+  const list = de(FASE);
+  if (FASE === 'ko') { el.innerHTML = koHTML() + '<div class="pm" style="margin-top:8px;white-space:normal">A la derecha de cada equipo: probabilidad de ganar la serie según el sistema. Tocá una serie para el enfrentamiento.</div>'; return; }
+  el.innerHTML = list.length ? (FASE === 'sw' ? suizaHTML(list) : porDia(list)) + '<div class="pm" style="margin-top:8px">Tocá una serie para ver el enfrentamiento.</div>' : '<div class="empty">Todavía no hay partidos de esta fase en el calendario.</div>';
+}
+document.addEventListener('click', e => { const b = e.target.closest('#fsTabs [data-fase]'); if (!b) return; FASE = b.dataset.fase; renderCuadro(); });
 
 function renderCopa() {
   renderCuadro();
@@ -2772,13 +2834,16 @@ async function seguirApp(p) {
   const lejos = !SCRUB || Math.abs(scrubGt() - gt) > 2 || SCRUB.playing !== !!p.playing;
   if (lejos) { $('#pVel').value = '1'; seek(gt, !!p.playing); }
 }
+// Si se corta la señal del video, el panel se queda en el juego que tenía (nunca salta al vivo ni a una demo).
 function seguirVideo() {
-  const p = EXTST.pantalla, fresca = p && p.matchId && p.gameId && p.gt != null && Date.now() - p.at < 60000;
-  if (mxEmb) seguirApp(EXTST.seguir && fresca ? p : null).catch(() => {});
-  if (!window.RiftEngine || !MX.on) return;
-  if (EXTST.seguir && fresca) RiftEngine.follow({matchId: p.matchId, juego: p.juego, gt: p.gt, playing: p.playing, speed: 1, at: p.at});
-  else if (MX.s && MX.s.follow) RiftEngine.follow(null);
+  const p = EXTST.pantalla, fresca = p && p.matchId && p.gameId && p.gt != null && Date.now() - p.at < 15000;
+  if (!EXTST.seguir) { if (mxEmb) seguirApp(null).catch(() => {}); if (window.RiftEngine && MX.on && MX.s && MX.s.follow) RiftEngine.follow(null); return; }
+  if (!fresca) return;
+  if (mxEmb) seguirApp(p).catch(() => {});
+  if (window.RiftEngine && MX.on) RiftEngine.follow({matchId: p.matchId, juego: p.juego, gt: p.gt, playing: p.playing, speed: 1, at: p.at});
 }
+const sinSenal = () => EXTST.seguir && EXTST.pantalla && Date.now() - EXTST.pantalla.at > 10000;
+setInterval(() => { if (MX.on && !$('#vistaMando').hidden) renderMando(); }, 5000);
 window.addEventListener('message', e => {
   if (!mxEmb || e.source !== window.parent || !e.data || e.data.rp !== 'store') return;
   EXTST.shell = e.data.shell || 0; EXTST.viejo = false;
@@ -2839,18 +2904,20 @@ function renderMando() {
   if (!air) return;
   const pan = EXTST.pantalla && Date.now() - EXTST.pantalla.at < 60000 ? EXTST.pantalla : null;
   const segBtn = mxEmb ? `<button class="mx-btn${EXTST.seguir ? ' on' : ''}" data-mx="seguir" title="El panel muestra el mismo juego y minuto que tu video">📺 Seguir el video</button>` : '';
-  if (!s || !s.match || !s.game || s.game.pBlue == null) {
-    const nx = s && s.next ? `<div class="mx-note">Próximo partido: <b>${esc(s.next.blue)} vs ${esc(s.next.red)}</b>.</div>` : '';
-    const msg = pan && EXTST.seguir ? `Cargando lo que ves en el video: <b>${esc((pan.codes || []).join(' vs '))}</b> · juego ${pan.juego}…` : s && s.match ? 'El juego está por empezar…' : 'No hay un partido en vivo en este momento.';
+  // siguiendo el video: hasta que el overlay diga qué juego es, no se muestra ningún otro partido
+  const espera = mxEmb && EXTST.seguir && !(s && s.follow);
+  if (espera || !s || !s.match || !s.game || s.game.pBlue == null) {
+    const nx = espera ? '' : s && s.next ? `<div class="mx-note">Próximo partido: <b>${esc(s.next.blue)} vs ${esc(s.next.red)}</b>.</div>` : '';
+    const msg = espera && !pan ? 'Esperando el video: abrí el partido en Twitch o lolesports con el overlay de RiftPulse y el auto-sync encendido.' : pan && EXTST.seguir ? `Cargando lo que ves en el video: <b>${esc((pan.codes || []).join(' vs '))}</b> · juego ${pan.juego}…` : s && s.match ? 'El juego está por empezar…' : 'No hay un partido en vivo en este momento.';
     air.innerHTML = `<div class="mx-h"><h2>Al aire ahora</h2>${segBtn}</div><div class="empty" style="padding:10px 0">${msg}</div>${nx}
-      <div class="mx-row" style="justify-content:center"><button class="mx-btn gold" data-mx="demo">▶ Probar con un partido real ya jugado (demo)</button></div>`;
+      ${mxEmb && EXTST.seguir ? '<div class="mx-note">Abrí el partido en Twitch o lolesports (en vivo o un VOD): el overlay lee el reloj del video y este panel lo sigue solo.</div>' : ''}`;
     $('#mxTalk').innerHTML = '<div class="mx-h"><h2>Guion para comentar</h2></div><div class="empty">Aparece con el partido.</div>';
     $('#mxRead').innerHTML = '<div class="mx-h"><h2>Lectura del juego</h2></div><div class="empty">Aparece con el partido.</div>';
     $('#mxSoc').innerHTML = '<div class="mx-h"><h2>Para redes</h2></div><div class="empty">Aparece con el partido.</div>';
     return;
   }
   const m = s.match, g = s.game, pb = Math.round(g.pBlue * 100), pr = 100 - pb;
-  const badge = s.follow ? `<span class="mx-badge vid">📺 SINCRONIZADO CON TU VIDEO</span>` : s.demo ? `<span class="mx-badge demo">DEMO · partido real del ${s.demo.date.slice(8, 10)}/${s.demo.date.slice(5, 7)} · ×${s.demo.vel}</span>` : g.ended ? '<span class="mx-badge fin">FINAL</span>' : '<span class="mx-badge live">● EN VIVO</span>';
+  const badge = s.follow ? (sinSenal() ? `<span class="mx-badge demo">📺 SIN SEÑAL DEL VIDEO · se mantiene el último juego</span>` : `<span class="mx-badge vid">📺 SINCRONIZADO CON TU VIDEO</span>`) : s.demo ? `<span class="mx-badge demo">DEMO · partido real del ${s.demo.date.slice(8, 10)}/${s.demo.date.slice(5, 7)} · ×${s.demo.vel}</span>` : g.ended ? '<span class="mx-badge fin">FINAL</span>' : '<span class="mx-badge live">● EN VIVO</span>';
   const se = s.series, im = g.impact, chips = [];
   chips.push(`<div class="mx-k">Min <b>${mmss(g.gt)}</b>${m.gameNo ? ` · juego ${m.gameNo}` : ''}</div>`);
   if (se && se.bo > 1) chips.push(`<div class="mx-k">Serie Bo${se.bo} <b>${se.score[0]}–${se.score[1]}</b> · si gana <b class="b">${esc(m.blue.code)}</b> ${mxPct(se.ifBlue)} · si gana <b class="r">${esc(m.red.code)}</b> ${mxPct(1 - se.ifRed)}</div>`);
@@ -2916,7 +2983,6 @@ function mxCopy(key, text) {
 $('#vistaMando').addEventListener('click', e => {
   const b = e.target.closest('[data-mx]'); if (!b || b.disabled) return;
   const a = b.dataset.mx, k = b.dataset.k, o = mxOv();
-  if (a === 'demo') { RiftEngine.demo(8); return; }
   if (a === 'live') { RiftEngine.live(); return; }
   if (a === 'seguir') { EXTST.seguir = !EXTST.seguir; store('mxSeguir', EXTST.seguir ? '1' : '0'); seguirVideo(); renderMando(); return; }
   if (a === 'cp') {

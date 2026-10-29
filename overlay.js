@@ -186,8 +186,8 @@
     gtnowEl.textContent = s.game && s.game.pBlue != null ? mmss(s.game.gt) : '—';
     // con el auto-sync activo nunca se muestra otro partido: mientras reconoce el del video, lo dice
     var leyendo = typeof AS !== 'undefined' && AS.on && Date.now() - AS.visto < 20000;
-    if (leyendo && (!AS.id || !s.match || s.match.id !== AS.id.matchId)) {
-      body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div><div class="wait">' + (AS.id ? 'Cargando ' + esc(AS.id.codes.join(' vs ')) + ' · juego ' + AS.id.juego + '…' : 'Sincronizando con el video…') + '</div>';
+    if (leyendo && (!AS.id || AS.trasSalto || !s.match || s.match.id !== AS.id.matchId)) {
+      body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div><div class="wait">' + (AS.id && !AS.trasSalto ? 'Cargando ' + esc(AS.id.codes.join(' vs ')) + ' · juego ' + AS.id.juego + '…' : 'Sincronizando con el video…') + '</div>';
       return;
     }
     if (!s.match) {
@@ -330,31 +330,60 @@
     killI: [0.468, 0.01, 0.497, 0.065], killD: [0.503, 0.01, 0.533, 0.065],
     camI: [0.372, 0.393], camD: [0.607, 0.628], camY: [0.761, 0.81, 0.859, 0.907, 0.953], camH: 0.042
   };
-  // si el reloj no está ahí (otra transmisión u otro HUD), se busca en estas otras franjas
-  var RELOJES = [HUD.reloj, [0.45, 0.0, 0.55, 0.05], [0.44, 0.025, 0.56, 0.085], [0.44, 0.085, 0.56, 0.15], [0.45, 0.9, 0.55, 0.97], [0.0, 0.0, 0.12, 0.07], [0.88, 0.0, 1.0, 0.07]];
-  var AS = {on: ls('rp_auto6') !== '0', busy: false, zona: null, fallas: 0, lect: [], off: null, id: null, visto: 0, codes: null, codesAt: 0, n: 0, diag: {}, err: ''};
-  function parseReloj(s) {
+  // si el reloj no está en su lugar, se busca solo en la franja del marcador (arriba al centro), nunca en otras zonas
+  var RELOJES = [HUD.reloj, [0.44, 0.04, 0.56, 0.125], [0.44, 0.0, 0.56, 0.065], [0.44, 0.085, 0.56, 0.155]];
+  var AS = {on: ls('rp_auto6') !== '0', busy: false, zona: null, fallas: 0, lect: [], contra: [], off: null, id: null, vid: null, visto: 0, codes: null, codesAt: 0, n: 0, malas: 0, pend: null, trasSalto: false, diag: {}, err: ''};
+  // «mm:ss»; sin los dos puntos solo se acepta en la zona principal del reloj
+  if (window.RP_DEBUG) window.__rpAS = AS;  // solo para las pruebas
+  function parseReloj(s, conPuntos) {
     s = String(s || '').replace(/[^\d:]/g, '');
-    var m = s.match(/(\d{1,2}):(\d{2})$/) || s.match(/^(\d{1,2})(\d{2})$/);
+    var m = s.match(/^(\d{1,2}):(\d{2})$/) || (!conPuntos && s.match(/^(\d{1,2})(\d{2})$/));
     if (!m || +m[2] > 59 || +m[1] > 75) return null;
     return +m[1] * 60 + +m[2];
+  }
+  // lecturas posibles del reloj: la del lector y, por cada dígito, su segunda opción (un 0 leído como 2, etc.)
+  function variantes(det, conPuntos) {
+    var base = det.map(function (d) { return d.c; }).join(''), out = [], g = parseReloj(base, conPuntos);
+    if (g != null) out.push({gt: g, alt: false});
+    det.forEach(function (d, i) {
+      if (!d.c2 || !/\d/.test(d.c)) return;
+      var t = det.map(function (x, j) { return j === i ? d.c2 : x.c; }).join(''), g2 = parseReloj(t, conPuntos);
+      if (g2 != null) out.push({gt: g2, alt: true});
+    });
+    return out;
   }
   function oro(s) {  // «3.1K», «31K» o «3.1» -> 3.1 (miles)
     s = String(s || '').replace(/[^\d.]/g, ''); if (!s) return null;
     if (s.indexOf('.') < 0 && s.length >= 2) s = s.slice(0, -1) + '.' + s.slice(-1);
     var v = parseFloat(s); return v > 0 && v < 150 ? v : null;
   }
+  // oro posible de un equipo en el minuto m: arranca en 2,5k y crece entre ~0,6k y ~2,6k por minuto
+  function oroPosible(x, gt) { var m = gt / 60; return x != null && x >= 2.3 + 0.6 * Math.max(0, m - 1) && x <= 2.8 + 2.6 * m; }
+  // el oro del HUD, solo si los dos lados se leen bien y son coherentes entre sí
+  function oroHUD(v) {
+    var oI = oro(L.numeros(L.recorte(v, HUD.oroI, 'blanco'), '0123456789K')), oD = oro(L.numeros(L.recorte(v, HUD.oroD, 'blanco'), '0123456789K'));
+    // los dos valores tienen que ser posibles (al menos los 2,5k iniciales) y parecidos entre sí; si no, el oro no se usa
+    if (oI == null || oD == null || oI < 2.4 || oD < 2.4 || Math.max(oI, oD) / Math.min(oI, oD) > 1.45) return null;
+    return [oI, oD];
+  }
   var autoc = sh.getElementById('autoc'), astEl = sh.getElementById('ast'), diagEl = sh.getElementById('diag');
   function asEstado(t, ok) { astEl.textContent = t; astEl.classList.toggle('ok', !!ok); AS.diag.estado = t; }
   function asChip() { autoc.classList.toggle('on', AS.on); if (!AS.on) asEstado(''); }
   asChip();
   autoc.addEventListener('mousedown', function (e) { e.stopPropagation(); });
-  autoc.addEventListener('click', function (e) { e.stopPropagation(); AS.on = !AS.on; ls('rp_auto6', AS.on ? '1' : '0'); AS.id = null; AS.off = null; AS.lect = []; asChip(); if (!AS.on) R.follow(null); if (LAST) render(LAST); });
+  autoc.addEventListener('click', function (e) { e.stopPropagation(); AS.on = !AS.on; ls('rp_auto6', AS.on ? '1' : '0'); AS.id = null; AS.off = null; AS.lect = []; AS.contra = []; asChip(); if (!AS.on) R.follow(null); if (LAST) render(LAST); });
   sh.getElementById('diagb').addEventListener('mousedown', function (e) { e.stopPropagation(); });
   sh.getElementById('diagb').addEventListener('click', function (e) { e.stopPropagation(); diagEl.classList.toggle('show'); pintarDiag(); });
+  // el video que se mide queda fijo (un aviso o una vista previa no lo reemplazan)
+  function video() {
+    var v = AS.vid;
+    if (v && v.isConnected && v.videoWidth && v.getBoundingClientRect().width > 200) return v;
+    return (AS.vid = mainVideo());
+  }
   // lo que se ve en pantalla, para el centro de mando del panel
   function publicar() {
-    var d = AS.id ? {matchId: AS.id.matchId, juego: AS.id.juego, gameId: AS.id.gameId, codes: AS.id.codes, gt: AS.off != null ? AS.off + (mainVideo() || {}).currentTime : null, playing: !(mainVideo() || {}).paused, at: Date.now()} : null;
+    var v = video() || {};
+    var d = AS.id ? {matchId: AS.id.matchId, juego: AS.id.juego, gameId: AS.id.gameId, codes: AS.id.codes, gt: AS.off != null ? AS.off + v.currentTime : null, playing: !v.paused, at: Date.now()} : null;
     try { if (chrome.storage && chrome.storage.local) chrome.storage.local.set({rp_pantalla: d}); else chrome.runtime.sendMessage({type: 'rp-pantalla', data: d}, function () { void chrome.runtime.lastError; }); } catch (e) {}
   }
   // atar el motor al video: minuto = desfase + posición del video
@@ -415,10 +444,9 @@
     var C = await codigos(), lee = function (z, m) { return L.numeros(L.recorte(v, z, 'blanco'), m); };
     var sI = L.siglas(L.recorte(v, HUD.tagI, 'color'), C), sD = L.siglas(L.recorte(v, HUD.tagD, 'color'), C);
     var sig = function (s) { return s[0] && s[0].s > 0.15 && (!s[1] || s[0].s - s[1].s > 0.1) ? s[0].code : ''; };
-    var kI = parseInt(lee(HUD.killI), 10), kD = parseInt(lee(HUD.killD), 10), oI = oro(lee(HUD.oroI, '0123456789K')), oD = oro(lee(HUD.oroD, '0123456789K'));
-    // el oro de un equipo tiene que ser posible para ese minuto (si no, es una mala lectura y no se usa)
-    var oroOk = function (x) { return x != null && x >= 2.3 + gt / 60 * 0.8 && x <= 2.8 + gt / 60 * 2.6; };
-    if (!oroOk(oI) || !oroOk(oD)) { oI = oD = null; }
+    var kI = parseInt(lee(HUD.killI), 10), kD = parseInt(lee(HUD.killD), 10), og = oroHUD(v), oI = og && og[0], oD = og && og[1];
+    // el oro tiene que ser posible para ese minuto (si no, es una mala lectura y no se usa)
+    if (!oroPosible(oI, gt) || !oroPosible(oD, gt)) { oI = oD = null; }
     if (kI > 80 || kD > 80) kI = kD = NaN;
     var mapa = function (s) { var m = {}; s.forEach(function (x) { m[x.code] = x.s; }); return m; };
     var o = {gt: gt, tags: [sig(sI), sig(sD)], sig: sI.length && sD.length ? [mapa(sI), mapa(sD)] : null, kills: isFinite(kI) && isFinite(kD) ? [kI, kD] : null, gold: oI != null && oD != null ? [oI, oD] : null};
@@ -431,44 +459,89 @@
     AS.diag.partido = id ? id.codes.join(' vs ') + ' · J' + id.juego + ' (dif. ' + id.score.toFixed(1) + ', ' + id.revisados + ' juegos revisados)' : 'ninguno';
     return id;
   }
+  function rango(ls) { var a = Infinity, b = -Infinity; ls.forEach(function (r) { a = Math.min(a, r.ct); b = Math.max(b, r.ct); }); return b - a; }
   async function asTick() {
     if (!AS.on || AS.busy || !L) return;
-    var v = mainVideo(); if (!v || v.readyState < 2 || !v.videoWidth) return;
+    var v = video(); if (!v || v.readyState < 2 || !v.videoWidth) return;
     AS.busy = true; AS.n++;
     try {
-      var ct = v.currentTime, gt = null, zi = null, txt = '', zonas = AS.zona != null ? [AS.zona] : RELOJES.map(function (z, i) { return i; });
+      var ct = v.currentTime, playing = !v.paused && !v.ended, txt = '', zi = null, vars = [], zonas = AS.zona != null ? [AS.zona] : RELOJES.map(function (z, i) { return i; });
       for (var i = 0; i < zonas.length; i++) {
-        var m = L.recorte(v, RELOJES[zonas[i]], 'blanco'); txt = L.numeros(m, '0123456789'); gt = parseReloj(txt);
-        if (diagEl.classList.contains('show') && (gt != null || i === 0)) AS.diag.img = L.png(m);
-        if (gt != null) { zi = zonas[i]; break; }
+        var m = L.recorte(v, RELOJES[zonas[i]], 'blanco'); txt = L.numeros(m, '0123456789');
+        vars = variantes(L.detalle(), zonas[i] !== 0);
+        if (diagEl.classList.contains('show') && (vars.length || i === 0)) AS.diag.img = L.png(m);
+        if (vars.length) { zi = zonas[i]; break; }
       }
       AS.diag.reloj = txt || '(nada)'; AS.diag.zona = zi;
-      if (gt == null) {
+      if (AS.id && AS.off != null) publicar();  // el panel recibe el minuto siempre, se vea o no el reloj
+      if (!vars.length) {
         if (++AS.fallas >= 5) AS.zona = null;
-        asEstado(AS.id ? 'sincronizado · ' + AS.id.codes.join(' vs ') + ' · sin reloj a la vista' : 'buscando el reloj del juego…', !!AS.id);
+        asEstado(AS.id ? 'sincronizado · ' + AS.id.codes.join(' vs ') + ' · ' + mmss(AS.off + ct) + ' (reloj tapado)' : 'buscando el reloj del juego…', !!AS.id);
         seguir(v); return;
       }
       AS.fallas = 0; AS.visto = Date.now();
-      AS.lect.push({gt: gt, ct: ct}); if (AS.lect.length > 6) AS.lect.shift();
-      // dos lecturas que avanzan igual que el video antes de confiar (descarta errores sueltos del lector)
-      var off = gt - ct, apoyo = AS.lect.filter(function (r) { return Math.abs((r.gt - r.ct) - off) <= 1.6; }).length;
-      if (apoyo < 2) { if (!AS.id) asEstado('leyendo el reloj… ' + mmss(gt)); return; }
+      // el oro (si se lee bien) descarta minutos imposibles; sin oro confiable no descarta nada
+      var esperado = AS.off != null ? AS.off + ct : null, og = oroHUD(v);
+      AS.diag.oro = og ? og.join('k · ') + 'k' : 'no se lee';
+      var vale = og ? vars.filter(function (x) { return oroPosible(og[0], x.gt) && oroPosible(og[1], x.gt); }) : vars;
+      if (!vale.length) { AS.diag.descarte = mmss(vars[0].gt) + ' (imposible con el oro en pantalla)'; asEstado(AS.id ? 'sincronizado · ' + AS.id.codes.join(' vs ') + ' · ' + mmss(esperado) : 'leyendo el reloj…', !!AS.id); seguir(v); return; }
+      var cerca = esperado != null ? vale.filter(function (x) { return Math.abs(x.gt - esperado) <= 2.5; })[0] : null;
+      var gt, off;
       AS.zona = zi;
-      var salto = AS.off == null || Math.abs(off - AS.off) > 30;
-      if (AS.off == null || Math.abs(off - AS.off) > 1.2) AS.off = off;
-      AS.diag.desfase = off;
-      if (!AS.id || salto || AS.n % 30 === 0) {
-        asEstado('reconociendo el partido…', !!AS.id);
-        var id = await identificar(v, gt);
-        if (id && (!AS.id || id.matchId !== AS.id.matchId || id.juego !== AS.id.juego)) { AS.id = id; AS.playing = null; publicar(); }
+      if (cerca) {
+        // coincide con el ancla (aunque sea con la segunda opción de un dígito): se afina sin saltos
+        gt = cerca.gt; off = gt - ct; AS.contra = []; AS.trasSalto = false;
+        if (Math.abs(off - AS.off) > 1.2) AS.off = off;
+      } else {
+        // no coincide (o todavía no hay ancla): gana el minuto que aparece en más lecturas, contando las segundas
+        // opciones de cada dígito, y además tiene que avanzar igual que el video
+        var lista = AS.off == null ? AS.lect : AS.contra;
+        lista.push({ct: ct, playing: playing, g: vale.map(function (x) { return x.gt; }), o: vale[0].alt ? null : vale[0].gt}); if (lista.length > 10) lista.shift();
+        var mejor = null;
+        vale.forEach(function (x) {
+          var o = x.gt - ct, apoyan = lista.filter(function (r) { return r.g.some(function (g) { return Math.abs(g - r.ct - o) <= 1; }); });
+          var directas = lista.filter(function (r) { return r.o != null && Math.abs(r.o - r.ct - o) <= 1; }).length;
+          if (!mejor || apoyan.length > mejor.n || (apoyan.length === mejor.n && directas > mejor.d)) mejor = {gt: x.gt, off: o, n: apoyan.length, d: directas, span: rango(apoyan)};
+        });
+        var hace = AS.off == null || AS.trasSalto ? 3 : 5, avanza = playing ? mejor.span >= (hace - 1) * 1.2 : true;
+        // el ganador tiene que estar en casi todas las lecturas recientes, no solo en algunas
+        var mayoria = mejor.n >= Math.max(hace, Math.ceil(lista.length * 0.7));
+        AS.diag.confirmando = mejor.n + '/' + lista.length + ' lecturas de ' + mmss(mejor.gt);
+        if (!mayoria || !avanza) { asEstado(AS.id ? 'sincronizado · ' + AS.id.codes.join(' vs ') + ' · ' + mmss(esperado) + ' (confirmando ' + mmss(mejor.gt) + ')' : 'leyendo el reloj… ' + mmss(mejor.gt), !!AS.id); seguir(v); return; }
+        gt = mejor.gt; off = mejor.off;
+        var salto = AS.off == null || Math.abs(off - AS.off) > 30;
+        AS.off = off; AS.lect = []; AS.contra = []; AS.trasSalto = false;
+        if (salto) AS.id = null;  // otro juego (o el primer anclaje): identificar de nuevo
       }
-      if (!AS.id) { asEstado('no reconozco el partido (mirá el diagnóstico)'); return; }
-      seguir(v);
+      AS.diag.desfase = AS.off; AS.diag.confirmando = '';
+      if (!AS.id) {
+        asEstado('reconociendo el partido…');
+        var id = await identificar(v, gt);
+        if (id) { AS.id = id; AS.playing = null; AS.malas = 0; AS.pend = null; }
+        else { asEstado('no reconozco el partido (mirá el diagnóstico)'); return; }
+      } else if (AS.n % 20 === 0) await verificar(v, gt);
+      seguir(v); publicar();
       asEstado('auto · ' + AS.id.codes.join(' vs ') + ' · J' + AS.id.juego + ' · ' + mmss(gt), true);
-      if (AS.n % 5 === 0) publicar();
     } catch (err) {
       asEstado(/insecure|tainted|SecurityError/i.test(String(err)) ? 'este video no se puede leer (protegido)' : 'auto-sync: ' + String(err).slice(0, 60));
     } finally { AS.busy = false; pintarDiag(); if (LAST) render(LAST); }
+  }
+  // control de confirmación: las kills del HUD contra las del feed oficial en ese minuto. Solo se cambia de juego
+  // si no coinciden 3 controles seguidos y otro juego gana por amplio margen dos veces seguidas.
+  async function verificar(v, gt) {
+    var kI = parseInt(L.numeros(L.recorte(v, HUD.killI, 'blanco')), 10), kD = parseInt(L.numeros(L.recorte(v, HUD.killD, 'blanco')), 10);
+    var st = LAST && LAST.game && LAST.match && LAST.match.id === AS.id.matchId && LAST.game.stats;
+    if (!st || !isFinite(kI) || !isFinite(kD)) { AS.diag.control = 'sin datos para comparar'; return; }
+    var ok = Math.abs(st.blue.kills - kI) + Math.abs(st.red.kills - kD) <= 1;
+    AS.diag.control = 'kills HUD ' + kI + '–' + kD + ' / feed ' + st.blue.kills + '–' + st.red.kills + (ok ? ' ✓' : ' ✗');
+    if (ok) { AS.malas = 0; AS.pend = null; return; }
+    if (++AS.malas < 3) return;
+    var id = await identificar(v, gt); if (!id) return;
+    var todos = [id].concat(id.alts || []), actual = todos.filter(function (x) { return x.gameId === AS.id.gameId; })[0];
+    if (id.gameId !== AS.id.gameId && (!actual || id.score + 1.5 < actual.score)) {
+      if (AS.pend === id.gameId) { AS.id = id; AS.playing = null; AS.malas = 0; AS.pend = null; }
+      else AS.pend = id.gameId;
+    } else { AS.malas = 0; AS.pend = null; }
   }
   function pintarDiag() {
     if (!diagEl.classList.contains('show')) return;
@@ -482,15 +555,18 @@
       '<div class="dg-r"><span>Siglas der.</span><b>' + sg(d.siglas && d.siglas[1]) + '</b></div>' +
       '<div class="dg-r"><span>Kills · oro</span><b>' + (mk.kills ? mk.kills.join('–') : '—') + ' · ' + (mk.gold ? mk.gold.join('k – ') + 'k' : '—') + '</b></div>' +
       '<div class="dg-r"><span>Partido</span><b>' + esc(d.partido || '—') + '</b></div>' +
+      (d.confirmando ? '<div class="dg-r"><span>Confirmando</span><b>' + esc(d.confirmando) + '</b></div>' : '') +
+      (d.control ? '<div class="dg-r"><span>Control</span><b>' + esc(d.control) + '</b></div>' : '') +
+      (d.descarte ? '<div class="dg-r"><span>Descartado</span><b>' + esc(d.descarte) + '</b></div>' : '') +
       (d.campeones ? '<div class="dg-r"><span>Campeones</span><b>' + esc(d.campeones.join(' · ')) + '</b></div>' : '') +
-      '<div class="dg-r"><span>Video</span><b>' + (function () { var v = mainVideo(); return v ? v.videoWidth + '×' + v.videoHeight + ' · ' + mmss(v.currentTime) + (v.paused ? ' · en pausa' : '') : 'no hay video'; })() + '</b></div>' +
+      '<div class="dg-r"><span>Video</span><b>' + (function () { var v = video(); return v ? v.videoWidth + '×' + v.videoHeight + ' · ' + mmss(v.currentTime) + (v.paused ? ' · en pausa' : '') : 'no hay video'; })() + '</b></div>' +
       '<div class="dg-n">Si no sincroniza, sacá una captura de este cuadro.</div>';
   }
   setInterval(function () { asTick(); }, 1500);
   // pausa, velocidad o salto del video: el minuto sale de la posición del video, así que basta con volver a atar
   ['pause', 'play', 'ratechange', 'seeked', 'waiting', 'playing'].forEach(function (ev) { document.addEventListener(ev, function (e) {
-    if (!AS.on || e.target !== mainVideo()) return;
-    if (ev === 'seeked') AS.lect = [];  // tras un salto, confirmar de nuevo con el reloj
+    if (!AS.on || e.target !== video()) return;
+    if (ev === 'seeked') { AS.lect = []; AS.contra = []; AS.trasSalto = true; }  // tras mover el video alcanza con 3 lecturas para cambiar el ancla
     AS.playing = null; seguir(e.target); }, true); });
 
   R.onUpdate(render);

@@ -112,9 +112,11 @@
       var mid = Math.max.apply(null, rng(0.42, 0.58)), d1 = Math.min.apply(null, rng(0.18, 0.4)), d2 = Math.min.apply(null, rng(0.6, 0.82));
       best = mid > Math.max(d1, d2) + 0.12 ? '8' : '0';
     }
-    return {c: best, s: mejor[best]};
+    return {c: best, s: mejor[best], c2: seg, s2: seg != null ? mejor[seg] : null};
   }
+  var DET = [];  // detalle de la última lectura: por carácter, la segunda opción
   function numeros(m, letras) {
+    DET = [];
     letras = letras || '0123456789';
     var hi = pct(m, 0.995), lo = pct(m, 0.4);
     if (hi - lo < 40 || hi < 110) return '';
@@ -129,8 +131,8 @@
       var hh = c.u - c.t, ww = c.b - c.a;
       if (hh < 0.25 * H) return;  // ruido
       var r = c.rows.slice(c.t, c.u), hueco = r[0] && r[r.length - 1] && r.indexOf(false) > 0;
-      if (ww < 0.3 * H && (hh < 0.45 * H || hueco)) { out += (hueco || hh > 0.3 * H) ? ':' : '.'; return; }
-      if (ww < 0.18 * H && hh > 0.8 * H) { out += '1'; return; }
+      if (ww < 0.3 * H && (hh < 0.45 * H || hueco)) { var pc = (hueco || hh > 0.3 * H) ? ':' : '.'; out += pc; DET.push({c: pc}); return; }
+      if (ww < 0.18 * H && hh > 0.8 * H) { out += '1'; DET.push({c: '1', c2: '7'}); return; }
       var n = Math.max(1, Math.round(ww / (0.56 * H))), cortes = [0];
       for (var k = 1; k < n; k++) {  // glifos pegados: cortar donde hay menos tinta
         var cc = Math.round(ww * k / n), l = Math.max(1, cc - Math.round(0.15 * H)), rr = Math.min(ww - 1, cc + Math.round(0.15 * H)), bx = cc, bv = 1e9;
@@ -142,7 +144,7 @@
         var x0 = c.a + cortes[k], x1 = c.a + cortes[k + 1], xa = -1, xb = -1;
         for (var xx = x0; xx < x1; xx++) { var hay = false; for (var yy = c.t; yy < c.u; yy++) if (ink[yy * w + xx]) { hay = true; break; } if (hay) { if (xa < 0) xa = xx; xb = xx + 1; } }
         if (xa < 0) continue;
-        out += clasificar(sub(gn, xa, c.t, xb, c.u), letras).c;
+        var r = clasificar(sub(gn, xa, c.t, xb, c.u), letras); out += r.c; DET.push(r);
       }
     });
     return out;
@@ -182,5 +184,5 @@
     for (var i = 0; i < m.a.length; i++) { var v = Math.max(0, Math.min(255, m.a[i])); d.data[i * 4] = d.data[i * 4 + 1] = d.data[i * 4 + 2] = v; d.data[i * 4 + 3] = 255; }
     x.putImageData(d, 0, 0); return c.toDataURL('image/png');
   }
-  window.RiftLector = {recorte: recorte, numeros: numeros, siglas: siglas, png: png, _img: img};
+  window.RiftLector = {recorte: recorte, numeros: numeros, detalle: function () { return DET.slice(); }, siglas: siglas, png: png, _img: img};
 })();
