@@ -12,7 +12,7 @@ module.exports = async function () {
   const R = await p.evaluate(() => {
     const real = Date.now; let T = 1e12; Date.now = () => T;
     function correr(nivel) {
-      const D = RiftEngine.crearDirector(nivel), tramos = []; let cur = null;
+      const D = RiftEngine.crearDirector(nivel), tramos = [], giros = []; let cur = null, ug = null;
       for (let gt = 60; gt <= 1790; gt++) {
         T = 1e12 + gt * 1000;
         let pb = 0.52 + (gt - 60) * 0.00002;
@@ -22,32 +22,38 @@ module.exports = async function () {
           fight: gt >= 700 ? {gt: 700} : null, ended: gt >= 1750, recap: gt >= 1750 ? {code: 'LYON'} : null,
           comeback: pb > 0.55 ? {side: 'red', code: 'LYON', p: 1 - pb, paths: [{txt: 'Barón', p: 0.5}]} : pb < 0.45 ? {side: 'blue', code: 'IG', p: pb, paths: [{txt: 'Barón', p: 0.4}]} : null};
         const d = D.decidir({match: {blue: {code: 'IG'}, red: {code: 'LYON'}}, game: g});
+        if (D.giro && D.giro.clave !== ug) { ug = D.giro.clave; giros.push(gt); }
         if (d && (!cur || cur.clave !== d.clave)) { if (cur) cur.fin = gt; cur = {pieza: d.pieza, clave: d.clave, ini: gt}; tramos.push(cur); }
         else if (!d && cur) { cur.fin = gt; cur = null; }
       }
       if (cur) cur.fin = 1790;
-      return tramos.map(t => ({pieza: t.pieza, ini: t.ini, fin: t.fin}));
+      return {tramos: tramos.map(t => ({pieza: t.pieza, ini: t.ini, fin: t.fin})), giros};
     }
     const out = {minimo: correr('minimo'), estandar: correr('estandar'), show: correr('show')};
+    // el giro sale aunque haya una pieza grande en pantalla
+    T = 3e12; const D2 = RiftEngine.crearDirector('estandar'), st = p => ({match: {blue: {code: 'IG'}, red: {code: 'LYON'}}, game: {id: 'x', gt: 700, pBlue: p, timers: {}}});
+    D2.decidir(st(0.5)); D2.forzar('oro', 120); T += 40e3; D2.decidir(st(0.75));
+    out.giroConPieza = {pieza: D2.actual && D2.actual.pieza, giro: !!D2.giro};
     // a mano: una pieza pedida dura lo pedido, aunque no haya juego, y «saltar» la quita
     T = 2e12; const D = RiftEngine.crearDirector('estandar'); D.forzar('oro', 15);
     T += 10e3; const a = D.decidir({match: {}, game: null}); T += 1e3; D.saltar(); const b = D.decidir({match: {}, game: null});
     out.mano = {durante: a && a.pieza, despues: b && b.pieza};
     Date.now = real; return out;
   });
-  const E = R.estandar, piezas = t => t.map(x => x.pieza);
+  const E = R.estandar.tramos, piezas = t => t.map(x => x.pieza), GE = R.estandar.giros;
   const en = (pz, a, z) => E.some(x => x.pieza === pz && x.ini >= a && x.ini <= z);
   ok = chequear('estándar: el impacto del dragón aparece en el minuto previo', en('objetivo', 270, 330), E.filter(x => x.pieza === 'objetivo').map(x => x.ini).slice(0, 3).join(', ') + ' s') && ok;
   ok = chequear('estándar: el daño aparece tras la pelea (min 11:40)', en('pelea', 700, 740)) && ok;
-  ok = chequear('estándar: la alerta aparece con el giro (min 15)', en('giro', 900, 945)) && ok;
+  ok = chequear('estándar: la alerta aparece con el giro (min 15)', GE.some(t => t >= 900 && t <= 945), GE.join(', ') + ' s') && ok;
+  ok = chequear('la alerta de giro sale aunque haya una pieza grande', R.giroConPieza.pieza === 'oro' && R.giroConPieza.giro) && ok;
   ok = chequear('estándar: «para remontar» aparece después del giro', en('remontada', 905, 1000)) && ok;
   ok = chequear('estándar: el resumen aparece al terminar', en('resumen', 1750, 1765)) && ok;
   let solapa = 0, sinRespiro = 0;
-  for (const t of [R.minimo, E, R.show]) for (let i = 1; i < t.length; i++) { if (t[i].ini < t[i - 1].fin) solapa++; if (t[i].ini - t[i - 1].fin < 6) sinRespiro++; }
+  for (const t of [R.minimo.tramos, E, R.show.tramos]) for (let i = 1; i < t.length; i++) { if (t[i].ini < t[i - 1].fin) solapa++; if (t[i].ini - t[i - 1].fin < 6) sinRespiro++; }
   ok = chequear('nunca dos piezas a la vez', solapa === 0, solapa + ' solapadas') && ok;
   ok = chequear('siempre un respiro de 6 s entre piezas', sinRespiro === 0, sinRespiro + ' sin respiro') && ok;
-  ok = chequear('mínimo: solo las alertas de giro', R.minimo.length > 0 && R.minimo.every(x => x.pieza === 'giro'), piezas(R.minimo).join(', ')) && ok;
-  ok = chequear('show: además el oro y los duelos', piezas(R.show).includes('oro') && piezas(R.show).includes('duelos'), R.show.length + ' piezas') && ok;
+  ok = chequear('mínimo: solo las alertas de giro, sin piezas grandes', R.minimo.tramos.length === 0 && R.minimo.giros.length > 0, R.minimo.giros.length + ' alertas') && ok;
+  ok = chequear('show: además el oro y los duelos', piezas(R.show.tramos).includes('oro') && piezas(R.show.tramos).includes('duelos'), R.show.tramos.length + ' piezas') && ok;
   ok = chequear('una pieza pedida a mano se queda y «saltar» la quita', R.mano.durante === 'oro' && !R.mano.despues, JSON.stringify(R.mano)) && ok;
 
   // ---- 2) la pieza view=auto en OBS, con el control en el mismo navegador ----

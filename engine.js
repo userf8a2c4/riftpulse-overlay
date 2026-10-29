@@ -1011,6 +1011,7 @@
   // ---------- director: qué pieza mostrar en cada momento del juego ----------
   // nivel: 'minimo' (solo la barra y los giros), 'estandar' (más objetivo, pelea y resumen) o 'show' (más oro y duelos de vez en cuando).
   // decidir(s) devuelve {pieza, clave, hasta} o null. Nunca dos piezas grandes a la vez y siempre un respiro entre una y otra.
+  // Los giros van aparte, en D.giro ({clave, at, d, side, txt}): son una alerta sobre la barra y salen aunque haya una pieza.
   RiftEngine.crearDirector = function (nivel) {
     var D = {nivel: nivel || 'estandar', actual: null, libreDesde: 0, visto: {}, hist: [], ultimoGiro: 0, ultimoShow: -1e9, log: []};
     var N = function () { var n = {minimo: 0, estandar: 1, show: 2}[D.nivel]; return n == null ? 1 : n; };
@@ -1021,21 +1022,25 @@
       return D.actual;
     }
     D.decidir = function (s) {
-      var ahora = Date.now(), g = s && s.game;
+      var ahora = Date.now(), g = s && s.game, enJuego = g && g.pBlue != null;
+      if (enJuego) {
+        D.hist.push({t: ahora, p: g.pBlue}); D.hist = D.hist.filter(function (x) { return ahora - x.t <= 90000; });
+        // giro: la probabilidad se movió 12 puntos o más en ~40 s. Es una alerta sobre la barra: no compite con las piezas grandes,
+        // así que se evalúa siempre (D.giro) y queda en la línea de tiempo
+        var antes = null; for (var i = 0; i < D.hist.length; i++) if (ahora - D.hist[i].t >= 38000) antes = D.hist[i];
+        if (antes && ahora - D.ultimoGiro > 25000) {
+          var dg = Math.round((g.pBlue - antes.p) * 100);
+          if (Math.abs(dg) >= 12) { D.ultimoGiro = ahora; D.giro = {clave: 'giro' + ahora, at: ahora, d: dg, side: dg > 0 ? 'blue' : 'red', txt: (dg > 0 ? s.match.blue.code : s.match.red.code) + ' +' + Math.abs(dg)};
+            D.log.unshift({pieza: 'giro', at: ahora, txt: D.giro.txt}); D.log = D.log.slice(0, 30); }
+        }
+      }
       if (D.actual && D.actual.datos && D.actual.datos.manual && ahora < D.actual.hasta) return D.actual;  // lo pedido a mano manda
-      if (!g || g.pBlue == null) { D.actual = null; return null; }
-      D.hist.push({t: ahora, p: g.pBlue}); D.hist = D.hist.filter(function (x) { return ahora - x.t <= 90000; });
+      if (!enJuego) { D.actual = null; return null; }
       if (D.actual && ahora < D.actual.hasta) return D.actual;
       if (D.actual) { D.actual = null; D.libreDesde = ahora + 6000; }  // respiro entre piezas
       if (ahora < D.libreDesde) return null;
       // 1) resumen al terminar el juego
       if (N() >= 1 && g.ended && g.recap && !D.visto['fin' + g.id]) return poner('resumen', 'fin' + g.id, 20, {txt: g.recap.code + ' gana'});
-      // 2) giro: la probabilidad se movió 12 puntos o más en ~40 s
-      var antes = null; for (var i = 0; i < D.hist.length; i++) if (ahora - D.hist[i].t >= 38000) antes = D.hist[i];
-      if (antes && ahora - D.ultimoGiro > 25000) {
-        var d = Math.round((g.pBlue - antes.p) * 100);
-        if (Math.abs(d) >= 12) { D.ultimoGiro = ahora; return poner('giro', 'giro' + ahora, 7, {d: d, side: d > 0 ? 'blue' : 'red', txt: (d > 0 ? s.match.blue.code : s.match.red.code) + ' +' + Math.abs(d)}); }
-      }
       // 3) pelea recién terminada: reparto de daño
       if (N() >= 1 && g.fight && g.fight.gt != null && g.gt - g.fight.gt < 40 && !D.visto['pelea' + g.fight.gt]) return poner('pelea', 'pelea' + g.fight.gt, 9, {txt: 'pelea'});
       // 4) objetivo por aparecer (60 s antes): cuánto vale para cada equipo

@@ -42,7 +42,7 @@ async function montar(ctx, o) {
     if (st.modo === 'caido') return r.fulfill({status: 500, body: 'x'});
     const u = new URL(r.request().url()); let data = {};
     if (/getSchedule/.test(u.pathname)) data = {schedule: {pages: {}, events: Object.values(EVS)}};
-    else if (/getEventDetails/.test(u.pathname)) { const e = EVS[u.searchParams.get('id')]; data = {event: {league: {name: 'Worlds'}, match: e.match}}; }
+    else if (/getEventDetails/.test(u.pathname)) { const e = EVS[u.searchParams.get('id')]; if (!e) return r.fulfill({status: 404, headers: HDR, body: '{}'}); data = {event: {league: {name: 'Worlds'}, match: e.match}}; }
     else if (/getLive/.test(u.pathname)) data = {schedule: {events: [Object.assign({}, EVS.TM, {id: 'TM'})]}};
     else if (/\/window\//.test(u.pathname)) {
       const id = u.pathname.split('/').pop(), gs = GAMES[id], s = u.searchParams.get('startingTime');

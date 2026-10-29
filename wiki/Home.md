@@ -4,10 +4,12 @@
 
 **Pronóstico de League of Legends Esports en vivo, para tu transmisión.**
 
-RiftPulse aporta lo que la transmisión oficial **no** sintetiza: la **probabilidad de victoria** de cada equipo en tiempo real, con la precisión del modelo a la vista (**75 % de acierto al minuto 15**, sobre 589 juegos de prueba). Se añade a OBS pegando **una sola URL**, transparente, y autodetecta el partido del Mundial.
+RiftPulse aporta lo que la transmisión oficial **no** sintetiza: la **probabilidad de victoria** de cada equipo en tiempo real, con la precisión del modelo a la vista (**75 % de acierto al minuto 15**, sobre 589 juegos de prueba). Se añade a OBS pegando **una sola URL**, transparente: autodetecta el partido del Mundial y **decide solo qué mostrar** en cada momento, en los **colores de cada equipo**.
 
 ## Empezar
 - 📺 **[Instalación en OBS](Instalación-en-OBS)** — en 3 pasos, una URL.
+- 🧩 **[Extensión para espectadores](Extensión-para-espectadores)** — RiftPulse encima del video de Twitch o lolesports, sincronizado solo con el minuto que ves, en vivo o en un VOD.
+- 🙈 **[Modo sin spoilers](Modo-sin-spoilers)** — para ponerse al día sin enterarse de los resultados.
 - ❓ **[Preguntas frecuentes](Preguntas-frecuentes)**
 
 ## El modelo (por qué creerle)
@@ -15,12 +17,14 @@ RiftPulse aporta lo que la transmisión oficial **no** sintetiza: la **probabili
 - 🎯 **[Precisión y pruebas](Precisión-y-pruebas)** — 62 % antes del juego, 75 % al min 15, 84 % al min 25, medido fuera de muestra.
 
 ## Para casters, streamers y producción
-- 🎙 **[Mesa de análisis](Mesa-de-análisis)** — segunda pantalla: probabilidad, el porqué, giros clave, duelos por línea, serie, draft, qué necesita el que va abajo y **puntos para comentar**.
+- 🤖 **[Director automático](Director-automático)** — una sola URL en OBS: la barra siempre y, en cada momento, la pieza que aporta. Con atajos y línea de tiempo.
+- 🎙 **[Mesa de análisis](Mesa-de-análisis)** — segunda pantalla: **la historia del juego**, qué cambió en el último minuto, qué mirar ahora, el porqué, giros clave, duelos, serie, draft y **puntos para comentar**.
 - 🎬 **[Paquete de gráficos](Paquete-de-gráficos)** — todas las piezas para OBS y sus parámetros.
 - 🎚 **[Control de producción](Control-de-producción)** — encender/apagar piezas y lanzar alertas en vivo.
 
 ## Del proyecto
 - ⚖️ **[Cumplimiento y datos](Cumplimiento-y-datos)** — sin apuestas, fuentes y atribución.
+- 🎨 **[Estilo y colores de equipo](Estilo-y-colores-de-equipo)** — el sistema visual y de dónde sale el color de cada equipo.
 - 🗂 **[Estructura del repositorio](Estructura-del-repositorio)** — qué es cada archivo y cómo publicarlo.
 
 ## Un motor, varias caras

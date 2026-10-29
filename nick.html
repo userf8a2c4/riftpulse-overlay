@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Nick, esto es para tu stream · RiftPulse</title>
-<meta name="description" content="Un overlay gratis para OBS que le muestra a tu chat quién va ganando la partida, en vivo y en porcentaje.">
+<meta name="description" content="Un overlay gratis para OBS que le muestra a tu chat quién va ganando la partida, en vivo, en los colores de cada equipo. Una sola URL y decide solo qué mostrar.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Nick, esto lo hice pensando en streams como el tuyo">
-<meta property="og:description" content="RiftPulse: quién va ganando la partida, en vivo y en %, sobre tu stream. Gratis, se pone con una URL.">
+<meta property="og:description" content="RiftPulse: quién va ganando la partida, en vivo y en %, sobre tu stream. Una sola URL y decide solo qué mostrar.">
 <meta property="og:image" content="https://userf8a2c4.github.io/riftpulse-overlay/docs/img/banner.jpg">
 <meta property="og:url" content="https://userf8a2c4.github.io/riftpulse-overlay/nick.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -46,8 +46,7 @@
   .btn:hover{border-color:var(--blue)}.btn:active{transform:translateY(1px)}
   .btn.primary{background:linear-gradient(180deg,var(--blue),var(--blue2));border-color:var(--blue);color:var(--team-a-ink);box-shadow:0 6px 20px rgba(var(--team-a-rgb),.3)}
   .msg{color:var(--ok);font-size:13.5px;min-height:20px;margin-top:6px}
-  h2{font-family:var(--ffd);font-size:13px;text-transform:uppercase;letter-spacing:1.2px;color:var(--blue);margin:44px 0 14px;display:flex;align-items:center;gap:8px}
-  h2::before{content:'';width:3px;height:14px;border-radius:2px;background:linear-gradient(180deg,var(--blue),var(--blue2));box-shadow:0 0 8px rgba(var(--team-a-rgb),.4)}
+  h2{font-family:var(--ffd);font-size:13px;text-transform:uppercase;letter-spacing:1.2px;color:var(--signal);margin:44px 0 14px;display:flex;align-items:center;gap:8px}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   @media(max-width:700px){.grid{grid-template-columns:1fr}}
   .card{background:linear-gradient(180deg,var(--g1),var(--g1));border:1px solid var(--line);border-radius:14px;padding:18px 20px}
@@ -57,7 +56,7 @@
   .card q{color:var(--text);font-style:italic}
   ol.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:10px}
   ol.steps li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;background:var(--s3);border:1px solid var(--line2);border-radius:12px;padding:12px 16px}
-  ol.steps li::before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:var(--ffd);font-weight:700;color:var(--team-a-ink);background:linear-gradient(180deg,var(--blue),var(--blue2))}
+  ol.steps li::before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:var(--ffd);font-weight:700;color:var(--signal-ink);background:var(--signal)}
   .ask{background:linear-gradient(180deg,rgba(var(--signal-rgb),.08),rgba(var(--signal-rgb),.03));border:1px solid rgba(var(--signal-rgb),.35);border-radius:16px;padding:20px 22px;font-size:17px}
   .ask p{margin:0 0 10px}.ask p:last-child{margin:0}
   ul.calm{margin:0;padding-left:20px;color:var(--text)}
@@ -74,17 +73,15 @@
 <div class="wrap">
   <div class="eyebrow"><img src="logo.svg" alt="">RiftPulse · para Nick Daboom</div>
   <h1>Nick, esto lo hice pensando en <span class="hl">streams como el tuyo</span></h1>
-  <p class="lead">¡Hola, Nick! Soy <b>VectisDev</b>. Armé <b>RiftPulse</b>, un overlay que le muestra a tu chat <b>quién va ganando la partida, en vivo y en porcentaje</b>. No es un número inventado: el modelo está entrenado con más de 2.200 juegos profesionales y <b>acierta el 75 % al minuto 15</b>, medido sobre 589 partidas que nunca había visto.</p>
+  <p class="lead">¡Hola, Nick! Soy <b>VectisDev</b>. Armé <b>RiftPulse</b>, un overlay que le muestra a tu chat <b>quién va ganando la partida, en vivo y en porcentaje</b>, en los colores de cada equipo. Ponés <b>una sola URL en OBS y RiftPulse decide qué mostrar</b> en cada momento. No es un número inventado: el modelo está entrenado con más de 2.200 juegos profesionales y <b>acierta el 75 % al minuto 15</b>, medido sobre 589 partidas que nunca había visto.</p>
 
   <div class="stage">
     <span class="live">● DEMO · PARTIDO REAL DEL MUNDIAL</span>
     <div class="vp" id="vp">
-      <iframe src="overlay.html?demo&view=bar" title="Barra en vivo" scrolling="no"></iframe>
-      <iframe src="overlay.html?demo&view=keys&scale=0.85" title="Claves del momento" scrolling="no"></iframe>
-      <iframe src="overlay.html?demo&view=alert" title="Alerta de giro" scrolling="no"></iframe>
+      <iframe src="overlay.html?demo&view=auto&director=show" title="RiftPulse con el director automático" scrolling="no"></iframe>
     </div>
   </div>
-  <p class="snote">Esto está corriendo ahora mismo: un partido real del Mundial ya jugado, acelerado ×8. En tu stream se ve igual, con la partida en vivo.</p>
+  <p class="snote">Esto está corriendo ahora mismo: un partido real del Mundial ya jugado, acelerado ×8, con <b>una sola URL</b>. Las piezas entran y salen solas: el impacto antes del dragón o el Barón, el daño tras una pelea, la alerta en un giro y el resumen al terminar.</p>
 
   <div class="cta">
     <button class="btn primary" id="copy">📋 Copiar URL para OBS</button>
@@ -95,6 +92,8 @@
 
   <h2>Lo que le suma a tu stream</h2>
   <div class="grid">
+    <div class="card"><div class="ic">🤖</div><h3>Se maneja solo</h3><p>Una sola URL y RiftPulse decide qué mostrar en cada momento, sin dos piezas encima de la partida. Si querés, lo manejás con el teclado desde un panel dentro de OBS.</p></div>
+    <div class="card"><div class="ic">🎨</div><h3>En los colores de cada equipo</h3><p>Un GEN vs T1 se ve dorado y rojo; un G2 vs FNC, en sus colores. O todo en <b>los colores de tu canal</b>, con tu logo.</p></div>
     <div class="card"><div class="ic">🔥</div><h3>Discusión con el chat</h3><p><q>RiftPulse le da 81 % a T1… ¿se la dan vuelta?</q> El número arma la conversación solo.</p></div>
     <div class="card"><div class="ic">⚡</div><h3>Alerta cuando la partida da vuelta</h3><p>Si tras un Barón la probabilidad salta 20 puntos, aparece un aviso en pantalla, justo cuando todos quieren comentar.</p></div>
     <div class="card"><div class="ic">🎙</div><h3>Datos para comentar sin buscarlos</h3><p>Una segunda pantalla con frases listas: quién gana cada línea, qué necesita el que va abajo para remontar y cuánto vale el juego para la serie.</p></div>
@@ -112,7 +111,7 @@
   <div class="ask">
     <p><b>Nada obligatorio.</b> Es gratis y no te pido nada a cambio.</p>
     <p>Si lo probás un rato en una partida y me contás qué te gustó y qué no, ya me ayudás muchísimo. Y si te convence y te dan ganas de mostrarlo en el stream, para mí sería enorme.</p>
-    <p>Ya podés ponerle <b>los colores de tu canal o del SoloBoom y tu logo</b> con solo agregarlos a la URL. Y si se te ocurre una pieza que le falta, la hago.</p>
+    <p>Ya podés ponerle <b>los colores de tu canal o del SoloBoom y tu logo</b> con solo agregarlos a la URL (<code>&amp;tema=canal&amp;accent=…&amp;logo=…</code>). Y si se te ocurre una pieza que le falta, la hago.</p>
   </div>
 
   <h2>Para que estés tranquilo</h2>
@@ -135,7 +134,7 @@
   (function () { var st = document.querySelector('.stage'), vp = document.getElementById('vp');
     function fit() { vp.style.transform = 'scale(' + (st.clientWidth / 1280) + ')'; }
     fit(); window.addEventListener('resize', fit); })();
-  var OVERLAY_URL = location.origin + location.pathname.replace(/[^/]*$/, '') + 'overlay.html';
+  var OVERLAY_URL = location.origin + location.pathname.replace(/[^/]*$/, '') + 'overlay.html?view=auto';
   document.getElementById('copy').addEventListener('click', function () {
     var m = document.getElementById('msg');
     navigator.clipboard.writeText(OVERLAY_URL).then(function () { m.textContent = '¡Copiada! Pegala en un Navegador (Browser Source) de OBS: ' + OVERLAY_URL; },

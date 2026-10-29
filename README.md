@@ -4,7 +4,7 @@
 
 # RiftPulse
 
-**Pronóstico de League of Legends Esports en vivo — como overlay para tu transmisión.**
+**Pronóstico del Mundial de LoL en vivo, sobre tu transmisión, en los colores de cada equipo. Una URL en OBS y decide sola qué mostrar.**
 
 ![Acierto](https://img.shields.io/badge/acierto-75%25%20al%20min%2015-2BB673)
 ![Backtest](https://img.shields.io/badge/prueba-589%20juegos%20no%20vistos-4CC9F0)
@@ -16,15 +16,17 @@
 
 </div>
 
-RiftPulse estima **en tiempo real** la probabilidad de victoria de cada equipo del Mundial y la pone sobre tu transmisión. Se añade a OBS pegando **una sola URL**: fondo transparente, autodetecta el partido en vivo y muestra su propia **precisión**.
+RiftPulse estima **en tiempo real** la probabilidad de victoria de cada equipo del Mundial y la pone sobre tu transmisión. Se añade a OBS pegando **una sola URL**: fondo transparente, autodetecta el partido en vivo, **decide sola qué pieza mostrar en cada momento** y muestra su propia **precisión**.
 
 <p align="center"><img src="docs/img/overlay-en-transmision.jpg" alt="Overlay de RiftPulse sobre una transmisión"></p>
 
 ## Lo que incluye
 
-- 🎬 **[Overlay para OBS](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Paquete-de-gráficos)** — barra en vivo y piezas conmutables: serie, duelos por línea, alerta de giro, qué necesita el que va abajo y resumen al terminar cada juego.
-- 🎙 **[Mesa de análisis](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Mesa-de-análisis)** — segunda pantalla para casters: el porqué, giros clave, duelos, serie, draft y **frases listas para comentar**.
-- 🎚 **[Control de producción](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Control-de-producción)** — enciende y apaga piezas y lanza alertas sin recargar.
+- 🤖 **[Director automático](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Director-automático)** — una sola URL: la barra siempre y, en cada momento, la pieza que aporta (el impacto antes del dragón o el Barón, el daño tras una pelea, la alerta en un giro, qué necesita el que va abajo, la historia del juego, el resumen y la serie). Nunca dos piezas grandes a la vez.
+- 🎬 **[Paquete de gráficos](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Paquete-de-gráficos)** — cada pieza también como URL propia, con temas «Equipos», «Mi canal» y «Minimal».
+- 🧩 **[Extensión para espectadores](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Extensión-para-espectadores)** — RiftPulse encima del video de Twitch o lolesports, **sincronizado solo con el minuto que ves**, en vivo o en un VOD, con línea de tiempo para saltar a cada momento y [modo sin spoilers](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Modo-sin-spoilers).
+- 🎙 **[Mesa de análisis](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Mesa-de-análisis)** — segunda pantalla para casters: **la historia del juego**, qué cambió en el último minuto, qué mirar ahora, el porqué, giros clave, duelos, serie, draft y **frases listas para comentar**.
+- 🎚 **[Control de producción](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Control-de-producción)** — el director con atajos de teclado y su línea de tiempo, módulos y alertas, como dock dentro de OBS.
 - 🏆 **[Predicciones del stream y cuadro en vivo](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Control-de-producción)** — los picks de cada integrante con aciertos automáticos, y las eliminatorias del Mundial en tiempo real.
 - 🎯 **[Precisión a la vista](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Precisión-y-pruebas)** — 62 % antes del juego, **75 % al min 15** y 84 % al min 25, sobre 589 juegos que el modelo no vio.
 
@@ -39,6 +41,6 @@ Ajustes, piezas y solución de problemas, en la **[wiki](https://github.com/user
 > [!IMPORTANT]
 > **Es pronóstico y análisis, no una casa de apuestas.** Las probabilidades son estimaciones de un modelo propio, no una certeza. RiftPulse no está avalado por Riot Games. League of Legends y Riot Games son marcas de Riot Games, Inc. Más en **[Cumplimiento y datos](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Cumplimiento-y-datos)**.
 
-<sub>Las imágenes usan un partido de ejemplo con datos simulados.</sub>
+<sub>Las imágenes usan un partido de ejemplo con datos simulados. Se generan con `node pruebas/imagenes.js`; las pruebas automáticas corren con `node pruebas/todas.js`.</sub>
 
 **VectisDev** · herramienta de pronóstico y análisis para la comunidad de League of Legends Esports.

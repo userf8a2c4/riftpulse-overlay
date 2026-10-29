@@ -169,7 +169,7 @@
   .rp-pd .stg .ph1{font-family:Saira Condensed,sans-serif;font-weight:700;font-size:' + (30 * S) + 'px;text-transform:uppercase;letter-spacing:1px;line-height:1.05;color:#fff}\
   .rp-pd .stg .ph2{font-family:Saira Condensed,sans-serif;font-weight:500;font-size:' + (17 * S) + 'px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-top:2px}\
   .rp-pd .stg .day{margin-top:' + (12 * S) + 'px;font-family:Saira Condensed,sans-serif;font-weight:600;font-size:' + (15 * S) + 'px;letter-spacing:1.5px;text-transform:uppercase;color:var(--g0);\
-    background:linear-gradient(90deg,#e9d7ad,#cdb27a);padding:' + (5 * S) + 'px ' + (12 * S) + 'px;clip-path:polygon(0 0,100% 0,94% 100%,0 100%)}\
+    background:linear-gradient(90deg,var(--signal-soft),var(--signal-2));padding:' + (5 * S) + 'px ' + (12 * S) + 'px;clip-path:polygon(0 0,100% 0,94% 100%,0 100%)}\
   .rp-pd .mh{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-end}\
   .rp-pd .pic{position:relative;height:var(--ph);border-radius:4px 4px 0 0;overflow:hidden;background:linear-gradient(180deg,var(--g1),var(--g1));border:1px solid rgba(255,255,255,.1);border-bottom:0}\
   .rp-pd .pic img{width:100%;height:100%;object-fit:cover;display:block}\
@@ -563,12 +563,12 @@
   }
   function renderAuto(s) {
     renderBar(s);
-    var d = DIR && !cfg.hideAll && s.match ? DIR.decidir(s) : null, g = s.game, html = '', key = '';
-    if (d && d.pieza === 'giro') {  // el giro va en la alerta, sobre la barra
-      if (giroVisto !== d.clave) { giroVisto = d.clave;
-        var ev = (g.events || []).filter(function (e) { return ['baron', 'elder', 'dragon', 'inhib', 'fight'].indexOf(e.kind) >= 0 && g.gt - e.gt <= 60; }).slice(-1)[0];
-        showCallout('<span class="zap">⚡</span><span class="cc ' + sc(d.datos.side) + '">' + esc(d.datos.side === 'blue' ? s.match.blue.code : s.match.red.code) + ' +' + Math.abs(d.datos.d) + ' pts</span>' + (ev ? ' · ' + esc(ev.txt) : '')); }
-    } else if (d) { html = piezaHTML(d.pieza, s); key = d.clave; }
+    var d = DIR && !cfg.hideAll && s.match ? DIR.decidir(s) : null, g = s.game, html = '', key = '', gi = DIR && DIR.giro;
+    // el giro va en la alerta, sobre la barra (sale aunque haya una pieza grande)
+    if (gi && giroVisto !== gi.clave && Date.now() - gi.at < 8000 && !cfg.hideAll) { giroVisto = gi.clave;
+      var ev = (g.events || []).filter(function (e) { return ['baron', 'elder', 'dragon', 'inhib', 'fight'].indexOf(e.kind) >= 0 && g.gt - e.gt <= 60; }).slice(-1)[0];
+      showCallout('<span class="zap">⚡</span><span class="cc ' + sc(gi.side) + '">' + esc(gi.side === 'blue' ? s.match.blue.code : s.match.red.code) + ' +' + Math.abs(gi.d) + ' pts</span>' + (ev ? ' · ' + esc(ev.txt) : '')); }
+    if (d) { html = piezaHTML(d.pieza, s); key = d.clave; }
     // entre juegos (o antes del primero): la serie, con la previa del modelo
     if (!html && !d && s.match && (!g || g.pBlue == null || g.ended) && !cfg.hideAll) { html = piezaHTML('serie', s); key = 'serie' + (s.match.id || ''); }
     if (!html) { if (stCur) { stCur = ''; stage.classList.remove('on'); } }
@@ -580,7 +580,7 @@
   // el control ve qué decidió el director (línea de tiempo) por el mismo canal
   function reportarDir(d, visible) {
     if (!DIR || !bc) return;
-    var a = DIR.actual, o = {nivel: DIR.nivel, actual: a ? {pieza: a.pieza, resta: Math.max(0, Math.round((a.hasta - Date.now()) / 1000)), manual: !!(a.datos && a.datos.manual), visible: visible || a.pieza === 'giro'} : null,
+    var a = DIR.actual, o = {nivel: DIR.nivel, actual: a ? {pieza: a.pieza, resta: Math.max(0, Math.round((a.hasta - Date.now()) / 1000)), manual: !!(a.datos && a.datos.manual), visible: visible} : null,
       log: DIR.log.slice(0, 12).map(function (x) { return {pieza: x.pieza, at: x.at, txt: x.txt || ''}; })};
     var sig = JSON.stringify(o); if (sig === dirSig) return; dirSig = sig;
     try { bc.postMessage({dir: o}); } catch (e) {}

@@ -1,6 +1,6 @@
 # Control de producción
 
-Un panel para que producción controle el overlay **en vivo**, sin recargar: enciende/apaga módulos, cambia la posición y dispara alertas.
+Un panel para que producción controle el overlay **en vivo**, sin recargar: maneja el [director automático](Director-automático), enciende y apaga módulos, cambia la posición y dispara alertas.
 
 Página: `https://userf8a2c4.github.io/riftpulse-overlay/control.html`
 
@@ -12,7 +12,17 @@ El overlay y el control se sincronizan cuando **ambos corren en OBS** (comparten
 2. Añade el **control** como *Dock de navegador*: **Ver → Docks → Docks de navegador personalizados** → nombre "RiftPulse", URL del `control.html` → Aplicar.
 3. El dock aparece dentro de OBS; lo que toques ahí cambia el overlay al instante.
 
-## Qué controla
+## Director automático
+Con `overlay.html?view=auto` en OBS, el control muestra:
+- el **nivel** del director: Mínimo, Estándar o Show;
+- **qué hay en pantalla** y cuántos segundos le quedan;
+- **⏭ Saltar la pieza** (`0`) y **Retener 30 s** (`R`);
+- las **nueve piezas** para pedir a mano (`1` a `9`), con botones de alto fijo para no errarle al clic;
+- la **línea de tiempo** de lo que mostró el director y cuándo.
+
+`H` oculta todo y lo vuelve a mostrar. Los atajos funcionan con el panel enfocado. Más en [Director automático](Director-automático).
+
+## Qué más controla
 - **Módulos:** pronóstico, momentum, timers, marca (la probabilidad siempre va).
 - **Posición:** arriba o abajo.
 - **Ocultar / mostrar** el overlay.
