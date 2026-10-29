@@ -32,7 +32,9 @@ El **panel lateral** sigue lo mismo que tu video: arriba dice *Sincronizado con 
 En la barra del overlay, pasá el mouse y tocá **?**. Aparece el **diagnóstico**: qué reloj leyó, qué siglas, el marcador, qué partido reconoció y la calidad del video. Con una captura de ese cuadro se sabe exactamente qué pasa.
 
 ## La barra lee la sala
-- **Sin reloj a la vista** durante más de 12 s (el desk, una pausa, una entrevista), la barra se **contrae** a una pastilla con la última probabilidad. Vuelve sola cuando reaparece el juego.
+- **Solo con el juego en pantalla.** Sin el marcador del juego a la vista (repetición, desk, publicidad, entrevista, multivista), el overlay **desaparece entero** en unos segundos y vuelve solo cuando reaparece el juego. Si movés el mouse mientras está oculto, un aviso chico dice que está esperando el juego.
+- **Integrado a la transmisión:** la barra va pegada debajo del marcador de arriba, y los paneles, de a uno, en la columna izquierda a media altura. Nunca tapan el marcador, los timers, la barra de estadísticas, las cámaras ni el minimapa.
+- **Siempre el partido correcto:** en una transmisión en vivo se prefiere el juego que se está jugando. Si pasan un clip de otro partido (por ejemplo, en la previa), el overlay lo suelta a los 25 s sin reloj y vuelve al vivo.
 - **En el draft** muestra solo «Draft · IG vs LYON».
 - **Colores del video:** la barra toma el color de la sigla de cada equipo en el marcador de la transmisión.
 
@@ -49,7 +51,7 @@ En un VOD, la app, el panel y Mando **tapan los resultados** del partido que est
 
 ## Paneles para el espectador
 
-Debajo de la barra podés sumar paneles, desde los chips del overlay o desde **Mando → Overlay en el stream**:
+Los paneles aparecen **en su momento** (ver *Paneles automáticos*) y se cierran solos. Si querés uno siempre a la vista, fijalo desde los chips del overlay o desde **Mando → Overlay en el stream**:
 
 | Panel | Qué muestra |
 |---|---|
