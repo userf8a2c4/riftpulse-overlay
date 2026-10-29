@@ -156,7 +156,7 @@
   }
 
   function brandHTML(s) {
-    var tr = (has('brand') && s.precision) ? '<div class="rp-bs">' + Math.round(s.precision.acc15 * 100) + '% de acierto</div>' : '';
+    var tr = s.demo ? '<div class="rp-bs" style="color:#f2c14e">DEMO · partido real</div>' : (has('brand') && s.precision) ? '<div class="rp-bs">' + Math.round(s.precision.acc15 * 100) + '% de acierto</div>' : '';
     return '<div class="rp-brand">' + LOGO + '<div><div class="rp-bn">RiftPulse</div>' + tr + '</div></div>';
   }
 
@@ -293,5 +293,5 @@
   window.addEventListener('storage', function (e) { if (e.key === 'rp_ctrl') { try { applyCtrl(JSON.parse(e.newValue || 'null')); } catch (x) {} } });
 
   R.onUpdate(render);
-  R.start();
+  R.auto();
 })();

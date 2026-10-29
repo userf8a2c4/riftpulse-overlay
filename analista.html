@@ -273,7 +273,7 @@
       return;
     }
 
-    liveEl.textContent=g.ended?'FINAL':'EN VIVO'; liveEl.className=g.ended?'live off':'live';
+    liveEl.textContent=s.demo?'DEMO · partido real del '+s.demo.date.slice(8,10)+'/'+s.demo.date.slice(5,7)+' · ×'+s.demo.vel+(g.ended?' · FINAL':''):(g.ended?'FINAL':'EN VIVO'); liveEl.className=g.ended?'live off':'live';
     var now=Date.now(); hist.push({t:now,p:g.pBlue}); hist=hist.filter(function(x){return now-x.t<=1200000;});
 
     var pb=Math.round(g.pBlue*100), pr=100-pb, lead=pb>=50;
@@ -316,7 +316,7 @@
     var a=document.createElement('a'); a.href=recapPNG(LAST); a.download='riftpulse-'+LAST.game.recap.code+'-juego'+(LAST.match.gameNo||'')+'.png'; a.click();
   });
   R.onUpdate(function(s){ LAST=s; render(s); });
-  R.start();
+  R.auto();
 })();
 </script>
 </body>

@@ -30,6 +30,7 @@
   .cta{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0 8px}
   .btn{font-family:var(--ffd);font-weight:700;font-size:15px;letter-spacing:.3px;border-radius:12px;padding:14px 22px;cursor:pointer;border:1px solid var(--line);
     background:var(--s1);color:var(--text);display:flex;align-items:center;gap:10px;transition:border-color .15s,transform .05s}
+  a.btn{text-decoration:none;color:inherit;display:inline-block}
   .btn:hover{border-color:var(--blue)}.btn:active{transform:translateY(1px)}
   .btn.primary{background:linear-gradient(180deg,var(--blue),var(--blue2));border-color:var(--blue);color:#06121f;box-shadow:0 6px 20px rgba(74,163,255,.3)}
   .url{font-family:ui-monospace,Consolas,monospace;font-size:13px;color:#9fd0ff;background:var(--s3);border:1px solid var(--line2);border-radius:10px;padding:10px 14px;margin-top:10px;word-break:break-all}
@@ -51,8 +52,12 @@
 
   <p class="lead">Un <b>overlay gratuito</b> para OBS que muestra, sobre tu transmisión, la <b>probabilidad de victoria en vivo</b> de cada equipo, el pronóstico previo, los giros de momentum y los próximos objetivos — con la <b>precisión del modelo a la vista</b>. Se instala pegando <b>una sola URL</b>. Cero configuración.</p>
 
-  <div class="preview"><div class="tagfake">TU GAMEPLAY / CO-STREAM</div><iframe src="overlay.html" title="Vista previa del overlay" scrolling="no"></iframe></div>
-  <div class="pvnote">Vista previa en vivo (si hay partido de Worlds ahora). En OBS se ve igual, sobre tu transmisión, con fondo transparente.</div>
+  <div class="preview"><div class="tagfake">TU GAMEPLAY / CO-STREAM</div><iframe src="overlay.html?demo" title="Demo del overlay" scrolling="no"></iframe></div>
+  <div class="pvnote">Demo con un <b>partido real del Mundial ya jugado</b>, acelerado. En OBS se ve igual pero con el partido en vivo, sobre tu transmisión y con fondo transparente.</div>
+  <div class="cta" style="margin-top:10px">
+    <a class="btn" href="analista.html?demo" target="_blank" rel="noopener">🎙 Ver la mesa de análisis (demo)</a>
+    <a class="btn" href="overlay.html?demo&view=bar" target="_blank" rel="noopener">▶ Overlay a pantalla completa (demo)</a>
+  </div>
 
   <div class="cta">
     <button class="btn primary" id="copy">📋 Copiar URL del overlay</button>

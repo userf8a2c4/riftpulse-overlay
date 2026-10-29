@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nick, esto es para tu stream · RiftPulse</title>
+<meta name="description" content="Un overlay gratis para OBS que le muestra a tu chat quién va ganando la partida, en vivo y en porcentaje.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Nick, esto lo hice pensando en streams como el tuyo">
+<meta property="og:description" content="RiftPulse: quién va ganando la partida, en vivo y en %, sobre tu stream. Gratis, se pone con una URL.">
+<meta property="og:image" content="https://userf8a2c4.github.io/riftpulse-overlay/docs/img/banner.jpg">
+<meta property="og:url" content="https://userf8a2c4.github.io/riftpulse-overlay/nick.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://userf8a2c4.github.io/riftpulse-overlay/docs/img/banner.jpg">
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Chakra+Petch:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0e16;--s1:#121a2a;--s3:#0d1320;--line:#263352;--line2:#1b2439;--text:#e8edf7;--muted:#8b97b0;
+    --blue:#4aa3ff;--blue2:#2f7fe0;--red:#ff5a5f;--gold:#f2c14e;--ok:#3ddc97;--ff:'Inter',system-ui,sans-serif;--ffd:'Chakra Petch',var(--ff)}
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 560px at 12% -10%,#17233d 0,rgba(23,35,61,0) 60%),radial-gradient(900px 440px at 96% -8%,#2a1620 0,rgba(42,22,32,0) 55%),var(--bg);
+    color:var(--text);font:400 16.5px/1.6 var(--ff);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:960px;margin:0 auto;padding:40px 24px 60px}
+  .eyebrow{display:flex;align-items:center;gap:10px;font-family:var(--ffd);font-size:13px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+  .eyebrow img{width:28px;height:28px}
+  h1{font-family:var(--ffd);font-size:clamp(28px,4.6vw,44px);line-height:1.12;margin:14px 0 14px;letter-spacing:.3px}
+  h1 .hl{background:linear-gradient(90deg,#7cc0ff,#ff8a8f);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lead{font-size:18px;color:#cdd7ea;max-width:760px;margin:0 0 26px}
+  .lead b{color:var(--text)}
+  /* escenario: la demo corre en vivo */
+  .stage{position:relative;aspect-ratio:16/9;border-radius:18px;overflow:hidden;border:1px solid var(--line);
+    background:radial-gradient(60% 70% at 22% 30%,rgba(46,120,92,.5),transparent 70%),radial-gradient(50% 60% at 78% 65%,rgba(36,84,140,.45),transparent 70%),
+    radial-gradient(40% 40% at 55% 20%,rgba(140,60,80,.25),transparent 70%),linear-gradient(160deg,#0f1a1d,#0b1220 55%,#120d18);
+    box-shadow:0 20px 60px rgba(0,0,0,.55)}
+  .stage::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 2px,transparent 2px 22px)}
+  .stage .vp{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0}
+  .stage iframe{position:absolute;inset:0;width:1280px;height:720px;border:0;background:transparent}
+  .live{position:absolute;right:14px;top:12px;z-index:2;font-family:var(--ffd);font-size:12px;font-weight:700;letter-spacing:.8px;color:var(--gold);
+    background:rgba(10,14,22,.75);border:1px solid rgba(242,193,78,.4);border-radius:99px;padding:5px 12px}
+  @media(max-width:600px){.live{font-size:9px;padding:3px 8px;top:8px;right:8px;letter-spacing:.4px}}
+  .snote{color:var(--muted);font-size:13px;text-align:center;margin:10px 0 0}
+  /* botones */
+  .cta{display:flex;flex-wrap:wrap;gap:12px;margin:24px 0 6px}
+  .btn{font-family:var(--ffd);font-weight:700;font-size:15px;letter-spacing:.3px;border-radius:12px;padding:14px 22px;cursor:pointer;border:1px solid var(--line);
+    background:var(--s1);color:var(--text);text-decoration:none;display:inline-flex;align-items:center;gap:10px;transition:border-color .15s,transform .05s}
+  .btn:hover{border-color:var(--blue)}.btn:active{transform:translateY(1px)}
+  .btn.primary{background:linear-gradient(180deg,var(--blue),var(--blue2));border-color:var(--blue);color:#06121f;box-shadow:0 6px 20px rgba(74,163,255,.3)}
+  .msg{color:var(--ok);font-size:13.5px;min-height:20px;margin-top:6px}
+  h2{font-family:var(--ffd);font-size:13px;text-transform:uppercase;letter-spacing:1.2px;color:var(--blue);margin:44px 0 14px;display:flex;align-items:center;gap:8px}
+  h2::before{content:'';width:3px;height:14px;border-radius:2px;background:linear-gradient(180deg,var(--blue),var(--blue2));box-shadow:0 0 8px rgba(74,163,255,.4)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:700px){.grid{grid-template-columns:1fr}}
+  .card{background:linear-gradient(180deg,#141d30,#0f1623);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .card .ic{font-size:24px;line-height:1}
+  .card h3{font-family:var(--ffd);font-size:18px;margin:8px 0 6px}
+  .card p{margin:0;color:#c7d0e2;font-size:15px}
+  .card q{color:var(--text);font-style:italic}
+  ol.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:10px}
+  ol.steps li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;background:var(--s3);border:1px solid var(--line2);border-radius:12px;padding:12px 16px}
+  ol.steps li::before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:var(--ffd);font-weight:700;color:#06121f;background:linear-gradient(180deg,var(--blue),var(--blue2))}
+  .ask{background:linear-gradient(180deg,rgba(242,193,78,.08),rgba(242,193,78,.03));border:1px solid rgba(242,193,78,.35);border-radius:16px;padding:20px 22px;font-size:17px}
+  .ask p{margin:0 0 10px}.ask p:last-child{margin:0}
+  ul.calm{margin:0;padding-left:20px;color:#c7d0e2}
+  ul.calm li{margin:4px 0}
+  .sign{margin-top:44px;font-size:18px}
+  .sign .x{display:inline-flex;align-items:center;gap:8px;margin-top:14px}
+  footer{border-top:1px solid var(--line);margin-top:40px;padding-top:14px;color:var(--muted);font-size:12px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow"><img src="logo.svg" alt="">RiftPulse · para Nick Daboom</div>
+  <h1>Nick, esto lo hice pensando en <span class="hl">streams como el tuyo</span></h1>
+  <p class="lead">¡Hola, Nick! Soy <b>VectisDev</b>. Armé <b>RiftPulse</b>, un overlay que le muestra a tu chat <b>quién va ganando la partida, en vivo y en porcentaje</b>. No es un número inventado: el modelo está entrenado con más de 2.200 juegos profesionales y <b>acierta el 75 % al minuto 15</b>, medido sobre 589 partidas que nunca había visto.</p>
+
+  <div class="stage">
+    <span class="live">● DEMO · PARTIDO REAL DEL MUNDIAL</span>
+    <div class="vp" id="vp">
+      <iframe src="overlay.html?demo&view=bar" title="Barra en vivo" scrolling="no"></iframe>
+      <iframe src="overlay.html?demo&view=keys&scale=0.85" title="Claves del momento" scrolling="no"></iframe>
+      <iframe src="overlay.html?demo&view=alert" title="Alerta de giro" scrolling="no"></iframe>
+    </div>
+  </div>
+  <p class="snote">Esto está corriendo ahora mismo: un partido real del Mundial ya jugado, acelerado ×8. En tu stream se ve igual, con la partida en vivo.</p>
+
+  <div class="cta">
+    <button class="btn primary" id="copy">📋 Copiar URL para OBS</button>
+    <a class="btn" href="analista.html?demo" target="_blank" rel="noopener">🎙 Ver la mesa de análisis</a>
+    <a class="btn" href="https://x.com/CaZe_18" target="_blank" rel="noopener">✉️ Escribime por X</a>
+  </div>
+  <div class="msg" id="msg"></div>
+
+  <h2>Lo que le suma a tu stream</h2>
+  <div class="grid">
+    <div class="card"><div class="ic">🔥</div><h3>Discusión con el chat</h3><p><q>RiftPulse le da 81 % a T1… ¿se la dan vuelta?</q> El número arma la conversación solo.</p></div>
+    <div class="card"><div class="ic">⚡</div><h3>Alerta cuando la partida da vuelta</h3><p>Si tras un Barón la probabilidad salta 20 puntos, aparece un aviso en pantalla, justo cuando todos quieren comentar.</p></div>
+    <div class="card"><div class="ic">🎙</div><h3>Datos para comentar sin buscarlos</h3><p>Una segunda pantalla con frases listas: quién gana cada línea, qué necesita el que va abajo para remontar y cuánto vale el juego para la serie.</p></div>
+    <div class="card"><div class="ic">🏁</div><h3>Resumen al terminar cada juego</h3><p>Quién ganó, el momento que lo decidió y el jugador clave, con una imagen lista para tus redes.</p></div>
+  </div>
+
+  <h2>Probarlo te lleva un minuto</h2>
+  <ol class="steps">
+    <li><span>Tocá <b>📋 Copiar URL para OBS</b> (arriba).</span></li>
+    <li><span>En OBS: <b>＋ en Fuentes → Navegador</b> → pegá la URL → <b>1920 × 1080</b> → Aceptar.</span></li>
+    <li><span>Listo. Fondo transparente, detecta solo el partido del Mundial y no hay nada que configurar.</span></li>
+  </ol>
+
+  <h2>Lo que te pido (y lo que no)</h2>
+  <div class="ask">
+    <p><b>Nada obligatorio.</b> Es gratis y no te pido nada a cambio.</p>
+    <p>Si lo probás un rato en una partida y me contás qué te gustó y qué no, ya me ayudás muchísimo. Y si te convence y te dan ganas de mostrarlo en el stream, para mí sería enorme.</p>
+    <p>Si querés, <b>lo adapto a vos</b>: los colores de tu canal o del SoloBoom, tu logo, o la pieza que se te ocurra que le falta.</p>
+  </div>
+
+  <h2>Para que estés tranquilo</h2>
+  <ul class="calm">
+    <li><b>No es de apuestas.</b> Es pronóstico y análisis; no hay casas de apuestas ni nada parecido.</li>
+    <li><b>No está afiliado a Riot Games.</b> Usa los datos públicos de LoL Esports y lleva el aviso correspondiente.</li>
+    <li><b>Es abierto.</b> Todo está en <a href="https://github.com/userf8a2c4/riftpulse-overlay" style="color:#9fd0ff">GitHub</a> y explicado en la <a href="https://github.com/userf8a2c4/riftpulse-overlay/wiki" style="color:#9fd0ff">wiki</a>, incluido cómo se mide la precisión.</li>
+  </ul>
+
+  <div class="sign">
+    ¡Gracias por llegar hasta acá! Ojalá lo veamos en una de tus partidas.<br>
+    Un abrazo,<br><b>VectisDev</b><br>
+    <a class="btn x" href="https://x.com/CaZe_18" target="_blank" rel="noopener">✉️ @CaZe_18 en X</a>
+  </div>
+
+  <footer>RiftPulse es una herramienta de pronóstico y análisis, sin fines de apuestas. No está avalada por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de League of Legends. League of Legends y Riot Games son marcas de Riot Games, Inc.</footer>
+</div>
+<script>
+  // el escenario se dibuja a 1280×720 y se escala al ancho disponible (se ve igual en celular y en PC)
+  (function () { var st = document.querySelector('.stage'), vp = document.getElementById('vp');
+    function fit() { vp.style.transform = 'scale(' + (st.clientWidth / 1280) + ')'; }
+    fit(); window.addEventListener('resize', fit); })();
+  var OVERLAY_URL = location.origin + location.pathname.replace(/[^/]*$/, '') + 'overlay.html';
+  document.getElementById('copy').addEventListener('click', function () {
+    var m = document.getElementById('msg');
+    navigator.clipboard.writeText(OVERLAY_URL).then(function () { m.textContent = '¡Copiada! Pegala en un Navegador (Browser Source) de OBS: ' + OVERLAY_URL; },
+      function () { m.textContent = 'Copiala a mano: ' + OVERLAY_URL; });
+  });
+</script>
+</body>
+</html>

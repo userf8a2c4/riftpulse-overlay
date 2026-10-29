@@ -160,7 +160,7 @@
     G.wp = winProb(f, gt);
     var s = G.samples[G.samples.length - 1];
     if (!s || gt - s.gt >= 10) G.samples.push({gt: gt, diff: f.blueTeam.totalGold - f.redTeam.totalGold, p: G.wp.p});
-    if (f.gameState === 'finished') { G.ended = true; }
+    if (f.gameState === 'finished') { if (!G.ended && DEMO) DEMO.next = setTimeout(demoNext, 30000); G.ended = true; }
     emit();
   }
 
@@ -170,6 +170,7 @@
   var delay = videoDelay;
   var now = function () { return Date.now(); };
   var REPLAY = null;  // modo repetición: {base, real, vel}
+  var DEMO = null;    // modo demo: {list, i, vel, cur}: repite juegos reales del Mundial, uno tras otro
   var dataTime = function () { return REPLAY ? (REPLAY.base + (Date.now() - REPLAY.real) * REPLAY.vel) : (now() - delay * 1000); };
 
   // ---------- descubrir y seguir el partido en vivo ----------
@@ -442,6 +443,7 @@
         fight: G.fight && G.fight.players ? {gt: G.fight.gt, win: G.fight.win, blue: G.fight.players.blue, red: G.fight.players.red} : null,
         swings: keyMoments(3), comeback: comebackPaths(), draft: draftInfo(), lanes: L, keyPlayer: keyPlayer(L), recap: recap()} : null,
       series: seriesNow(), h2h: M ? h2hFor(bt.code, rt.code) : null,
+      demo: DEMO && DEMO.cur ? {blue: DEMO.cur.blue, red: DEMO.cur.red, date: DEMO.cur.date, block: DEMO.cur.block, vel: DEMO.vel} : null,
       blueCode: blueCode, redCode: redCode, delay: delay, precision: PRECISION, next: NEXTM, at: Date.now()
     };
   }
@@ -506,6 +508,37 @@
       emit();
       loopId = setInterval(function () { tickWindow().catch(function () {}); }, 1000);
     }
+  };
+
+  // ---------- modo demo: un partido real del Mundial ya jugado, acelerado (para probarlo sin partido en vivo) ----------
+  async function demoNext() {
+    if (!DEMO) return;
+    clearTimeout(DEMO.next);
+    for (var n = 0; n < DEMO.list.length; n++) {
+      var c = DEMO.list[DEMO.i++ % DEMO.list.length];
+      DEMO.cur = c;
+      try { await RiftEngine.replay(c.id, 1, 3, DEMO.vel); } catch (e) {}
+      if (G && G.start) return;  // arrancó
+    }
+    DEMO.cur = null; emit();
+  }
+  RiftEngine.demo = async function (vel) {
+    this.stop();
+    var list = [];
+    try { list = await this.recentGames(); } catch (e) {}
+    list.sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+    // primero las series largas (más tensión), las más recientes adelante
+    list = list.filter(function (x) { return x.bo >= 3; }).concat(list.filter(function (x) { return x.bo < 3; }));
+    DEMO = {list: list.slice(0, 12), i: 0, vel: vel || 8, cur: null, next: null};
+    if (!DEMO.list.length) { DEMO = null; emit(); return false; }
+    await demoNext();
+    return true;
+  };
+  // arranque según la URL: ?demo reproduce un partido real ya jugado; si no, el partido en vivo
+  RiftEngine.auto = function () {
+    var q = typeof location !== 'undefined' ? new URLSearchParams(location.search) : null;
+    if (q && q.has('demo')) return this.demo(+q.get('demo') || 8);
+    return this.start();
   };
 
   RiftEngine.MODELO = MODELO;       // fuente única de los pesos del modelo (la app los lee de aquí)
