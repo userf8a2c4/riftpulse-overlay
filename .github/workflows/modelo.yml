@@ -1,0 +1,30 @@
+# Reentrena el modelo con juegos profesionales reales y lo compara con el actual (se lanza a mano). No cambia nada del sitio:
+# deja el informe en el registro y los datos y el resultado como artefacto.
+name: Reentrenar el modelo
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  modelo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install numpy scikit-learn
+      - run: node modelo/recolectar.js
+      - run: python3 modelo/entrenar.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: modelo-datos
+          path: modelo/datos/
