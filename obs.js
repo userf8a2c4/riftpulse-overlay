@@ -5,6 +5,7 @@
      objectives (bug de objetivos) · keys (claves del momento)
      serie (probabilidad de la serie) · duelos (duelo por línea y jugador clave)
      remontada (aparece sola cuando un equipo pasa del 65 %) · recap (resumen al terminar el juego)
+     cuadro (eliminatorias del Mundial en vivo: cuartos → semis → final)
    La vista "bar" además obedece al panel de control (control.html) en vivo por
    BroadcastChannel + localStorage (ambos dentro de OBS comparten navegador).
    Nota: el pronóstico previo (Elo) y "lo predijimos" requieren portar el Elo al motor;
@@ -112,6 +113,19 @@
   .rp-rc .ttl{font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:' + (34 * S) + 'px;line-height:1.1}\
   .rp-rc .sub{font-size:' + (15 * S) + 'px;color:#c7d0e2;margin:4px 0 10px}\
   .rp-rc svg{display:block;width:100%;height:' + (70 * S) + 'px;margin-bottom:8px}\
+  /* cuadro */\
+  .rp-br{display:grid;grid-template-columns:repeat(3,' + (190 * S) + 'px);gap:' + (22 * S) + 'px;align-items:stretch}\
+  .rp-br .col{display:flex;flex-direction:column}\
+  .rp-br .h{font-family:"Chakra Petch",sans-serif;font-size:' + (11 * S) + 'px;letter-spacing:.8px;text-transform:uppercase;color:#8b97b0;margin-bottom:' + (6 * S) + 'px}\
+  .rp-br .bd{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:' + (10 * S) + 'px}\
+  .rp-br .m{background:rgba(9,14,24,.75);border:1px solid rgba(74,112,170,.35);border-radius:10px;padding:' + (5 * S) + 'px ' + (9 * S) + 'px}\
+  .rp-br .m.lv{border-color:rgba(255,90,95,.7);box-shadow:0 0 14px rgba(255,90,95,.25)}\
+  .rp-br .tm{display:flex;align-items:center;gap:8px;font-size:' + (15 * S) + 'px;padding:' + (2 * S) + 'px 0}\
+  .rp-br .tm img{width:' + (18 * S) + 'px;height:' + (18 * S) + 'px;object-fit:contain}\
+  .rp-br .tm b{font-family:"Chakra Petch",sans-serif}.rp-br .tm .w{margin-left:auto;font-family:"Chakra Petch",sans-serif;font-weight:700}\
+  .rp-br .tm.won .w{color:#3ddc97}.rp-br .tm.lost{opacity:.4}.rp-br .tm.tbd{color:#8b97b0;font-size:' + (12.5 * S) + 'px}\
+  .rp-br .lvt{font-size:' + (10.5 * S) + 'px;color:#ff8a8f;font-weight:700;margin-bottom:2px}\
+  .rp-br .ch{text-align:center;font-family:"Chakra Petch",sans-serif;font-size:' + (22 * S) + 'px;font-weight:700;color:#f2c14e}\
   .rp-rc ul{margin:0;padding-left:' + (18 * S) + 'px;font-size:' + (15 * S) + 'px;line-height:1.6}\
   ';
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
@@ -127,7 +141,7 @@
   }
 
   // ---------- contenedor ----------
-  var posClass = VIEW === 'bar' ? cfg.pos : VIEW === 'alert' || VIEW === 'serie' || VIEW === 'remontada' ? 'tc' : VIEW === 'recap' ? 'mid'
+  var posClass = VIEW === 'bar' ? cfg.pos : VIEW === 'alert' || VIEW === 'serie' || VIEW === 'remontada' ? 'tc' : VIEW === 'recap' || VIEW === 'cuadro' ? 'mid'
     : VIEW === 'objectives' || VIEW === 'big' || VIEW === 'keys' || VIEW === 'duelos' ? 'tl' : 'bottom';
   var ovl = document.createElement('div'); ovl.className = 'rp-ovl ' + posClass;
   var callout = document.createElement('div'); callout.className = 'rp-callout';
@@ -151,6 +165,7 @@
     if (VIEW === 'duelos') return renderDuelos(s);
     if (VIEW === 'remontada') return renderRemontada(s);
     if (VIEW === 'recap') return renderRecap(s);
+    if (VIEW === 'cuadro') return renderCuadro(s);
     if (VIEW === 'alert') { if (s.game && s.game.pBlue != null) { hist.push({t: Date.now(), p: s.game.pBlue}); checkMomentum(s); } return; }
     renderBar(s);
   }
@@ -261,6 +276,26 @@
       '<div class="ttl ' + sc(r.win) + '">' + esc(r.code) + ' gana</div><div class="sub">vs ' + esc(r.lose) + ' · ' + mmss(r.dur) + '</div>' +
       '<svg viewBox="0 0 600 70" preserveAspectRatio="none"><line x1="0" y1="35" x2="600" y2="35" stroke="#263352" stroke-dasharray="5 5"/><path d="' + d + '" fill="none" stroke="' + wc + '" stroke-width="3" vector-effect="non-scaling-stroke"/></svg>' +
       '<ul>' + li.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>';
+  }
+
+  // Cuadro de eliminatorias: se pide al motor (refresca el calendario cada minuto) y marca la serie que se está jugando.
+  function renderCuadro(s) {
+    R.loadBracket();
+    var B = R.bracket;
+    if (!B) { main.style.display = 'none'; return; }
+    card(true);
+    function m(x) {
+      var live = x.state === 'inProgress', g = s.match && s.match.id === x.id && s.game && s.game.pBlue != null ? s.game : null;
+      var lt = live ? '<div class="lvt">● EN VIVO' + (g ? ' · juego en curso: ' + esc(g.pBlue >= 0.5 ? s.match.blue.code : s.match.red.code) + ' ' + pct(Math.max(g.pBlue, 1 - g.pBlue)) : '') + '</div>' : '';
+      return '<div class="m' + (live ? ' lv' : '') + '">' + lt + x.teams.map(function (t, j) {
+        if (!t.code) { var fr = (x.from && x.from[j]) || []; return '<div class="tm tbd">' + (fr.length ? fr.map(esc).join(' / ') : 'Por definir') + '</div>'; }
+        return '<div class="tm' + (t.won ? ' won' : x.state === 'completed' ? ' lost' : '') + '">' + (t.img ? '<img src="' + esc(t.img) + '" alt="">' : '') + '<b>' + esc(t.code) + '</b>' + (x.state !== 'unstarted' ? '<span class="w">' + t.wins + '</span>' : '') + '</div>';
+      }).join('') + '</div>';
+    }
+    var col = function (h, inner) { return '<div class="col"><div class="h">' + h + '</div><div class="bd">' + inner + '</div></div>'; };
+    main.innerHTML = '<div class="t">' + LOGO + 'Mundial 2026 · eliminatorias</div><div class="rp-br">' +
+      col('Cuartos', B.qf.map(m).join('')) + col('Semis', B.sf.map(m).join('')) +
+      col('Final', m(B.f[0]) + (B.champion ? '<div class="ch">🏆 ' + esc(B.champion) + '</div>' : '')) + '</div>';
   }
 
   function showCallout(html) { callout.innerHTML = html; callout.classList.add('show'); setTimeout(function () { callout.classList.remove('show'); }, 7000); }
