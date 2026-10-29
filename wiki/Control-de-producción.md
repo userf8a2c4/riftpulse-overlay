@@ -4,6 +4,8 @@ Un panel para que producción controle el overlay **en vivo**, sin recargar: enc
 
 Página: `https://userf8a2c4.github.io/riftpulse-overlay/control.html`
 
+<p align="center"><img src="https://raw.githubusercontent.com/userf8a2c4/riftpulse-overlay/main/docs/img/control.png" width="300" alt="Panel de control"></p>
+
 ## Cómo conectarlo (dentro de OBS)
 El overlay y el control se sincronizan cuando **ambos corren en OBS** (comparten el mismo navegador interno):
 1. Añade el **overlay** como *Browser Source* (ver [Instalación en OBS](Instalación-en-OBS)).

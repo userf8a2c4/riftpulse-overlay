@@ -14,5 +14,9 @@
 - [Paquete de gráficos](Paquete-de-gráficos)
 - [Control de producción](Control-de-producción)
 
+**Del proyecto**
+- [Cumplimiento y datos](Cumplimiento-y-datos)
+- [Estructura del repositorio](Estructura-del-repositorio)
+
 ---
 Pronóstico · sin apuestas · no afiliado a Riot

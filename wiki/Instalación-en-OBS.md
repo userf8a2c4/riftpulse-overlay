@@ -2,6 +2,8 @@
 
 El overlay es un **Browser Source**: se instala pegando una URL. No hay que configurar nada; autodetecta el partido de Worlds en vivo.
 
+<p align="center"><img src="https://raw.githubusercontent.com/userf8a2c4/riftpulse-overlay/main/docs/img/pagina.png" width="640" alt="Página para streamers"></p>
+
 ## En 3 pasos
 1. Abre la **página** (`https://userf8a2c4.github.io/riftpulse-overlay/`) y toca **📋 Copiar URL del overlay**.
 2. En OBS: **＋ en Fuentes → Navegador / Browser Source** → pega la URL → pon **1920 × 1080** → Aceptar.

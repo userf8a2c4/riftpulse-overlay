@@ -4,6 +4,8 @@ Una **segunda pantalla** para el equipo de comentaristas y analistas. No va al a
 
 Ábrela en: `https://userf8a2c4.github.io/riftpulse-overlay/analista.html`
 
+<p align="center"><img src="https://raw.githubusercontent.com/userf8a2c4/riftpulse-overlay/main/docs/img/mesa-de-analisis.png" width="720" alt="Mesa de análisis"><br><sub>Partido de ejemplo con datos simulados.</sub></p>
+
 ## Qué muestra
 - **Probabilidad en vivo** de cada equipo, grande y clara.
 - **Por qué** — el desglose de los factores del modelo (oro, torres, dragones, almas, Barón, inhibidores…).

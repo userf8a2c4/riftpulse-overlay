@@ -20,13 +20,10 @@ Carpeta lista: esta misma. Ya tiene tu usuario (userf8a2c4) y la URL de Pages pu
      Pagina:  https://userf8a2c4.github.io/riftpulse-overlay/
      Overlay: https://userf8a2c4.github.io/riftpulse-overlay/overlay.html
 
-3) PUBLICAR LA WIKI (es un repo aparte)
-   - En el repo: pestana Wiki -> Create the first page -> guarda cualquier cosa.
-   - Luego, en otra carpeta:
-     git clone https://github.com/userf8a2c4/riftpulse-overlay.wiki.git
-     (copia dentro los .md de la carpeta wiki/ de aqui)
-     cd riftpulse-overlay.wiki
-     git add . && git commit -m "Wiki" && git push
+3) PUBLICAR LA WIKI (automatico)
+   - Solo la primera vez: en el repo, pestana Wiki -> Create the first page -> guarda cualquier cosa.
+   - Desde ahi, la accion "Publicar wiki" copia la carpeta wiki/ a la wiki cada vez que cambia en main.
+     Para lanzarla a mano: Actions -> Publicar wiki -> Run workflow.
 
 4) LO DE NICK
    El mensaje (ES+EN) esta en la carpeta de trabajo como para-nick.md (no se sube).
