@@ -15,6 +15,8 @@ El overlay y el control se sincronizan cuando **ambos corren en OBS** (comparten
 - **Posición:** arriba o abajo.
 - **Ocultar / mostrar** el overlay.
 - **⚡ Disparar alerta de prueba** — para ensayar antes del aire.
+- **Piezas automáticas:** encender o apagar *Para remontar* y *Resumen al terminar*.
+- **🏁 Mostrar resumen del juego** — vuelve a sacar el resumen del último juego en la vista `recap`.
 
 ## Detalle técnico
 La sincronía usa `BroadcastChannel` + `localStorage`: funciona entre pestañas/paneles del **mismo navegador y origen**, que es justo el caso dentro de OBS. No necesita servidor.

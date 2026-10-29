@@ -40,7 +40,7 @@ Un **motor**, varias caras: el overlay para la transmisión, una **mesa de anál
 <td width="50%" valign="top">
 
 ### 🎬 Overlay para OBS
-Un lower-third limpio con la **probabilidad en vivo**, el marcador, los objetivos y la precisión del modelo. Varias piezas conmutables con `?view=` (barra, tarjeta grande, alerta, objetivos, claves).
+Un lower-third limpio con la **probabilidad en vivo**, el marcador, los objetivos y la precisión del modelo. Varias piezas conmutables con `?view=`: barra, tarjeta grande, alerta, objetivos, claves, **serie**, **duelos por línea**, **para remontar** (aparece sola) y **resumen del juego** (aparece solo al terminar).
 
 <img src="docs/img/pagina.png" alt="Página para streamers con vista previa y botón para copiar la URL del overlay">
 
@@ -48,7 +48,7 @@ Un lower-third limpio con la **probabilidad en vivo**, el marcador, los objetivo
 <td width="50%" valign="top">
 
 ### 🎛 Mesa de análisis
-Segunda pantalla para casters: probabilidad, **el porqué**, la línea de momentum y **frases listas para comentar** generadas del modelo.
+Segunda pantalla para casters: probabilidad, **el porqué**, momentum con los **giros clave**, **duelos por línea** y jugador clave, **la serie** (si gana o pierde este juego), **cara a cara**, **ventana de poder del draft**, **qué necesita el que va abajo para remontar** y **frases listas para comentar**. Al terminar cada juego, un **resumen descargable como imagen** para redes.
 
 <img src="docs/img/mesa-de-analisis.png" alt="Mesa de análisis: probabilidad, por qué, momentum, objetivos y puntos para comentar">
 
@@ -71,6 +71,13 @@ Cada gráfico lleva el acierto real del modelo. Nada inflado: es el resultado de
 </td>
 </tr>
 </table>
+
+### 🎙 Piezas para casters y streamers
+
+<p align="center">
+<img src="docs/img/piezas-casters.png" width="560" alt="Piezas de OBS: serie, para remontar, duelos por línea y resumen del juego">
+<br><sub><code>?view=serie</code> · <code>?view=remontada</code> (aparece sola) · <code>?view=duelos</code> · <code>?view=recap</code> (aparece solo al terminar el juego)</sub>
+</p>
 
 <sub>Las capturas usan un partido de ejemplo con datos simulados; en vivo, los datos salen del feed de LoL Esports.</sub>
 
@@ -110,7 +117,7 @@ Prueba sobre **589 juegos que el modelo no vio** (ago–oct 2026). Una moneda ac
 
 | Parámetro | Qué hace |
 |---|---|
-| `?view=` | `bar` (por defecto) · `big` · `alert` · `objectives` · `keys` |
+| `?view=` | `bar` (por defecto) · `big` · `alert` · `objectives` · `keys` · `serie` · `duelos` · `remontada` · `recap` |
 | `?pos=` | `bottom` (por defecto) o `top` |
 | `?scale=` | tamaño, p. ej. `1.2` |
 | `?modules=` | qué mostrar: `prob,pregame,momentum,timers,brand` |

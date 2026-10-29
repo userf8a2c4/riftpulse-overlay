@@ -57,11 +57,51 @@
   .ev li{font-size:13px;padding:4px 0;border-top:1px solid var(--line2);color:#c7d0e2}
   .ev .t{color:var(--muted);font-variant-numeric:tabular-nums;display:inline-block;width:42px}
   /* puntos para comentar */
-  .talk{grid-column:1 / -1}
+  .talk,.wide{grid-column:1 / -1}
   .tk{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line2);font-size:15px;line-height:1.45}
   .tk:first-child{border-top:0}
   .tk .b{color:var(--gold);font-weight:800;flex:none;font-family:var(--ffd)}
   .empty{color:var(--muted);text-align:center;padding:24px 0}
+  .b{color:#7cc0ff}.r{color:#ff8a8f}
+  .note{font-size:11.5px;color:var(--muted);margin-top:8px}
+  /* giros clave */
+  .sw{list-style:none;margin:8px 0 0;padding:0}
+  .sw li{display:flex;gap:10px;align-items:baseline;padding:5px 0;border-top:1px solid var(--line2);font-size:13px;color:#c7d0e2}
+  .sw li:first-child{border-top:0}
+  .sw .t{color:var(--muted);font-variant-numeric:tabular-nums;flex:none;white-space:nowrap}
+  .sw .d{font-family:var(--ffd);font-weight:700;flex:none;width:62px}
+  /* serie */
+  .sr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+  .sr .bx{background:var(--s3);border:1px solid var(--line2);border-radius:10px;padding:10px 12px}
+  .sr .v{font-family:var(--ffd);font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+  .sr .k{font-size:12px;color:var(--muted)}
+  .h2h{font-size:13px;color:#c7d0e2}.h2h .l{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+  /* remontada */
+  .cb{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line2);font-size:14px}
+  .cb:first-of-type{border-top:0}
+  .cb .p{margin-left:auto;font-family:var(--ffd);font-weight:700;font-variant-numeric:tabular-nums}
+  /* duelos */
+  .ln{width:100%;border-collapse:collapse;font-size:13px}
+  .ln td{padding:6px 4px;border-top:1px solid var(--line2);font-variant-numeric:tabular-nums}
+  .ln tr:first-child td{border-top:0}
+  .ln .rl{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;width:58px}
+  .ln .pn{font-weight:600}.ln .ch{color:var(--muted);font-size:11.5px;display:block}
+  .ln .df{text-align:center;font-family:var(--ffd);font-weight:700;width:120px}
+  .ln .df small{display:block;font-family:var(--ff);font-weight:400;color:var(--muted);font-size:11px}
+  .ln .rt{text-align:right}
+  .kp{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(242,193,78,.08);border:1px solid rgba(242,193,78,.3);font-size:13.5px}
+  .kp b.g{color:var(--gold)}
+  /* draft */
+  .dr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .dr .ch{font-size:12.5px;color:#c7d0e2;line-height:1.7}
+  .dr .pl{font-size:12.5px;color:var(--muted);margin-top:6px}.dr .pl b{color:var(--text)}
+  .win{margin-top:10px;font-size:13.5px;padding:9px 12px;background:var(--s3);border:1px solid var(--line2);border-radius:10px}
+  /* resumen post-juego */
+  .rc{grid-column:1 / -1;border-color:rgba(242,193,78,.45)}
+  .rc .hd{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .rc .ttl{font-family:var(--ffd);font-size:24px;font-weight:700}
+  .rc .btn{margin-left:auto;font:700 13px var(--ffd);color:#06121f;background:linear-gradient(180deg,#f2c14e,#d9a530);border:0;border-radius:9px;padding:9px 14px;cursor:pointer}
+  .rc ul{margin:10px 0 0;padding-left:18px;font-size:14.5px;line-height:1.7}
   footer{margin-top:18px;color:var(--muted);font-size:11.5px;line-height:1.6;border-top:1px solid var(--line);padding-top:12px}
   .pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--ffd);font-size:12px;color:var(--ok);font-weight:700}
   .pill::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px rgba(61,220,151,.6)}
@@ -93,31 +133,129 @@
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function mmss(s){ s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
 
-  function sparkline(pts){
+  var pct=function(x){ return Math.round(x*100)+'%'; };
+  var k1=function(g){ return (Math.abs(g)/1000).toFixed(1).replace('.',',')+'k'; };
+  var sc=function(side){ return side==='blue'?'b':'r'; };
+
+  // Trayectoria del juego entero (tiempo de juego), con los giros clave marcados.
+  function sparkline(pts, swings){
     if (pts.length < 2) return '<div class="spk-note">Se dibuja conforme avanza el juego…</div>';
-    var W=520, H=84, t0=pts[0].t, t1=pts[pts.length-1].t, span=Math.max(1,t1-t0);
-    var xy=pts.map(function(p){ return [ (p.t-t0)/span*W, H-8 - (p.p)*(H-16) ]; });
-    var d='M'+xy.map(function(a){return a[0].toFixed(1)+' '+a[1].toFixed(1);}).join(' L');
-    var mid=H/2;
-    return '<svg class="spark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'+
+    var W=520, H=84, t0=pts[0].gt, span=Math.max(1,pts[pts.length-1].gt-t0);
+    var X=function(gt){ return (gt-t0)/span*W; }, Y=function(p){ return H-8-p*(H-16); };
+    var d='M'+pts.map(function(p){return X(p.gt).toFixed(1)+' '+Y(p.p).toFixed(1);}).join(' L');
+    var mid=H/2, marks=(swings||[]).map(function(m){
+      var c=m.side==='blue'?'#4aa3ff':'#ff5a5f';
+      return '<rect x="'+X(m.a).toFixed(1)+'" y="0" width="'+Math.max(2,X(m.b)-X(m.a)).toFixed(1)+'" height="'+H+'" fill="'+c+'" opacity=".09"/>';
+    }).join('');
+    return '<svg class="spark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'+marks+
       '<line x1="0" y1="'+mid+'" x2="'+W+'" y2="'+mid+'" stroke="#263352" stroke-width="1" stroke-dasharray="4 4"/>'+
-      '<path d="'+d+'" fill="none" stroke="url(#spg)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
+      '<path d="'+d+'" fill="none" stroke="url(#spg)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>'+
       '<defs><linearGradient id="spg" x1="0" y1="0" x2="0" y2="'+H+'" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4aa3ff"/><stop offset="1" stop-color="#ff5a5f"/></linearGradient></defs></svg>';
+  }
+  function swingList(sw){
+    if (!sw || !sw.length) return '<div class="note">Todavía no hay giros de 9 puntos o más.</div>';
+    return '<ul class="sw">'+sw.map(function(m){ return '<li><span class="t">min '+mmss(m.a)+'–'+mmss(m.b)+'</span><span class="d '+sc(m.side)+'">'+esc(m.code)+' +'+Math.round(Math.abs(m.d)*100)+'</span><span>'+esc(m.cause)+'</span></li>'; }).join('')+'</ul>';
+  }
+  function seriesCard(s){
+    var m=s.match, se=s.series, h=s.h2h, out='';
+    if (se) out+='<div class="sr"><div class="bx"><div class="k">Si gana <b class="b">'+esc(m.blue.code)+'</b> este juego</div><div class="v b">'+pct(se.ifBlue)+'</div><div class="k">de llevarse la serie</div></div>'+
+      '<div class="bx"><div class="k">Si gana <b class="r">'+esc(m.red.code)+'</b> este juego</div><div class="v r">'+pct(1-se.ifRed)+'</div><div class="k">de llevarse la serie</div></div></div>'+
+      '<div class="h2h">Ahora mismo: <b class="b">'+esc(m.blue.code)+' '+pct(se.pNow)+'</b> · <b class="r">'+esc(m.red.code)+' '+pct(1-se.pNow)+'</b> de ganar la serie (Bo'+se.bo+', '+se.score[0]+'–'+se.score[1]+').</div>';
+    else out+='<div class="note">La probabilidad de la serie aparece con el juego en curso.</div>';
+    if (h && (h.wa+h.wb)) out+='<div class="h2h" style="margin-top:10px">Cara a cara 2025–26: <b class="b">'+esc(h.a)+' '+h.wa+'</b> – <b class="r">'+h.wb+' '+esc(h.b)+'</b> en series<div class="l">'+
+      h.last.map(function(x){ return esc(x.date)+' · '+esc(x.league)+' · '+x.ga+'–'+x.gb; }).join('<br>')+'</div></div>';
+    else if (h) out+='<div class="note">Sin series entre ellos en 2025–26.</div>';
+    return out+'<div class="note">Los juegos que faltan se cuentan 50/50: el motor no estima la fuerza previa de los equipos.</div>';
+  }
+  function comebackCard(s){
+    var c=s.game.comeback;
+    if (!c) return '<div class="note">Aparece cuando un equipo cae por debajo del 45%.</div>';
+    var h='<div class="h2h" style="margin-bottom:6px"><b class="'+sc(c.side)+'">'+esc(c.code)+'</b> está en '+pct(c.p)+'. '+(c.reached?'Lo mínimo para volver al 50%:':'Ninguna jugada corta lo pone arriba; lo que más acerca:')+'</div>';
+    return h+c.paths.map(function(x){ return '<div class="cb"><span>'+esc(x.txt)+'</span><span class="p '+sc(c.side)+'">→ '+pct(x.p)+'</span></div>'; }).join('')+
+      '<div class="note">Simulado con el mismo modelo: suma esos objetivos al estado actual del juego.</div>';
+  }
+  function lanesCard(s){
+    var L=s.game.lanes, k=s.game.keyPlayer, m=s.match;
+    if (!L || !L.length) return '<div class="note">Aparece cuando llega el feed de detalles de los jugadores.</div>';
+    var rows=L.map(function(l){ var up=l.gd>=0, w=up?'b':'r';
+      return '<tr><td class="rl">'+esc(l.label)+'</td><td><span class="pn b">'+esc(l.blue.name)+'</span><span class="ch">'+esc(l.blue.champ)+' · '+l.blue.k+'/'+l.blue.d+'/'+l.blue.a+'</span></td>'+
+        '<td class="df '+w+'">'+(up?'◀ ':'')+k1(l.gd)+(up?'':' ▶')+'<small>'+(l.csd>=0?'+':'')+l.csd+' CS</small></td>'+
+        '<td class="rt"><span class="pn r">'+esc(l.red.name)+'</span><span class="ch">'+l.red.k+'/'+l.red.d+'/'+l.red.a+' · '+esc(l.red.champ)+'</span></td></tr>'; }).join('');
+    var kp=k?'<div class="kp">⭐ Jugador clave: <b class="g">'+esc(k.name)+'</b> ('+esc(k.code)+', '+esc(k.champ)+') · '+(k.gd>=0?'+':'−')+k1(k.gd)+' de oro sobre '+esc(k.vs)+' · '+Math.round(k.share*100)+'% del daño · '+k.k+'/'+k.d+'/'+k.a+'</div>':'';
+    return '<table class="ln">'+rows+'</table>'+kp+'<div class="note">Centro: diferencia de oro y CS en el duelo directo (◀ ventaja '+esc(m.blue.code)+', ▶ ventaja '+esc(m.red.code)+').</div>';
+  }
+  function draftCard(s){
+    var D=s.game.draft;
+    if (!D) return '<div class="note">Aparece cuando cargan los campeones.</div>';
+    var team=function(side){ var t=D[side];
+      return '<div><b class="'+sc(side)+'">'+esc(t.code)+'</b><div class="ch">'+t.champs.map(function(c){ return esc(c.champ); }).join(' · ')+'</div>'+
+        '<div class="pl">Plan: <b>'+esc(t.plan)+'</b></div>'+(t.wr!=null?'<div class="pl">% de victorias pro de estos campeones: <b>'+pct(t.wr)+'</b></div>':'')+'</div>'; };
+    var w=D.window?'⏱ Ventana de poder: <b>'+esc(D.window.early)+'</b> necesita ventaja antes del min ~20–24; <b>'+esc(D.window.late)+'</b> se vuelve más fuerte desde el min ~28 si el oro va parejo.':'⏱ Los dos drafts tienen una curva parecida.';
+    return '<div class="dr">'+team('blue')+team('red')+'</div><div class="win">'+w+'</div><div class="note">Escala y % de victorias de ~2,200 juegos profesionales 2025–26. Es contexto para comentar: no cambia la probabilidad.</div>';
+  }
+  function recapLines(s){
+    var r=s.game.recap, out=[];
+    out.push('<b>'+esc(r.code)+'</b> gana en '+mmss(r.dur)+'. Al arrancar el juego el modelo le daba '+pct(r.pre)+'.');
+    if (r.comeback) out.push('¡Remontada! Estuvo al <b>'+pct(r.low.p)+'</b> en el min '+mmss(r.low.gt)+'.');
+    else out.push('Su peor momento: '+pct(r.low.p)+' en el min '+mmss(r.low.gt)+'.');
+    if (r.swing) out.push('El giro decisivo: min '+mmss(r.swing.a)+'–'+mmss(r.swing.b)+', <b>+'+Math.round(Math.abs(r.swing.d)*100)+' pts</b> ('+esc(r.swing.cause)+').');
+    if (r.key) out.push('Jugador clave: <b>'+esc(r.key.name)+'</b> ('+esc(r.key.code)+', '+esc(r.key.champ)+') · '+r.key.k+'/'+r.key.d+'/'+r.key.a+' · '+Math.round(r.key.share*100)+'% del daño.');
+    if (r.stats){ var w=r.stats[r.win], l=r.stats[r.win==='blue'?'red':'blue']; out.push('Kills '+w.kills+'–'+l.kills+' · torres '+w.towers+'–'+l.towers+' · dragones '+w.dragons+'–'+l.dragons+' · Barones '+w.barons+'–'+l.barons+'.'); }
+    return out;
+  }
+  function recapCard(s){
+    var m=s.match, r=s.game.recap;
+    return '<div class="card rc"><div class="hd"><span class="ttl '+sc(r.win)+'">'+esc(r.code)+' gana el juego'+(m.gameNo?' '+m.gameNo:'')+'</span><span class="vs">vs '+esc(r.lose)+'</span>'+
+      '<button class="btn" data-act="png">⬇ Descargar imagen</button></div><ul>'+recapLines(s).map(function(t){ return '<li>'+t+'</li>'; }).join('')+'</ul></div>';
+  }
+  // Imagen 1200×675 del resumen, para redes (dibujada en canvas, sin librerías).
+  function recapPNG(s){
+    var m=s.match, g=s.game, r=g.recap, W=1200, H=675, cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+    var c=cv.getContext('2d'), wc=r.win==='blue'?'#7cc0ff':'#ff8a8f';
+    var bg=c.createLinearGradient(0,0,W,H); bg.addColorStop(0,'#0b1220'); bg.addColorStop(1,'#140d18'); c.fillStyle=bg; c.fillRect(0,0,W,H);
+    var glow=c.createRadialGradient(r.win==='blue'?120:W-120,0,10,r.win==='blue'?120:W-120,0,620); glow.addColorStop(0,r.win==='blue'?'rgba(74,163,255,.28)':'rgba(255,90,95,.26)'); glow.addColorStop(1,'rgba(0,0,0,0)'); c.fillStyle=glow; c.fillRect(0,0,W,H);
+    var F=function(w,sz,fam){ return w+' '+sz+'px '+(fam||"'Chakra Petch', Inter, sans-serif"); };
+    c.fillStyle='#8b97b0'; c.font=F(700,18); c.fillText('RIFTPULSE · '+(m.league||'').toUpperCase()+(m.gameNo?' · JUEGO '+m.gameNo:''),60,64);
+    c.fillStyle=wc; c.font=F(700,64); c.fillText(r.code+' gana',60,140);
+    c.fillStyle='#c7d0e2'; c.font=F(500,26,'Inter, sans-serif'); c.fillText('vs '+r.lose+' · '+mmss(r.dur)+(r.comeback?' · ¡remontada desde el '+pct(r.low.p)+'!':''),60,182);
+    // trayectoria del ganador
+    var X0=60, Y0=222, CW=W-120, CH=220, sm=g.samples, t0=sm[0].gt, span=Math.max(1,sm[sm.length-1].gt-t0);
+    c.strokeStyle='#263352'; c.setLineDash([6,6]); c.beginPath(); c.moveTo(X0,Y0+CH/2); c.lineTo(X0+CW,Y0+CH/2); c.stroke(); c.setLineDash([]);
+    (g.swings||[]).forEach(function(sw){ c.fillStyle=sw.side==='blue'?'rgba(74,163,255,.12)':'rgba(255,90,95,.12)'; c.fillRect(X0+(sw.a-t0)/span*CW,Y0,Math.max(3,(sw.b-sw.a)/span*CW),CH); });
+    c.lineWidth=4; c.lineJoin='round'; c.strokeStyle=wc; c.beginPath();
+    sm.forEach(function(p,i){ var v=r.win==='blue'?p.p:1-p.p, x=X0+(p.gt-t0)/span*CW, y=Y0+CH-v*CH; if(i) c.lineTo(x,y); else c.moveTo(x,y); }); c.stroke();
+    c.fillStyle='#8b97b0'; c.font=F(500,15,'Inter, sans-serif'); c.fillText('Probabilidad de '+r.code+' según el modelo',X0,Y0+CH+24); c.textAlign='right'; c.fillText('50%',X0+CW,Y0+CH/2-8); c.textAlign='left';
+    var lines=recapLines(s).slice(2).map(function(t){ return t.replace(/<[^>]+>/g,''); }), y=Y0+CH+70;
+    c.fillStyle='#e8edf7'; c.font=F(500,22,'Inter, sans-serif');
+    lines.forEach(function(t){ c.fillText(t.length>92?t.slice(0,90)+'…':t,60,y); y+=38; });
+    c.fillStyle='#56627a'; c.font=F(500,14,'Inter, sans-serif');
+    c.fillText('Pronóstico y análisis, sin fines de apuestas. No avalado por Riot Games.',60,H-28);
+    c.textAlign='right'; c.fillStyle='#3ddc97'; c.font=F(700,15); if (s.precision) c.fillText(Math.round(s.precision.acc15*100)+'% DE ACIERTO AL MIN 15',W-60,H-28);
+    return cv.toDataURL('image/png');
   }
 
   function talkingPoints(s){
     var m=s.match, g=s.game, out=[];
     var pb=Math.round(g.pBlue*100), lead = pb>=50, lc = lead?m.blue.code:m.red.code, lp = lead?pb:100-pb;
-    out.push('<b>1.</b> RiftPulse da <b>'+lp+'%</b> a <b>'+esc(lc)+'</b> ahora mismo ('+mmss(g.gt)+').');
-    var top=(g.reasons||[])[0];
-    if (top) out.push('<b>2.</b> Su mayor factor: <b>'+esc(top.txt)+'</b>.');
+    out.push('RiftPulse da <b>'+lp+'%</b> a <b>'+esc(lc)+'</b> ahora mismo ('+mmss(g.gt)+').');
+    var top=(g.reasons||[]).filter(function(x){ return (x.z>=0)===lead; })[0];
+    if (top) out.push('Su mayor factor: <b>'+esc(top.txt)+'</b>.');
     // momentum
     var now=Date.now(), past=null;
     for (var i=0;i<hist.length;i++){ if (now-hist[i].t>=40000) past=hist[i]; }
-    if (past){ var d=Math.round((g.pBlue-past.p)*100); if (Math.abs(d)>=8){ var who=d>0?m.blue.code:m.red.code; out.push('<b>3.</b> Giro reciente: <b>'+esc(who)+' '+(d>0?'+':'')+d+' pts</b> en el último minuto.'); } }
+    if (past){ var d=Math.round((g.pBlue-past.p)*100); if (Math.abs(d)>=8){ var who=d>0?m.blue.code:m.red.code; out.push('Giro reciente: <b>'+esc(who)+' '+(d>0?'+':'')+d+' pts</b> en el último minuto.'); } }
+    var se=s.series;
+    if (se && se.bo>1){ var trail=lead?m.red.code:m.blue.code, pTrail=lead?1-se.ifRed:se.ifBlue; out.push('Si <b>'+esc(trail)+'</b> le da la vuelta a este juego, queda con <b>'+pct(pTrail)+'</b> de llevarse la serie.'); }
+    var c=g.comeback;
+    if (c && c.reached) out.push('Para remontar, <b>'+esc(c.code)+'</b> necesita <b>'+esc(c.paths[0].txt)+'</b>: con eso vuelve al '+pct(c.paths[0].p)+'.');
+    var k=g.keyPlayer;
+    if (k && Math.abs(k.gd)>=500) out.push('Jugador clave: <b>'+esc(k.name)+'</b>, '+(k.gd>=0?'+':'−')+k1(k.gd)+' de oro sobre '+esc(k.vs)+' y '+Math.round(k.share*100)+'% del daño de '+esc(k.code)+'.');
+    if (g.draft && g.draft.window && g.gt<1500) out.push('Reloj del draft: <b>'+esc(g.draft.window.early)+'</b> tiene que sacar ventaja antes del min ~24; después el draft favorece a <b>'+esc(g.draft.window.late)+'</b>.');
     var o = g.timers && ((g.timers.dragon && g.timers.dragon.at>g.gt)?{k:g.timers.dragon.elder?'Ancestral':'Dragón',v:g.timers.dragon.at-g.gt}:(g.timers.baron && g.timers.baron.at>g.gt)?{k:'Barón',v:g.timers.baron.at-g.gt}:null);
-    if (o) out.push('<b>'+(out.length+1)+'.</b> Próximo <b>'+o.k+'</b> en <b>'+mmss(o.v)+'</b>: objetivo que puede mover la balanza.');
-    return out.map(function(t){ return '<div class="tk"><span>'+t+'</span></div>'; }).join('');
+    if (o) out.push('Próximo <b>'+o.k+'</b> en <b>'+mmss(o.v)+'</b>'+(g.impact?': si lo toma '+esc(m.blue.code)+', '+(g.impact.blue>=0?'+':'')+g.impact.blue+' pts; si lo toma '+esc(m.red.code)+', '+(g.impact.red>=0?'+':'')+g.impact.red+' pts.':': objetivo que puede mover la balanza.'));
+    var h=s.h2h;
+    if (h && (h.wa+h.wb)) out.push('Cara a cara 2025–26: <b>'+esc(h.a)+' '+h.wa+'–'+h.wb+' '+esc(h.b)+'</b> en series.');
+    return out.map(function(t,i){ return '<div class="tk"><span><b>'+(i+1)+'.</b> '+t+'</span></div>'; }).join('');
   }
 
   function render(s){
@@ -135,7 +273,7 @@
       return;
     }
 
-    liveEl.textContent='EN VIVO'; liveEl.className='live';
+    liveEl.textContent=g.ended?'FINAL':'EN VIVO'; liveEl.className=g.ended?'live off':'live';
     var now=Date.now(); hist.push({t:now,p:g.pBlue}); hist=hist.filter(function(x){return now-x.t<=1200000;});
 
     var pb=Math.round(g.pBlue*100), pr=100-pb, lead=pb>=50;
@@ -152,7 +290,7 @@
     var evs=(g.events||[]).slice().reverse().map(function(e){ return '<li><span class="t">'+mmss(e.gt)+'</span>'+esc(e.txt)+'</li>'; }).join('') || '<li style="color:#8b97b0">Sin eventos aún.</li>';
 
     content.innerHTML =
-      '<div class="grid">'+
+      '<div class="grid">'+(g.recap?recapCard(s):'')+
         '<div class="card">'+
           '<div class="sc"><span class="tc b">'+esc(m.blue.code)+'</span><span class="vs">'+(m.blue.wins!=null?m.blue.wins:0)+' – '+(m.red.wins!=null?m.red.wins:0)+'</span><span class="tc r">'+esc(m.red.code)+'</span></div>'+
           '<h2>Probabilidad en vivo</h2>'+
@@ -161,14 +299,23 @@
           '<div class="delta">Minuto '+mmss(g.gt)+' · el modelo se actualiza con oro, torres, dragones, almas, Barón e inhibidores.</div>'+
         '</div>'+
         '<div class="card"><h2>Por qué</h2><ul class="rz">'+reasons+'</ul></div>'+
-        '<div class="card"><h2>Momentum</h2>'+sparkline(hist)+'<div class="spk-note">Probabilidad de '+esc(m.blue.code)+' (azul) a lo largo del juego.</div></div>'+
+        '<div class="card"><h2>Momentum y giros clave</h2>'+sparkline(g.samples||[],g.swings)+'<div class="spk-note">Probabilidad de '+esc(m.blue.code)+' (arriba) frente a '+esc(m.red.code)+' (abajo) en todo el juego. Sombreado: giros clave.</div>'+swingList(g.swings)+'</div>'+
         '<div class="card"><h2>Objetivos y eventos</h2><div class="tms">'+tms+'</div><ul class="ev">'+evs+'</ul></div>'+
         '<div class="card talk"><h2>Puntos para comentar</h2>'+talkingPoints(s)+'</div>'+
+        '<div class="card"><h2>Duelos por línea</h2>'+lanesCard(s)+'</div>'+
+        '<div class="card"><h2>Serie</h2>'+seriesCard(s)+'</div>'+
+        '<div class="card"><h2>Draft y ventana de poder</h2>'+draftCard(s)+'</div>'+
+        '<div class="card"><h2>Para remontar</h2>'+comebackCard(s)+'</div>'+
       '</div>';
   }
 
   if (!R){ content.innerHTML='<div class="card"><div class="empty">No cargó el motor (engine.js).</div></div>'; return; }
-  R.onUpdate(render);
+  var LAST=null;
+  content.addEventListener('click',function(e){
+    var b=e.target.closest('[data-act="png"]'); if (!b || !LAST || !LAST.game || !LAST.game.recap) return;
+    var a=document.createElement('a'); a.href=recapPNG(LAST); a.download='riftpulse-'+LAST.game.recap.code+'-juego'+(LAST.match.gameNo||'')+'.png'; a.click();
+  });
+  R.onUpdate(function(s){ LAST=s; render(s); });
   R.start();
 })();
 </script>

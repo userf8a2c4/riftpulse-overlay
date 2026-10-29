@@ -3,6 +3,8 @@
    Una sola base, varias piezas conmutables con ?view= :
      bar (lower-third, por defecto) · big (tarjeta grande) · alert (alerta de momentum)
      objectives (bug de objetivos) · keys (claves del momento)
+     serie (probabilidad de la serie) · duelos (duelo por línea y jugador clave)
+     remontada (aparece sola cuando un equipo pasa del 65 %) · recap (resumen al terminar el juego)
    La vista "bar" además obedece al panel de control (control.html) en vivo por
    BroadcastChannel + localStorage (ambos dentro de OBS comparten navegador).
    Nota: el pronóstico previo (Elo) y "lo predijimos" requieren portar el Elo al motor;
@@ -18,9 +20,10 @@
   var cfg = {
     modules: (Q.get('modules') || 'prob,pregame,momentum,timers,brand').split(',').map(function (s) { return s.trim(); }),
     pos: (Q.get('pos') === 'top' ? 'top' : 'bottom'),
-    hidden: false
+    hidden: false,
+    auto: {remontada: true, recap: true}  // piezas que aparecen solas (se apagan desde el control)
   };
-  try { var sv = JSON.parse(localStorage.getItem('rp_ctrl') || 'null'); if (sv && VIEW === 'bar') { if (sv.modules) cfg.modules = sv.modules; if (sv.pos) cfg.pos = sv.pos; if (sv.hidden != null) cfg.hidden = sv.hidden; } } catch (e) {}
+  try { var sv = JSON.parse(localStorage.getItem('rp_ctrl') || 'null'); if (sv && VIEW === 'bar') { if (sv.modules) cfg.modules = sv.modules; if (sv.pos) cfg.pos = sv.pos; if (sv.hidden != null) cfg.hidden = sv.hidden; } if (sv && sv.auto) cfg.auto = sv.auto; } catch (e) {}
   function has(m) { return cfg.modules.indexOf(m) >= 0; }
 
   var S = SCALE;
@@ -78,6 +81,38 @@
     border-radius:14px;padding:10px 14px;box-shadow:0 10px 32px rgba(0,0,0,.55);font-family:"Chakra Petch",sans-serif;font-variant-numeric:tabular-nums}\
   .rp-obj .tm{display:flex;flex-direction:column;align-items:center;line-height:1.1}\
   .rp-obj .v{font-weight:700;font-size:' + (20 * S) + 'px}.rp-obj .k{font-size:' + (10 * S) + 'px;color:#8b97b0;text-transform:uppercase;letter-spacing:.6px;font-family:"Inter"}\
+  .rp-ovl.mid{inset:0;align-items:center;justify-content:center}\
+  .b{color:#7cc0ff}.r{color:#ff8a8f}\
+  /* tarjetas (duelos, remontada, recap) */\
+  .rp-card{background:linear-gradient(180deg,rgba(16,24,40,.94),rgba(9,14,24,.95));border:1px solid rgba(74,112,170,.5);border-radius:16px;padding:16px 20px;box-shadow:0 12px 40px rgba(0,0,0,.6);\
+    transition:opacity .45s,transform .45s}\
+  .rp-card.off{opacity:0;transform:translateY(-10px)}\
+  .rp-card .t{display:flex;align-items:center;gap:8px;font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:' + (13 * S) + 'px;letter-spacing:.8px;text-transform:uppercase;color:#f2c14e;margin-bottom:10px}\
+  .rp-card .t .logo{width:' + (20 * S) + 'px;height:' + (20 * S) + 'px}\
+  .rp-card .note{font-size:' + (11 * S) + 'px;color:#8b97b0;margin-top:8px}\
+  /* serie */\
+  .rp-ser{display:flex;align-items:center;gap:18px;background:linear-gradient(180deg,rgba(16,24,40,.92),rgba(9,14,24,.94));border:1px solid rgba(74,112,170,.5);border-radius:14px;padding:10px 18px;\
+    box-shadow:0 10px 32px rgba(0,0,0,.55);font-family:"Chakra Petch",sans-serif;font-variant-numeric:tabular-nums}\
+  .rp-ser .logo{width:' + (26 * S) + 'px;height:' + (26 * S) + 'px}\
+  .rp-ser .h{font-size:' + (11 * S) + 'px;color:#8b97b0;letter-spacing:.8px;text-transform:uppercase;line-height:1.2}.rp-ser .h b{display:block;color:#e8edf7;font-size:' + (17 * S) + 'px;letter-spacing:.4px}\
+  .rp-ser .if{display:flex;flex-direction:column;line-height:1.15;padding-left:16px;border-left:1px solid rgba(74,112,170,.3)}\
+  .rp-ser .if .k{font-family:"Inter";font-size:' + (11 * S) + 'px;color:#8b97b0}.rp-ser .if .v{font-weight:700;font-size:' + (22 * S) + 'px}\
+  /* duelos */\
+  .rp-ln{border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:' + (14.5 * S) + 'px}\
+  .rp-ln td{padding:' + (4 * S) + 'px ' + (6 * S) + 'px}\
+  .rp-ln .rl{font-size:' + (10 * S) + 'px;color:#8b97b0;text-transform:uppercase;letter-spacing:.6px}\
+  .rp-ln .df{text-align:center;font-family:"Chakra Petch",sans-serif;font-weight:700;min-width:' + (78 * S) + 'px}\
+  .rp-ln .rt{text-align:right}\
+  .rp-kp{margin-top:8px;font-size:' + (13.5 * S) + 'px;color:#e8edf7}.rp-kp .g{color:#f2c14e;font-weight:700}\
+  /* remontada */\
+  .rp-cb{font-size:' + (16 * S) + 'px;line-height:1.45;max-width:' + (440 * S) + 'px}\
+  .rp-cb .p{font-family:"Chakra Petch",sans-serif;font-weight:700}\
+  /* recap */\
+  .rp-rc{min-width:' + (520 * S) + 'px;max-width:' + (620 * S) + 'px}\
+  .rp-rc .ttl{font-family:"Chakra Petch",sans-serif;font-weight:700;font-size:' + (34 * S) + 'px;line-height:1.1}\
+  .rp-rc .sub{font-size:' + (15 * S) + 'px;color:#c7d0e2;margin:4px 0 10px}\
+  .rp-rc svg{display:block;width:100%;height:' + (70 * S) + 'px;margin-bottom:8px}\
+  .rp-rc ul{margin:0;padding-left:' + (18 * S) + 'px;font-size:' + (15 * S) + 'px;line-height:1.6}\
   ';
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
@@ -92,7 +127,8 @@
   }
 
   // ---------- contenedor ----------
-  var posClass = VIEW === 'bar' ? cfg.pos : VIEW === 'alert' ? 'tc' : VIEW === 'objectives' || VIEW === 'big' || VIEW === 'keys' ? 'tl' : 'bottom';
+  var posClass = VIEW === 'bar' ? cfg.pos : VIEW === 'alert' || VIEW === 'serie' || VIEW === 'remontada' ? 'tc' : VIEW === 'recap' ? 'mid'
+    : VIEW === 'objectives' || VIEW === 'big' || VIEW === 'keys' || VIEW === 'duelos' ? 'tl' : 'bottom';
   var ovl = document.createElement('div'); ovl.className = 'rp-ovl ' + posClass;
   var callout = document.createElement('div'); callout.className = 'rp-callout';
   var main = document.createElement('div');
@@ -111,6 +147,10 @@
     if (VIEW === 'big') return renderBig(s);
     if (VIEW === 'keys') return renderKeys(s);
     if (VIEW === 'objectives') return renderObj(s);
+    if (VIEW === 'serie') return renderSerie(s);
+    if (VIEW === 'duelos') return renderDuelos(s);
+    if (VIEW === 'remontada') return renderRemontada(s);
+    if (VIEW === 'recap') return renderRecap(s);
     if (VIEW === 'alert') { if (s.game && s.game.pBlue != null) { hist.push({t: Date.now(), p: s.game.pBlue}); checkMomentum(s); } return; }
     renderBar(s);
   }
@@ -165,6 +205,64 @@
     main.innerHTML = items.map(function (a) { return '<div class="tm"><span class="v">' + a[1] + '</span><span class="k">' + a[0] + '</span></div>'; }).join('');
   }
 
+  var pct = function (x) { return Math.round(x * 100) + '%'; };
+  var k1 = function (g) { return (Math.abs(g) / 1000).toFixed(1).replace('.', ',') + 'k'; };
+  var sc = function (side) { return side === 'blue' ? 'b' : 'r'; };
+  function card(on) { main.style.display = 'block'; main.className = 'rp-card' + (on ? '' : ' off'); }
+
+  function renderSerie(s) {
+    var se = s.series;
+    if (!s.match || !se || se.bo < 2) { main.style.display = 'none'; return; }
+    main.style.display = 'flex'; main.className = 'rp-ser';
+    var m = s.match;
+    main.innerHTML = LOGO + '<div class="h">Serie · Bo' + se.bo + '<b><span class="b">' + esc(m.blue.code) + '</span> ' + se.score[0] + '–' + se.score[1] + ' <span class="r">' + esc(m.red.code) + '</span></b></div>' +
+      '<div class="if"><span class="k">ahora</span><span class="v"><span class="b">' + pct(se.pNow) + '</span> · <span class="r">' + pct(1 - se.pNow) + '</span></span></div>' +
+      '<div class="if"><span class="k">si gana ' + esc(m.blue.code) + ' este juego</span><span class="v b">' + pct(se.ifBlue) + '</span></div>' +
+      '<div class="if"><span class="k">si gana ' + esc(m.red.code) + ' este juego</span><span class="v r">' + pct(1 - se.ifRed) + '</span></div>';
+  }
+
+  function renderDuelos(s) {
+    var g = s.game, L = g && g.lanes;
+    if (!s.match || !L || !L.length) { main.style.display = 'none'; return; }
+    card(true);
+    var rows = L.map(function (l) { var up = l.gd >= 0;
+      return '<tr><td class="rl">' + esc(l.label) + '</td><td class="b">' + esc(l.blue.name) + '</td><td class="df ' + (up ? 'b' : 'r') + '">' + (up ? '◀ ' : '') + k1(l.gd) + (up ? '' : ' ▶') + '</td><td class="rt r">' + esc(l.red.name) + '</td></tr>'; }).join('');
+    var k = g.keyPlayer;
+    main.innerHTML = '<div class="t">' + LOGO + 'Duelos por línea · oro</div><table class="rp-ln">' + rows + '</table>' +
+      (k ? '<div class="rp-kp">⭐ <span class="g">' + esc(k.name) + '</span> (' + esc(k.champ) + ') · ' + (k.gd >= 0 ? '+' : '−') + k1(k.gd) + ' sobre ' + esc(k.vs) + ' · ' + Math.round(k.share * 100) + '% del daño</div>' : '');
+  }
+
+  // Aparece sola cuando un equipo pasa del 65 % (si el control no la apagó).
+  function renderRemontada(s) {
+    var c = s.game && s.game.comeback;
+    if (!s.match || !c || c.p > 0.35 || !cfg.auto.remontada) { if (main.innerHTML) card(false); else main.style.display = 'none'; return; }
+    card(true);
+    var x = c.paths[0];
+    main.innerHTML = '<div class="t">' + LOGO + 'Para remontar</div><div class="rp-cb"><b class="' + sc(c.side) + '">' + esc(c.code) + '</b> está en ' + pct(c.p) + '. ' +
+      (c.reached ? 'Necesita <b>' + esc(x.txt) + '</b> para volver al <span class="p ' + sc(c.side) + '">' + pct(x.p) + '</span>.' : 'Lo que más lo acerca: <b>' + esc(x.txt) + '</b> → <span class="p ' + sc(c.side) + '">' + pct(x.p) + '</span>.') +
+      '</div><div class="note">Simulado con el modelo de RiftPulse sobre el estado actual del juego.</div>';
+  }
+
+  // Resumen post-juego: aparece solo ~25 s al terminar cada juego, o cuando el control lo pide.
+  var recapShown = {}, recapUntil = 0;
+  function renderRecap(s) {
+    var g = s.game, r = g && g.recap;
+    if (r && cfg.auto.recap && !recapShown[g.id]) { recapShown[g.id] = true; recapUntil = Date.now() + 25000; setTimeout(function () { if (R.state) render(R.state); }, 25100); }
+    if (!r || Date.now() > recapUntil) { if (main.innerHTML) card(false); else main.style.display = 'none'; return; }
+    card(true); main.classList.add('rp-rc');
+    var m = s.match, sm = g.samples, t0 = sm[0].gt, span = Math.max(1, sm[sm.length - 1].gt - t0), wc = r.win === 'blue' ? '#7cc0ff' : '#ff8a8f';
+    var d = 'M' + sm.map(function (p) { var v = r.win === 'blue' ? p.p : 1 - p.p; return ((p.gt - t0) / span * 600).toFixed(1) + ' ' + (66 - v * 62).toFixed(1); }).join(' L');
+    var li = [];
+    if (r.comeback) li.push('¡Remontada! Estuvo al <b>' + pct(r.low.p) + '</b> en el min ' + mmss(r.low.gt) + '.');
+    if (r.swing) li.push('Giro decisivo: min ' + mmss(r.swing.a) + '–' + mmss(r.swing.b) + ', <b>+' + Math.round(Math.abs(r.swing.d) * 100) + ' pts</b> (' + esc(r.swing.cause) + ').');
+    if (r.key) li.push('Jugador clave: <b>' + esc(r.key.name) + '</b> (' + esc(r.key.champ) + ') · ' + r.key.k + '/' + r.key.d + '/' + r.key.a + ' · ' + Math.round(r.key.share * 100) + '% del daño.');
+    if (r.stats) { var w = r.stats[r.win], l = r.stats[r.win === 'blue' ? 'red' : 'blue']; li.push('Kills ' + w.kills + '–' + l.kills + ' · torres ' + w.towers + '–' + l.towers + ' · dragones ' + w.dragons + '–' + l.dragons + '.'); }
+    main.innerHTML = '<div class="t">' + LOGO + 'RiftPulse · fin del juego' + (m.gameNo ? ' ' + m.gameNo : '') + '</div>' +
+      '<div class="ttl ' + sc(r.win) + '">' + esc(r.code) + ' gana</div><div class="sub">vs ' + esc(r.lose) + ' · ' + mmss(r.dur) + '</div>' +
+      '<svg viewBox="0 0 600 70" preserveAspectRatio="none"><line x1="0" y1="35" x2="600" y2="35" stroke="#263352" stroke-dasharray="5 5"/><path d="' + d + '" fill="none" stroke="' + wc + '" stroke-width="3" vector-effect="non-scaling-stroke"/></svg>' +
+      '<ul>' + li.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>';
+  }
+
   function showCallout(html) { callout.innerHTML = html; callout.classList.add('show'); setTimeout(function () { callout.classList.remove('show'); }, 7000); }
   function checkMomentum(s) {
     var now = Date.now(); hist = hist.filter(function (x) { return now - x.t <= 90000; });
@@ -178,19 +276,21 @@
     showCallout('<span class="zap">⚡</span><span class="cc ' + (toB ? 'b' : 'r') + '">' + esc(code) + ' +' + Math.abs(d) + ' pts</span>' + (ev ? ' · ' + esc(ev.txt) : ''));
   }
 
-  // ---------- panel de control (solo vista bar) ----------
-  if (VIEW === 'bar') {
-    function applyCtrl(o) {
-      if (!o) return;
+  // ---------- panel de control: la vista bar obedece módulos/posición; remontada y recap, sus interruptores ----------
+  function applyCtrl(o) {
+    if (!o) return;
+    if (VIEW === 'bar') {
       if (o.modules) cfg.modules = o.modules;
       if (o.pos) cfg.pos = o.pos;
       if (o.hidden != null) cfg.hidden = o.hidden;
       if (o.testAlert) showCallout('<span class="zap">⚡</span><span class="cc b">Alerta de prueba</span>');
-      if (R.state) render(R.state);
     }
-    try { var bc = new BroadcastChannel('riftpulse-ctrl'); bc.onmessage = function (e) { applyCtrl(e.data); }; } catch (e) {}
-    window.addEventListener('storage', function (e) { if (e.key === 'rp_ctrl') { try { applyCtrl(JSON.parse(e.newValue || 'null')); } catch (x) {} } });
+    if (o.auto) cfg.auto = o.auto;
+    if (o.showRecap && VIEW === 'recap') { recapUntil = Date.now() + 25000; setTimeout(function () { if (R.state) render(R.state); }, 25100); }
+    if (R.state) render(R.state);
   }
+  try { var bc = new BroadcastChannel('riftpulse-ctrl'); bc.onmessage = function (e) { applyCtrl(e.data); }; } catch (e) {}
+  window.addEventListener('storage', function (e) { if (e.key === 'rp_ctrl') { try { applyCtrl(JSON.parse(e.newValue || 'null')); } catch (x) {} } });
 
   R.onUpdate(render);
   R.start();

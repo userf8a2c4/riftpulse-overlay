@@ -36,7 +36,7 @@
 </style>
 </head>
 <body>
-  <div class="top"><img src="logo.svg" alt="RiftPulse"><div><h1>Control de producción</h1><div class="sub">controla el overlay (vista bar) en vivo</div></div></div>
+  <div class="top"><img src="logo.svg" alt="RiftPulse"><div><h1>Control de producción</h1><div class="sub">controla el overlay en vivo</div></div></div>
 
   <div class="grp"><h2>Módulos</h2>
     <div class="row"><span>Probabilidad</span><label class="sw"><input type="checkbox" data-m="prob" checked disabled><span class="sl"></span></label></div>
@@ -50,8 +50,14 @@
     <div class="seg"><button data-pos="bottom" class="on">Abajo</button><button data-pos="top">Arriba</button></div>
   </div>
 
+  <div class="grp"><h2>Piezas automáticas</h2>
+    <div class="row"><span>Para remontar <small style="color:#8b97b0">(vista remontada)</small></span><label class="sw"><input type="checkbox" data-a="remontada" checked><span class="sl"></span></label></div>
+    <div class="row"><span>Resumen al terminar <small style="color:#8b97b0">(vista recap)</small></span><label class="sw"><input type="checkbox" data-a="recap" checked><span class="sl"></span></label></div>
+  </div>
+
   <div class="grp"><h2>Acciones</h2>
     <button class="btn alert" id="alert">⚡ Disparar alerta de prueba</button>
+    <button class="btn hide" id="recap">🏁 Mostrar resumen del juego</button>
     <button class="btn hide" id="hide">Ocultar overlay</button>
   </div>
 
@@ -64,7 +70,8 @@
   function state(){
     var mods = Array.prototype.map.call(document.querySelectorAll('input[data-m]'), function(i){ return i.checked ? i.getAttribute('data-m') : null; }).filter(Boolean);
     var pos = document.querySelector('.seg button.on').getAttribute('data-pos');
-    return { modules: mods, pos: pos, hidden: hidden };
+    var auto = {}; document.querySelectorAll('input[data-a]').forEach(function(i){ auto[i.getAttribute('data-a')] = i.checked; });
+    return { modules: mods, pos: pos, hidden: hidden, auto: auto };
   }
   function send(extra){
     var s = state(); if (extra) for (var k in extra) s[k] = extra[k];
@@ -74,7 +81,8 @@
   }
   function msg(t){ var m=document.getElementById('msg'); m.textContent=t; m.className='note ok'; setTimeout(function(){m.textContent='';m.className='note';},1500); }
 
-  document.querySelectorAll('input[data-m]').forEach(function(i){ i.addEventListener('change', function(){ send(); }); });
+  document.querySelectorAll('input[data-m],input[data-a]').forEach(function(i){ i.addEventListener('change', function(){ send(); }); });
+  document.getElementById('recap').addEventListener('click', function(){ send({ showRecap: true }); });
   document.querySelectorAll('.seg button').forEach(function(b){ b.addEventListener('click', function(){
     document.querySelectorAll('.seg button').forEach(function(x){x.classList.remove('on');}); b.classList.add('on'); send(); }); });
   document.getElementById('alert').addEventListener('click', function(){ send({ testAlert: true }); });
@@ -84,6 +92,7 @@
   try { var sv = JSON.parse(localStorage.getItem('rp_ctrl')||'null'); if (sv){
     document.querySelectorAll('input[data-m]').forEach(function(i){ if(i.disabled) return; i.checked = sv.modules ? sv.modules.indexOf(i.getAttribute('data-m'))>=0 : i.checked; });
     if (sv.pos){ document.querySelectorAll('.seg button').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-pos')===sv.pos); }); }
+    if (sv.auto) document.querySelectorAll('input[data-a]').forEach(function(i){ var k=i.getAttribute('data-a'); if (sv.auto[k]!=null) i.checked = sv.auto[k]; });
     hidden = !!sv.hidden; document.getElementById('hide').textContent = hidden ? 'Mostrar overlay' : 'Ocultar overlay';
   }} catch(e){}
 </script>
