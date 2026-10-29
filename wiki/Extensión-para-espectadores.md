@@ -2,6 +2,8 @@
 
 La extensión pone RiftPulse **encima del video** de Twitch o de lolesports.com (solo lo ves vos) y suma un **panel lateral** con toda la app y el centro de mando.
 
+> **Próximamente en la Chrome Web Store:** una instalación de un clic, sin modo de desarrollador. Ya está el paquete (`riftpulse-extension-tienda.zip`); falta publicarlo.
+
 ## Instalar (una sola vez)
 
 1. Bajá el **[ZIP de la extensión](https://userf8a2c4.github.io/riftpulse-overlay/riftpulse-extension.zip)** y descomprimilo.

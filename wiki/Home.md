@@ -9,6 +9,7 @@ RiftPulse aporta lo que la transmisión oficial **no** sintetiza: la **probabili
 ## Empezar
 - 📺 **[Instalación en OBS](Instalación-en-OBS)** — en 3 pasos, una URL.
 - 🧩 **[Extensión para espectadores](Extensión-para-espectadores)** — RiftPulse encima del video de Twitch o lolesports, sincronizado solo con el minuto que ves, en vivo o en un VOD.
+- 🎯 **[Para el espectador](Para-el-espectador)** — tu pronóstico contra RiftPulse, ayudas para entender el juego y la app en el celular.
 - 🙈 **[Modo sin spoilers](Modo-sin-spoilers)** — para ponerse al día sin enterarse de los resultados.
 - ❓ **[Preguntas frecuentes](Preguntas-frecuentes)**
 

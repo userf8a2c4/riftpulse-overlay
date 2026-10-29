@@ -31,7 +31,8 @@ const tm = (id, code, w) => ({id, code, name: code, result: {gameWins: w}});
 const EVS = {
   MLI: ev('MLI', 'completed', T0, tm('tIG', 'IG', 2), tm('tLY', 'LYON', 1), ['g1', 'g2', 'g3'].map(id => ({id, state: 'completed'}))),
   TM: ev('TM', 'inProgress', AHORA - 20 * 60e3, tm('tT1', 'T1', 0), tm('tMK', 'MKOI', 0), [{id: 'm1', state: 'inProgress'}]),
-  TK: ev('TK', 'completed', T0 - 86400e3, tm('tT1', 'T1', 1), tm('tKO', 'KOI', 0), [{id: 'k1', state: 'completed'}])};
+  TK: ev('TK', 'completed', T0 - 86400e3, tm('tT1', 'T1', 1), tm('tKO', 'KOI', 0), [{id: 'k1', state: 'completed'}]),
+  PX: ev('PX', 'unstarted', AHORA + 86400e3, tm('tG2', 'G2', 0), tm('tHL', 'HLE', 0), [{id: 'p1', state: 'unstarted'}, {id: 'p2', state: 'unstarted'}, {id: 'p3', state: 'unstarted'}])};
 const TIPOS = {'.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.json': 'application/json', '.webm': 'video/webm', '.zip': 'application/zip', '.ttf': 'font/ttf'};
 const HDR = {'access-control-allow-origin': '*', 'access-control-allow-headers': '*'};
 

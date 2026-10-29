@@ -4,6 +4,7 @@
 - [Inicio](Home)
 - [Instalación en OBS](Instalación-en-OBS)
 - [Extensión para espectadores](Extensión-para-espectadores)
+- [Para el espectador](Para-el-espectador)
 - [Modo sin spoilers](Modo-sin-spoilers)
 - [Preguntas frecuentes](Preguntas-frecuentes)
 

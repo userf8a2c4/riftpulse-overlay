@@ -14,6 +14,22 @@ const iso = t => { const d = new Date(Math.floor(t / 10000) * 10000); return d.t
   out.calendario = ev.slice(-12).map(e => [e.startTime, e.state, e.blockName, e.match.teams.map(t => t.code + ' ' + ((t.result || {}).gameWins ?? '')).join(' vs '), e.match.id]);
   const hecho = ev.filter(e => e.state === 'completed').pop(), vivo = ev.find(e => e.state === 'inProgress');
   out.vivo = vivo ? vivo.match.teams.map(t => t.code).join(' vs ') : null;
+  // ---- en vivo: qué tan frescos llegan los datos y qué muestra el motor (lo corre la acción programada durante los partidos) ----
+  if (vivo) {
+    try {
+      const dv = await j(API + 'getEventDetails?hl=es-MX&id=' + vivo.match.id, {'x-api-key': KEY}), jv = dv.data.event.match.games.find(g => g.state === 'inProgress');
+      if (jv) {
+        const muestras = [];
+        for (let i = 0; i < 4; i++) {
+          const wv = await j(FEED + 'window/' + jv.id), f = wv && wv.frames && wv.frames[wv.frames.length - 1];
+          if (f) muestras.push({atrasoSeg: Math.round((Date.now() - Date.parse(f.rfc460Timestamp)) / 1000), estado: f.gameState, oro: [f.blueTeam.totalGold, f.redTeam.totalGold], kills: [f.blueTeam.totalKills, f.redTeam.totalKills]});
+          await new Promise(r => setTimeout(r, 10000));
+        }
+        out.feedVivo = {juego: jv.number, muestras};
+      } else out.feedVivo = 'serie en curso, pero sin juego en vivo ahora (draft o entre juegos)';
+    } catch (e) { out.feedVivo = 'error: ' + e.message; }
+  }
+  if (process.env.SOLO_VIVO === 'true' && !vivo) { console.log('=== SONDEO ===\n' + JSON.stringify({calendario: out.calendario.slice(0, 4), vivo: null}, null, 1)); return; }
   const det = await j(API + 'getEventDetails?hl=es-MX&id=' + hecho.match.id, {'x-api-key': KEY});
   const juegos = det.data.event.match.games.filter(g => g.state === 'completed');
   out.partido = {id: hecho.match.id, equipos: hecho.match.teams.map(t => t.code), juegos: juegos.map(g => g.number + ':' + g.id)};
@@ -30,6 +46,13 @@ const iso = t => { const d = new Date(Math.floor(t / 10000) * 10000); return d.t
     if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) return r.continue();
     r.fulfill({contentType: {'.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.svg': 'image/svg+xml'}[path.extname(f)] || 'application/octet-stream', body: fs.readFileSync(f)}); });
   const pg = await cx.newPage();
+  if (vivo) {  // el motor siguiendo el partido en vivo, como en la app (con el retraso por defecto)
+    const pv = await cx.newPage(); await pv.goto('https://userf8a2c4.github.io/riftpulse-overlay/control.html'); await pv.waitForTimeout(25000);
+    out.motorVivo = await pv.evaluate(() => { const s = RiftEngine.state, g = s.game || {}; return {partido: s.match && s.match.blue.code + ' vs ' + s.match.red.code, juego: s.match && s.match.gameNo, gt: Math.round(g.gt || 0), p: g.pBlue, feed: s.feed, retraso: s.delay,
+      historia: RiftEngine.historia(s).map(x => x.text), mirar: RiftEngine.mirar(s), jugadores: g.jugadores, eventos: (g.events || []).map(e => e.txt)}; });
+    await pv.close();
+    if (process.env.SOLO_VIVO === 'true') { await b.close(); console.log('=== SONDEO ===\n' + JSON.stringify(out, null, 1)); return; }
+  }
   pg.on('pageerror', e => (out.errores = out.errores || []).push(e.message));
   await pg.goto('https://userf8a2c4.github.io/riftpulse-overlay/control.html'); await pg.waitForTimeout(3000);
   await pg.evaluate(([m, n]) => RiftEngine.replay(m, n, 22, 1), [hecho.match.id, g.number]); await pg.waitForTimeout(12000);

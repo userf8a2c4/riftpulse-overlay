@@ -1,8 +1,12 @@
-# Sondeo con datos reales del feed de lolesports (se lanza a mano). Solo imprime un informe en el registro; no cambia nada.
+# Sondeo con datos reales del feed de lolesports. Solo imprime un informe en el registro; no cambia nada.
+# A mano: revisa juegos ya jugados. Programado: durante los partidos en vivo, mide la frescura del feed y qué muestra el motor.
 name: Sondeo del feed real
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '35 20-23 30 10 *'   # TLAW vs LOS y G2 vs HLE, 30/10 (UTC)
+    - cron: '35 17-23 31 10 *'   # Sistema Suizo, 31/10 (UTC)
 
 permissions:
   contents: read
@@ -17,3 +21,5 @@ jobs:
           node-version: 20
       - run: npm i --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
       - run: node pruebas/sondeo.js
+        env:
+          SOLO_VIVO: ${{ github.event_name == 'schedule' }}

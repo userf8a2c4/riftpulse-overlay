@@ -3,9 +3,9 @@
 const {chromium} = require('playwright'), fs = require('fs'), path = require('path'), os = require('os'), zlib = require('zlib');
 const {execFileSync} = require('child_process');
 const {montar, chequear, RAIZ, GEN} = require('./mocks');
-function descomprimir() {
-  const dest = path.join(GEN, 'zip'); fs.rmSync(dest, {recursive: true, force: true}); fs.mkdirSync(dest, {recursive: true});
-  execFileSync('python3', ['-I', '-c', 'import sys,zipfile;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])', path.join(RAIZ, 'riftpulse-extension.zip'), dest]);
+function descomprimir(zip) {
+  const dest = path.join(GEN, zip || 'zip'); fs.rmSync(dest, {recursive: true, force: true}); fs.mkdirSync(dest, {recursive: true});
+  execFileSync('python3', ['-I', '-c', 'import sys,zipfile;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])', path.join(RAIZ, (zip ? 'riftpulse-extension-tienda' : 'riftpulse-extension') + '.zip'), dest]);
   return path.join(dest, 'extension');
 }
 async function una(EXT, conScripts) {
@@ -42,6 +42,13 @@ module.exports = async function () {
     ok = chequear(modo + 'el guion habla del mismo partido', /IG|LYON/.test(r.panel.guion || '') && !/MKOI/.test(r.panel.guion || ''), (r.panel.guion || '').slice(0, 70)) && ok;
     ok = chequear(modo + 'las casillas de Mando tienen altura fija', r.panel.alturas && r.panel.alturas.join() === '300,430,430,340,340', (r.panel.alturas || []).join(' ')) && ok;
   }
+  // la versión de la Chrome Web Store: el overlay va dentro del paquete y no pide scripts de usuario
+  const TI = descomprimir('zip-tienda'), man = JSON.parse(fs.readFileSync(path.join(TI, 'manifest.json'), 'utf8'));
+  ok = chequear('[tienda] no pide scripts de usuario ni baja código de la web', !man.permissions.includes('userScripts') && !/fetch\(/.test(fs.readFileSync(path.join(TI, 'background.js'), 'utf8'))) && ok;
+  const t = await una(TI, false);
+  ok = chequear('[tienda] el overlay viene dentro del paquete', t.origen === 'tienda', t.origen) && ok;
+  ok = chequear('[tienda] sincroniza IG vs LYON juego 2', /IG vs LYON · J2/.test(t.estado), t.estado) && ok;
+  ok = chequear('[tienda] el panel sigue el mismo juego del video', /SINCRONIZADO CON TU VIDEO/.test(t.panel.aire || '') && /juego 2/.test(t.panel.aire || ''), (t.panel.aire || '').slice(0, 90)) && ok;
   return ok;
 };
 if (require.main === module) module.exports().then(ok => process.exit(ok ? 0 : 1));

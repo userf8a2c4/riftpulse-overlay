@@ -531,7 +531,7 @@
   function piezaHTML(p, s) {
     var g = s.game || {}, m = s.match, pts = function (v) { return (v >= 0 ? '+' : '−') + Math.abs(v) + '<small>pts</small>'; };
     if (p === 'objetivo') { var im = g.impact; if (!im) return '';
-      return tarjeta('Impacto · próx. ' + im.obj, '<div class="rp-ir"><span>Si lo toma <b class="b">' + esc(m.blue.code) + '</b></span><span class="big b">' + pts(im.blue) + '</span></div>' +
+      return tarjeta('Impacto · ' + (im.at <= g.gt ? '' : 'próx. ') + im.obj, '<div class="rp-ir"><span>Si lo toma <b class="b">' + esc(m.blue.code) + '</b></span><span class="big b">' + pts(im.blue) + '</span></div>' +
         '<div class="rp-ir"><span>Si lo toma <b class="r">' + esc(m.red.code) + '</b></span><span class="big r">' + pts(im.red) + '</span></div>' +
         '<div class="rp-in">Cuánto mueve la probabilidad de ganar este juego, según el modelo de RiftPulse.</div>', im.at <= g.gt ? 'ya está' : 'en ' + mmss(im.at - g.gt)); }
     if (p === 'pelea') { var L = g.lanes, ev = (g.events || []).filter(function (e) { return e.kind === 'fight'; }).slice(-1)[0]; if (!L || !L.length) return '';

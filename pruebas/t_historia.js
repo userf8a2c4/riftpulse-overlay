@@ -41,6 +41,7 @@ module.exports = async function () {
       igual: h(base({})),
       parejo: h(base({pBlue: 0.5})),
       largo: h(base({swings: [{a: 0, b: 1500, d: 0.44, side: 'blue', code: 'T1', cause: 'Primera sangre, Dragón Montaña'}]})),
+      tardio: h(base({swings: [{a: 1320, b: 1740, d: 0.24, side: 'red', code: 'MKOI', cause: 'Dragón Quimtech, Barón Nashor'}]})),
       pelea: h(base({swings: [{a: 1300, b: 1400, d: 0.3, side: 'red', code: 'MKOI', cause: 'Pelea: T1 1 – 3 MKOI, Barón Nashor'}]})),
       fin: h(base({gt: 2400, pBlue: 0.9, ended: true, recap: {win: 'blue', code: 'T1', dur: 2400, comeback: false, low: {p: 0.4}},
         swings: [{a: 1700, b: 1800, d: -0.54, side: 'red', code: 'MKOI', cause: 'Dragón Infernal, Pelea: T1 1 – 3 MKOI'}, {a: 2200, b: 2300, d: 0.3, side: 'blue', code: 'T1', cause: 'Barón Nashor'}]})),
@@ -50,6 +51,7 @@ module.exports = async function () {
   ok = chequear('real: oro igual al min 14 se dice «estaban iguales en oro»', casos.igual.some(t => /estaban iguales en oro/.test(t)) && !/0,0k/.test(todo), casos.igual[0]) && ok;
   ok = chequear('real: el empate se dice bien', casos.parejo.some(t => /50 % para cada uno/.test(t)), casos.parejo.join(' / ')) && ok;
   ok = chequear('real: una ventaja de todo el juego no es «el giro»', casos.largo.some(t => /de a poco/.test(t)) && !casos.largo.some(t => /primera sangre/i.test(t)), casos.largo.join(' / ')) && ok;
+  ok = chequear('real: un giro largo con Barón sigue siendo «el giro»', casos.tardio.some(t => /El giro/.test(t) && /el Barón/.test(t)) && !casos.tardio.some(t => /de a poco/.test(t)), casos.tardio.join(' / ')) && ok;
   ok = chequear('real: la pelea se cuenta desde el equipo del giro', casos.pelea.some(t => /una pelea ganada 3–1 y el Barón/.test(t)) && !/Pelea:/.test(todo), casos.pelea.join(' / ')) && ok;
   ok = chequear('real: juego terminado, el giro del ganador y el del que no le alcanzó', casos.fin.some(t => /El giro decisivo/.test(t) && /T1/.test(t)) && casos.fin.some(t => /no le alcanzó/.test(t)), casos.fin.join(' / ')) && ok;
   ok = chequear('real: juego terminado en pasado, no «ahora mismo»', /ganó el juego/.test(casos.talkFin) && !/ahora mismo/.test(casos.talkFin), casos.talkFin) && ok;
