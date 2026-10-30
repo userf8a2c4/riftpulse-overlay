@@ -91,6 +91,8 @@
 
   <div class="cta">
     <button class="btn primary" id="copy">📋 Copiar URL para OBS</button>
+    <a class="btn a-tienda" href="instalar.html#extension" target="_blank" rel="noopener">🧩 Agregar a Chrome (gratis)</a>
+    <a class="btn" href="https://github.com/userf8a2c4/riftpulse-overlay" target="_blank" rel="noopener">⌨ El código en GitHub</a>
     <a class="btn" href="analista.html?demo" target="_blank" rel="noopener">🎙 Ver la mesa de análisis</a>
     <a class="btn" href="https://x.com/CaZe_18" target="_blank" rel="noopener">✉️ Escribime por X</a>
   </div>
@@ -126,7 +128,7 @@
     <figure style="margin:0"><a href="docs/img/nick/4-mundial.png" target="_blank" rel="noopener"><img src="docs/img/nick/4-mundial.png" alt="La fase suiza" loading="lazy"></a><figcaption>La app: todo el Mundial</figcaption></figure>
   </div>
   <p class="snote"><b>Si tu chat lo usa, todos miran el mismo número que vos.</b> </p>
-  <div class="cta" style="margin-top:12px"><a class="btn primary" href="instalar.html#extension">⬇ Instalar la extensión (3 pasos, 1 minuto)</a><a class="btn" href="app.html">📱 Abrir la app (sin instalar)</a></div>
+  <div class="cta" style="margin-top:12px"><a class="btn primary a-tienda" href="instalar.html#extension" target="_blank" rel="noopener">🧩 Agregar a Chrome (gratis, un clic)</a><a class="btn" href="app.html">📱 Abrir la app (sin instalar)</a></div>
 
   <h2>Probarlo te lleva un minuto</h2>
   <ol class="steps">
@@ -162,6 +164,9 @@
   (function () { var st = document.querySelector('.stage'), vp = document.getElementById('vp');
     function fit() { vp.style.transform = 'scale(' + (st.clientWidth / 1280) + ')'; }
     fit(); window.addEventListener('resize', fit); })();
+  // la ficha de RiftPulse en la Chrome Web Store (un clic para instalar); vacía, los botones llevan a la página de instalación
+  var TIENDA = '';
+  if (TIENDA) document.querySelectorAll('.a-tienda').forEach(function (a) { a.href = TIENDA; });
   var OVERLAY_URL = location.origin + location.pathname.replace(/[^/]*$/, '') + 'overlay.html?view=auto';
   document.getElementById('copy').addEventListener('click', function () {
     var m = document.getElementById('msg');
