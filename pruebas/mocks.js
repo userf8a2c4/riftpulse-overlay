@@ -12,23 +12,27 @@ const GAMES = {g1: {start: T0, meta: meta('tIG', 'tLY', 'A', 'B')}, g2: {start: 
   m1: {start: AHORA - 20 * 60e3, meta: meta('tT1', 'tMK', 'E', 'F')}, k1: {start: T0 - 86400e3, meta: meta('tT1', 'tKO', 'F', 'E')}};
 // el juego 1 de IG vs LYON termina a los 25:00 (después el feed repite el último cuadro, ya «finished»)
 const DUR = {g1: 1500};
-const frame = (t, id) => {
-  const gs0 = GAMES[id], fin = DUR[id] != null && (t - gs0.start) / 1000 >= DUR[id];
+// el juego 2 tiene una pausa de 5 min (como KC vs CFO en el Mundial 2026): del segundo 600 al 900 del feed el juego no avanza
+// y el feed sigue mandando cuadros con el oro quieto, sin marcarla como pausa. El reloj del HUD no la cuenta
+const PAUSA = {g2: [600, 900]};
+const enJuego = (t, id) => { const gs = GAMES[id], p = PAUSA[id]; let s = (t - gs.start) / 1000; if (p) s = s < p[0] ? s : s < p[1] ? p[0] : s - (p[1] - p[0]); return gs.start + s * 1000; };
+const frame = (tf, id) => {
+  let t = enJuego(tf, id); const gs0 = GAMES[id], fin = DUR[id] != null && (t - gs0.start) / 1000 >= DUR[id];
   if (fin) t = gs0.start + DUR[id] * 1000;
   const gs = GAMES[id], gt = (t - gs.start) / 1000, f = Math.min(1, Math.max(0, (gt - 200) / 818)), k = KILLS[id];
   const tm = i => ({totalGold: Math.round(2500 + gt * 26.5 + (i ? 60 : 0)), totalKills: Math.round(k[i] * f), towers: 0, inhibitors: 0, barons: 0, dragons: [], participants: []});
-  return {rfc460Timestamp: new Date(t).toISOString(), gameState: fin ? 'finished' : 'in_game', blueTeam: tm(0), redTeam: tm(1)};
+  return {rfc460Timestamp: new Date(tf).toISOString(), gameState: fin ? 'finished' : 'in_game', blueTeam: tm(0), redTeam: tm(1)};
 };
 // detalles por jugador (oro, nivel, KDA, daño): números fijos que crecen con el minuto
 const DSH = [0.24, 0.16, 0.3, 0.22, 0.08];
-const detalle = (t, id) => {
-  const gs = GAMES[id], gt = Math.max(0, (t - gs.start) / 1000), k = KILLS[id], f = Math.min(1, Math.max(0, (gt - 200) / 818));
+const detalle = (tf, id) => {
+  const t = enJuego(tf, id), gs = GAMES[id], gt = Math.max(0, (t - gs.start) / 1000), k = KILLS[id], f = Math.min(1, Math.max(0, (gt - 200) / 818));
   const participants = [];
   for (let i = 0; i < 10; i++) { const r = i % 5, lado = i < 5 ? 0 : 1;
     participants.push({participantId: i + 1, level: Math.min(18, 1 + Math.floor(gt / 95)), kills: Math.round(k[lado] * f * [0.2, 0.2, 0.3, 0.3, 0][r]), deaths: Math.round(k[1 - lado] * f * 0.2), assists: Math.round(k[lado] * f * 0.5),
       creepScore: Math.round(gt / 60 * [7.5, 5.5, 8, 8.5, 1][r]), wardsPlaced: Math.round(gt / 60 * [0.4, 0.8, 0.5, 0.4, 1.6][r] * (lado ? 0.85 : 1)), wardsDestroyed: Math.round(gt / 60 * [0.1, 0.3, 0.1, 0.1, 0.4][r]),
       items: [1055, 3006].concat(gt > 600 + r * 60 + lado * 90 ? [3031] : []).concat(gt > 1100 + r * 60 ? [3089] : []), totalGoldEarned: Math.round(500 + gt * [6.4, 5.2, 6.8, 7, 4][r] + (lado ? 0 : 40) * r), championDamageShare: DSH[(r + lado) % 5], killParticipation: 0.5 + r * 0.05}); }
-  return {rfc460Timestamp: new Date(t).toISOString(), participants};
+  return {rfc460Timestamp: new Date(tf).toISOString(), participants};
 };
 const ev = (id, st, start, a, b, games, bloque) => ({type: 'match', startTime: new Date(start).toISOString(), blockName: bloque || 'Fase Suiza', state: st, league: {name: 'Worlds', slug: 'worlds'}, match: {id, strategy: {count: games.length}, teams: [a, b], games}});
 const tm = (id, code, w) => ({id, code, name: code, result: {gameWins: w}});

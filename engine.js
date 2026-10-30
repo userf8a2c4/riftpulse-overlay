@@ -167,7 +167,8 @@
     var ts = Date.parse(f.rfc460Timestamp);
     if (ts <= G.lastTs) return;
     var prev = G.last;
-    if (prev && prev.gameState === 'paused') G.paused += ts - G.lastTs;
+    if (G.pausas) G.paused = pausadoHasta(G.pausas, ts);  // pausas ya medidas (juego terminado)
+    else if (prev && prev.gameState === 'paused') G.paused += ts - G.lastTs;
     var gt = Math.max(0, (ts - G.start - G.paused) / 1000);
     if (prev) detect(prev, f, gt);
     G.last = f; G.lastTs = ts; G.gt = gt;
@@ -751,7 +752,8 @@
       if (!w0 || !w0.frames || !w0.frames.length) { emit(); return; }
       G = newGame(g.id); G.meta = w0.gameMetadata; G.start = Date.parse(w0.frames[0].rfc460Timestamp); G.waiting = false; G.loading = false; previa();
       processFrame(w0.frames[0]);
-      var startMs = G.start + Math.max(0.1, (min == null ? 8 : min)) * 60000, tok = ++REPTOK, ts = [];
+      if (g.state === 'completed') { var gid = g.id, ps0 = await pausasDe(g.id, G.start).catch(function () { return []; }); if (G && G.id === gid) G.pausas = ps0; }
+      var startMs = feedDe(G.start, G.pausas, Math.max(0.1, (min == null ? 8 : min)) * 60), tok = ++REPTOK, ts = [];
       for (var t = G.start + 30000; t < startMs; t += 30000) ts.push(t);
       // ponerse al día: los tramos de 30 s se piden de a 6 en paralelo y se procesan en orden (la píldora muestra el avance)
       for (var i = 0; i < ts.length; i += 6) {
@@ -847,6 +849,37 @@
   }
   var tagSim = function (t, c) { t = String(t || '').toUpperCase(); c = String(c || ''); if (!t || !c) return 0; return 1 - lev(t, c) / Math.max(t.length, c.length); };
   var GINFO = {}, EVD = {};
+  // ---------- pausas: el reloj del juego se detiene, el feed no ----------
+  // En una pausa (técnica, de árbitro) el feed sigue mandando cuadros con el oro quieto, a veces sin marcarla como pausa.
+  // El minuto que muestra el HUD no las cuenta, así que para ir de «minuto del HUD» a «instante del feed» hay que saltarlas.
+  // Se recorre el juego minuto a minuto, se marcan los tramos con el oro quieto (que después siguen) y se afinan sus bordes.
+  var PAUSAS = {};
+  async function oroEn(id, t) { var w = await feed('window', id, t), f = w && (lastBefore(w.frames, t) || w.frames[0]); return f ? {g: f.blueTeam.totalGold + f.redTeam.totalGold, fin: f.gameState === 'finished'} : null; }
+  async function pausasDe(id, start) {
+    if (PAUSAS[id]) return PAUSAS[id];
+    try { var c = JSON.parse(localStorage.getItem('rp_pausas_' + id) || 'null'); if (c) return (PAUSAS[id] = c); } catch (e) {}
+    var m = [];
+    for (var t = start + 60000; m.length < 90; t += 60000) { var o = await oroEn(id, t); if (!o) break; m.push({t: t, g: o.g}); if (o.fin) break; }
+    var quieto = function (a, b) { return a && b && a.g > 3000 && Math.abs(a.g - b.g) < 60; }, out = [];
+    for (var i = 1; i < m.length; i++) {
+      if (!quieto(m[i - 1], m[i])) continue;
+      var j = i; while (j + 1 < m.length && quieto(m[j], m[j + 1])) j++;
+      if (j + 1 >= m.length) break;  // quieto hasta el final: el juego terminó, no es una pausa
+      // bordes a 10 s: el primer instante con ese oro y el último
+      var g = m[i].g, lo = m[i - 1].t - 60000, hi = m[i - 1].t, k, x;
+      for (k = 0; k < 4 && hi - lo > 10000; k++) { x = lo + Math.round((hi - lo) / 2 / 10000) * 10000; var ox = await oroEn(id, x); if (ox && Math.abs(ox.g - g) < 60) hi = x; else lo = x; }
+      var ini = hi; lo = m[j].t; hi = m[j].t + 60000;
+      for (k = 0; k < 4 && hi - lo > 10000; k++) { x = lo + Math.round((hi - lo) / 2 / 10000) * 10000; var oy = await oroEn(id, x); if (oy && Math.abs(oy.g - g) < 60) lo = x; else hi = x; }
+      if (lo - ini >= 30000) out.push([ini, lo]);
+      i = j;
+    }
+    PAUSAS[id] = out;
+    try { localStorage.setItem('rp_pausas_' + id, JSON.stringify(out)); } catch (e) {}
+    return out;
+  }
+  // el instante del feed para un minuto del HUD, y al revés (con las pausas descontadas)
+  function feedDe(start, pausas, gt) { var t = start + gt * 1000; (pausas || []).forEach(function (p) { if (p[0] < t) t += p[1] - p[0]; }); return t; }
+  function pausadoHasta(pausas, ts) { var n = 0; (pausas || []).forEach(function (p) { if (p[0] < ts) n += Math.min(ts, p[1]) - p[0]; }); return n; }
   async function gameInfo(id) {
     if (GINFO[id]) return GINFO[id];
     var w = await feed('window', id);
@@ -882,6 +915,17 @@
         // el juego en curso no puede ir más adelantado en el video que en la realidad
         if (gm.state === 'inProgress' && o.gt > (Date.now() - gi.start) / 1000 + 30) continue;
         var t = gi.start + o.gt * 1000, w = await feed('window', gm.id, t), f = w && lastBefore(w.frames, t);
+        // no cuadra con lo que se ve y es el partido de las siglas: puede haber habido una pausa antes de este minuto
+        var cuadra = function (fr) {
+          if (!fr) return false;
+          var okK = !o.kills || Math.abs(fr.blueTeam.totalKills - o.kills[0]) + Math.abs(fr.redTeam.totalKills - o.kills[1]) <= 2;
+          var okO = !o.gold || Math.abs((fr.blueTeam.totalGold + fr.redTeam.totalGold) / 1000 - o.gold[0] - o.gold[1]) <= 2;
+          return okK && okO;
+        };
+        if (gm.state === 'completed' && i < 3 && !cuadra(f) && c.tagScore > -1.2) {  // solo los 3 partidos que mejor cuadran por siglas
+          var ps = await pausasDe(gm.id, gi.start);
+          if (ps.length) { var t2 = feedDe(gi.start, ps, o.gt), w2 = await feed('window', gm.id, t2), f2 = w2 && lastBefore(w2.frames, t2); if (f2) f = f2; }
+        }
         if (!f) continue;
         var idOf = function (side) { return gi.meta[side + 'TeamMetadata'].esportsTeamId; };
         var codeOf = function (side) { var tm = ev.match.teams.filter(function (x) { return x.id === idOf(side); })[0]; return tm ? tm.code : null; };
@@ -927,7 +971,7 @@
       if (FOLLOW !== o) return;
     }
     if (!G || !G.start) return;
-    REPLAY = {base: G.start + G.paused + gtAt() * 1000, real: Date.now(), vel: o.playing ? (o.speed || 1) : 0};
+    REPLAY = {base: G.pausas ? feedDe(G.start, G.pausas, gtAt()) : G.start + G.paused + gtAt() * 1000, real: Date.now(), vel: o.playing ? (o.speed || 1) : 0};
     emit();
   };
   // volver de la demo (o de una repetición) al partido en vivo
