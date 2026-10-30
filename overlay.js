@@ -198,6 +198,11 @@
   .w.tenue{opacity:.14;transition:opacity .6s}.w{transition:opacity .6s,background .2s}\
   .hint.show{display:inline-flex}.hint .logo{width:16px;height:16px}.hint b{color:var(--text);font-weight:700}.hint a{color:var(--signal);text-decoration:none;font-weight:700}\
   .ctl::before{content:"";position:absolute;left:0;right:0;top:-10px;height:10px}\
+  .pzp{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font:700 13px var(--ff);margin:2px 0 6px}.pzp b{font:800 18px var(--ffd);font-variant-numeric:tabular-nums}\
+  .pzm{height:6px;border-radius:3px;background:var(--team-b);overflow:hidden}.pzm i{display:block;height:6px;background:var(--team-a)}\
+  .pzr{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;font-size:13px;padding:3px 0;border-top:1px solid rgba(var(--line-rgb),0.055);font-variant-numeric:tabular-nums}\
+  .pzr span{color:var(--muted);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;text-align:center;align-self:center}.pzr i{font-style:normal;color:var(--muted)}.pzr i:last-child{text-align:right}.pzr b:last-child{text-align:right}\
+  .pzk{font-size:12.5px;margin-top:6px;line-height:1.4}.pz .hs{margin-top:6px;font-size:12.5px}\
   .ctl.auto .man{display:none}.man{display:inline-flex;align-items:center;gap:4px}\
   ';
 
@@ -208,9 +213,18 @@
     '<span class="chip" data-ext="obj" title="El próximo objetivo (dragón, Barón…) y cuánto puede mover la probabilidad">objetivo</span><span class="chip" data-ext="pg" title="Cómo fue cambiando la probabilidad en el juego">trayectoria</span><span class="chip" data-ext="oro" title="Panel: la diferencia de oro minuto a minuto">oro</span><span class="chip" data-ext="dano" title="Panel: el daño de cada jugador">daño</span><span class="chip" data-ext="imp" title="Panel: las jugadas que más movieron la probabilidad">impacto</span><span class="chip" data-ext="duelos" title="Panel: cómo va cada jugador contra su rival de línea">duelos</span><span class="chip" data-ext="mini" title="Solo los porcentajes, lo más chico posible">mínimo</span>' +
     '<button class="ic" id="posbtn" title="Volver a su lugar (debajo del marcador o arriba de las estadísticas)">↑↓</button><span class="man"><button class="ic" data-d="-5" title="Atrasar el overlay 5 segundos">−</button><button class="ic" data-d="5" title="Adelantar el overlay 5 segundos">+</button>' +
     '<span class="syncg" title="Escribí el minuto del juego que ves en el stream y tocá ⟲ (o Enter) para clavar el overlay a ese momento">minuto <input id="scm" placeholder="mm:ss" maxlength="5"><button class="ic" id="syncb" title="Sincronizar al minuto que escribiste">⟲</button> va <span class="gt" id="gtnow">—</span></span></span><button class="ic" id="ocub" title="Ocultar RiftPulse (Alt+R lo vuelve a mostrar)">✕</button></div></div>';
-  sh2.innerHTML = '<style>' + CSS + TOK + '</style><div class="col" id="cards"><div class="dmg" id="dmg"></div><div id="cardsx" style="display:contents"></div></div>';
+  sh2.innerHTML = '<style>' + CSS + TOK + '</style><div class="col" id="cards"><div id="pausa" style="display:contents"></div><div class="dmg" id="dmg"></div><div id="cardsx" style="display:contents"></div></div>';
   var hintEl = document.createElement('div'); hintEl.className = 'hint'; sh.appendChild(hintEl);
-  var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom'), dmgEl = sh2.getElementById('dmg'), cardsX = sh2.getElementById('cardsx');
+  // idioma (ES | EN): el que se eligió en la app (llega con las órdenes de Mando) (si no, español). Solo se traduce lo de
+  // RiftPulse, nunca la página de Twitch
+  var IDIOMA_ON = false;
+  function idioma(l) {
+    if (!window.RPI18N) return;
+    if (l && l !== RPI18N.lang()) RPI18N.set(l);
+    if (RPI18N.lang() === 'en' && !IDIOMA_ON) { IDIOMA_ON = true; RPI18N.observar(sh); RPI18N.observar(sh2); }
+  }
+  idioma();
+  var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom'), dmgEl = sh2.getElementById('dmg'), cardsX = sh2.getElementById('cardsx'), pausaEl = sh2.getElementById('pausa');
 
   function syncChips() { ctl.querySelectorAll('.chip[data-ext]').forEach(function (c) { c.classList.toggle('on', EXT.indexOf(c.getAttribute('data-ext')) >= 0); }); }
   syncChips();
@@ -287,7 +301,7 @@
   }
   // el overlay se ve solo cuando el juego está en pantalla (el HUD con su reloj, leído al menos dos veces seguidas).
   // Repetición, desk, publicidad, entrevista o multivista: no queda nada a la vista. Al mover el mouse aparece un aviso chico.
-  var MOSTRAR = 0, MOUSE = 0;
+  var MOSTRAR = 0, MOUSE = 0, pausaSig = '';
   // el juego terminó: el resultado se ve unos segundos y después nada (los mejores momentos muestran el HUD, pero no hay que estorbar)
   var FIN = null;
   function terminado(s) {
@@ -296,13 +310,14 @@
     if (!FIN || FIN.id !== g.id) FIN = {id: g.id, at: Date.now()};
     return true;
   }
-  // true: no se ve nada · 'tenue': casi transparente (se sigue un juego, pero ahora no está en pantalla) · false: se ve
+  // true: no se ve nada · 'pausa': el juego está en pausa (se ve el panel de pausa) · 'tenue': casi transparente (se sigue un juego, pero ahora no está en pantalla) · false: se ve
   function oculto(s) {
     if (typeof AS === 'undefined' || !AS.on || !L || Date.now() <= MOSTRAR) return false;
     if (terminado(s) && Date.now() - FIN.at > 6000) return true;  // el juego terminó: nada sobre los mejores momentos
     // se sigue un juego (un VOD, o el juego en curso en vivo) y ahora hay una repetición, tomas de los jugadores o el desk:
     // en vez de desaparecer, queda casi transparente y vuelve a la normalidad apenas se ve el juego
     var sigue = !!(AS.id && AS.off != null && (esVod() || AS.id.live));
+    if (AS.pausa && sigue) return 'pausa';  // pausa del juego: en vez de la barra, el resumen de lo que va (debajo del cartel)
     if (AS.replay && Date.now() - AS.replay < 180000) return sigue ? 'tenue' : true;  // una repetición (hasta 3 min)
     if (!(AS.buenas >= 2 && Date.now() - AS.visto <= 5000)) return sigue && AS.visto ? 'tenue' : true;
     // en una transmisión en vivo solo se acompaña al juego que se está jugando (no a clips ni mejores momentos)
@@ -329,6 +344,7 @@
     if (/no se puede leer/.test(st)) return 'este video está protegido y no se puede leer';
     if (LAST && LAST.feed && LAST.feed.estado === 'caido') return 'sin conexión con lolesports · reintento solo';
     if (/repetición/.test(st)) return 'vuelve cuando termine la repetición';
+    if (AS.pausa) return 'juego en pausa · vuelve al reanudarse';
     if (AS.id) return 'vuelve con el juego';
     if (/no reconozco/.test(st)) return 'todavía no reconozco este partido';
     return 'aparece cuando el juego está en pantalla';
@@ -346,9 +362,11 @@
   hintEl.addEventListener('mousedown', function (e) { e.stopPropagation(); });
   hintEl.addEventListener('click', function (e) { if (e.target.closest('a')) return; e.stopPropagation(); MOSTRAR = Date.now() + 20000; if (LAST) render(LAST); });  // ver los controles un rato
   function render(s) {
-    var oc = oculto(s), tenue = oc === 'tenue';
-    wEl.classList.toggle('oculto', oc === true); wEl.classList.toggle('tenue', tenue); host2.style.opacity = tenue ? '0.12' : ''; pintarHint();
-    if (oc === true) {
+    var oc = oculto(s), tenue = oc === 'tenue', pz = oc === 'pausa';
+    wEl.classList.toggle('oculto', oc === true || pz); wEl.classList.toggle('tenue', tenue); host2.style.opacity = tenue ? '0.12' : ''; pintarHint();
+    var ph = pz ? grafPausa(s) : '';
+    if (ph !== pausaSig) { pausaSig = ph; pausaEl.innerHTML = ph; if (pz && window.RPUI) RPUI.numeros(pausaEl); }
+    if (oc === true || pz) {
       LAST = s; tarjetas(null);
       if (typeof tlEl !== 'undefined' && tlEl) tlEl.classList.remove('on'); dmgEl.classList.remove('show'); momEl.classList.remove('show');
       return;
@@ -393,7 +411,9 @@
     }
 
     var pb = Math.round(g.pBlue * 100), pr = 100 - pb, lb = pb >= pr ? ' lead' : '', lr = pr > pb ? ' lead' : '';
-    var fdo = s.feed && ['retrasado', 'caido', 'pausa'].indexOf(s.feed.estado) >= 0 ? '<div class="seg fdo"><span class="sl">' + esc(s.feed.txt) + '</span></div>' : '';
+    // «juego en pausa» solo si la pantalla no dice lo contrario (con el reloj del HUD corriendo, manda la pantalla)
+    var corre = typeof AS !== 'undefined' && AS.on && AS.id && !AS.pausa && Date.now() - AS.visto < 5000;
+    var fdo = s.feed && ['retrasado', 'caido', 'pausa'].indexOf(s.feed.estado) >= 0 && !(corre && s.feed.estado === 'pausa') ? '<div class="seg fdo"><span class="sl">' + esc(s.feed.txt) + '</span></div>' : '';
     if (EXT.indexOf('mini') >= 0) {  // modo mínimo: solo el porcentaje
       body.innerHTML = '<div class="seg prob"><span class="tc b">' + esc(m.blue.code) + '</span><div class="bar" style="width:150px"><div class="pb' + lb + '" style="width:' + Math.min(85, Math.max(pb, 15)) + '%">' + pb + '%</div><div class="pr' + lr + '" style="width:' + Math.min(85, Math.max(pr, 15)) + '%">' + pr + '%</div></div><span class="tc r">' + esc(m.red.code) + '</span></div>' + fdo;
       hist.push({t: Date.now(), p: g.pBlue}); checkMomentum(s); showFight(s); return;
@@ -470,6 +490,22 @@
   function grafHistoria(s) {
     var h = R.historia ? R.historia(s) : []; if (!h.length) return '';
     return '<div class="cd" style="width:420px"><div class="ch"><span>La historia del juego</span><span class="mut">min ' + mmss(s.game.gt) + '</span></div><ol class="hs">' + h.map(function (x) { return '<li>' + x.html + '</li>'; }).join('') + '</ol></div>';
+  }
+  // el juego está en pausa (el cartel «GAME PAUSE» de la transmisión): lo que va del juego hasta ese minuto
+  function grafPausa(s) {
+    var g = s && s.game, m = s && s.match;
+    if (!g || !m || g.pBlue == null) return '<div class="cd pz" style="width:340px"><div class="ch"><span>Juego en pausa</span></div></div>';
+    var st = g.stats, pb = Math.round(g.pBlue * 100), pr = 100 - pb, k = function (x) { return (x / 1000).toFixed(1).replace('.', ',') + 'k'; };
+    var fila = function (n, b, r, f) { var x = f ? f(b) : b, y = f ? f(r) : r; return '<div class="pzr">' + (b > r ? '<b class="b">' + x + '</b>' : '<i>' + x + '</i>') + '<span>' + n + '</span>' + (r > b ? '<b class="r">' + y + '</b>' : '<i>' + y + '</i>') + '</div>'; };
+    var h = '<div class="cd pz" style="width:340px"><div class="ch"><span>Pausa · lo que va del juego</span><b>' + mmss(g.gt) + '</b></div>' +
+      '<div class="pzp"><span class="b">' + esc(m.blue.code) + ' <b>' + pb + '%</b></span><div class="pzm"><i style="width:' + pb + '%"></i></div><span class="r"><b>' + pr + '%</b> ' + esc(m.red.code) + '</span></div>';
+    if (st) h += fila('Kills', st.blue.kills, st.red.kills) + fila('Oro', st.blue.gold, st.red.gold, k) + fila('Torres', st.blue.towers, st.red.towers) +
+      fila('Dragones', st.blue.dragons, st.red.dragons) + fila('Barones', st.blue.barons, st.red.barons) + (st.blue.inhibs + st.red.inhibs ? fila('Inhibidores', st.blue.inhibs, st.red.inhibs) : '');
+    var kp = g.keyPlayer;
+    if (kp) h += '<div class="pzk">Figura hasta ahora: <b class="' + (kp.side === 'blue' ? 'b' : 'r') + '">' + esc(kp.name) + '</b> (' + esc(kp.champ) + ') · ' + kp.k + '/' + kp.d + '/' + kp.a + '</div>';
+    var hs = R.historia ? R.historia(s).slice(-3) : [];
+    if (hs.length) h += '<ol class="hs">' + hs.map(function (x) { return '<li>' + x.html + '</li>'; }).join('') + '</ol>';
+    return h + '</div>' + grafOro(s);
   }
   var cardsSig = '';
   function tarjetas(s) {
@@ -549,6 +585,7 @@
     if (c.pos && !viejo) { POS = c.pos; XY = null; ls('rp_xy8', 'null'); ls('rp_pos7', POS); place(); }
     if (c.dmg != null) { DMG = !!c.dmg; ls('rp_dmg6', DMG ? '1' : '0'); if (!DMG) dmgEl.classList.remove('show'); }
     if (c.hidden != null) ocultarUsr(!!c.hidden);
+    if (c.lang) idioma(c.lang);
     // la fuerza de los equipos que usa el panel: así los dos muestran el mismo porcentaje
     if (c.fuerza && R.setFuerza) { R.setFuerza(c.fuerza); ls('rp_fuerza', JSON.stringify(c.fuerza)); }
     if (!inicial && c.sync) R.syncTo(c.sync.secs + (Date.now() - c.sync.at) / 1000);  // las órdenes de un solo uso no se repiten al recargar
@@ -651,18 +688,26 @@
     try { if (chrome.storage && chrome.storage.local) chrome.storage.local.set({rp_pantalla: d}); else chrome.runtime.sendMessage({type: 'rp-pantalla', data: d}, function () { void chrome.runtime.lastError; }); } catch (e) {}
   }
   function soltar() {
-    AS.id = null; AS.off = null; AS.lect = []; AS.contra = []; AS.trasSalto = false; AS.playing = null; AS.pend = null;
+    AS.pausa = null; AS.id = null; AS.off = null; AS.lect = []; AS.contra = []; AS.trasSalto = false; AS.playing = null; AS.pend = null;
     R.follow(null); publicar();
   }
   // atar el motor al video: minuto = desfase + posición del video
-  function seguir(v) {
+  // remedir: el juego se reanudó tras una pausa (el motor vuelve a medir las pausas del feed)
+  function seguir(v, remedir) {
     if (!AS.id || AS.off == null || !v) return;
-    var gt = Math.max(0, AS.off + v.currentTime), g = LAST && LAST.game, playing = !v.paused && !v.ended && v.readyState > 2;
+    if (AS.pausa) AS.off = AS.pausa.gt - v.currentTime;  // en pausa, el minuto del juego no avanza aunque el video sí
+    var gt = Math.max(0, AS.off + v.currentTime), g = LAST && LAST.game, playing = !v.paused && !v.ended && v.readyState > 2 && !AS.pausa;
     var esp = g && g.gt != null && LAST.match && LAST.match.id === AS.id.matchId ? g.gt : null;
-    if (esp == null || Math.abs(esp - gt) > 1.5 || AS.playing !== playing || AS.speed !== v.playbackRate) {
+    var reloj = !AS.pausa && Date.now() - AS.visto < 3000, choca = reloj && playing && g && g.pausa;  // el reloj corre y el feed dice pausa
+    if (remedir || choca || esp == null || Math.abs(esp - gt) > 1.5 || AS.playing !== playing || AS.speed !== v.playbackRate) {
       AS.playing = playing; AS.speed = v.playbackRate;
-      R.follow({matchId: AS.id.matchId, juego: AS.id.juego, gt: gt, playing: playing, speed: v.playbackRate || 1, at: Date.now()});
+      R.follow({matchId: AS.id.matchId, juego: AS.id.juego, gt: gt, playing: playing, speed: v.playbackRate || 1, at: Date.now(), reloj: reloj, remedir: !!remedir});
     }
+  }
+  // el cartel «GAME PAUSE» de la transmisión (arriba a la izquierda, junto al logo del torneo)
+  var CARTEL = [0.1, 0.02, 0.3, 0.125];
+  function cartelPausa(v) {
+    try { var r = L.siglas(L.recorte(v, CARTEL, 'blanco'), ['GAMEPAUSE', 'PAUSE', 'GAME', 'REPLAY', 'LIVE']); return !!(r[0] && /PAUSE$/.test(r[0].code) && r[0].s > 0.4); } catch (e) { return false; }
   }
   async function codigos() {
     if (AS.codes && Date.now() - AS.codesAt < 600000) return AS.codes;
@@ -768,11 +813,30 @@
         // sin el reloj a la vista (repetición larga, tomas de los jugadores, el desk) el minuto igual sale de la posición del
         // video: se sigue el mismo juego (oculto en pantalla, el panel sigue) y al volver el HUD se confirma o se corrige solo.
         // Lo único que se suelta es un clip de un partido que no se juega ahora, en una transmisión en vivo
+        if (AS.id && !AS.pausa && AS.off != null && AS.n % 2 === 0) { AS.cartel = cartelPausa(v) ? (AS.cartel || 0) + 1 : 0; if (AS.cartel >= 2) AS.pausa = {gt: Math.max(0, AS.off + ct), at: Date.now()}; }
+        if (AS.pausa) { asEstado('juego en pausa · ' + AS.id.codes.join(' vs ') + ' · ' + mmss(AS.pausa.gt), true); seguir(v); return; }
         if (AS.id && !esVod() && !AS.id.live && AS.visto && Date.now() - AS.visto > 25000) { soltar(); asEstado('buscando el reloj del juego…'); return; }
         asEstado(AS.id ? 'sincronizado · ' + AS.id.codes.join(' vs ') + ' · ' + mmss(AS.off + ct) + ' (reloj tapado)' : 'buscando el reloj del juego…', !!AS.id);
         seguir(v); return;
       }
       AS.fallas = 0; AS.visto = Date.now(); AS.buenas = (AS.buenas || 0) + 1; AS.vistoAlguna = true;
+      // pausa del juego: el reloj del HUD queda quieto 3 s mientras el video avanza (después suele venir el cartel «GAME PAUSE»).
+      // El minuto se congela ahí y, cuando el reloj vuelve a correr desde ese minuto, se sigue sin saltos. Si vuelve desde
+      // otro minuto (un juego reiniciado, otro video), se reconoce de nuevo con 3 lecturas
+      var p0 = vars.filter(function (x) { return !x.alt; })[0];
+      if (AS.pausa && p0) {
+        if (p0.gt === AS.pausa.gt) { AS.pausaOtro = 0; asEstado('juego en pausa · ' + AS.id.codes.join(' vs ') + ' · ' + mmss(p0.gt), true); seguir(v); return; }
+        var sigue = p0.gt > AS.pausa.gt && p0.gt - AS.pausa.gt <= 10;
+        if (!sigue && ++AS.pausaOtro < 3) { seguir(v); return; }  // una mala lectura no termina la pausa
+        AS.pausa = null; AS.pausaOtro = 0; AS.quieto = null; AS.playing = null;
+        if (sigue) { AS.off = p0.gt - ct; AS.contra = []; seguir(v, true); }  // el motor vuelve a medir las pausas (esta puede ser nueva)
+        else { AS.trasSalto = true; AS.lect = []; AS.contra = []; }
+      } else if (p0 && AS.id && AS.off != null && playing) {
+        var q = AS.quieto;
+        if (q && q.gt === p0.gt) {
+          if (ct - q.ct >= 3 && Math.abs(q.gt - (AS.off + q.ct)) <= 3) { AS.pausa = {gt: q.gt, at: Date.now()}; AS.pausaOtro = 0; asEstado('juego en pausa · ' + AS.id.codes.join(' vs ') + ' · ' + mmss(q.gt), true); seguir(v); return; }
+        } else AS.quieto = {gt: p0.gt, ct: ct};
+      }
       // el oro (si se lee bien) descarta minutos imposibles; sin oro confiable no descarta nada
       var esperado = AS.off != null ? AS.off + ct : null, og = oroHUD(v);
       AS.diag.oro = og ? og.join('k · ') + 'k' : 'no se lee';
@@ -898,7 +962,7 @@
   // pausa, velocidad o salto del video: el minuto sale de la posición del video, así que basta con volver a atar
   ['pause', 'play', 'ratechange', 'seeked', 'waiting', 'playing'].forEach(function (ev) { document.addEventListener(ev, function (e) {
     if (!AS.on || e.target !== video()) return;
-    if (ev === 'seeked') { AS.lect = []; AS.contra = []; AS.trasSalto = true; }  // tras mover el video alcanza con 3 lecturas para cambiar el ancla
+    if (ev === 'seeked') { AS.lect = []; AS.contra = []; AS.trasSalto = true; AS.pausa = null; AS.quieto = null; }  // tras mover el video alcanza con 3 lecturas para cambiar el ancla
     AS.playing = null; seguir(e.target); }, true); });
 
   R.onUpdate(render);

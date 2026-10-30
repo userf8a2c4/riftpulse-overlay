@@ -33,7 +33,8 @@ for f in ('engine.js', 'logo.svg', 'icon128.png'):
     shutil.copy(os.path.join(AQUI, f), os.path.join(ext, f))
 # el overlay va junto con su lector en un solo archivo (así lo baja también la extensión ya instalada)
 RPUI = os.path.join(os.path.dirname(AQUI), 'riftpulse-overlay', 'rp-ui.js')  # piezas comunes de interfaz (colores de equipo, números animados)
-OVERLAY = (open(RPUI, encoding='utf-8').read() + '\n' if os.path.exists(RPUI) else '') + open(os.path.join(AQUI, 'lector.js'), encoding='utf-8').read() + '\n' + open(os.path.join(AQUI, 'overlay.js'), encoding='utf-8').read()
+I18N = os.path.join(os.path.dirname(AQUI), 'riftpulse-overlay', 'rp-i18n.js')  # idiomas (ES | EN)
+OVERLAY = ''.join(open(f, encoding='utf-8').read() + '\n' for f in (RPUI, I18N) if os.path.exists(f)) + open(os.path.join(AQUI, 'lector.js'), encoding='utf-8').read() + '\n' + open(os.path.join(AQUI, 'overlay.js'), encoding='utf-8').read()
 escribir('overlay.js', OVERLAY)
 for viejo in ('rp-design.css', 'ocr.html', 'ocr.js'):  # de versiones anteriores, ya no se usan
     if os.path.exists(os.path.join(ext, viejo)):
@@ -185,9 +186,11 @@ web = os.path.join(os.path.dirname(AQUI), 'riftpulse-overlay')
 if os.path.isdir(web):
     # la app: el HTML lleva la huella de su CSS y su JS en la dirección, así nunca se mezcla un HTML nuevo con un JS viejo en caché
     app = open(os.path.join(AQUI, 'index.html'), encoding='utf-8').read()
-    for f in ('app.css', 'app.js'):
-        datos = open(os.path.join(AQUI, f), 'rb').read()
-        shutil.copy(os.path.join(AQUI, f), os.path.join(web, f))
+    for f in ('app.css', 'app.js', 'rp-i18n.js'):
+        if f == 'rp-i18n.js': datos = open(os.path.join(web, f), 'rb').read()  # vive en el repo web
+        else:
+            datos = open(os.path.join(AQUI, f), 'rb').read()
+            shutil.copy(os.path.join(AQUI, f), os.path.join(web, f))
         app = app.replace('"%s"' % f, '"%s?v=%s"' % (f, hashlib.sha256(datos).hexdigest()[:10]))
     open(os.path.join(web, 'app.html'), 'w', encoding='utf-8').write(app)
     open(os.path.join(web, 'ext-overlay.js'), 'w', encoding='utf-8').write(OVERLAY)
