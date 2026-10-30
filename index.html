@@ -479,7 +479,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
 .hgames button .mk2.hit{color:#86d9b9}.hgames button .mk2.miss{color:var(--muted)}
 /* ---------- cuadro de eliminatorias ---------- */
 .br-wrap{overflow-x:auto;padding-bottom:4px}
-.br{display:grid;grid-template-columns:repeat(3,minmax(128px,1fr));gap:16px;min-width:430px}
+.br{display:grid;grid-template-columns:repeat(3,minmax(150px,1fr)) minmax(150px,.85fr);gap:22px;min-width:640px}
 .fs-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between}.fs-head h2{margin:0}
 .fs-tabs{display:flex;gap:4px}.fs-tabs button{background:rgba(var(--g1-rgb),.8);border:1px solid var(--line);color:var(--muted);border-radius:4px;padding:5px 10px;font-size:12px;cursor:pointer}
 .fs-tabs button.on{color:var(--team-a-ink)}
@@ -541,7 +541,9 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
 .br-champ{background:linear-gradient(180deg,rgba(var(--signal-rgb),.12),rgba(var(--signal-rgb),.03));border:1px solid rgba(var(--signal-rgb),.4);border-radius:12px;padding:12px;text-align:center}
 .br-champ .tr{font-size:26px}
 .br-champ .nm{font-family:var(--ff-display);font-weight:700;font-size:22px;margin:4px 0}
-.br-fav{display:flex;align-items:center;gap:7px;font-size:13px;padding:3px 0;text-align:left}
+.br-fav{display:flex;align-items:center;gap:7px;font-size:13px;padding:4px 0;text-align:left;border-top:1px solid var(--line-2)}.br-fav:first-of-type{border-top:0}
+.br-fav img,.br-champ img{width:20px;height:20px;object-fit:contain;flex:none}.br-fav b{font-family:var(--ff-display)}
+.br-champ{align-self:center}.br-champ .tr{font-size:22px;line-height:1}
 .br-fav .br-p{margin-left:auto}
 /* ---------- centro de mando ---------- */
 .mx{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
@@ -610,6 +612,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
       <select id="sel" title="Partido en vivo" hidden></select>
       <span class="badge" id="estado">—</span>
       <span class="clock" id="reloj" title="Minuto del juego">—</span>
+      <a class="hbtn" id="instBtn" href="https://userf8a2c4.github.io/riftpulse-overlay/instalar.html" target="_blank" rel="noopener" title="Poné RiftPulse sobre el video del partido" style="text-decoration:none">🧩 Sobre el video</a>
       <button class="hbtn" id="novBtn" data-act="novato" aria-pressed="false" title="Explica los términos del juego">📘 Para entender</button>
       <details class="sync spx" id="spx"><summary title="Ocultar resultados que todavía no viste"><span id="spLbl">🙈 Spoilers</span></summary>
         <div class="syncpop">
@@ -1749,6 +1752,7 @@ async function loadCopa() {
     if (c && Date.now() - c.at < 6 * 3600e3) {
       Object.assign(C, {r: c.r, off: c.off, reg: c.reg, img: c.img, n: c.n, season: c.season, done: new Set(c.done), preds: c.preds || [], loaded: true});
       for (const e of schedule) if (e.state === 'completed') eloMatch(e);
+      fuerzaLista();
       simCopa();
       return;
     }
@@ -1775,6 +1779,7 @@ async function loadCopa() {
   }
   C.loading = false;
   store('eloCache2', JSON.stringify({at: Date.now(), r: C.r, off: C.off, reg: C.reg, img: C.img, n: C.n, season: C.season, done: [...C.done], preds: C.preds}));
+  fuerzaLista();
   simCopa();
 }
 
@@ -1933,9 +1938,9 @@ function koHTML() {
   const fi = col('Final', match(B.f[0], 'f'));
   const favs = (C.rows || []).filter(r => r.c > 0.005).slice(0, 4);
   const champ = B.champion
-    ? `<div class="br-champ"><div class="tr">🏆</div>${C.img[B.champion] ? `<img src="${esc(C.img[B.champion])}" alt="" style="width:46px;height:46px;object-fit:contain">` : ''}<div class="nm">${esc(B.champion)}</div><div class="pm">Campeón del Mundial 2026</div></div>`
+    ? `<div class="br-champ"><div class="tr">🏆</div>${C.img[B.champion] ? `<img src="${esc(C.img[B.champion])}" alt="" style="width:46px;height:46px">` : ''}<div class="nm">${esc(B.champion)}</div><div class="pm">Campeón del Mundial 2026</div></div>`
     : `<div class="br-champ"><div class="tr">🏆</div><div class="pm" style="margin-bottom:6px">Favoritos al título</div>${favs.map(r => `<div class="br-fav">${logo(r.t)}<b>${esc(r.t)}</b><span class="br-p">${pct(r.c)}</span></div>`).join('') || '<div class="pm">Calculando…</div>'}</div>`;
-  return `<div class="br-wrap"><div class="br">${qf}${sf}${fi}</div></div><div style="margin-top:12px;max-width:340px">${champ}</div>
+  return `<div class="br-wrap"><div class="br">${qf}${sf}${fi}${col('Campeón', champ)}</div></div>
     <div class="pm" style="margin-top:8px;white-space:normal">En cada serie, a la derecha: probabilidad de ganarla (Elo del sistema; si se está jugando, suma el juego en curso). En las llaves por definir: probabilidad de cada candidato de llegar ahí, según 20.000 simulaciones.</div>`;
 }
 
@@ -2037,9 +2042,28 @@ function renderCuadro() {
 }
 document.addEventListener('click', e => { const b = e.target.closest('#fsTabs [data-fase]'); if (!b) return; FASE = b.dataset.fase; renderCuadro(); });
 
+// la misma fuerza (Elo) va al overlay del video, para que el panel y el overlay muestren el mismo porcentaje
+let FZ_ENV = '';
+function compartirFuerza(elo) {
+  const j = JSON.stringify(elo); if (j === FZ_ENV) return;
+  try {
+    const data = {rp_cmd: {fuerza: elo, n: Date.now()}};
+    if (mxStorage()) chrome.storage.local.set(data); else if (mxEmb) window.parent.postMessage({rp: 'set', data}, '*'); else return;
+    FZ_ENV = j;
+  } catch (e) {}  // todavía arrancando: se manda en el próximo cálculo
+}
+// la fuerza (Elo) de todos los equipos, apenas se carga: al motor compartido (Mando), al overlay del video y a la previa del juego
+function fuerzaLista() {
+  if (!C.loaded) return;
+  const elo = {}; for (const t in C.r) elo[t] = Math.round(eloOf(t) * 10) / 10;
+  if (window.RiftEngine && RiftEngine.setFuerza) RiftEngine.setFuerza(elo);
+  compartirFuerza(elo);
+  // si el juego cargó antes que la fuerza de los equipos, la previa se rehace con el Elo
+  if (G && G.meta && G.draft && G.pre && !G.pre.elo) { G.pre = pregame(G.meta, G.draft, code('blue'), code('red')); if (G.last) G.wp = winProb(G.last, G.gt); }
+}
 function renderCopa() {
   // la fuerza de cada equipo (Elo de la app) pasa al motor: la serie estima con ella los mapas que faltan
-  if (C.rows && window.RiftEngine && RiftEngine.setFuerza) RiftEngine.setFuerza(Object.fromEntries(C.rows.map(r => [r.t, r.elo])));
+  fuerzaLista();
   renderCuadro();
   renderFiab();
   if (!C.rows) return;
@@ -3205,6 +3229,7 @@ const mxK = g => (Math.abs(g) / 1000).toFixed(1).replace('.', ',') + 'k';
 const mxSc = side => side === 'blue' ? 'b' : 'r';
 // dentro del panel de la extensión la app llega desde la web (?ext=1): las órdenes pasan al panel por mensaje
 const mxEmb = window.parent !== window && /[?&]ext=1/.test(location.search);
+if (mxEmb && document.getElementById('instBtn')) document.getElementById('instBtn').hidden = true;
 const mxStorage = () => !!(window.chrome && chrome.storage && chrome.storage.local);
 const mxHasExt = () => mxStorage() || mxEmb;
 // lo que manda el panel de la extensión: si el overlay del stream se actualiza solo, y qué juego y minuto ve en el video
@@ -3215,7 +3240,7 @@ function renderAvisos() {
   const box = $('#extAvisos'); if (!box) return;
   const out = [];
   if (mxEmb && EXTST.viejo && !avisoCerrado('shell3'))
-    out.push(['shell3', `Hay una versión nueva de la extensión que sincroniza sola con el video. Se instala <b>una sola vez</b>: bajá el <a href="${ZIP_URL}" target="_blank" rel="noopener">ZIP</a>, descomprimilo, quitá la RiftPulse vieja en <b>chrome://extensions</b> y tocá <b>«Cargar descomprimida»</b> con la carpeta <b>extension</b>. Después solo se refresca.`]);
+    out.push(['shell3', `Hay una versión nueva de la extensión que sincroniza sola con el video. Se instala <b>una sola vez</b>, en un minuto: <a href="${OBS_BASE}instalar.html#extension" target="_blank" rel="noopener">seguí la guía</a> (quitá antes la RiftPulse vieja). Después solo se refresca.`]);
   if (sinSpoilers()) out.push(['sp', '🙈 <b>Modo sin spoilers</b>: estás viendo un VOD, así que se ocultan los resultados de este partido y de los siguientes. <button class="mx-btn" data-act="spoilers" data-arg="ver" style="margin-left:6px">Mostrar resultados</button>']);
   else if (EXTST.pantalla && EXTST.pantalla.vod && store('spoilers') === 'ver') out.push(['sp2', 'Resultados visibles. <button class="mx-btn" data-act="spoilers" data-arg="" style="margin-left:6px">🙈 Volver a ocultarlos</button>']);
   if (EXTST.origen && EXTST.origen.origen === 'local' && !avisoCerrado('us'))
@@ -3260,13 +3285,15 @@ window.addEventListener('message', e => {
 // el panel de la versión anterior no manda nada: avisar que hay una nueva
 if (mxEmb) setTimeout(() => { if (!EXTST.shell) { EXTST.viejo = true; renderAvisos(); } }, 5000);
 function mxOv() {
-  if (!MX.ov) { try { MX.ov = JSON.parse(store('mandoOv') || 'null'); } catch (e) {} MX.ov = Object.assign({ext: ['obj', 'pg', 'oro'], pos: 'top', hidden: false, dmg: true}, MX.ov || {}); }
+  if (!MX.ov) { try { MX.ov = JSON.parse(store('mandoOv') || 'null'); } catch (e) {} MX.ov = Object.assign({ext: ['obj'], pos: 'top', hidden: false, dmg: true}, MX.ov || {}); }
+  // v7: los paneles del overlay ya no quedan fijos (aparecen en su momento); se migra una sola vez
+  if (MX.ov.v !== 7) { MX.ov.ext = (MX.ov.ext || []).filter(k => k === 'obj' || k === 'pg' || k === 'mini'); MX.ov.v = 7; }
   return MX.ov;
 }
 // manda la orden al overlay del stream (content script) por chrome.storage; sync/nudge son de un solo uso
 function mxSend(extra) {
   const o = mxOv(); store('mandoOv', JSON.stringify(o));
-  const data = {rp_cmd: Object.assign({ext: o.ext, pos: o.pos, hidden: o.hidden, dmg: o.dmg, director: o.director || 'estandar', n: Date.now()}, extra || {})};
+  const data = {rp_cmd: Object.assign({ext: o.ext, pos: o.pos, hidden: o.hidden, dmg: o.dmg, director: o.director || 'estandar', v: 7, n: Date.now()}, extra || {})};
   if (mxStorage()) chrome.storage.local.set(data);
   else if (mxEmb) window.parent.postMessage({rp: 'set', data}, '*');
 }
@@ -3319,7 +3346,7 @@ function renderSetup() {
   if (!mxEmb || store('aviso_setup') === '1') { box.hidden = true; return; }
   const pan = EXTST.pantalla && Date.now() - EXTST.pantalla.at < 15000;
   const pasos = [
-    [EXTST.shell >= 3, 'Extensión actualizada', `Si no está en verde: bajá el <a href="${ZIP_URL}" target="_blank" rel="noopener">ZIP</a>, quitá la vieja en chrome://extensions y «Cargar descomprimida» con la carpeta <b>extension</b>.`],
+    [EXTST.shell >= 3, 'Extensión actualizada', `Si no está en verde: <a href="${OBS_BASE}instalar.html#extension" target="_blank" rel="noopener">instalala de nuevo con la guía</a> (quitá antes la vieja).`],
     [EXTST.origen && (EXTST.origen.origen === 'web' || EXTST.origen.origen === 'tienda'), 'Overlay que se actualiza solo', 'En chrome://extensions → RiftPulse → <b>Detalles</b>, activá <b>«Permitir scripts de usuario»</b> y tocá ↻.'],
     [pan, 'Video detectado', 'Abrí un partido del Mundial en Twitch o lolesports (en vivo o un VOD), con <b>auto-sync</b> encendido en la barra del overlay.']];
   const listos = pasos.filter(p => p[0]).length;

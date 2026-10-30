@@ -140,33 +140,22 @@ app.addEventListener('load', () => setTimeout(() => { carga.style.display = 'non
 setTimeout(() => { if (!lista) carga.innerHTML = 'No pude cargar RiftPulse desde la web.<br>Revisá la conexión y volvé a abrir el panel.'; }, 15000);
 """.replace('__WEB__', WEB))
 
-escribir('INSTALAR.txt', """RIFTPULSE — EXTENSION (se actualiza sola)
-=========================================
-
-INSTALAR (una sola vez)
------------------------
-1. Abra chrome://extensions (o brave://extensions / edge://extensions).
-2. Active el "Modo de desarrollador" (arriba a la derecha).
-3. Si ya tenia RiftPulse, toque "Quitar" en la vieja.
-4. "Cargar descomprimida" -> elija ESTA carpeta (extension).
-5. En RiftPulse -> "Detalles", active "Permitir scripts de usuario"
-   (Allow user scripts). Asi el overlay del stream se actualiza solo.
-6. Fije el icono en la barra (pieza de rompecabezas -> alfiler).
-
-ACTUALIZAR
-----------
-Nada que descargar: toque el boton de recargar de RiftPulse en
-chrome://extensions. El panel siempre abre la ultima version desde la web,
-y el overlay del stream se descarga de nuevo al recargar (y solo cada 6 horas).
-
-USAR
-----
-- Clic en el icono de RiftPulse: se abre el panel lateral con todo el sistema.
-- En twitch.tv o lolesports.com aparece el overlay sobre el video. Pase el
-  mouse por la barra para ver los controles (auto-sync, piezas, sincronia).
-
-La extension no lee ni envia nada de ninguna cuenta. No esta afiliada a Riot Games.
-""")
+# las instrucciones, para abrir con doble clic desde la carpeta descomprimida
+if os.path.exists(os.path.join(ext, 'INSTALAR.txt')): os.remove(os.path.join(ext, 'INSTALAR.txt'))
+escribir('INSTALAR.html', """<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Instalar RiftPulse</title>
+<style>body{margin:0;background:#0C0E12;color:#F2F4F7;font:16px/1.55 system-ui,Segoe UI,Roboto,sans-serif}.w{max-width:640px;margin:0 auto;padding:28px 18px}
+h1{font-size:28px;margin:0 0 4px}p{color:#C9D0DB}.n{display:inline-flex;width:28px;height:28px;border-radius:50%;background:#22D3EE;color:#0C0E12;font-weight:800;align-items:center;justify-content:center;margin-right:10px;flex:none}
+.p{display:flex;align-items:flex-start;background:#14171D;border:1px solid #2a2f3a;border-radius:12px;padding:14px;margin:10px 0}code{background:#1B1F27;border-radius:6px;padding:2px 6px;color:#A5F3FC}
+a.b{display:inline-block;margin-top:14px;background:#22D3EE;color:#0C0E12;font-weight:800;text-decoration:none;border-radius:10px;padding:12px 18px}small{color:#9AA3B2}</style></head>
+<body><div class="w"><h1>Instalar RiftPulse</h1><p>Cuatro pasos, una sola vez. Funciona en Chrome, Edge, Brave u Opera en la compu.</p>
+<div class="p"><span class="n">1</span><div>Abrí la página de extensiones: escribí <code>chrome://extensions</code> en la barra de direcciones y Enter.<br><small>En Edge: <code>edge://extensions</code> · en Brave: <code>brave://extensions</code></small></div></div>
+<div class="p"><span class="n">2</span><div>Activá el <b>Modo de desarrollador</b> (arriba a la derecha; en Edge, abajo a la izquierda).</div></div>
+<div class="p"><span class="n">3</span><div>Tocá <b>Cargar descomprimida</b> y elegí <b>esta carpeta</b> (la que se llama <b>RiftPulse</b>).<br><small>Si ya tenías una RiftPulse vieja, quitala antes.</small></div></div>
+<div class="p"><span class="n">4</span><div>Listo. Abrí un partido en <b>twitch.tv</b> o <b>lolesports.com</b>: RiftPulse aparece solo cuando el juego está en pantalla. Tocá el ícono de RiftPulse para abrir el panel con todo el Mundial.</div></div>
+<a class="b" href="__WEB__instalar.html#extension">Ver la guía con imágenes</a>
+<p><small>Opcional, para que se actualice sola: en la página de extensiones → RiftPulse → Detalles → «Permitir scripts de usuario». No lee ni envía nada de ninguna cuenta. No está afiliada a Riot Games.</small></p></div></body></html>
+""".replace('__WEB__', WEB))
 
 # ---------- proceso de fondo de la versión de la tienda (sin código bajado de la web) ----------
 TIENDA_BG = r"""// RiftPulse — proceso de fondo (versión de la Chrome Web Store: el overlay viene dentro del paquete).
@@ -189,7 +178,10 @@ if os.path.isdir(web):
     shutil.copy(os.path.join(AQUI, 'index.html'), os.path.join(web, 'app.html'))
     open(os.path.join(web, 'ext-overlay.js'), 'w', encoding='utf-8').write(OVERLAY)
     # la extensión en un ZIP, para instalarla sin git (enlace directo desde la web)
-    shutil.make_archive(os.path.join(web, 'riftpulse-extension'), 'zip', AQUI, 'extension')
+    # adentro, una sola carpeta «RiftPulse» (la que se elige en «Cargar descomprimida») con INSTALAR.html para abrir con doble clic
+    import zipfile
+    with zipfile.ZipFile(os.path.join(web, 'riftpulse-extension.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
+        for f in sorted(os.listdir(ext)): z.write(os.path.join(ext, f), 'RiftPulse/' + f)
     # versión para la Chrome Web Store: la tienda no acepta código que se baje de la web, así que el overlay va
     # dentro del paquete (se actualiza con cada versión de la tienda). El panel sigue abriendo la app desde la web.
     import json, tempfile
@@ -203,7 +195,7 @@ if os.path.isdir(web):
     man['content_scripts'] = [{'matches': ['*://*.twitch.tv/*', '*://*.lolesports.com/*'], 'js': ['engine.js', 'overlay.js'], 'run_at': 'document_idle'}]
     json.dump(man, open(os.path.join(tienda, 'manifest.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
     open(os.path.join(tienda, 'background.js'), 'w', encoding='utf-8').write(TIENDA_BG)
-    os.remove(os.path.join(tienda, 'INSTALAR.txt'))
+    os.remove(os.path.join(tienda, 'INSTALAR.html'))
     shutil.make_archive(os.path.join(web, 'riftpulse-extension-tienda'), 'zip', tmp, 'extension')
     shutil.rmtree(tmp)
     print('Publicado en la carpeta web:', web)

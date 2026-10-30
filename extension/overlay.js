@@ -717,16 +717,20 @@
   // ---------- órdenes del centro de mando (pestaña «Mando» del panel lateral de la extensión) ----------
   function applyCmd(c, inicial) {
     if (!c) return;
-    if (c.ext) { EXT = c.ext.slice(); ls('rp_ext7', JSON.stringify(EXT)); syncChips(); }
-    if (c.pos) { POS = c.pos; XY = null; ls('rp_xy7', 'null'); ls('rp_pos7', POS); place(); }
+    var viejo = inicial && c.v !== 7;  // una orden guardada antes de v7 no vuelve a fijar los paneles ni la posición vieja
+    if (c.ext && !viejo) { EXT = c.ext.slice(); ls('rp_ext7', JSON.stringify(EXT)); syncChips(); }
+    if (c.pos && !viejo) { POS = c.pos; XY = null; ls('rp_xy7', 'null'); ls('rp_pos7', POS); place(); }
     if (c.dmg != null) { DMG = !!c.dmg; ls('rp_dmg6', DMG ? '1' : '0'); if (!DMG) dmgEl.classList.remove('show'); }
     if (c.hidden != null) host.style.display = c.hidden ? 'none' : '';
+    // la fuerza de los equipos que usa el panel: así los dos muestran el mismo porcentaje
+    if (c.fuerza && R.setFuerza) { R.setFuerza(c.fuerza); ls('rp_fuerza', JSON.stringify(c.fuerza)); }
     if (!inicial && c.sync) R.syncTo(c.sync.secs + (Date.now() - c.sync.at) / 1000);  // las órdenes de un solo uso no se repiten al recargar
     if (!inicial && c.nudge) R.nudge(c.nudge);
     if (c.director && DIR) { DIR.nivel = c.director; ls('rp_dir', c.director); }
     if (!inicial && c.dirSaltar && DIR) DIR.saltar();
     if (LAST) render(LAST);
   }
+  try { var fz0 = JSON.parse(ls('rp_fuerza') || 'null'); if (fz0 && R.setFuerza) R.setFuerza(fz0); } catch (e) {}
   var hayStorage = false;
   try { hayStorage = !!(chrome.storage && chrome.storage.local); } catch (e) {}
   if (hayStorage) {
