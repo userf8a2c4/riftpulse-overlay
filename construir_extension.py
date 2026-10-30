@@ -148,13 +148,12 @@ escribir('INSTALAR.html', """<!doctype html><html lang="es"><head><meta charset=
 h1{font-size:28px;margin:0 0 4px}p{color:#C9D0DB}.n{display:inline-flex;width:28px;height:28px;border-radius:50%;background:#22D3EE;color:#0C0E12;font-weight:800;align-items:center;justify-content:center;margin-right:10px;flex:none}
 .p{display:flex;align-items:flex-start;background:#14171D;border:1px solid #2a2f3a;border-radius:12px;padding:14px;margin:10px 0}code{background:#1B1F27;border-radius:6px;padding:2px 6px;color:#A5F3FC}
 a.b{display:inline-block;margin-top:14px;background:#22D3EE;color:#0C0E12;font-weight:800;text-decoration:none;border-radius:10px;padding:12px 18px}small{color:#9AA3B2}</style></head>
-<body><div class="w"><h1>Instalar RiftPulse</h1><p>Cuatro pasos, una sola vez. Funciona en Chrome, Edge, Brave u Opera en la compu.</p>
-<div class="p"><span class="n">1</span><div>Abrí la página de extensiones: escribí <code>chrome://extensions</code> en la barra de direcciones y Enter.<br><small>En Edge: <code>edge://extensions</code> · en Brave: <code>brave://extensions</code></small></div></div>
+<body><div class="w"><h1>Instalar RiftPulse</h1><p>Tres pasos, una sola vez. En Chrome, Edge, Brave u Opera, en la compu.</p>
+<div class="p"><span class="n">1</span><div>Escribí <code>chrome://extensions</code> en la barra de direcciones y Enter.<br><small>En Edge: <code>edge://extensions</code> · en Brave: <code>brave://extensions</code></small></div></div>
 <div class="p"><span class="n">2</span><div>Activá el <b>Modo de desarrollador</b> (arriba a la derecha; en Edge, abajo a la izquierda).</div></div>
-<div class="p"><span class="n">3</span><div>Tocá <b>Cargar descomprimida</b> y elegí <b>esta carpeta</b> (la que se llama <b>RiftPulse</b>).<br><small>Si ya tenías una RiftPulse vieja, quitala antes.</small></div></div>
-<div class="p"><span class="n">4</span><div>Listo. Abrí un partido en <b>twitch.tv</b> o <b>lolesports.com</b>: RiftPulse aparece solo cuando el juego está en pantalla. Tocá el ícono de RiftPulse para abrir el panel con todo el Mundial.</div></div>
+<div class="p"><span class="n">3</span><div><b>Cargar descomprimida</b> → elegí <b>esta carpeta</b> (RiftPulse). Listo: abrí un partido en twitch.tv o lolesports.com.</div></div>
 <a class="b" href="__WEB__instalar.html#extension">Ver la guía con imágenes</a>
-<p><small>Opcional, para que se actualice sola: en la página de extensiones → RiftPulse → Detalles → «Permitir scripts de usuario». No lee ni envía nada de ninguna cuenta. No está afiliada a Riot Games.</small></p></div></body></html>
+<p><small>No lee ni envía nada de ninguna cuenta. No está afiliada a Riot Games.</small></p></div></body></html>
 """.replace('__WEB__', WEB))
 
 # ---------- proceso de fondo de la versión de la tienda (sin código bajado de la web) ----------
