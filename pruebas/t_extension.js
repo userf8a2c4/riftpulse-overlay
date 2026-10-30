@@ -6,7 +6,7 @@ const {montar, chequear, RAIZ, GEN} = require('./mocks');
 function descomprimir(zip) {
   const dest = path.join(GEN, zip || 'zip'); fs.rmSync(dest, {recursive: true, force: true}); fs.mkdirSync(dest, {recursive: true});
   execFileSync('python3', ['-I', '-c', 'import sys,zipfile;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])', path.join(RAIZ, (zip ? 'riftpulse-extension-tienda' : 'riftpulse-extension') + '.zip'), dest]);
-  return path.join(dest, 'extension');
+  return path.join(dest, zip ? 'extension' : 'RiftPulse');
 }
 async function una(EXT, conScripts) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rp-'));
@@ -29,7 +29,14 @@ async function una(EXT, conScripts) {
   if (fr) { await fr.evaluate(() => setVista('mando')); await pn.waitForTimeout(3500);
     panel = await fr.evaluate(() => ({aire: document.getElementById('mxAir').innerText.replace(/\s+/g, ' '), guion: document.getElementById('mxTalk').innerText.replace(/\s+/g, ' '),
       alturas: ['mxAir', 'mxOv', 'mxTalk', 'mxRead', 'mxSoc'].map(i => document.getElementById(i).getBoundingClientRect().height)})); }
-  await ctx.close(); return {origen, estado, panel, fr: !!fr};
+  // el mismo porcentaje en el overlay y en el panel (los dos con la misma fuerza de los equipos)
+  let pcts = null;
+  if (fr) { await p.waitForTimeout(3000);
+    const ov = await p.evaluate(() => { const sh = document.getElementById('rp-overlay-host').shadowRoot, a = sh.querySelector('[data-rpn="ext-a"]'); return a ? +a.textContent : null; });
+    const ap = await fr.evaluate(() => { try { return G && G.wp ? Math.round(G.wp.p * 100) : null; } catch (e) { return null; } });
+    if (process.env.RP_DEBUG) console.log(await fr.evaluate(() => JSON.stringify({app: {p: G.wp && G.wp.p, gt: G.gt, pre: G.pre, dr: G.draft && G.draft.blue.scale - G.draft.red.scale, id: G.id, pin: !!PIN}, eng: MX.s && MX.s.game && {p: MX.s.game.pBlue, gt: MX.s.game.gt, id: MX.s.game.id}})));
+    pcts = {ov, ap}; }
+  await ctx.close(); return {origen, estado, panel, fr: !!fr, pcts};
 }
 module.exports = async function () {
   const EXT = descomprimir(); let ok = true;
@@ -40,6 +47,7 @@ module.exports = async function () {
     ok = chequear(modo + 'el panel carga la app desde la web', r.fr) && ok;
     ok = chequear(modo + 'el panel sigue el mismo juego del video', /SINCRONIZADO CON TU VIDEO/.test(r.panel.aire || '') && /IG/.test(r.panel.aire || '') && /juego 2/.test(r.panel.aire || ''), (r.panel.aire || '').slice(0, 90)) && ok;
     ok = chequear(modo + 'el guion habla del mismo partido', /IG|LYON/.test(r.panel.guion || '') && !/MKOI/.test(r.panel.guion || ''), (r.panel.guion || '').slice(0, 70)) && ok;
+    ok = chequear(modo + 'el overlay y el panel muestran el mismo porcentaje', r.pcts && r.pcts.ov != null && r.pcts.ap != null && Math.abs(r.pcts.ov - r.pcts.ap) <= 1, JSON.stringify(r.pcts)) && ok;
     ok = chequear(modo + 'las casillas de Mando tienen altura fija', r.panel.alturas && r.panel.alturas.join() === '300,430,430,340,340', (r.panel.alturas || []).join(' ')) && ok;
   }
   // la versión de la Chrome Web Store: el overlay va dentro del paquete y no pide scripts de usuario

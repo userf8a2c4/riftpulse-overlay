@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Instalar RiftPulse</title>
+<meta name="description" content="Elegí cómo querés ver el Mundial con RiftPulse: sobre el video, como app o en tu stream. Un minuto, paso a paso.">
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--text);font:400 16px/1.6 Inter Tight,system-ui,sans-serif}
+  .wrap{max-width:980px;margin:0 auto;padding:28px 16px 60px}
+  a{color:var(--link)}
+  .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .top img{width:40px;height:40px}
+  .top nav{margin-left:auto;display:flex;gap:14px;flex-wrap:wrap;font-size:14px}
+  .hero{margin:30px 0 18px}
+  .hero h1{font-size:clamp(32px,6vw,52px);margin:0;line-height:1.05}
+  .hero p{font-size:18px;max-width:680px;margin:10px 0 0}
+  /* elegir */
+  .elegir{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:760px){.elegir{grid-template-columns:1fr}}
+  .op{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:20px;border-radius:16px;background:var(--g1);border:1px solid var(--line-strong);transition:border-color .15s,transform .05s}
+  .op:hover{border-color:var(--signal)}.op:active{transform:translateY(1px)}
+  .op:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+  .op.on{border-color:var(--signal);box-shadow:0 0 0 1px var(--signal),0 10px 30px rgba(var(--signal-rgb),.12)}
+  .op .ic{font-size:30px;line-height:1}
+  .op b{font:800 22px Saira Condensed,sans-serif;letter-spacing:.3px}
+  .op span{color:var(--muted);font-size:14.5px}
+  .op .rec{align-self:flex-start;font:700 11px Inter Tight,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--signal-ink);background:var(--signal);border-radius:99px;padding:2px 8px}
+  section.card{padding:22px;margin-top:18px}
+  section[hidden]{display:none}
+  .card h2{margin:0 0 6px}
+  .lead{margin:0 0 16px;max-width:760px}
+  .aviso{display:flex;gap:10px;align-items:center;background:rgba(var(--signal-rgb),.08);border:1px solid rgba(var(--signal-rgb),.35);border-radius:12px;padding:10px 14px;margin:0 0 16px;font-size:14.5px}
+  .aviso[hidden],.listo[hidden],.ib[hidden]{display:none}
+  .aviso.mal{background:rgba(var(--team-b-rgb),.08);border-color:rgba(var(--team-b-rgb),.4)}
+  /* pasos */
+  .pasos{display:grid;gap:12px;counter-reset:p}
+  .paso{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;background:var(--g0);border:1px solid var(--line-2);border-radius:14px;padding:14px 16px}
+  @media(max-width:640px){.paso{grid-template-columns:36px 1fr}.paso .acc{grid-column:1/-1}}
+  .paso .n{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:800 18px Saira Condensed,sans-serif;background:var(--g2);color:var(--text);border:1px solid var(--line-strong)}
+  .paso.hecho .n{background:var(--ok);color:#0C0E12;border-color:var(--ok)}
+  .paso.hecho .n::before{content:"✓"}.paso.hecho .n span{display:none}
+  .paso h3{margin:0;font-size:17px}
+  .paso p{margin:2px 0 0;font-size:14.5px;color:var(--muted)}
+  .paso p b{color:var(--text)}
+  .acc{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .ib{display:inline-flex;align-items:center;gap:8px;font:700 15px Inter Tight,sans-serif;border-radius:10px;padding:11px 16px;cursor:pointer;border:1px solid var(--line-strong);background:var(--g2);color:var(--text);text-decoration:none;white-space:nowrap}
+  .ib:hover{border-color:var(--signal)}
+  .ib.pri{background:var(--signal);border-color:var(--signal);color:var(--signal-ink)}
+  .ib.pri:hover{filter:brightness(1.08)}
+  .ib.ok{background:none;border-color:var(--line-2);color:var(--muted);font-weight:600;font-size:13.5px;padding:8px 12px}
+  /* dibujos de la página de extensiones */
+  .mock{display:inline-flex;align-items:center;gap:8px;margin-top:8px;background:#202124;color:#e8eaed;border-radius:8px;padding:7px 10px;font:500 13px system-ui,sans-serif}
+  .mock .sw{width:30px;height:16px;border-radius:99px;background:#8ab4f8;position:relative}
+  .mock .sw::after{content:"";position:absolute;right:2px;top:2px;width:12px;height:12px;border-radius:50%;background:#fff}
+  .mock .bt{border:1px solid #5f6368;border-radius:6px;padding:3px 9px;color:#8ab4f8}
+  .mock .bt.hl{border-color:#8ab4f8;box-shadow:0 0 0 2px rgba(138,180,248,.35)}
+  .mock .dim{opacity:.45}
+  .listo{margin-top:14px;background:linear-gradient(180deg,rgba(var(--signal-rgb),.1),rgba(var(--signal-rgb),.02));border:1px solid rgba(var(--signal-rgb),.4);border-radius:14px;padding:16px 18px}
+  .listo h3{margin:0 0 4px}
+  details{margin-top:14px;color:var(--muted);font-size:14.5px}
+  details summary{cursor:pointer;color:var(--text)}
+  .copiado{color:var(--ok);font-size:13px;font-weight:700}
+  footer{margin-top:30px;color:var(--muted);font-size:12.5px}
+</style>
+<link rel="stylesheet" href="rp-design.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <img src="logo.svg" alt="">
+    <div class="brand-t">RiftPulse</div>
+    <nav><a href="app.html">App</a><a href="como-funciona.html">Cómo funciona</a><a href="./">Para streamers</a></nav>
+  </header>
+
+  <div class="hero">
+    <h1>Instalá RiftPulse</h1>
+    <p>Elegí cómo querés ver el Mundial. Es gratis, no pide cuenta y en un minuto está listo.</p>
+  </div>
+
+  <div class="elegir" role="tablist">
+    <button class="op" data-op="extension" role="tab"><span class="rec">Recomendado</span><span class="ic">🖥</span><b>Sobre el video</b><span>La probabilidad en vivo encima del partido en Twitch o lolesports.com, y un panel con todo el Mundial. Chrome, Edge, Brave u Opera en la compu.</span></button>
+    <button class="op" data-op="app" role="tab"><span class="ic">📱</span><b>Como app</b><span>En el celu o en la compu, sin instalar nada: el partido en vivo, la fase suiza, las eliminatorias y tu pronóstico.</span></button>
+    <button class="op" data-op="stream" role="tab"><span class="ic">🎥</span><b>Para mi stream</b><span>El overlay para tu co-stream en OBS, con la mesa de análisis y el control de producción.</span></button>
+  </div>
+
+  <!-- 1) extensión -->
+  <section class="card" id="extension" hidden>
+    <h2>Sobre el video, en 4 pasos</h2>
+    <p class="lead">Tocá cada botón en orden. Al terminar un paso, marcalo con <b>Hecho</b> y pasá al siguiente.</p>
+    <div class="aviso" id="navAviso" hidden></div>
+    <div class="aviso">⭐ <span><b>Muy pronto en la Chrome Web Store:</b> un clic en «Agregar a Chrome» y listo, sin estos pasos.</span></div>
+    <div class="pasos" id="pasos">
+      <div class="paso" data-p="1"><div class="n"><span>1</span></div>
+        <div><h3>Descargá RiftPulse</h3><p>Abrí el archivo descargado y tocá <b>Extraer todo</b> (en Mac, doble clic). Queda una carpeta llamada <b>RiftPulse</b>.</p></div>
+        <div class="acc"><a class="ib pri" href="riftpulse-extension.zip" download id="bajar">⬇ Descargar</a><button class="ib ok" data-hecho="1">Hecho</button></div></div>
+      <div class="paso" data-p="2"><div class="n"><span>2</span></div>
+        <div><h3>Abrí la página de extensiones</h3><p>Copiá la dirección, pegala en la barra de direcciones de una pestaña nueva y apretá <b>Enter</b>. <span class="copiado" id="copiado"></span></p></div>
+        <div class="acc"><button class="ib pri" id="copiar">📋 Copiar <span id="dir">chrome://extensions</span></button><button class="ib ok" data-hecho="2">Hecho</button></div></div>
+      <div class="paso" data-p="3"><div class="n"><span>3</span></div>
+        <div><h3>Activá el «Modo de desarrollador»</h3><p id="dondeModo">Es el interruptor de <b>arriba a la derecha</b>.</p>
+          <div class="mock">Modo de desarrollador <span class="sw"></span></div></div>
+        <div class="acc"><button class="ib ok" data-hecho="3">Hecho</button></div></div>
+      <div class="paso" data-p="4"><div class="n"><span>4</span></div>
+        <div><h3>Tocá «Cargar descomprimida» y elegí la carpeta RiftPulse</h3><p>Si ya tenías una RiftPulse vieja, tocá <b>Quitar</b> en ella antes.</p>
+          <div class="mock"><span class="bt hl">Cargar descomprimida</span><span class="bt dim">Empaquetar extensión</span><span class="bt dim">Actualizar</span></div></div>
+        <div class="acc"><button class="ib ok" data-hecho="4">Hecho</button></div></div>
+    </div>
+    <div class="listo" id="listo" hidden>
+      <h3>¡Listo! 🎉</h3>
+      <div>Abrí un partido en <a href="https://www.twitch.tv/riotgames" target="_blank" rel="noopener">twitch.tv</a> o <a href="https://lolesports.com" target="_blank" rel="noopener">lolesports.com</a>: RiftPulse aparece solo cuando el juego está en pantalla y se sincroniza con el minuto que ves. Para tener el panel a mano, tocá la pieza de rompecabezas 🧩 de la barra del navegador y fijá RiftPulse 📌.</div>
+    </div>
+    <details><summary>Opcional: que se actualice sola</summary>En la página de extensiones → RiftPulse → <b>Detalles</b>, activá <b>«Permitir scripts de usuario»</b>. Así las mejoras del overlay te llegan sin volver a instalar. El panel ya se actualiza solo siempre.</details>
+    <details><summary>¿Es seguro?</summary>RiftPulse solo trabaja en twitch.tv y lolesports.com, no lee ni envía nada de ninguna cuenta y la lectura del video ocurre en tu compu. El «Modo de desarrollador» solo permite instalar extensiones desde una carpeta; podés apagarlo después. No está afiliada a Riot Games.</details>
+  </section>
+
+  <!-- 2) app -->
+  <section class="card" id="app" hidden>
+    <h2>Como app</h2>
+    <p class="lead">No hay nada que descargar: se abre en el navegador y la podés dejar como un ícono más en tu celu o en tu compu.</p>
+    <div class="pasos">
+      <div class="paso"><div class="n"><span>1</span></div><div><h3>Abrí la app</h3><p>El partido en vivo, el Mundial completo y tu pronóstico.</p></div>
+        <div class="acc"><a class="ib pri" href="app.html">Abrir RiftPulse</a></div></div>
+      <div class="paso"><div class="n"><span>2</span></div><div><h3>Dejala como app</h3><p id="pwaTxt">En el celu: menú del navegador → <b>Agregar a la pantalla de inicio</b>. En iPhone: <b>Compartir</b> → <b>Agregar a inicio</b>.</p></div>
+        <div class="acc"><button class="ib" id="pwa" hidden>📲 Instalar la app</button></div></div>
+    </div>
+  </section>
+
+  <!-- 3) stream -->
+  <section class="card" id="stream" hidden>
+    <h2>Para tu stream</h2>
+    <p class="lead">El overlay se agrega a OBS pegando <b>una sola URL</b> como fuente de navegador, o importando la escena lista. Todo lo explica la página para streamers.</p>
+    <div class="acc" style="justify-content:flex-start"><a class="ib pri" href="./">Ir a RiftPulse para streamers</a><a class="ib" href="analista.html?demo" target="_blank" rel="noopener">Ver la mesa de análisis</a></div>
+  </section>
+
+  <footer>RiftPulse es pronóstico y análisis, sin apuestas. No está avalado por Riot Games. League of Legends y Riot Games son marcas de Riot Games, Inc.</footer>
+</div>
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  // elegir: muestra la sección y la recuerda en la dirección (#extension, #app, #stream)
+  function ver(op) {
+    document.querySelectorAll('.op').forEach(function (b) { b.classList.toggle('on', b.dataset.op === op); b.setAttribute('aria-selected', b.dataset.op === op); });
+    ['extension', 'app', 'stream'].forEach(function (k) { document.getElementById(k).hidden = k !== op; });
+    if (location.hash !== '#' + op) history.replaceState(null, '', '#' + op);
+  }
+  document.querySelectorAll('.op').forEach(function (b) { b.addEventListener('click', function () { ver(b.dataset.op); document.getElementById(b.dataset.op).scrollIntoView({behavior: 'smooth', block: 'start'}); }); });
+  var movil = /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+  ver((location.hash || '').slice(1) in {extension: 1, app: 1, stream: 1} ? location.hash.slice(1) : movil ? 'app' : 'extension');
+
+  // el navegador: la dirección de extensiones y dónde está el interruptor
+  var ua = navigator.userAgent, nav = /Edg\//.test(ua) ? 'edge' : /OPR\//.test(ua) ? 'opera' : navigator.brave ? 'brave' : /Firefox\//.test(ua) ? 'firefox' : /Chrome\//.test(ua) ? 'chrome' : 'otro';
+  var dir = {edge: 'edge://extensions', opera: 'opera://extensions', brave: 'brave://extensions'}[nav] || 'chrome://extensions';
+  $('#dir').textContent = dir;
+  if (nav === 'edge') $('#dondeModo').innerHTML = 'Es el interruptor de la <b>columna de la izquierda</b>, abajo.';
+  var av = $('#navAviso');
+  if (movil) { av.hidden = false; av.classList.add('mal'); av.innerHTML = '📱 <span>La extensión es para la compu. En el celu usá RiftPulse <a href="#app">como app</a>.</span>'; }
+  else if (nav === 'firefox' || nav === 'otro') { av.hidden = false; av.classList.add('mal'); av.innerHTML = '⚠ <span>La extensión funciona en <b>Chrome, Edge, Brave u Opera</b>. En este navegador podés usar RiftPulse <a href="#app">como app</a>.</span>'; }
+  window.addEventListener('hashchange', function () { var h = location.hash.slice(1); if (h in {extension: 1, app: 1, stream: 1}) ver(h); });
+
+  // pasos: cada botón principal marca su paso; «Hecho» también. El progreso queda en este navegador
+  var K = 'rp_instalar';
+  function hechos() { try { return JSON.parse(localStorage.getItem(K) || '[]'); } catch (e) { return []; } }
+  function marcar(n) { var h = hechos(); if (h.indexOf(n) < 0) h.push(n); try { localStorage.setItem(K, JSON.stringify(h)); } catch (e) {} pintar(); }
+  function pintar() {
+    var h = hechos();
+    document.querySelectorAll('.paso[data-p]').forEach(function (p) { p.classList.toggle('hecho', h.indexOf(+p.dataset.p) >= 0); });
+    $('#listo').hidden = h.indexOf(4) < 0;
+  }
+  document.querySelectorAll('[data-hecho]').forEach(function (b) { b.addEventListener('click', function () { marcar(+b.dataset.hecho); }); });
+  $('#bajar').addEventListener('click', function () { marcar(1); });
+  $('#copiar').addEventListener('click', function () {
+    var ok = function () { $('#copiado').textContent = '¡Copiada! Pegala en una pestaña nueva.'; marcar(2); };
+    if (navigator.clipboard) navigator.clipboard.writeText(dir).then(ok, function () { $('#copiado').textContent = 'Escribí ' + dir + ' en la barra de direcciones.'; });
+    else $('#copiado').textContent = 'Escribí ' + dir + ' en la barra de direcciones.';
+  });
+  pintar();
+
+  // instalar como app (cuando el navegador lo permite)
+  var pedido = null;
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); pedido = e; $('#pwa').hidden = false; });
+  $('#pwa').addEventListener('click', function () { if (pedido) { pedido.prompt(); pedido = null; $('#pwa').hidden = true; } });
+})();
+</script>
+</body>
+</html>
