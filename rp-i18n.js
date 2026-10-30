@@ -161,6 +161,19 @@
   };
   // ---- el resto de la app, el sitio, el overlay y OBS (generado desde el código; {} = un valor que cambia: un equipo, un número, un campeón) ----
   var D2 = {
+    "de ganar el juego": "to win the game",
+    "al final": "at the end",
+    "Qué mirar": "What to watch",
+    "Qué cambió": "What changed",
+    "Próximo objetivo": "Next objective",
+    "Densidad": "Density",
+    "Compacto": "Compact",
+    "Completo": "Full",
+    "· la gana": "· won by",
+    "· figura:": "· top player:",
+    "puntos": "points",
+    "solo barra": "bar only",
+    "Solo la barra: sin paneles automáticos ni el de las peleas": "Bar only: no automatic panels and no fight panel",
     "Más opciones": "More options",
     "⏱ Sincronía ·": "⏱ Sync ·",
     "Sincronía ·": "Sync ·",

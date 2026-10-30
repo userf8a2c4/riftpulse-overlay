@@ -70,12 +70,19 @@ module.exports = async function () {
   await p.waitForTimeout(3000);
   const cru = await p.evaluate(() => document.getElementById('iniDetalle').innerText.replace(/\s+/g, ' '));
   ok = chequear('enfrentamiento: muestra los últimos cruces con torneo, fecha y resultado', /Últimos cruces/i.test(cru) && /IG 2\s*–\s*1 LYON/.test(cru) && /Worlds · Fase Suiza/.test(cru) && /2026/.test(cru), cru.slice(cru.search(/Últimos cruces/i), cru.search(/Últimos cruces/i) + 90)) && ok;
-  // la previa del próximo partido en vivo: con un partido cargado (el que se ve), va aparte y no desaparece
+  // la previa del próximo partido: durante un juego en curso no se ve (una sola cosa dominante); sin juego, sí
   await p.evaluate(() => setVista('ahora')); await p.waitForTimeout(2500);
-  const pv = await p.evaluate(() => { const x = document.getElementById('ahProx'); return x ? {vis: !x.hidden, txt: x.innerText.replace(/\s+/g, ' ')} : {vis: false, txt: ''}; });
-  ok = chequear('Ahora: con un partido cargado, la previa del próximo en vivo sigue a la vista', pv.vis && /G2/.test(pv.txt) && /HLE/.test(pv.txt) && /\d\d:\d\d:\d\d/.test(pv.txt) && /Versus histórico/i.test(pv.txt) && /🏆/.test(pv.txt), pv.txt.slice(0, 140)) && ok;
-  await p.evaluate(() => document.querySelector('#ahProx [data-act="h2h"].mx-btn').click()); await p.waitForTimeout(800);
-  ok = chequear('«Ver la previa completa» abre el enfrentamiento', await p.evaluate(() => !document.getElementById('iniDetalle').hidden && /G2/.test(document.getElementById('iniDetalle').textContent))) && ok;
+  const pv = await p.evaluate(() => { const x = document.getElementById('ahProx'); return {vis: !!x && !x.hidden && x.offsetHeight > 0}; });
+  ok = chequear('Ahora: con un juego en curso, la previa del próximo no compite (no se ve)', !pv.vis) && ok;
+  const ah = await p.evaluate(() => { const v = document.getElementById('iniVivo'); return {num: (v.querySelector('.ah-num') || {}).textContent || '', secs: [...v.querySelectorAll('details.ah-sec')].map(d => d.dataset.sec + (d.open ? '+' : '-')), ctx: !!v.querySelector('.ah-ctx')}; });
+  ok = chequear('Ahora: arriba la probabilidad grande y una frase; el resto en secciones plegadas', /^\d+%$/.test(ah.num) && ah.secs.length >= 2 && ah.secs.every(x => x.endsWith('-')) && ah.ctx, JSON.stringify(ah)) && ok;
+  const den = await p.evaluate(async () => { document.querySelector('[data-act="densidad"][data-arg="completo"]').click(); await new Promise(r => setTimeout(r, 600));
+    const abiertas = [...document.querySelectorAll('#iniVivo details.ah-sec')].every(d => d.open);
+    document.querySelector('[data-act="densidad"][data-arg="compacto"]').click(); await new Promise(r => setTimeout(r, 600));
+    const ocultas = [...document.querySelectorAll('#iniVivo details.ah-sec')].every(d => !d.offsetHeight);
+    document.querySelector('[data-act="densidad"][data-arg="normal"]').click(); await new Promise(r => setTimeout(r, 300));
+    return {abiertas, ocultas}; });
+  ok = chequear('densidad: Completo abre todo, Compacto deja solo lo esencial', den.abiertas && den.ocultas, JSON.stringify(den)) && ok;
   // Mando: si deja de verse un partido, se queda con el último (el guion y la lectura no se pierden)
   const mq = await p.evaluate(async () => { setVista('mando'); await new Promise(r => setTimeout(r, 2500));
     const antes = document.getElementById('mxTalk').textContent; MX.s = Object.assign({}, MX.s, {game: null, match: null}); renderMando();

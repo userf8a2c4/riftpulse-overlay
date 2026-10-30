@@ -11,9 +11,10 @@
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
   // v7: los paneles ya no quedan fijos (los muestra el director en su momento) y la barra vuelve a su lugar junto al marcador
   var EXT = (function () {
-    try { var e = JSON.parse(ls('rp_ext7') || 'null'); if (e) return e.filter(function (k) { return k !== 'dano'; }); } catch (e1) {}
-    var v6 = []; try { v6 = JSON.parse(ls('rp_ext6') || '["obj"]') || []; } catch (e2) {}
-    return v6.filter(function (k) { return k === 'obj' || k === 'pg' || k === 'mini'; });
+    try { var e = JSON.parse(ls('rp_ext7') || 'null'); if (e) { e = e.filter(function (k) { return k !== 'dano' && (ls('rp_ext8') || k !== 'obj'); }); ls('rp_ext8', '1'); return e; } } catch (e1) {}
+    var v6 = []; try { v6 = JSON.parse(ls('rp_ext6') || '[]') || []; } catch (e2) {}
+    ls('rp_ext8', '1');
+    return v6.filter(function (k) { return k === 'pg' || k === 'mini'; });
   })();
   var POS = ls('rp_pos7') || 'top';
   var DMG = ls('rp_dmg6') !== '0';  // reparto de daño automático tras cada pelea
@@ -147,6 +148,8 @@
   .w{background:rgba(var(--g1-rgb),.95);border:1px solid rgba(var(--line-rgb),.13);border-radius:12px;box-shadow:0 14px 36px rgba(0,0,0,.6)}.w::after{display:none}\
   .brand{background:none}.brand .bn{font-weight:800;letter-spacing:2px;font-size:13px}\
   .prob2{flex-direction:row;align-items:center;gap:10px}\
+  .tmin{flex-direction:row;align-items:center;gap:7px;font:700 15px var(--ff-display,var(--ff));font-variant-numeric:tabular-nums;letter-spacing:.5px}\
+  .fdot{width:7px;height:7px;border-radius:50%;flex:none;box-shadow:0 0 0 2px rgba(0,0,0,.35)}.fdot.ok{background:#3ddc97}.fdot.warn{background:#f5b700}.fdot.bad{background:#ff4d5e}\
   .prob2 .tm{display:flex;align-items:center;gap:8px}\
   .prob2 .code{font-family:var(--ffd);font-weight:800;font-size:16px;letter-spacing:.8px;line-height:1;padding:5px 9px;border-radius:6px;background:var(--team-a);color:var(--team-a-ink)}\
   .prob2 .tm.b .code{background:var(--team-b);color:var(--team-b-ink)}\
@@ -221,7 +224,7 @@
 
   sh.innerHTML = '<style>' + CSS + TOK + '</style><div class="w" id="w"><div class="mom" id="mom"></div><div class="toast" id="toast"></div><div class="diag" id="diag"></div><div id="body" style="display:inline-flex"></div>' +
     '<div class="ctl" id="ctl"><div class="tl" id="tl"></div><span class="chip" id="autoc" title="Lee el reloj y el marcador del video y se sincroniza solo con el minuto que ves">sincronía automática</span><span class="ast" id="ast"></span><button class="ic" id="diagb" title="Qué está leyendo del video (por si no sincroniza)">?</button><span class="chip" id="langc" title="Idioma / Language"></span>' +
-    '<span class="chip" data-ext="obj" title="El próximo objetivo (dragón, Barón…) y cuánto puede mover la probabilidad">objetivo</span><span class="chip" data-ext="pg" title="Cómo fue cambiando la probabilidad en el juego">trayectoria</span><span class="chip" data-ext="oro" title="Panel: la diferencia de oro minuto a minuto">oro</span><span class="chip" data-ext="imp" title="Panel: las jugadas que más movieron la probabilidad">impacto</span><span class="chip" data-ext="duelos" title="Panel: cómo va cada jugador contra su rival de línea">duelos</span><span class="chip" data-ext="mini" title="Solo los porcentajes, lo más chico posible">mínimo</span>' +
+    '<span class="chip" data-ext="solo" title="Solo la barra: sin paneles automáticos ni el de las peleas">solo barra</span><span class="chip" data-ext="obj" title="El próximo objetivo (dragón, Barón…) y cuánto puede mover la probabilidad">objetivo</span><span class="chip" data-ext="pg" title="Cómo fue cambiando la probabilidad en el juego">trayectoria</span><span class="chip" data-ext="oro" title="Panel: la diferencia de oro minuto a minuto">oro</span><span class="chip" data-ext="imp" title="Panel: las jugadas que más movieron la probabilidad">impacto</span><span class="chip" data-ext="duelos" title="Panel: cómo va cada jugador contra su rival de línea">duelos</span><span class="chip" data-ext="mini" title="Solo los porcentajes, lo más chico posible">mínimo</span>' +
     '<button class="ic" id="posbtn" title="Volver a su lugar (debajo del marcador o arriba de las estadísticas)">↑↓</button><span class="man"><button class="ic" data-d="-5" title="Atrasar el overlay 5 segundos">−</button><button class="ic" data-d="5" title="Adelantar el overlay 5 segundos">+</button>' +
     '<span class="syncg" title="Escribí el minuto del juego que ves en el stream y tocá ⟲ (o Enter) para clavar el overlay a ese momento">minuto <input id="scm" placeholder="mm:ss" maxlength="5"><button class="ic" id="syncb" title="Sincronizar al minuto que escribiste">⟲</button> va <span class="gt" id="gtnow">—</span></span></span><button class="ic" id="ocub" title="Ocultar RiftPulse (Alt+R lo vuelve a mostrar)">✕</button></div></div>';
   sh2.innerHTML = '<style>' + CSS + TOK + '</style><div class="col" id="cards"><div id="previa" style="display:contents"></div><div id="pausa" style="display:contents"></div><div class="dmg" id="dmg"></div><div id="cardsx" style="display:contents"></div></div>';
@@ -292,7 +295,7 @@
     return CHV && CHV !== 'cargando' ? '<img class="fc" src="https://ddragon.leagueoflegends.com/cdn/' + CHV + '/img/champion/' + encodeURIComponent(id) + '.png" alt="">' : '<span class="fc"></span>';
   }
   function showFight(s) {
-    if (!DMG) return;
+    if (!DMG || EXT.indexOf('solo') >= 0) return;
     var f = s.game && s.game.fight;
     if (!f || f.gt == null || !f.blue || !f.red || f.kb == null) return;
     if (f.gt === lastFightGt) return;  // ya mostrada
@@ -431,7 +434,7 @@
       return;
     }
     var m = s.match, g = s.game;
-    var html = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div>';
+    var html = '<div class="seg brand" title="RiftPulse">' + LOGO + '</div>';
 
     if (!g || g.pBlue == null) {
       html += '<div class="mini"><span class="k">' + ((g && g.waiting) ? 'Cargando el juego' : 'Selección de campeones') + '</span><span class="b">' + esc(m.blue.code) + '</span><span class="k">vs</span><span class="r">' + esc(m.red.code) + '</span></div>';
@@ -460,10 +463,15 @@
     if (EXT.indexOf('pg') >= 0) {
       html += '<div class="seg spark">' + miniSpark(g.samples || []) + '<div style="display:flex;flex-direction:column"><span class="sl">trayectoria</span><span class="sv">' + esc(pb >= pr ? m.blue.code : m.red.code) + ' ' + Math.max(pb, pr) + '%</span></div></div>';
     }
-    html += fdo;  // el estado de los datos (retrasados, caídos), solo si hace falta
+    // el minuto y un punto con el estado de los datos (verde: al día · ámbar: retrasados o en pausa · rojo: caídos); el texto,
+    // solo cuando hay un problema (nunca se esconde que los datos vienen mal)
+    var est = s.feed ? s.feed.estado : 'ok', dot = est === 'caido' ? 'bad' : (est === 'retrasado' || (est === 'pausa' && !corre)) ? 'warn' : 'ok';
+    html += '<div class="seg tmin"><span class="fdot ' + dot + '" title="' + esc(s.feed ? s.feed.txt : '') + '"></span><span class="tmv"></span></div>';
+    html += fdo;
     html += segProximo();
 
     if (html !== bodySig) { bodySig = html; body.innerHTML = html; if (window.RPUI) RPUI.numeros(body); tickPrevia(); }
+    minutoBarra(g.gt);
     pintarTL(s);
     hist.push({t: Date.now(), p: g.pBlue}); checkMomentum(s); showFight(s);
   }
@@ -536,7 +544,15 @@
     var x = Math.floor(ms / 1000), p = function (n) { return (n < 10 ? '0' : '') + n; };
     return (x >= 86400 ? Math.floor(x / 86400) + 'd ' : '') + p(Math.floor(x % 86400 / 3600)) + ':' + p(Math.floor(x % 3600 / 60)) + ':' + p(x % 60);
   }
-  function tickPrevia() { [sh, sh2].forEach(function (r) { r.querySelectorAll('[data-start]').forEach(function (x) { var t = relojTxt(x.getAttribute('data-start')); if (x.textContent !== t) x.textContent = t; }); }); }
+  // el minuto de la barra: el del reloj que se ve en pantalla (si está sincronizado), si no el de los datos. Se escribe aparte
+  // (cada segundo) para no redibujar la barra
+  function minutoBarra(gtDatos) {
+    var tmv = body.querySelector('.tmv'); if (!tmv || typeof AS === 'undefined') return;
+    var v = video(), gt = AS.id && AS.off != null && v && !AS.pausa ? AS.off + v.currentTime : AS.pausa ? AS.pausa.gt : gtDatos != null ? gtDatos : LAST && LAST.game ? LAST.game.gt : null;
+    var mt = gt != null ? mmss(Math.max(0, gt)) : ''; if (tmv.textContent !== mt) tmv.textContent = mt;
+  }
+  function tickPrevia() {
+    minutoBarra(); [sh, sh2].forEach(function (r) { r.querySelectorAll('[data-start]').forEach(function (x) { var t = relojTxt(x.getAttribute('data-start')); if (x.textContent !== t) x.textContent = t; }); }); }
   setInterval(tickPrevia, 1000);
   function enContexto() { return !!(AS.vistoAlguna || enLolesports() || esStreamDeLoL()); }
   async function pedirPrevia() {
@@ -563,7 +579,7 @@
   // al que se está jugando); al tocarlo se abre la previa
   function segProximo() {
     var d = PRV.d, vivo = !esVod();
-    if (!d || (vivo && !(AS.id && AS.id.live)) || (AS.id && d.matchId === AS.id.matchId) || (!d.vivo && Date.parse(d.start) - Date.now() > 24 * 3600e3)) return '';
+    if (!d || vivo || (AS.id && d.matchId === AS.id.matchId) || (!d.vivo && Date.parse(d.start) - Date.now() > 3600e3)) return '';
     return '<div class="seg prox" title="La previa del próximo partido en vivo"><span class="sl">' + (d.vivo ? (vivo ? '● también en vivo' : '● en vivo ahora') : (vivo ? 'el próximo en' : 'en vivo en')) + '</span><span class="sv">' +
       (d.vivo ? '' : '<b data-start="' + esc(d.start) + '"></b> · ') + '<span class="b">' + esc(d.codes[0]) + '</span> vs <span class="r">' + esc(d.codes[1]) + '</span></span></div>';
   }
@@ -590,7 +606,7 @@
   var cardsSig = '', bodySig = '';
   function tarjetas(s) {
     var h = '';
-    if (s && s.game && s.game.pBlue != null) {
+    if (s && s.game && s.game.pBlue != null && EXT.indexOf('solo') < 0) {
       if (EXT.indexOf('oro') >= 0) h += grafOro(s);
       if (EXT.indexOf('imp') >= 0) h += grafImpacto(s);
       if (EXT.indexOf('duelos') >= 0) h += grafDuelos(s);

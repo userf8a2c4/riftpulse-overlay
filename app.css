@@ -613,3 +613,18 @@ a.idet-pl{color:inherit;text-decoration:none;border-radius:10px;transition:backg
 @media (max-width:700px){.brand-t{display:none}header.top{grid-template-columns:auto 1fr auto}nav.tabs{justify-self:center}.hstat{grid-column:1 / -1;justify-content:flex-end}}
 header.top{position:relative;z-index:40}
 @media (max-width:520px){nav.tabs{flex-wrap:nowrap}nav.tabs button{padding:6px 10px;font-size:12.5px}header.top{gap:8px;padding:8px 10px}}
+
+/* «Ahora»: lo dominante arriba (probabilidad grande, minuto y una frase), lo demás plegable; densidad Compacto/Normal/Completo */
+.ah-big{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:10px 0 6px}
+.ah-pct{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.ah-pct b{font-size:20px}.ah-num{font-family:var(--ff-display);font-size:44px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.ah-big .hero-clock{margin:0}
+.ah-ctx{margin:10px 0 4px;font-size:14px;line-height:1.4}.ah-ctx .ah-k{display:inline-block;margin-right:4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.ah-fight{margin:10px 0 2px;padding:9px 12px;border-radius:10px;border:1px solid rgba(var(--signal-rgb),.5);background:rgba(var(--signal-rgb),.1);font-size:13.5px;animation:ahIn .35s ease-out}
+@keyframes ahIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+details.ah-sec{border-top:1px solid var(--line);margin-top:8px}details.ah-sec>summary{list-style:none;cursor:pointer;padding:9px 2px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);display:flex;align-items:center;gap:6px}
+details.ah-sec>summary::-webkit-details-marker{display:none}details.ah-sec>summary::before{content:'▸';transition:transform .15s}details.ah-sec[open]>summary::before{transform:rotate(90deg)}
+details.ah-sec>summary:hover{color:var(--text)}.ah-sb{padding:2px 2px 8px}
+#ahHist details.ah-sec{border-top:0;margin-top:0}
+body[data-densidad="compacto"] details.ah-sec,body[data-densidad="compacto"] #ahHist,body[data-densidad="compacto"] #ahFav,body[data-densidad="compacto"] #ahPron{display:none}
+.hden{display:flex;align-items:center;gap:4px;flex-wrap:wrap}.hden .pm{width:100%;margin-bottom:2px}.hden .hbtn{flex:1;text-align:center;padding:5px 6px}
+.ahora>[hidden]{display:none!important}

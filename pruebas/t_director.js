@@ -11,15 +11,15 @@ module.exports = async function () {
   // ---- 1) el motor del director, con un juego de 29 min simulado segundo a segundo ----
   const R = await p.evaluate(() => {
     const real = Date.now; let T = 1e12; Date.now = () => T;
-    function correr(nivel) {
-      const D = RiftEngine.crearDirector(nivel), tramos = [], giros = []; let cur = null, ug = null;
+    function correr(nivel, imp) {
+      const D = RiftEngine.crearDirector(nivel), tramos = [], giros = []; let cur = null, ug = null; if (imp == null) imp = 8;
       for (let gt = 60; gt <= 1790; gt++) {
         T = 1e12 + gt * 1000;
         let pb = 0.52 + (gt - 60) * 0.00002;
         if (gt >= 900) pb = Math.max(0.2, 0.55 - (gt - 900) / 15 * 0.35);   // giro fuerte a favor de LYON en el min 15
         const drag = Math.ceil((gt + 1 - 30) / 300) * 300 + 30, baron = gt < 1200 ? 1200 : 1560;
         const g = {id: 'g1', gt, pBlue: pb, timers: {dragon: {at: drag}, baron: gt >= 1200 ? {at: baron} : null},
-          fight: gt >= 700 ? {gt: 700} : null, ended: gt >= 1750, recap: gt >= 1750 ? {code: 'LYON'} : null,
+          fight: gt >= 700 ? {gt: 700, kb: 3, kr: 2} : null, impact: {blue: imp, red: 2}, ended: gt >= 1750, recap: gt >= 1750 ? {code: 'LYON'} : null,
           comeback: pb > 0.55 ? {side: 'red', code: 'LYON', p: 1 - pb, paths: [{txt: 'Barón', p: 0.5}]} : pb < 0.45 ? {side: 'blue', code: 'IG', p: pb, paths: [{txt: 'Barón', p: 0.4}]} : null};
         const d = D.decidir({match: {blue: {code: 'IG'}, red: {code: 'LYON'}}, game: g});
         if (D.giro && D.giro.clave !== ug) { ug = D.giro.clave; giros.push(gt); }
@@ -29,7 +29,7 @@ module.exports = async function () {
       if (cur) cur.fin = 1790;
       return {tramos: tramos.map(t => ({pieza: t.pieza, ini: t.ini, fin: t.fin})), giros};
     }
-    const out = {minimo: correr('minimo'), estandar: correr('estandar'), show: correr('show')};
+    const out = {minimo: correr('minimo'), estandar: correr('estandar'), show: correr('show'), poco: correr('estandar', 2)};
     // el giro sale aunque haya una pieza grande en pantalla
     T = 3e12; const D2 = RiftEngine.crearDirector('estandar'), st = p => ({match: {blue: {code: 'IG'}, red: {code: 'LYON'}}, game: {id: 'x', gt: 700, pBlue: p, timers: {}}});
     D2.decidir(st(0.5)); D2.forzar('oro', 120); T += 40e3; D2.decidir(st(0.75));
@@ -58,10 +58,12 @@ module.exports = async function () {
   ok = chequear('estándar: «para remontar» aparece después del giro', en('remontada', 905, 1000)) && ok;
   ok = chequear('estándar: el resumen aparece al terminar', en('resumen', 1750, 1765)) && ok;
   let solapa = 0, sinRespiro = 0;
-  for (const t of [R.minimo.tramos, E, R.show.tramos]) for (let i = 1; i < t.length; i++) { if (t[i].ini < t[i - 1].fin) solapa++; if (t[i].ini - t[i - 1].fin < 6) sinRespiro++; }
+  for (const t of [R.minimo.tramos, E, R.show.tramos]) for (let i = 1; i < t.length; i++) { if (t[i].ini < t[i - 1].fin) solapa++; if (t[i].ini - t[i - 1].fin < 20) sinRespiro++; }
   ok = chequear('nunca dos piezas a la vez', solapa === 0, solapa + ' solapadas') && ok;
-  ok = chequear('siempre un respiro de 6 s entre piezas', sinRespiro === 0, sinRespiro + ' sin respiro') && ok;
-  ok = chequear('mínimo: solo las alertas de giro, sin piezas grandes', R.minimo.tramos.length === 0 && R.minimo.giros.length > 0, R.minimo.giros.length + ' alertas') && ok;
+  ok = chequear('siempre un respiro de 20 s entre piezas (la transmisión respira)', sinRespiro === 0, sinRespiro + ' sin respiro') && ok;
+  ok = chequear('mínimo: solo la pelea 5v5 que importa (y las alertas de giro)', R.minimo.tramos.length >= 1 && R.minimo.tramos.every(t => t.pieza === 'pelea') && R.minimo.giros.length > 0, piezas(R.minimo.tramos).join(', ')) && ok;
+  ok = chequear('estándar: un objetivo que mueve poco (2 puntos) no aparece', !R.poco.tramos.some(t => t.pieza === 'objetivo'), piezas(R.poco.tramos).join(', ')) && ok;
+  ok = chequear('estándar: sin la historia fija del minuto 20 (queda para «show»)', !E.some(t => t.pieza === 'historia')) && ok;
   ok = chequear('show: además el oro y los duelos', piezas(R.show.tramos).includes('oro') && piezas(R.show.tramos).includes('duelos'), R.show.tramos.length + ' piezas') && ok;
   ok = chequear('pelea en equipo 5v5: se arma con el K/D/A de la pelea y quién la ganó', R.pelea.cinco && R.pelea.cinco.win === 'blue' && R.pelea.cinco.kda === '1/0/1' && R.pelea.cinco.dsh === 5, JSON.stringify(R.pelea.cinco)) && ok;
   ok = chequear('una pelea chica (2v2) no cuenta como pelea en equipo', R.pelea.dos === null, JSON.stringify(R.pelea.dos)) && ok;

@@ -46,13 +46,13 @@ module.exports = async function () {
   const q = await c2.newPage(); await q.goto(BASE + 'app.html'); await q.waitForTimeout(4500);
   ok = chequear('celular: «Ahora» compacto (sin las condiciones de victoria) y sin desborde', await q.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1 && [...document.querySelectorAll('#iniVivo .wincond')].every(e => !e.offsetHeight))) && ok;
   await c2.close();
-  // ---- extensión: cero preguntas. Arranca sola con la barra y el próximo objetivo ----
+  // ---- extensión: cero preguntas. Arranca sola con la barra mínima ----
   const c3 = await b.newContext({viewport: {width: 1500, height: 900}}); await montar(c3, {video: 'correr.webm'});
   const e = await c3.newPage(); e.on('pageerror', x => errores.push(x.message)); await e.goto('https://www.twitch.tv/videos/1');
   await e.addScriptTag({content: fs.readFileSync(path.join(RAIZ, 'engine.js'), 'utf8')}); await e.addScriptTag({content: fs.readFileSync(path.join(RAIZ, 'ext-overlay.js'), 'utf8')});
   await e.waitForTimeout(2500);
   const ini = await e.evaluate(() => { const sh = document.getElementById('rp-overlay-host').shadowRoot; return {pregunta: !!sh.querySelector('.bv'), obj: !!sh.querySelector('.chip.on[data-ext="obj"]')}; });
-  ok = chequear('extensión: no pregunta nada y arranca con la barra y el próximo objetivo', !ini.pregunta && ini.obj, JSON.stringify(ini)) && ok;
+  ok = chequear('extensión: no pregunta nada y arranca con la barra mínima (el objetivo lo muestra el director cuando importa)', !ini.pregunta && !ini.obj, JSON.stringify(ini)) && ok;
   ok = chequear('sin errores de JavaScript', !errores.length, errores.slice(0, 3).join(' | ')) && ok;
   await b.close(); return ok;
 };

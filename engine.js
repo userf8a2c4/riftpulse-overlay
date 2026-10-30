@@ -1367,23 +1367,27 @@
       if (D.actual && D.actual.datos && D.actual.datos.manual && ahora < D.actual.hasta) return D.actual;  // lo pedido a mano manda
       if (!enJuego) { D.actual = null; return null; }
       if (D.actual && ahora < D.actual.hasta) return D.actual;
-      if (D.actual) { D.actual = null; D.libreDesde = ahora + 6000; }  // respiro entre piezas
+      if (D.actual) { D.actual = null; D.libreDesde = ahora + 20000; }  // respiro entre piezas: la transmisión respira
       if (ahora < D.libreDesde) return null;
       // 1) resumen al terminar el juego
       if (N() >= 1 && g.ended && g.recap && !D.visto['fin' + g.id]) return poner('resumen', 'fin' + g.id, 20, {txt: g.recap.code + ' gana'});
       // 3) pelea recién terminada: reparto de daño
-      if (N() >= 1 && g.fight && g.fight.gt != null && g.gt - g.fight.gt < 40 && !D.visto['pelea' + g.fight.gt]) return poner('pelea', 'pelea' + g.fight.gt, 30, {txt: 'pelea'});  // 30 s, como en el overlay del video
+      // (también en el nivel mínimo: es lo único que aparece ahí). Solo una pelea que importa: 4 kills o más, o que movió la
+      // probabilidad 5 puntos o más
+      var F = g.fight, pesa = F && ((F.kb || 0) + (F.kr || 0) >= 4 || (F.p0 != null && F.p1 != null && Math.abs(F.p1 - F.p0) >= 0.05));
+      if (F && F.gt != null && pesa && g.gt - F.gt < 40 && !D.visto['pelea' + F.gt]) return poner('pelea', 'pelea' + F.gt, D.segPelea || 30, {txt: 'pelea'});
       // 4) objetivo por aparecer (60 s antes): cuánto vale para cada equipo
       var t = g.timers || {}, ob = t.dragon && t.dragon.at > g.gt ? {k: t.dragon.elder ? 'Ancestral' : 'Dragón', at: t.dragon.at} : null;
       if (t.baron && t.baron.at > g.gt && (!ob || t.baron.at < ob.at)) ob = {k: 'Barón', at: t.baron.at};
-      if (N() >= 1 && ob && ob.at - g.gt <= 60 && !D.visto['obj' + ob.k + Math.round(ob.at)]) return poner('objetivo', 'obj' + ob.k + Math.round(ob.at), Math.min(20, Math.max(8, ob.at - g.gt)), {txt: ob.k});
+      var vale = g.impact ? Math.max(Math.abs(g.impact.blue || 0), Math.abs(g.impact.red || 0)) : 0;  // puntos que mueve el objetivo
+      if (N() >= 1 && ob && ob.at - g.gt <= 60 && (vale >= 6 || N() >= 2) && !D.visto['obj' + ob.k + Math.round(ob.at)]) return poner('objetivo', 'obj' + ob.k + Math.round(ob.at), Math.min(20, Math.max(8, ob.at - g.gt)), {txt: ob.k});
       // 5) un equipo muy abajo (30 % o menos, desde el min 10): qué necesita para volver
       var cb = g.comeback;
       if (N() >= 1 && cb && cb.p <= 0.30 && g.gt >= 600 && cb.paths && cb.paths[0] && !D.visto['rem' + g.id + cb.side]) return poner('remontada', 'rem' + g.id + cb.side, 12, {txt: cb.code + ' ' + Math.round(cb.p * 100) + '%'});
       // 6) nivel show: el oro o los duelos cada ~4 min de juego
       if (N() >= 2 && g.gt - D.ultimoShow >= 240 && g.gt > 300) { D.ultimoShow = g.gt; var dd = ['oro', 'duelos', 'historia'][Math.floor(g.gt / 240) % 3]; return poner(dd, dd + Math.round(g.gt), dd === 'historia' ? 14 : 12, {txt: dd}); }
       // 7) a mitad del juego (min 20), una vez: la historia hasta ahí
-      if (N() >= 1 && g.gt >= 1200 && g.gt < 1500 && !D.visto['hist' + g.id]) { D.visto['hist' + g.id] = true; return poner('historia', 'hist' + g.id, 14, {txt: 'min 20'}); }
+      if (N() >= 2 && g.gt >= 1200 && g.gt < 1500 && !D.visto['hist' + g.id]) { D.visto['hist' + g.id] = true; return poner('historia', 'hist' + g.id, 14, {txt: 'min 20'}); }
       return null;
     };
     D.saltar = function () { if (D.actual) { D.actual.hasta = 0; } };

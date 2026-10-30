@@ -1965,8 +1965,8 @@ function renderAhora() {
   const porque = mi && novato() ? `<span class="ah-why">${/Bar/.test(mi.obj) ? 'Por qué importa: el Barón da un refuerzo a todo el equipo para empujar y cerrar el juego.' : /Ancestral/.test(mi.obj) ? 'Por qué importa: el Ancestral da un refuerzo muy fuerte que suele decidir el juego.' : 'Por qué importa: cada dragón es una mejora para siempre, y con 4 llega el alma.'}</span>` : '';
   const mir = mi ? `<b>${esc(tr(mi.obj))}</b> ${mi.vivo ? L('ya está en el mapa', 'is already on the map') : `${L('en', 'in')} <b>${mmss(mi.en)}</b>`}${mi.impacto ? `: ${L('si lo toma', 'if')} <b class="b">${esc(m.blue.code)}</b> ${L('', 'takes it ')}${mi.impacto.blue >= 0 ? '+' : ''}${mi.impacto.blue}, ${L('si lo toma', 'if')} <b class="r">${esc(m.red.code)}</b> ${L('', 'takes it ')}${mi.impacto.red >= 0 ? '+' : ''}${mi.impacto.red} ${L('puntos', 'points')}` : ''}.${mi.mejor ? ` ${L('Llega mejor', 'Better placed:')} <b class="${sc(mi.mejor)}">${esc(mi.code)}</b> (${mi.por.map(x => esc(tr(x.txt))).join(L(' y ', ' and '))}).` : ''}${porque}` : L('Sin objetivos grandes a la vista.', 'No big objectives in sight.');
   const chg = cb ? `<div class="ah-chg">${cb.dp ? `<span><b class="${sc(cb.dp > 0 ? 'blue' : 'red')}">${esc(cb.dp > 0 ? m.blue.code : m.red.code)} +${Math.abs(cb.dp)}</b> puntos</span>` : '<span>±0 puntos</span>'}${cb.items.map(x => `<span><b class="${sc(x.side)}">${esc(x.code)}</b> ${esc(x.txt)}</span>`).join('')}</div>` : '<div class="ah-v pm">Aparece después del primer minuto que mirás.</div>';
-  pon(box, `<div class="ah-h"><div><h2>La historia del juego</h2>${hi.length ? `<ol class="ah-ol">${hi.map(x => `<li>${x.html}</li>`).join('')}</ol>` : '<div class="pm">Se escribe sola a medida que avanza el juego.</div>'}</div>
-    <div><div class="ah-k">Qué mirar ahora</div><div class="ah-v">${mir}</div><div class="ah-k">Qué cambió en el último minuto</div>${chg}</div></div>`);
+  pon(box, secAh('hist', 'La historia del juego', `<div class="ah-h"><div>${hi.length ? `<ol class="ah-ol">${hi.map(x => `<li>${x.html}</li>`).join('')}</ol>` : '<div class="pm">Se escribe sola a medida que avanza el juego.</div>'}</div>
+    <div><div class="ah-k">Qué mirar ahora</div><div class="ah-v">${mir}</div><div class="ah-k">Qué cambió en el último minuto</div>${chg}</div></div>`));
 }
 // Probabilidad de ganar la serie según la fuerza (Elo), sin lado del mapa.
 function probSerie(a, b, bo) {
@@ -2232,6 +2232,29 @@ function tarjetaProximo(P, compacta) {
     <div class="pk2" style="margin-top:8px">${L('Versus histórico', 'Head-to-head history')}</div>${vs}
     <div class="mx-row" style="margin-top:10px"><button class="mx-btn" data-act="h2h" data-arg="${h2hArg}">${L('Ver la previa completa', 'See the full preview')}</button>${P.vivo || Date.parse(P.start) - Date.now() < 15 * 60e3 ? `<a class="mx-btn on" href="https://lolesports.com/live" target="_blank" rel="noopener">${L('Ver en vivo', 'Watch live')}</a>` : ''}</div>`;
 }
+// ---------- «Ahora»: secciones plegables (se recuerda cuáles abrió el usuario) y densidad ----------
+const densidad = () => store('densidad') || 'normal';
+function secAh(k, titulo, cuerpo) {
+  const ab = densidad() === 'completo' || store('sec_' + k) === '1';
+  return `<details class="ah-sec" data-sec="${k}"${ab ? ' open' : ''}><summary>${esc(titulo)}</summary><div class="ah-sb">${cuerpo}</div></details>`;
+}
+document.addEventListener('toggle', e => { const d = e.target; if (d && d.matches && d.matches('details.ah-sec') && densidad() !== 'completo') store('sec_' + d.dataset.sec, d.open ? '1' : '0'); }, true);
+function pintarDensidad() { document.body.dataset.densidad = densidad(); document.querySelectorAll('[data-act="densidad"]').forEach(b => b.classList.toggle('on', b.dataset.arg === densidad())); }
+// una sola frase de contexto: qué cambió (si el último minuto movió 3 puntos o más) o, si no, qué mirar
+function ctxAhora() {
+  const s = MX.s; if (!s || !s.match || !s.game || s.game.pBlue == null || !M || s.match.id !== M.id || !window.RiftEngine) return '';
+  const m = s.match, cbm = RiftEngine.cambio(s), mi = RiftEngine.mirar(s);
+  if (cbm && Math.abs(cbm.dp || 0) >= 3) return `<div class="ah-ctx"><span class="ah-k">Qué cambió</span> <b class="${cbm.dp > 0 ? 'b' : 'r'}">${esc(cbm.dp > 0 ? m.blue.code : m.red.code)} +${Math.abs(cbm.dp)}</b> puntos${cbm.items && cbm.items[0] ? ' · ' + esc(String(cbm.items[0].txt || cbm.items[0]).replace(/<[^>]+>/g, '')) : ''}</div>`;
+  if (mi) return `<div class="ah-ctx"><span class="ah-k">Qué mirar</span> <b>${esc(tr(mi.obj))}</b> ${mi.vivo ? L('ya está en el mapa', 'is already on the map') : L('en', 'in') + ' <b>' + mmss(mi.en) + '</b>'}</div>`;
+  return '';
+}
+// la pelea en equipo recién terminada: destacada, 30 s de juego y se va (nunca fija)
+function peleaAhora() {
+  const s = MX.s, F = s && s.game && s.game.fight; if (!F || F.gt == null || !M || !s.match || s.match.id !== M.id || s.game.gt - F.gt > 30 || s.game.gt < F.gt) return '';
+  const w = F.win, gana = w ? s.match[w].code : null, todos = (w ? F[w] : F.blue.concat(F.red)) || [];
+  const fig = todos.slice().sort((a, b) => (b.k * 2 + b.a) - (a.k * 2 + a.a))[0];
+  return `<div class="ah-fight">⚔ <b>Pelea en equipo</b> · <b class="b">${esc(s.match.blue.code)}</b> ${F.kb}–${F.kr} <b class="r">${esc(s.match.red.code)}</b>${gana ? ` · la gana <b>${esc(gana)}</b>` : ''}${fig ? ` · figura: <b>${esc(fig.name)}</b> (${fig.k}/${fig.d}/${fig.a})` : ''}</div>`;
+}
 function renderInicio() {
   if ($('#vistaAhora').hidden) return;
   if (!CB.loaded && !CB.loading) crystalBall();  // carga la Bola de Cristal (se cachea)
@@ -2246,26 +2269,26 @@ function renderInicio() {
     if (G.t.dragon) tim.push(`${G.t.dragon.elder ? 'Ancestral' : 'Dragón'} ${G.t.dragon.at > gt ? 'en ' + mmss(G.t.dragon.at - gt) : 'disponible'}`);
     tim.push('Barón ' + (G.t.baron ? (G.t.baron.at > gt ? 'en ' + mmss(G.t.baron.at - gt) : 'disponible') : 'sin tomar'));
     const favSide = G.pre && G.pre.elo ? (G.pre.p >= 0.5 ? 'blue' : 'red') : null;
-    const wc = G.pre && G.draft ? `<div class="pk2">Condiciones de victoria</div><div class="wincond">
+    const wc = G.pre && G.draft ? `<div class="wincond">
         <div><b class="b">${esc(cb)}</b><ul>${winConditions(G.draft, 'blue', favSide).map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
         <div><b class="r">${esc(cr)}</b><ul>${winConditions(G.draft, 'red', favSide).map(x => `<li>${esc(x)}</li>`).join('')}</ul></div></div>` : '';
     const pp = baronPlay(gt);
-    h += `<div class="iv-top">${logoT(A)}<b>${esc(A.code)}</b><span class="iv-sc">${(ev0 => ev0 && tapado(ev0) ? 'vs' : ((A.result || {}).gameWins ?? 0) + ' – ' + ((B.result || {}).gameWins ?? 0))(schedule.find(x => x.match && x.match.id === M.id))}</span><b>${esc(B.code)}</b>${logoT(B)}
+    // arriba, lo dominante: los equipos, la probabilidad grande, el minuto y una sola frase; debajo, secciones plegables
+    const serieTxt = (ev0 => ev0 && tapado(ev0) ? 'vs' : ((A.result || {}).gameWins ?? 0) + ' – ' + ((B.result || {}).gameWins ?? 0))(schedule.find(x => x.match && x.match.id === M.id));
+    const pB = Math.round(G.wp.p * 100), lider = pB >= 50 ? 'blue' : 'red';
+    h += `<div class="iv-top">${logoT(A)}<b>${esc(A.code)}</b><span class="iv-sc">${serieTxt}</span><b>${esc(B.code)}</b>${logoT(B)}
         <span class="badge ${G.ended ? 'end' : 'live'}">${G.ended ? 'TERMINADO' : 'EN VIVO'}</span><span class="pm">· ${esc(M.block || '')} · Juego ${n}</span></div>
-      <div class="hero-clock"><span class="hc-t" id="iniReloj">${mmss(gt)}</span><span class="hc-l">${G.ended ? 'tiempo final del juego' : '⏱ tiempo de juego · sincronizado con el stream'}</span></div>
-      <div class="hero-grid">
-        <div>
-          <div class="betrow"><span>${G.ended ? 'Al final' : 'Ahora'}</span>${predBar(G.wp.p, cb, cr)}</div>
-          <div class="betrow betrow-xs"><span class="pm">Antes del juego</span>${G.pre ? predBar(G.pre.p, cb, cr, true) : '<div class="probbar sm"></div>'}</div>
-          ${wc}
-        </div>
-        <div>
-          <div class="iv-st">Kills <b>${b.totalKills}–${r.totalKills}</b> · Oro <b class="${gd >= 0 ? 'b' : 'r'}">${esc(gd >= 0 ? cb : cr)} +${k1(Math.abs(gd))}</b></div>
+      <div class="ah-big"><div class="ah-pct"><b class="${lider[0]}">${esc(code(lider))}</b> <span class="ah-num">${Math.max(pB, 100 - pB)}%</span><span class="pm">${G.ended ? 'al final' : 'de ganar el juego'}</span></div>
+        <div class="hero-clock"><span class="hc-t" id="iniReloj">${mmss(gt)}</span></div></div>
+      ${predBar(G.wp.p, cb, cr)}
+      ${ctxAhora()}
+      ${peleaAhora()}
+      ${secAh('marcador', 'Marcador', `<div class="iv-st">Kills <b>${b.totalKills}–${r.totalKills}</b> · Oro <b class="${gd >= 0 ? 'b' : 'r'}">${esc(gd >= 0 ? cb : cr)} +${k1(Math.abs(gd))}</b></div>
           <div class="iv-st">Torres <b>${b.towers}–${r.towers}</b> · Dragones <b>${b.dragons.length}–${r.dragons.length}</b> · Barones <b>${b.barons}–${r.barons}</b></div>
-          <div class="iv-st pm">${oi('baron', 13)} ${esc(tim.join(' · '))}</div>
-          ${pp ? `<div class="iv-pp"><span class="${pp.side[0]}">${oi('baron', 13)} Powerplay ${esc(code(pp.side))}: ${esc(pp.gold)}</span>${pp.chips.length ? ` <span class="pm">· ${esc(pp.chips.join(' · '))}</span>` : ''}</div>` : ''}
-        </div>
-      </div>
+          <div class="betrow betrow-xs"><span class="pm">Antes del juego</span>${G.pre ? predBar(G.pre.p, cb, cr, true) : '<div class="probbar sm"></div>'}</div>`)}
+      ${secAh('obj', 'Próximo objetivo', `<div class="iv-st pm">${oi('baron', 13)} ${esc(tim.join(' · '))}</div>
+          ${pp ? `<div class="iv-pp"><span class="${pp.side[0]}">${oi('baron', 13)} Powerplay ${esc(code(pp.side))}: ${esc(pp.gold)}</span>${pp.chips.length ? ` <span class="pm">· ${esc(pp.chips.join(' · '))}</span>` : ''}</div>` : ''}`)}
+      ${wc ? secAh('wc', 'Condiciones de victoria', wc) : ''}
       ${go('partido', '▾ Ver los detalles del juego', true)}`;
   } else if (M) {
     const g = G ? (M.games.find(x => x.id === G.id) || {}) : {};
@@ -2291,7 +2314,7 @@ function renderInicio() {
   } else h += `<div class="pm">No hay partido en vivo. ${esc(nextText())}</div>`;
   setHtml('#iniVivo', h);
   // con un partido cargado (un VOD que se sigue, u otro juego), la previa del próximo en vivo va aparte y no desaparece
-  const px = $('#ahProx'), conPrevia = !!(M && PREV && PREV.matchId !== M.id);
+  const enJuego = !!(M && G && G.meta && !G.ended), px = $('#ahProx'), conPrevia = !!(M && PREV && PREV.matchId !== M.id && !enJuego);
   if (px) { px.hidden = !conPrevia; if (conPrevia) setHtml('#ahProx', tarjetaProximo(PREV, true)); }
   tickReloj();
   // Bola de Cristal: campeón más elegido, mejor % de victorias y jugador con mejor KDA (de los juegos ya jugados).
@@ -2537,6 +2560,7 @@ document.addEventListener('click', e => {
   const a = e.target.closest('[data-act]'); if (!a) return;
   const act = a.dataset.act, arg = a.dataset.arg;
   if (act === 'vista') setVista(arg);
+  else if (act === 'densidad') { store('densidad', arg); pintarDensidad(); renderInicio(); renderAhora(); }
   else if (act === 'novato') { store('novato', novato() ? '0' : '1'); pintarNovato(); renderInicio(); renderAhora(); renderCuadro();
     status(novato() ? '📘 Los términos subrayados tienen una explicación: tocalos o pasá el mouse.' : 'Ayudas apagadas.', false, 5000); }
   else if (act === 'glo') status('📘 ' + arg, false, 9000);
@@ -2622,6 +2646,7 @@ const mxSc = side => side === 'blue' ? 'b' : 'r';
 // dentro del panel de la extensión la app llega desde la web (?ext=1): las órdenes pasan al panel por mensaje
 const mxEmb = window.parent !== window && /[?&]ext=1/.test(location.search);
 if (mxEmb && document.getElementById('instBtn')) document.getElementById('instBtn').hidden = true;
+pintarDensidad();
 const mxStorage = () => !!(window.chrome && chrome.storage && chrome.storage.local);
 const mxHasExt = () => mxStorage() || mxEmb;
 // lo que manda el panel de la extensión: si el overlay del stream se actualiza solo, y qué juego y minuto ve en el video

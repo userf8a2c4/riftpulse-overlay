@@ -24,17 +24,21 @@ module.exports = async function () {
   let e = null;
   for (let i = 0; i < 20; i++) { await r.p.waitForTimeout(1000); e = await leer(r.p); if (e.seg) break; }
   ok = chequear('mirando un VOD, la barra dice qué se juega en vivo ahora', /en vivo ahora/i.test(e.seg) && /T1/.test(e.seg) && /MKOI/.test(e.seg), e.seg || 'no aparece') && ok;
+  const barra = await r.p.evaluate(() => { const bd = document.getElementById('rp-overlay-host').shadowRoot.getElementById('body');
+    return {txt: bd.textContent, min: (bd.querySelector('.tmv') || {}).textContent || '', dot: !!bd.querySelector('.fdot.ok'), obj: !!bd.querySelector('.seg.obj')}; });
+  ok = chequear('barra mínima: logo, siglas y %, minuto y punto de estado; sin «RiftPulse» escrito ni objetivo fijo', /IG/.test(barra.txt) && /%/.test(barra.txt) && /^\d{1,2}:\d\d$/.test(barra.min) && barra.dot && !barra.obj && !/RiftPulse/i.test(barra.txt), JSON.stringify(barra).slice(0, 160)) && ok;
+  await r.p.screenshot({path: path.join(__dirname, '.gen', 'barra.png'), clip: {x: 300, y: 60, width: 900, height: 140}});
   const dano = await r.p.evaluate(() => ({chip: !!document.getElementById('rp-overlay-host').shadowRoot.querySelector('[data-ext="dano"]'), panel: /todo el juego/i.test(document.getElementById('rp-overlay-paneles').shadowRoot.textContent || document.getElementById('rp-overlay-paneles').shadowRoot.innerHTML)}));
   ok = chequear('el daño a campeones ya no es un panel fijo (solo tras cada pelea 5v5), aunque estuviera guardado', !dano.chip && !dano.panel, JSON.stringify(dano)) && ok;
   await r.p.evaluate(() => document.getElementById('rp-overlay-host').shadowRoot.querySelector('.prox').click());
   await r.p.waitForTimeout(800); e = await leer(r.p);
   ok = chequear('al tocarlo se abre la previa: qué está en juego, datos clave y versus histórico', /en vivo ahora/i.test(e.previa) && /T1/.test(e.previa) && /🏆/.test(e.previa) && /versus histórico/i.test(e.previa) && /Primer cruce|en series/i.test(e.previa), e.previa.slice(0, 160)) && ok;
   await r.ctx.close();
-  // 2) un VOD sin nada en vivo: la cuenta regresiva al próximo (G2 vs HLE, en 2 h) avanza sola
+  // 2) un VOD sin nada en vivo y el próximo (G2 vs HLE) en 2 h: la barra queda limpia (la cuenta sale si falta menos de 1 h)
   r = await pagina(b, 'vod.webm', 'https://www.twitch.tv/videos/1', {sinVivo: true});
-  for (let i = 0; i < 20; i++) { await r.p.waitForTimeout(1000); e = await leer(r.p); if (e.seg) break; }
-  const t1 = (e.seg.match(/\d\d:\d\d:\d\d/) || [''])[0]; await r.p.waitForTimeout(2200); const t2 = ((await leer(r.p)).seg.match(/\d\d:\d\d:\d\d/) || [''])[0];
-  ok = chequear('sin nada en vivo, la cuenta regresiva al próximo partido avanza', /G2/.test(e.seg) && /HLE/.test(e.seg) && /^01:\d\d:\d\d$/.test(t1) && t2 && t2 < t1, t1 + ' → ' + t2 + ' · ' + e.seg) && ok;
+  let sinc = false; for (let i = 0; i < 15 && !sinc; i++) { await r.p.waitForTimeout(1000); sinc = await r.p.evaluate(() => !!(window.__rpAS && window.__rpAS.id)); }
+  await r.p.waitForTimeout(3000); e = await leer(r.p);
+  ok = chequear('sin nada en vivo y el próximo en 2 h: la barra no lleva la cuenta regresiva', sinc && !e.seg, e.seg || 'limpia') && ok;
   await r.ctx.close();
   // 3) la previa de una transmisión en vivo de LoL, sin juego en pantalla: la previa se ve sola
   r = await pagina(b, 'previa.webm', 'https://www.twitch.tv/lolesports', {sinVivo: true}, true);
