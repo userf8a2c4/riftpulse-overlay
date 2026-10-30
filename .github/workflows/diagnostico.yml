@@ -1,0 +1,26 @@
+# Diagnóstico del reconocimiento con los datos reales: qué candidatos ve el motor para una lectura del HUD (se lanza a mano)
+name: Diagnóstico del reconocimiento
+
+on:
+  workflow_dispatch:
+    inputs:
+      lecturas:
+        description: 'Lecturas del HUD en JSON: [{"gt": segundos, "tags": ["IZQ", "DER"], "kills": [i, d], "gold": [i, d], "juego": n}]'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostico:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm i --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
+      - run: node pruebas/diagnostico.js
+        env:
+          LECTURAS: ${{ inputs.lecturas }}
