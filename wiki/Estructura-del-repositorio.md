@@ -16,6 +16,8 @@
 | `rp-tokens.css`, `rp-design.css`, `rp-ui.js` | El sistema visual común (ver [Estilo y colores de equipo](Estilo-y-colores-de-equipo)) |
 | `manifest.webmanifest`, `sw.js`, `icon-*.png` | La app instalable (PWA) |
 | `riftpulse.obs-scene.json` | Colección de escenas de OBS con el director (OBS 28+) |
+| `logo.svg` | La marca |
+| `LICENSE` | Licencia AGPL-3.0 |
 | `docs/img/` | Imágenes del README y de esta wiki |
 | `docs/chrome-web-store/` | Ficha, capturas e imágenes promocionales de la Chrome Web Store |
 | `docs/carta-para-nick.md` | Carta de presentación para casters |

@@ -1,4 +1,4 @@
-// El overlay que «lee la sala»: aviso de sincronizado, barra que se contrae sin juego en pantalla,
+// El overlay que «lee la sala»: aviso de sincronizado, se oculta sin el juego en pantalla y al terminar,
 // línea de tiempo que salta el VOD y modo sin spoilers en la app.
 const {chromium} = require('playwright'), fs = require('fs'), path = require('path');
 const {montar, chequear, RAIZ, BASE} = require('./mocks');

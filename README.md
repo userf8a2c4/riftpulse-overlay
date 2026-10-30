@@ -15,11 +15,11 @@
 
 <br>
 
-![Acierto](https://img.shields.io/badge/acierto-75%25%20al%20min%2015-22D3EE?style=flat-square)
-![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-en%20revisi%C3%B3n-F5B700?style=flat-square)
-![Versión](https://img.shields.io/badge/versi%C3%B3n-0.9%20beta-9AA3B2?style=flat-square)
-![Sin apuestas](https://img.shields.io/badge/pron%C3%B3stico-sin%20apuestas-FF4655?style=flat-square)
-![Wiki](https://img.shields.io/badge/docs-wiki-3D8BFF?style=flat-square)
+[![Acierto](https://img.shields.io/badge/acierto-75%25%20al%20min%2015-22D3EE?style=flat-square)](https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html)
+[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-en%20revisi%C3%B3n-F5B700?style=flat-square)](https://userf8a2c4.github.io/riftpulse-overlay/instalar.html)
+[![Versión](https://img.shields.io/badge/versi%C3%B3n-0.9%20beta-9AA3B2?style=flat-square)](#-instalar)
+[![Sin apuestas](https://img.shields.io/badge/pron%C3%B3stico-sin%20apuestas-FF4655?style=flat-square)](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Cumplimiento-y-datos)
+[![Licencia](https://img.shields.io/badge/licencia-AGPL--3.0-3D8BFF?style=flat-square)](LICENSE)
 
 </div>
 
@@ -166,16 +166,25 @@ Una regresión logística por minuto, entrenada con juegos profesionales 2025–
 
 | Carpeta o archivo | Qué es |
 |---|---|
-| `index.html`, `instalar.html`, `como-funciona.html` | Las páginas: para streamers, instalar y cómo funciona |
+| `index.html` | Página para streamers: la URL para OBS, la escena y el paquete de gráficos |
+| `instalar.html` | Instalar: la extensión en 3 pasos, la app o OBS |
+| `como-funciona.html` | Cómo calcula, con simulador y precisión |
 | `app.html` | La app para fans (también es el panel lateral de la extensión) |
 | `overlay.html` + `obs.js` | El overlay de OBS y todas sus piezas (`?view=`) |
 | `analista.html`, `control.html` | La mesa de análisis y el control de producción |
+| `nick.html` | Presentación para casters |
 | `engine.js` | El motor: datos en vivo, modelo, director, historia del juego y peleas en equipo |
-| `ext-overlay.js`, `riftpulse-extension*.zip` | El overlay de la extensión y sus paquetes (manual y Chrome Web Store) |
+| `ext-overlay.js` | El overlay de la extensión (la versión manual lo baja de acá) |
+| `riftpulse-extension.zip`, `riftpulse-extension-tienda.zip` | La extensión para instalar a mano y el paquete de la Chrome Web Store |
 | `rp-tokens.css`, `rp-design.css`, `rp-ui.js` | El sistema visual común |
-| `docs/` | Imágenes, la ficha de la Chrome Web Store y la carta para casters |
+| `manifest.webmanifest`, `sw.js`, `icon-*.png` | La app instalable en el celular (PWA) |
+| `riftpulse.obs-scene.json` | Escena lista para importar en OBS |
+| `logo.svg` | La marca |
+| `docs/img/` | Imágenes y GIF de este README y de la wiki |
+| `docs/chrome-web-store/` | Ficha, capturas, ícono e imágenes promocionales de la tienda |
+| `docs/carta-para-nick.md` | Carta de presentación para casters |
 | `modelo/` | Recolección de juegos reales y reentrenamiento del modelo |
-| `pruebas/` | Pruebas automáticas, simulador del feed y generadores de imágenes |
+| `pruebas/` | Pruebas automáticas, simulador del feed y generadores de imágenes ([detalle](pruebas/README.md)) |
 | `wiki/` | La fuente de la [wiki](https://github.com/userf8a2c4/riftpulse-overlay/wiki), que se publica sola |
 | `.github/workflows/` | Publicar la wiki, sondear el feed real, probar con video real y reentrenar el modelo |
 
@@ -184,6 +193,8 @@ Una regresión logística por minuto, entrenada con juegos profesionales 2025–
 <details>
 <summary><b>🛠 Para desarrollar</b></summary>
 <br>
+
+Hace falta Node, Playwright con Chromium, y Python 3 con Pillow y ffmpeg. El detalle de cada prueba está en [`pruebas/README.md`](pruebas/README.md).
 
 Las 11 baterías de pruebas, con un simulador del feed y videos generados:
 
@@ -225,7 +236,9 @@ node pruebas/gif.js
 
 RiftPulse no está avalado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de League of Legends. League of Legends y Riot Games son marcas de Riot Games, Inc.
 
-Usa los datos públicos de LoL Esports. Más en [Cumplimiento y datos](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Cumplimiento-y-datos).
+Usa los datos públicos de LoL Esports. Los datos de campeones e ítems salen de Data Dragon (Riot Games). Más en [Cumplimiento y datos](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Cumplimiento-y-datos).
+
+El código se publica bajo la licencia [AGPL-3.0](LICENSE).
 
 </details>
 
@@ -235,7 +248,7 @@ Usa los datos públicos de LoL Esports. Más en [Cumplimiento y datos](https://g
 
 <img src="logo.svg" width="56" alt="RiftPulse">
 
-**Hecho por VectisDev** · [@CaZe_18](https://x.com/CaZe_18) · [Wiki](https://github.com/userf8a2c4/riftpulse-overlay/wiki) · [Preguntas frecuentes](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Preguntas-frecuentes)
+**Hecho por VectisDev** · [@CaZe_18](https://x.com/CaZe_18) · [Preguntas frecuentes](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Preguntas-frecuentes) · [Licencia AGPL-3.0](LICENSE)
 
 <sub>Las imágenes usan partidos de ejemplo con datos simulados y videos de prueba generados, no transmisiones reales.</sub>
 
