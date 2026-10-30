@@ -963,6 +963,10 @@
       if (kd != null) sc += kd;
       if (o.gold) sc += 2 * (Math.abs(f.blueTeam.totalGold / 1000 - o.gold[0]) + Math.abs(f.redTeam.totalGold / 1000 - o.gold[1]));
       if (gm.state === 'inProgress') sc -= 0.5;
+      // el calendario trae también los Mundiales anteriores (las mismas siglas, el mismo juego 3): a igualdad, lo reciente.
+      // En vivo pesan mucho más los partidos de estos días; en un VOD, los del Mundial actual
+      var dias = (Date.now() - Date.parse(x.c.start)) / 864e5;
+      if (o.vivo && dias > 2) sc += 2; else if (dias > 60) sc += 1;
       if (o.juego && k + 1 !== o.juego) sc += 4;  // las victorias de la serie que se ven en el HUD dicen qué juego es
       var champs = function (side) { return ((gi.meta[side + 'TeamMetadata'] || {}).participantMetadata || []).map(function (p) { return p.championId; }); };
       return {matchId: x.c.id, juego: k + 1, gameId: gm.id, codes: [cb, cr], score: sc, tg: tg, kd: kd, ok: cuadra(f), live: gm.state === 'inProgress', champs: {blue: champs('blue'), red: champs('red')}};
