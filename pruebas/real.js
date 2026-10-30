@@ -20,7 +20,7 @@ const RAIZ = path.join(__dirname, '..'), VIDEO = process.argv[2];
   await p.evaluate(() => { window.RP_DEBUG = true; document.getElementById('v').play(); });
   for (const f of ['engine.js', 'ext-overlay.js']) await p.addScriptTag({content: fs.readFileSync(path.join(RAIZ, f), 'utf8')});
   const dur = await p.evaluate(() => document.getElementById('v').duration);
-  const n = {t: 0, reloj: 0, visible: 0, cards: 0}, partidos = {};
+  const n = {t: 0, reloj: 0, visible: 0, cards: 0}, partidos = {}, series = {};
   for (;;) {
     await p.waitForTimeout(1000);
     const e = await p.evaluate(() => {
@@ -31,11 +31,11 @@ const RAIZ = path.join(__dirname, '..'), VIDEO = process.argv[2];
         siglas: (d.siglas || []).map(s => (s[0] || {}).code + ':' + ((s[0] || {}).s || 0).toFixed(2)).join(' '), mk: d.marcador ? JSON.stringify({k: d.marcador.kills, o: d.marcador.gold}) : '', serie: d.serie || '',
         vis, chico: w.classList.contains('chico'), cards: cx ? cx.innerText.replace(/\s+/g, ' ').slice(0, 40) : '', body: sh.getElementById('body').innerText.replace(/\s+/g, ' ').slice(0, 50)};
     });
-    n.t++; if (e.visto != null && e.visto < 1500) n.reloj++; if (e.vis) n.visible++; if (e.cards) n.cards++; if (e.id) partidos[e.id] = (partidos[e.id] || 0) + 1;
+    n.t++; if (e.visto != null && e.visto < 1500) n.reloj++; if (e.vis) n.visible++; if (e.cards) n.cards++; if (e.id) partidos[e.id] = (partidos[e.id] || 0) + 1; if (e.serie) series[e.serie] = (series[e.serie] || 0) + 1;
     console.log([Math.round(e.ct), 'reloj=' + e.reloj, 'z=' + e.zona, 'hace=' + (e.visto == null ? '-' : Math.round(e.visto / 1000)), e.id || '·', e.serie ? 'serie=' + e.serie : '', e.siglas, e.mk, e.vis ? (e.chico ? 'PASTILLA' : 'VISIBLE') : 'oculto', e.cards ? 'paneles: ' + e.cards : '', '| ' + e.body].join(' '));
-    if (n.t % 45 === 0) { const jpg = await p.screenshot({type: 'jpeg', quality: 35, clip: {x: 100, y: 60, width: 1280, height: 720}}); console.log('IMG s' + String(n.t).padStart(3, '0') + '.jpg ' + jpg.toString('base64')); }
+    if (process.env.RP_IMG && n.t % 45 === 0) { const jpg = await p.screenshot({type: 'jpeg', quality: 35, clip: {x: 100, y: 60, width: 1280, height: 720}}); console.log('IMG s' + String(n.t).padStart(3, '0') + '.jpg ' + jpg.toString('base64')); }
     if (e.ended || e.ct >= dur - 0.5) break;
   }
-  console.log('RESUMEN segundos=' + n.t + ' reloj_leido=' + n.reloj + ' visible=' + n.visible + ' con_paneles=' + n.cards + ' partidos=' + JSON.stringify(partidos));
+  console.log('RESUMEN segundos=' + n.t + ' reloj_leido=' + n.reloj + ' visible=' + n.visible + ' con_paneles=' + n.cards + ' partidos=' + JSON.stringify(partidos) + ' serie_en_pantalla=' + JSON.stringify(series));
   await b.close();
 })();

@@ -15,6 +15,10 @@ on:
       hasta:
         description: 'Hasta (h:mm:ss del VOD)'
         default: '1:14:00'
+      imagenes:
+        description: 'Imprimir recortes del HUD en el registro (base64, pesado)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -37,6 +41,8 @@ jobs:
           ffmpeg -loglevel error -i vod.mp4 -vf "fps=1/30,scale=320:-1" -q:v 8 hud/f%02d.jpg
       - run: npm i --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
       - run: node pruebas/real.js pruebas/real.webm
+        env:
+          RP_IMG: ${{ inputs.imagenes && '1' || '' }}
       - name: Recortes (base64)
-        if: always()
+        if: always() && inputs.imagenes
         run: for f in hud/*.jpg; do echo "IMG $(basename $f) $(base64 -w0 $f)"; done
