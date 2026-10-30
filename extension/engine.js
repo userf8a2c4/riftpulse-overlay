@@ -889,12 +889,13 @@
         // en el HUD de la transmisión el equipo azul va a la izquierda
         var sc = 0;
         sc += parece(0, cb) + parece(1, cr);
-        if (o.kills) sc += Math.abs(f.blueTeam.totalKills - o.kills[0]) + Math.abs(f.redTeam.totalKills - o.kills[1]);
+        var kd = o.kills ? Math.abs(f.blueTeam.totalKills - o.kills[0]) + Math.abs(f.redTeam.totalKills - o.kills[1]) : null;
+        if (kd != null) sc += kd;
         if (o.gold) sc += 2 * (Math.abs(f.blueTeam.totalGold / 1000 - o.gold[0]) + Math.abs(f.redTeam.totalGold / 1000 - o.gold[1]));
         if (gm.state === 'inProgress') sc -= 0.5;
         if (o.juego && k + 1 !== o.juego) sc += 4;  // las victorias de la serie que se ven en el HUD dicen qué juego es
         var champs = function (side) { return ((gi.meta[side + 'TeamMetadata'] || {}).participantMetadata || []).map(function (p) { return p.championId; }); };
-        all.push({matchId: c.id, juego: k + 1, gameId: gm.id, codes: [cb, cr], score: sc, live: gm.state === 'inProgress', champs: {blue: champs('blue'), red: champs('red')}});
+        all.push({matchId: c.id, juego: k + 1, gameId: gm.id, codes: [cb, cr], score: sc, kd: kd, live: gm.state === 'inProgress', champs: {blue: champs('blue'), red: champs('red')}});
       }
     }
     if (!all.length) return null;
@@ -903,6 +904,9 @@
     if (o.vivo && all.some(function (a) { return a.live; })) all.forEach(function (a) { if (!a.live) a.score += 2.5; });
     all.sort(function (a, b) { return a.score - b.score; });
     var best = all[0];
+    // si ni el mejor coincide con las kills que se ven, el reloj se leyó mal (o el juego no está en el feed): mejor no mostrar
+    // nada que mostrar otro partido
+    if (best.kd != null && best.kd > 3) return null;
     best.alts = all.slice(1, 6);  // los más parecidos, para desempatar (por ejemplo, con los campeones en pantalla)
     best.revisados = all.length;
     return best;

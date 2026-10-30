@@ -325,7 +325,7 @@
   }
   var host2 = document.createElement('div');
   host2.id = 'rp-overlay-paneles';
-  host2.style.cssText = 'position:fixed;z-index:2147483645;pointer-events:none;transform-origin:0 0;';
+  host2.style.cssText = 'position:fixed;z-index:2147483645;pointer-events:none;transform-origin:0 0;transition:opacity .6s;';
   (document.body || document.documentElement).appendChild(host2);
   var sh2 = host2.attachShadow({mode: 'open'});
   // integrado con la transmisión: la barra, pegada debajo del marcador de arriba (una fila más del HUD); los paneles, de a uno,
@@ -486,6 +486,7 @@
   .w,.col{text-shadow:0 1px 2px rgba(0,0,0,.75),0 0 8px rgba(0,0,0,.35)}\
   .col .cd,.col .dmg{background:rgba(var(--g1-rgb),.5);backdrop-filter:blur(10px) saturate(1.2);-webkit-backdrop-filter:blur(10px) saturate(1.2);box-shadow:0 6px 18px rgba(0,0,0,.28)}\
   .hint{display:none;align-items:center;gap:8px;height:28px;padding:0 12px 0 8px;border-radius:999px;background:rgba(var(--g1-rgb),.9);border:1px solid rgba(var(--line-rgb),.13);font:600 12px var(--ff);color:var(--muted);white-space:nowrap;cursor:pointer}\
+  .w.tenue{opacity:.14;transition:opacity .6s}.w{transition:opacity .6s,background .2s}\
   .hint.show{display:inline-flex}.hint .logo{width:16px;height:16px}.hint b{color:var(--text);font-weight:700}.hint a{color:var(--signal);text-decoration:none;font-weight:700}\
   .ctl::before{content:"";position:absolute;left:0;right:0;top:-10px;height:10px}\
   .ctl.auto .man{display:none}.man{display:inline-flex;align-items:center;gap:4px}\
@@ -586,13 +587,17 @@
     if (!FIN || FIN.id !== g.id) FIN = {id: g.id, at: Date.now()};
     return true;
   }
+  // true: no se ve nada · 'tenue': casi transparente (se sigue un juego, pero ahora no está en pantalla) · false: se ve
   function oculto(s) {
     if (typeof AS === 'undefined' || !AS.on || !L || Date.now() <= MOSTRAR) return false;
-    if (!(AS.buenas >= 2 && Date.now() - AS.visto <= 5000)) return true;
-    if (AS.replay && Date.now() - AS.replay < 45000) return true;  // una repetición en la transmisión
-    // en una transmisión en vivo solo se acompaña al juego que se está jugando (no a clips, repeticiones ni mejores momentos)
+    if (terminado(s) && Date.now() - FIN.at > 6000) return true;  // el juego terminó: nada sobre los mejores momentos
+    // se sigue un juego (un VOD, o el juego en curso en vivo) y ahora hay una repetición, tomas de los jugadores o el desk:
+    // en vez de desaparecer, queda casi transparente y vuelve a la normalidad apenas se ve el juego
+    var sigue = !!(AS.id && AS.off != null && (esVod() || AS.id.live));
+    if (AS.replay && Date.now() - AS.replay < 180000) return sigue ? 'tenue' : true;  // una repetición (hasta 3 min)
+    if (!(AS.buenas >= 2 && Date.now() - AS.visto <= 5000)) return sigue && AS.visto ? 'tenue' : true;
+    // en una transmisión en vivo solo se acompaña al juego que se está jugando (no a clips ni mejores momentos)
     if (!esVod() && (!AS.id || !AS.id.live)) return true;  // en vivo: aparece recién al reconocer el juego en curso
-    if (terminado(s) && Date.now() - FIN.at > 6000) return true;
     return false;
   }
   // en lolesports.com el video va en un reproductor aparte (de Twitch o YouTube) que el overlay no puede leer: se ofrece abrirlo en Twitch
@@ -632,9 +637,9 @@
   hintEl.addEventListener('mousedown', function (e) { e.stopPropagation(); });
   hintEl.addEventListener('click', function (e) { if (e.target.closest('a')) return; e.stopPropagation(); MOSTRAR = Date.now() + 20000; if (LAST) render(LAST); });  // ver los controles un rato
   function render(s) {
-    var oc = oculto(s);
-    wEl.classList.toggle('oculto', oc); pintarHint();
-    if (oc) {
+    var oc = oculto(s), tenue = oc === 'tenue';
+    wEl.classList.toggle('oculto', oc === true); wEl.classList.toggle('tenue', tenue); host2.style.opacity = tenue ? '0.12' : ''; pintarHint();
+    if (oc === true) {
       LAST = s; tarjetas(null);
       if (typeof tlEl !== 'undefined' && tlEl) tlEl.classList.remove('on'); dmgEl.classList.remove('show'); momEl.classList.remove('show');
       return;
@@ -868,30 +873,33 @@
   // HUD de la transmisión del Mundial 2026, relativo al cuadro del video (medido sobre cuadros reales de la transmisión).
   // El reloj y el oro se recortan justos: a los costados hay íconos (objetivos, monedas, la ventaja de oro) que ensucian la lectura
   var HUD = {
-    reloj: [0.474, 0.064, 0.528, 0.1],
+    // el reloj no está siempre en el mismo lugar: los íconos de dragones de la segunda fila lo corren a un lado o al otro.
+    // Se lee la franja ancha y se busca «mm:ss» adentro (los íconos de alrededor se ignoran)
+    reloj: [0.44, 0.062, 0.56, 0.102],
     tagI: [0.29, 0.0, 0.375, 0.055], tagD: [0.625, 0.0, 0.715, 0.055],
     oroI: [0.418, 0.016, 0.462, 0.049], oroD: [0.542, 0.016, 0.579, 0.049],
     killI: [0.468, 0.01, 0.497, 0.065], killD: [0.503, 0.01, 0.533, 0.065],
     camI: [0.372, 0.393], camD: [0.607, 0.628], camY: [0.761, 0.81, 0.859, 0.907, 0.953], camH: 0.042
   };
   // si el reloj no está en su lugar, se busca solo en la franja del marcador (arriba al centro), nunca en otras zonas
-  var RELOJES = [HUD.reloj, [0.466, 0.04, 0.534, 0.125], [0.466, 0.0, 0.534, 0.065], [0.466, 0.085, 0.534, 0.155]];
+  var RELOJES = [HUD.reloj, [0.44, 0.04, 0.56, 0.125], [0.44, 0.0, 0.56, 0.065], [0.44, 0.085, 0.56, 0.155]];
   var AS = {t0: Date.now(), on: ls('rp_auto6') !== '0', busy: false, zona: null, fallas: 0, lect: [], contra: [], off: null, id: null, vid: null, visto: 0, codes: null, codesAt: 0, n: 0, malas: 0, pend: null, trasSalto: false, diag: {}, err: ''};
-  // «mm:ss»; sin los dos puntos solo se acepta en la zona principal del reloj
   if (window.RP_DEBUG) { window.__rpAS = AS; window.__rpRender = function (f) { return render(f(LAST)); }; }  // solo para las pruebas
-  function parseReloj(s, conPuntos) {
+  // «mm:ss» dentro de lo leído (a los costados puede haber restos de íconos): «:21:134» → 21:13. Con un solo dígito de
+  // minutos («5:09», HUD de otros años) solo si no hay nada más alrededor
+  function parseReloj(s) {
     s = String(s || '').replace(/[^\d:]/g, '');
-    var m = s.match(/^(\d{1,2}):(\d{2})$/) || (!conPuntos && s.match(/^(\d{1,2})(\d{2})$/));
+    var m = s.match(/(\d{2}):(\d{2})/) || s.match(/^(\d):(\d{2})$/);
     if (!m || +m[2] > 59 || +m[1] > 75) return null;
     return +m[1] * 60 + +m[2];
   }
   // lecturas posibles del reloj: la del lector y, por cada dígito, su segunda opción (un 0 leído como 2, etc.)
-  function variantes(det, conPuntos) {
-    var base = det.map(function (d) { return d.c; }).join(''), out = [], g = parseReloj(base, conPuntos);
+  function variantes(det) {
+    var base = det.map(function (d) { return d.c; }).join(''), out = [], g = parseReloj(base);
     if (g != null) out.push({gt: g, alt: false});
     det.forEach(function (d, i) {
       if (!d.c2 || !/\d/.test(d.c)) return;
-      var t = det.map(function (x, j) { return j === i ? d.c2 : x.c; }).join(''), g2 = parseReloj(t, conPuntos);
+      var t = det.map(function (x, j) { return j === i ? d.c2 : x.c; }).join(''), g2 = parseReloj(t);
       if (g2 != null) out.push({gt: g2, alt: true});
     });
     return out;
@@ -1039,7 +1047,7 @@
       var ct = v.currentTime, playing = !v.paused && !v.ended, txt = '', zi = null, vars = [], zonas = AS.zona != null ? [AS.zona] : RELOJES.map(function (z, i) { return i; });
       for (var i = 0; i < zonas.length; i++) {
         var m = L.recorte(v, RELOJES[zonas[i]], 'blanco'); txt = L.numeros(m, '0123456789');
-        vars = variantes(L.detalle(), zonas[i] !== 0);
+        vars = variantes(L.detalle());
         if (diagEl.classList.contains('show') && (vars.length || i === 0)) AS.diag.img = L.png(m);
         if (vars.length) { zi = zonas[i]; break; }
       }
@@ -1048,10 +1056,10 @@
       if (!vars.length) {
         if (++AS.fallas >= 5) AS.zona = null;
         if (Date.now() - AS.visto > 5000) AS.buenas = 0;
-        // el juego no vuelve (fue una repetición o un clip en la previa, o terminó): se suelta y se vuelve al vivo.
-        // un clip de un partido que no se juega ahora, en una transmisión en vivo, se suelta antes
-        var limite = !esVod() && AS.id && !AS.id.live ? 25000 : 90000;
-        if (AS.id && AS.visto && Date.now() - AS.visto > limite) { soltar(); asEstado('buscando el reloj del juego…'); return; }
+        // sin el reloj a la vista (repetición larga, tomas de los jugadores, el desk) el minuto igual sale de la posición del
+        // video: se sigue el mismo juego (oculto en pantalla, el panel sigue) y al volver el HUD se confirma o se corrige solo.
+        // Lo único que se suelta es un clip de un partido que no se juega ahora, en una transmisión en vivo
+        if (AS.id && !esVod() && !AS.id.live && AS.visto && Date.now() - AS.visto > 25000) { soltar(); asEstado('buscando el reloj del juego…'); return; }
         asEstado(AS.id ? 'sincronizado · ' + AS.id.codes.join(' vs ') + ' · ' + mmss(AS.off + ct) + ' (reloj tapado)' : 'buscando el reloj del juego…', !!AS.id);
         seguir(v); return;
       }
@@ -1065,11 +1073,12 @@
       var gt, off;
       AS.zona = zi;
       // repetición en la transmisión: el reloj del HUD va bastante atrás de lo esperado sin que nadie haya movido el video.
-      // Se oculta todo y no se cambia el ancla; cuando el reloj vuelve a coincidir, reaparece. (Si dura demasiado, era otra cosa.)
-      var atras = !cerca && esperado != null && !AS.trasSalto && vale.every(function (x) { return x.gt < esperado - 6; });
+      // Se oculta todo y no se cambia el ancla; cuando el reloj vuelve a coincidir, reaparece. (Si dura más de 3 min, era otra cosa.)
+      var principal = vale.filter(function (x) { return !x.alt; })[0];  // la lectura tal cual (sin las segundas opciones de cada dígito)
+      var atras = !cerca && esperado != null && !AS.trasSalto && !!principal && principal.gt < esperado - 6;
       if (atras) {
         if (!AS.replay) AS.replay = Date.now();
-        if (Date.now() - AS.replay < 45000) { AS.diag.replay = mmss(vale[0].gt); asEstado('repetición en pantalla · vuelve con el juego', !!AS.id); seguir(v); return; }
+        if (Date.now() - AS.replay < 180000) { AS.diag.replay = mmss(vale[0].gt); asEstado('repetición en pantalla · vuelve con el juego', !!AS.id); seguir(v); return; }
       } else AS.replay = 0;
       if (cerca) {
         // coincide con el ancla (aunque sea con la segunda opción de un dígito): se afina sin saltos
