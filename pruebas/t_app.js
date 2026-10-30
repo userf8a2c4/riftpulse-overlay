@@ -7,6 +7,9 @@ module.exports = async function () {
   const ctx = await b.newContext({viewport: {width: 1440, height: 1000}, acceptDownloads: true}); await montar(ctx);
   const p = await ctx.newPage(); p.on('pageerror', e => { if (!/reading 'sf'/.test(e.message)) errores.push(e.message); });
   await p.goto(BASE + 'app.html'); await p.waitForTimeout(6000);
+  const hdr = await p.evaluate(() => { const h = document.querySelector('header.top'), vis = e => !!e && e.checkVisibility();
+    return {alto: Math.round(h.getBoundingClientRect().height), reloj: document.getElementById('reloj').textContent, menu: !vis(document.getElementById('novBtn')) && !vis(document.getElementById('spx')) && vis(document.querySelector('#hmenu > summary'))}; });
+  ok = chequear('encabezado limpio: una sola fila, el resto en «⋯» y sin reloj vacío', hdr.alto <= 80 && hdr.menu && hdr.reloj !== '—', JSON.stringify(hdr)) && ok;
   const tabs = await p.$$eval('nav.tabs button', l => l.map(x => x.textContent.trim()));
   ok = chequear('pestañas: Ahora · Mundial · Historial · Mando', tabs.join('·') === 'Ahora·Mundial·Historial·Mando', tabs.join(' · ')) && ok;
   ok = chequear('«Ahora» abre con el partido en vivo', await p.evaluate(() => !document.getElementById('vistaAhora').hidden && /T1/.test(document.getElementById('iniVivo').textContent))) && ok;
@@ -22,11 +25,11 @@ module.exports = async function () {
     await p.evaluate(() => document.getElementById('ahFav').textContent.slice(0, 80))) && ok;
   ok = chequear('mis equipos: sus partidos se destacan en las listas', await p.evaluate(() => document.querySelectorAll('.up-row.fav').length >= 1)) && ok;
   // sin spoilers desde el encabezado
-  await p.click('#spx summary'); await p.click('#spx [data-act="spApp"][data-arg="todo"]'); await p.waitForTimeout(600);
+  await p.evaluate(() => { document.getElementById('hmenu').open = true; }); await p.click('#spx summary'); await p.click('#spx [data-act="spApp"][data-arg="todo"]'); await p.waitForTimeout(600);
   ok = chequear('sin spoilers: los resultados de Ahora quedan tapados', await p.evaluate(() => /• – •/.test(document.getElementById('iniRes').textContent) && !/IG 2/.test(document.getElementById('iniRes').textContent))) && ok;
   await p.evaluate(() => setVista('copa')); await p.waitForTimeout(800);
   ok = chequear('sin spoilers: la tabla de la suiza queda oculta', await p.evaluate(() => /oculta para no spoilear/.test(document.getElementById('cuadro').textContent))) && ok;
-  await p.click('#spx summary'); await p.click('#spx [data-act="spApp"][data-arg=""]'); await p.waitForTimeout(800);
+  await p.evaluate(() => { document.getElementById('hmenu').open = true; }); await p.click('#spx summary'); await p.click('#spx [data-act="spApp"][data-arg=""]'); await p.waitForTimeout(800);
   // fase suiza visual
   const sw = await p.evaluate(() => { const fs = document.querySelector('#fsTabs [data-fase="sw"]'); if (fs) fs.click(); return new Promise(r => setTimeout(() => r({cajas: document.querySelectorAll('.sw-box').length, caminos: document.querySelectorAll('#swSvg path').length, partidos: document.querySelectorAll('.sw-m').length}), 600)); });
   ok = chequear('fase suiza: una caja por récord y los caminos entre rondas', sw.cajas === 15 && sw.caminos === 18 && sw.partidos >= 2, JSON.stringify(sw)) && ok;

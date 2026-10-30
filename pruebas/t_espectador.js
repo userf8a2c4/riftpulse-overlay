@@ -24,12 +24,12 @@ module.exports = async function () {
   const d = p.waitForEvent('download', {timeout: 8000}).catch(() => null); await p.click('#ahPron [data-act="sharemipron"]'); const dl = await d;
   ok = chequear('tu pronóstico: tarjeta «Mi Mundial contra RiftPulse»', !!dl && dl.suggestedFilename() === 'riftpulse-mi-mundial.png', dl ? dl.suggestedFilename() : 'sin descarga') && ok;
   // con sin spoilers, el récord no delata resultados
-  await p.click('#spx summary'); await p.click('#spx [data-act="spApp"][data-arg="todo"]'); await p.waitForTimeout(500);
+  await p.evaluate(() => { document.getElementById('hmenu').open = true; }); await p.click('#spx summary'); await p.click('#spx [data-act="spApp"][data-arg="todo"]'); await p.waitForTimeout(500);
   ok = chequear('tu pronóstico: sin spoilers tapa el récord y los resultados', await p.evaluate(() => { const t = document.getElementById('ahPron').textContent; return !/le ganaste/.test(t) && !/acertaste/.test(t); })) && ok;
-  await p.click('#spx summary'); await p.click('#spx [data-act="spApp"][data-arg=""]'); await p.waitForTimeout(400);
+  await p.evaluate(() => { document.getElementById('hmenu').open = true; }); await p.click('#spx summary'); await p.click('#spx [data-act="spApp"][data-arg=""]'); await p.waitForTimeout(400);
   // ---- para entender ----
   ok = chequear('para entender: apagado no subraya nada', await p.evaluate(() => !document.querySelector('.glo'))) && ok;
-  await p.click('#novBtn'); await p.waitForTimeout(800);
+  await p.evaluate(() => { document.getElementById('hmenu').open = true; }); await p.click('#novBtn'); await p.waitForTimeout(800);
   const glo = await p.evaluate(() => [...document.querySelectorAll('#vistaAhora .glo')].map(e => [e.textContent, e.title]));
   ok = chequear('para entender: los términos del juego tienen su explicación', glo.length >= 2 && glo.every(([t, d]) => t && d.length > 20), glo.map(x => x[0]).join(', ')) && ok;
   await p.click('#vistaAhora .glo'); await p.waitForTimeout(300);

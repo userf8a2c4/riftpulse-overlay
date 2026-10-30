@@ -585,7 +585,7 @@ function renderHead() {
   if (FREEZE) return;
   $('#ret').textContent = delay;
   const st = $('#estado');
-  if (!M) { $('#titulo').textContent = 'Mundial 2026'; $('#titulo').dataset.k = ''; $('#subtitulo').textContent = nextText(); st.textContent = 'SIN PARTIDO'; st.className = 'badge'; $('#reloj').textContent = '—'; return; }
+  if (!M) { $('#titulo').textContent = 'Mundial 2026'; $('#titulo').dataset.k = ''; $('#subtitulo').textContent = nextText(); st.textContent = 'SIN PARTIDO'; st.className = 'badge'; $('#reloj').textContent = ''; return; }
   // los colores de los dos equipos en toda la app (lado azul primero); se aprende el color de logos que no están en la tabla
   if (window.RPUI) { const ta = G && G.meta ? code('blue') : M.teams[0].code, tb = G && G.meta ? code('red') : M.teams[1].code; RPUI.colores(ta, tb); M.teams.forEach(t => t.image && RPUI.colorDeLogo(t.code, https(t.image))); }
   const kTit = M.id + '|' + M.teams.map(t => (t.result || {}).gameWins ?? 0).join('-') + (sinSpoilers() ? '|s' : '');
@@ -599,7 +599,7 @@ function renderHead() {
   $('#subtitulo').textContent = [M.league && M.league.name, M.block, M.strategy && 'Mejor de ' + M.strategy.count, n && 'Juego ' + n, (REPLAY || PIN) && (SIGUE ? 'SINCRONIZADO CON TU VIDEO' : 'REPETICIÓN')].filter(Boolean).join(' · ');
   if (!G || G.waiting || !G.last) {
     const live = G && M && (M.games.find(g => g.id === G.id) || {}).state === 'inProgress';
-    st.textContent = live ? 'EN VIVO · SIN FEED' : 'DRAFT / ESPERANDO'; st.className = 'badge' + (live ? ' pause' : ''); $('#reloj').textContent = '—'; return;
+    st.textContent = live ? 'EN VIVO · SIN FEED' : 'DRAFT / ESPERANDO'; st.className = 'badge' + (live ? ' pause' : ''); $('#reloj').textContent = ''; return;
   }
   const gs = G.last && G.last.gameState;
   st.textContent = G.ended ? 'TERMINADO' : gs === 'paused' ? 'PAUSA' : 'EN VIVO';
@@ -1264,9 +1264,12 @@ function corteSpoiler() {  // desde esa fecha en adelante, todo tapado: la del p
   const p = EXTST.pantalla, e = spVod() && p && schedule.find(x => x.match && x.match.id === p.matchId);
   return e ? e.startTime : spApp() || null;
 }
+// el «⋯» del encabezado marca con un punto si hay algo encendido adentro (sin spoilers o «Para entender»)
+function pintarPunto() { const d = $('#hdot'); if (d) d.hidden = !(spApp() || novato()); }
 function pintarSpx() {
   const d = $('#spx'), on = !!spApp(); if (!d) return;
   d.classList.toggle('on', on); $('#spLbl').textContent = on ? '🙈 Sin spoilers' : '🙈 Spoilers';
+  pintarPunto();
   d.querySelectorAll('[data-act="spApp"]').forEach(b => b.classList.toggle('on', (b.dataset.arg || '') === (store('spModo') || '') && (on || !b.dataset.arg)));
 }
 function tapado(e) { if (!sinSpoilers() || REVEL.has(e.match.id)) return false; const c = corteSpoiler(); return !!c && e.startTime >= c && e.state !== 'unstarted'; }
@@ -1944,7 +1947,7 @@ function glosario(raiz) {
     }
   });
 }
-function pintarNovato() { const b = $('#novBtn'); if (b) { b.classList.toggle('on', novato()); b.setAttribute('aria-pressed', novato() ? 'true' : 'false'); } }
+function pintarNovato() { const b = $('#novBtn'); if (b) { b.classList.toggle('on', novato()); b.setAttribute('aria-pressed', novato() ? 'true' : 'false'); }  pintarPunto(); }
 // Mando se refresca seguido: solo se toca lo que cambió y se conserva el scroll (así el guion no salta mientras se lee)
 function ponMx(el, html) {
   if (!el || el.dataset.k === html) return;

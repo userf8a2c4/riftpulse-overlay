@@ -602,3 +602,14 @@ a.idet-pl{color:inherit;text-decoration:none;border-radius:10px;transition:backg
 .prv-pl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 0;border-top:1px solid var(--line)}.prv-pl:first-of-type{border-top:0}
 .prv-ch{display:inline-flex;gap:3px;margin-left:auto}.prv-ch img{width:22px;height:22px;border-radius:5px}
 .prv-vivo{color:var(--live,#FF4D5A)}
+
+/* encabezado: lo esencial a la vista (idioma, estado con el minuto) y el resto en «⋯» */
+.hpill{display:inline-flex;align-items:center;gap:6px}.hpill .clock:empty,.hpill .clock.vacio{display:none}
+.hmenu>summary{position:relative;min-width:34px;justify-content:center;font-size:16px;line-height:1;letter-spacing:1px}
+.hdot{position:absolute;top:3px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--signal);box-shadow:0 0 6px rgba(var(--signal-rgb),.7)}
+.hpop{right:0;left:auto;min-width:230px;display:flex;flex-direction:column;align-items:stretch;gap:6px}
+.hpop>.hbtn,.hpop>details>summary{text-align:left;text-decoration:none;width:100%;box-sizing:border-box}
+.hpop details .syncpop{position:static;margin-top:6px;box-shadow:none}
+@media (max-width:700px){.brand-t{display:none}header.top{grid-template-columns:auto 1fr auto}nav.tabs{justify-self:center}.hstat{grid-column:1 / -1;justify-content:flex-end}}
+header.top{position:relative;z-index:40}
+@media (max-width:520px){nav.tabs{flex-wrap:nowrap}nav.tabs button{padding:6px 10px;font-size:12.5px}header.top{gap:8px;padding:8px 10px}}

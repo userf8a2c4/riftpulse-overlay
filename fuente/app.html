@@ -19,26 +19,30 @@
 <div id="tinte"><div class="city"></div><div class="grad"></div></div>
 <div class="wrap">
   <header class="top">
-    <div class="brand"><img class="logo" src="logo.svg" alt="RiftPulse"><div><div class="brand-t">RiftPulse</div><div class="brand-s">Tu segunda pantalla del Mundial</div><div class="brand-p" id="precHdr">El Mundial, jugada a jugada</div><a class="brand-p" href="https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html" target="_blank" rel="noopener" style="color:var(--link);text-decoration:none">¿Cómo funciona? →</a></div></div>
+    <div class="brand"><img class="logo" src="logo.svg" alt="RiftPulse"><div class="brand-t">RiftPulse</div></div>
     <nav class="tabs" aria-label="Secciones"><button id="tabAhora">Ahora</button><button id="tabCopa">Mundial</button><button id="tabHist">Historial</button><button id="tabMando" title="Centro de mando para streamers y analistas">Mando</button></nav>
     <div class="hstat">
       <span data-rp-lang></span>
       <select id="sel" title="Partido en vivo" hidden></select>
-      <span class="badge" id="estado">—</span>
-      <span class="clock" id="reloj" title="Minuto del juego">—</span>
-      <a class="hbtn" id="instBtn" href="https://userf8a2c4.github.io/riftpulse-overlay/instalar.html" target="_blank" rel="noopener" title="Poné RiftPulse sobre el video del partido" style="text-decoration:none">🧩 Sobre el video</a>
-      <button class="hbtn" id="novBtn" data-act="novato" aria-pressed="false" title="Explica los términos del juego">📘 Para entender</button>
-      <details class="sync spx" id="spx"><summary title="Ocultar resultados que todavía no viste"><span id="spLbl">🙈 Spoilers</span></summary>
-        <div class="syncpop">
-          <div class="pm">Ocultá los resultados que todavía no viste. Se tapan los marcadores en Ahora, el Mundial, el Historial y Mando; tocá uno para verlo.</div>
-          <div class="sp-op"><button data-act="spApp" data-arg="hoy">Ocultar los de hoy</button><button data-act="spApp" data-arg="ayer">Desde ayer</button><button data-act="spApp" data-arg="todo">Todo el Mundial</button><button data-act="spApp" data-arg="">Mostrar todo</button></div>
-        </div>
-      </details>
-      <details class="sync"><summary title="Sincronía con el stream">⏱ <b id="ret">60</b> s <span id="retinfo">(auto)</span></summary>
-        <div class="syncpop">
-          <div class="pm">Retraso frente al stream. Se calcula solo; si ves una kill antes acá que en el video, subilo; si va atrasada, bajalo.</div>
-          <div class="row"><button data-d="-10">−10</button><button data-d="-1">−1</button><button data-d="1">+1</button><button data-d="10">+10</button></div>
-          <button id="sync" title="Tocalo justo cuando veas en el stream la primera kill de una pelea">⟲ Sincronizar con una kill</button>
+      <span class="hpill"><span class="badge" id="estado">—</span><span class="clock" id="reloj" title="Minuto del juego"></span></span>
+      <details class="sync hmenu" id="hmenu"><summary title="Más opciones" aria-label="Más opciones">⋯<i class="hdot" id="hdot" hidden></i></summary>
+        <div class="syncpop hpop">
+          <button class="hbtn" id="novBtn" data-act="novato" aria-pressed="false" title="Explica los términos del juego">📘 Para entender</button>
+          <details class="sync spx" id="spx"><summary title="Ocultar resultados que todavía no viste"><span id="spLbl">🙈 Spoilers</span></summary>
+            <div class="syncpop">
+              <div class="pm">Ocultá los resultados que todavía no viste. Se tapan los marcadores en Ahora, el Mundial, el Historial y Mando; tocá uno para verlo.</div>
+              <div class="sp-op"><button data-act="spApp" data-arg="hoy">Ocultar los de hoy</button><button data-act="spApp" data-arg="ayer">Desde ayer</button><button data-act="spApp" data-arg="todo">Todo el Mundial</button><button data-act="spApp" data-arg="">Mostrar todo</button></div>
+            </div>
+          </details>
+          <details class="sync"><summary title="Sincronía con el stream">⏱ Sincronía · <b id="ret">60</b> s <span id="retinfo">(auto)</span></summary>
+            <div class="syncpop">
+              <div class="pm">Retraso frente al stream. Se calcula solo; si ves una kill antes acá que en el video, subilo; si va atrasada, bajalo.</div>
+              <div class="row"><button data-d="-10">−10</button><button data-d="-1">−1</button><button data-d="1">+1</button><button data-d="10">+10</button></div>
+              <button id="sync" title="Tocalo justo cuando veas en el stream la primera kill de una pelea">⟲ Sincronizar con una kill</button>
+            </div>
+          </details>
+          <a class="hbtn" id="instBtn" href="https://userf8a2c4.github.io/riftpulse-overlay/instalar.html" target="_blank" rel="noopener" title="Poné RiftPulse sobre el video del partido">🧩 Sobre el video</a>
+          <a class="hbtn" href="https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html" target="_blank" rel="noopener">¿Cómo funciona? →</a>
         </div>
       </details>
     </div>
