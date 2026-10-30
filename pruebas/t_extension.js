@@ -6,7 +6,7 @@ const {montar, chequear, RAIZ, GEN} = require('./mocks');
 function descomprimir(zip) {
   const dest = path.join(GEN, zip || 'zip'); fs.rmSync(dest, {recursive: true, force: true}); fs.mkdirSync(dest, {recursive: true});
   execFileSync('python3', ['-I', '-c', 'import sys,zipfile;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])', path.join(RAIZ, (zip ? 'riftpulse-extension-tienda' : 'riftpulse-extension') + '.zip'), dest]);
-  return path.join(dest, zip ? 'extension' : 'RiftPulse');
+  return zip ? dest : path.join(dest, 'RiftPulse');
 }
 async function una(EXT, conScripts) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rp-'));
