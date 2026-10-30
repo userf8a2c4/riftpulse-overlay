@@ -100,7 +100,6 @@ td{padding:5px 4px;border-top:1px solid var(--line);vertical-align:middle}
 table.fiab td{white-space:normal}table.fiab td:first-child{text-align:left}#fiab{min-height:120px}
 .inicio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:8px}
 .inicio .hero{grid-column:1 / -1}.inicio .mid{height:270px}.inicio .foot{height:158px}
-.inicio .wide2{grid-column:span 2;height:300px}.inicio .tall{height:300px}
 .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;align-items:start}
 .iv-pp{font-size:13px;font-weight:700;margin-top:7px}
 /* próximo partido enriquecido */
@@ -138,15 +137,10 @@ table.fiab td{white-space:normal}table.fiab td:first-child{text-align:left}#fiab
 /* bola de cristal */
 .bc-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-top:1px solid var(--line)}.bc-row:first-of-type{border-top:0}
 .bc-row img{width:30px;height:30px;border-radius:5px;object-fit:cover}.bc-row b{font-size:14px}
-/* camino del torneo */
-table.camino{width:100%;border-collapse:collapse;font-size:12.5px}
-table.camino th{text-align:right;color:var(--muted);font-weight:600;padding:2px 6px;border-bottom:1px solid var(--line);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
-table.camino th:first-child{text-align:left}
-table.camino td{padding:3px 6px;border-bottom:1px solid var(--line-2)}table.camino td.num{text-align:right;font-variant-numeric:tabular-nums}
 .up-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:baseline;padding:5px 0;border-top:1px solid var(--line-2);font-size:13px}
 .up-row:first-of-type{border-top:0}.up-row>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.up-row>span:last-child{white-space:nowrap}
-@media (max-width:1100px){.inicio{grid-template-columns:repeat(2,minmax(0,1fr))}.inicio .hero,.inicio .wide2{grid-column:1 / -1}}
-@media (max-width:700px){.inicio{grid-template-columns:minmax(0,1fr)}.inicio .hero,.inicio .mid,.inicio .foot,.inicio .wide2,.inicio .tall{grid-column:auto;height:auto}.hero-grid{grid-template-columns:1fr}}
+@media (max-width:1100px){.inicio{grid-template-columns:repeat(2,minmax(0,1fr))}.inicio .hero{grid-column:1 / -1}}
+@media (max-width:700px){.inicio{grid-template-columns:minmax(0,1fr)}.inicio .hero,.inicio .mid,.inicio .foot{grid-column:auto;height:auto}.hero-grid{grid-template-columns:1fr}}
 /* «Ahora»: el partido arriba; al lado, la historia del juego y mis equipos; abajo, el gráfico y los detalles plegables */
 .ahora{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px;margin-top:8px}
 .ahora .hero{grid-column:1 / -1}.ahora .pm{white-space:normal}
@@ -551,7 +545,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
 .mx-wide{grid-column:1/-1}
 .sp-top,.sp-add{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.sp-in{flex:1;min-width:160px;background:var(--surface-3);border:1px solid var(--line-2);color:var(--text);border-radius:8px;padding:7px 10px;font:inherit;font-size:13px}
 .sp-mem{display:flex;gap:6px;flex-wrap:wrap}.sp-chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface-3);border:1px solid var(--line-2);border-radius:99px;padding:3px 4px 3px 10px;font-size:13px;font-weight:600}
-.sp-chip .n{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:500}.sp-chip.lead{border-color:var(--signal)}.sp-chip button{background:none;border:0;color:var(--muted);cursor:pointer;font-size:12px}
+.sp-chip .n{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:500}.sp-chip.lead{border-color:var(--signal)}.sp-chip button{background:none;border:0;color:var(--muted);cursor:pointer;font-size:13px;min-width:28px;min-height:28px;border-radius:6px}.sp-chip button:hover{color:var(--text);background:rgba(255,255,255,.06)}
 .sp-m{background:var(--surface-3);border:1px solid var(--line-2);border-radius:10px;padding:8px 10px;margin-top:8px}.sp-m .hd{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:4px}.sp-m .hd span{color:var(--muted)}
 .sp-pk{display:grid;grid-template-columns:minmax(80px,1fr) auto auto;gap:6px;align-items:center;font-size:13px;padding:2px 0}
 .sp-pk button{min-width:64px;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:3px 10px;font:inherit;font-weight:700;cursor:pointer}
@@ -606,6 +600,10 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
 .mx-obs .u{color:var(--muted);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
 .mx-note{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.45}
 .mx-key{margin-top:8px;padding:9px 11px;border-radius:10px;background:rgba(var(--signal-rgb),.08);border:1px solid rgba(var(--signal-rgb),.3);font-size:13px}
+/* accesibilidad: foco visible con teclado, menos movimiento si el sistema lo pide, botones cómodos para el dedo */
+:focus-visible{outline:2px solid var(--signal,#22D3EE);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+@media (pointer:coarse){.hbtn,.mx-btn,.mx-cp,.player button,.sp-pk button,.ini-go,.tab{min-height:40px}.mx-cp{min-width:40px}.ext-aviso .x{min-width:40px;min-height:40px}}
 </style>
 <link rel="stylesheet" href="rp-design.css">
 </head>
@@ -614,7 +612,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
 <div class="wrap">
   <header class="top">
     <div class="brand"><img class="logo" src="logo.svg" alt="RiftPulse"><div><div class="brand-t">RiftPulse</div><div class="brand-s">Tu segunda pantalla del Mundial</div><div class="brand-p" id="precHdr">El Mundial, jugada a jugada</div><a class="brand-p" href="https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html" target="_blank" rel="noopener" style="color:var(--link);text-decoration:none">¿Cómo funciona? →</a></div></div>
-    <nav class="tabs"><button id="tabAhora">Ahora</button><button id="tabCopa">Mundial</button><button id="tabHist">Historial</button><button id="tabMando" title="Centro de mando para streamers y analistas">Mando</button></nav>
+    <nav class="tabs" aria-label="Secciones"><button id="tabAhora">Ahora</button><button id="tabCopa">Mundial</button><button id="tabHist">Historial</button><button id="tabMando" title="Centro de mando para streamers y analistas">Mando</button></nav>
     <div class="hstat">
       <select id="sel" title="Partido en vivo" hidden></select>
       <span class="badge" id="estado">—</span>
@@ -629,16 +627,16 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
       </details>
       <details class="sync"><summary title="Sincronía con el stream">⏱ <b id="ret">60</b> s <span id="retinfo">(auto)</span></summary>
         <div class="syncpop">
-          <div class="pm">Retraso frente al stream. Se calcula solo; si ve una kill antes en la página que en el video, súbalo; si va atrasada, bájelo.</div>
+          <div class="pm">Retraso frente al stream. Se calcula solo; si ves una kill antes acá que en el video, subilo; si va atrasada, bajalo.</div>
           <div class="row"><button data-d="-10">−10</button><button data-d="-1">−1</button><button data-d="1">+1</button><button data-d="10">+10</button></div>
-          <button id="sync" title="Presiónelo justo cuando vea en el stream la primera kill de una pelea">⟲ Sincronizar con una kill</button>
+          <button id="sync" title="Tocalo justo cuando veas en el stream la primera kill de una pelea">⟲ Sincronizar con una kill</button>
         </div>
       </details>
     </div>
   </header>
   <div id="extAvisos"></div>
-  <div class="matchbar"><div class="mt" id="titulo">Worlds 2026</div><div class="ms" id="subtitulo">Buscando partido en vivo…</div></div>
-  <div class="status" id="status"></div>
+  <div class="matchbar"><div class="mt" id="titulo">Mundial 2026</div><div class="ms" id="subtitulo">Buscando partido en vivo…</div></div>
+  <div class="status" id="status" role="status" aria-live="polite"></div>
 
   <div id="vistaAhora">
   <div class="ahora">
@@ -650,7 +648,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
   <div id="vistaPartido">
   <div class="player off" id="player">
     <button id="pBack" class="ib" title="Atrás 30 s (flecha izquierda: 10 s)">−30</button>
-    <button id="pPlay" title="Reproducir o pausar (barra espaciadora)">⏸</button>
+    <button id="pPlay" title="Reproducir o pausar (barra espaciadora)" aria-label="Reproducir o pausar">⏸</button>
     <button id="pFwd" class="ib" title="Adelante 30 s (flecha derecha: 10 s)">+30</button>
     <span class="pt" id="pCur">0:00</span>
     <div class="track" id="track"><div class="trk"></div><div class="fill" id="pFill"></div><div id="pMarks"></div><div class="knob" id="pKnob"></div><div class="tip" id="pTip"></div></div>
@@ -680,8 +678,6 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
       <section class="card mid" id="iniCopa"></section>
       <section class="card mid" id="iniBet"></section>
       <section class="card mid" id="iniAgenda"></section>
-      <section class="card wide2" id="iniCamino"></section>
-      <section class="card tall" id="iniPickem"></section>
       <section class="card foot" id="iniRes"></section>
       <section class="card foot" id="iniFiab"></section>
       <section class="card foot" id="iniDatos"></section>
@@ -710,18 +706,18 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
   </div>
   <div id="vistaPickem" hidden>
     <div class="mx-row" style="margin-top:12px"><button class="mx-btn" onclick="setVista('copa')">← Volver a Mundial</button></div>
-    <section class="card" style="margin-top:8px"><h2>Pick'Em y Bola de Cristal</h2><p class="card-help">Sugerencias del sistema para el Pick'Em oficial de Worlds. Usted registra sus picks en lolesports; aquí solo le ayudamos a decidir.</p><div id="pickemView"><div class="empty">Calculando…</div></div></section>
+    <section class="card" style="margin-top:8px"><h2>Pick'Em y Bola de Cristal</h2><p class="card-help">Sugerencias del sistema para el Pick'Em oficial del Mundial. Tus picks se registran en lolesports; acá te ayudamos a decidir.</p><div id="pickemView"><div class="empty">Calculando…</div></div></section>
   </div>
   <div id="vistaHist" hidden>
     <div class="hgrid">
-      <section class="card"><h2>Partidos de Worlds 2026</h2><div id="histLista"><div class="empty">—</div></div></section>
-      <section class="card"><h2 id="histTitulo">Resumen del juego</h2><div id="histJuego"><div class="empty">Elija un partido y luego un juego.</div></div></section>
+      <section class="card"><h2>Partidos del Mundial 2026</h2><div id="histLista"><div class="empty">—</div></div></section>
+      <section class="card"><h2 id="histTitulo">Resumen del juego</h2><div id="histJuego"><div class="empty">Elegí un partido y después un juego.</div></div></section>
     </div>
   </div>
   <div id="vistaCopa" hidden>
     <div class="mx-row" style="margin-top:12px"><button class="mx-btn gold" onclick="setVista('pickem')">🎯 Pick'Em y Bola de Cristal</button></div>
     <section class="card" style="margin-top:12px"><div class="fs-head"><h2>Fases del Mundial · en vivo</h2><div class="seg fs-tabs" id="fsTabs"><button data-fase="pi">Play-In</button><button data-fase="sw">Fase suiza</button><button data-fase="ko">Eliminatorias</button></div></div><div id="cuadro"><div class="empty">Cargando…</div></div></section>
-    <section class="card" style="margin-top:12px"><h2>Favoritos al título</h2><p class="card-help">Probabilidad de que cada equipo gane Worlds 2026, según 20,000 simulaciones del torneo con su formato oficial.</p><div id="copaTop"><div class="empty">Calculando…</div></div></section>
+    <section class="card" style="margin-top:12px"><h2>Favoritos al título</h2><p class="card-help">Probabilidad de que cada equipo gane el Mundial 2026, según 20.000 simulaciones del torneo con su formato oficial.</p><div id="copaTop"><div class="empty">Calculando…</div></div></section>
     <section class="card" style="margin-top:12px"><h2>Camino de cada equipo</h2><p class="card-help">Probabilidad de llegar a cada fase del torneo. Cuanto más intenso el color, más probable.</p><div id="copa"><div class="empty">Calculando…</div></div></section>
     <section class="card" style="margin-top:12px" id="fiabCard"><h2>Fiabilidad del sistema</h2><p class="card-help">Qué tan seguido acierta el sistema, medido con partidos que no había visto.</p><div id="fiab"><div class="empty">Calculando…</div></div></section>
     <div class="grid" style="margin-top:12px">
@@ -821,10 +817,18 @@ const CHAMP = {"RekSai":{"wr":0.5823,"res":0.0359,"scale":-0.1604,"g":67,"pres":
 const CLASE = {Tank: 'Tanque', Fighter: 'Luchador', Mage: 'Mago', Assassin: 'Asesino', Marksman: 'Tirador', Support: 'Soporte'};
 
 let statusHold = 0;
+// un error en palabras de todos los días (nunca «HTTP 500» ni «Failed to fetch»)
+function errTxt(e) {
+  const m = String((e && e.message) || e || '');
+  if (/fetch|network|Load failed|NetworkError|TypeError/i.test(m) || (typeof navigator !== 'undefined' && navigator.onLine === false)) return 'sin conexión';
+  if (/HTTP 5|50\d/.test(m)) return 'lolesports no responde en este momento';
+  if (/HTTP 4|40\d/.test(m)) return 'lolesports todavía no publicó esos datos';
+  return 'algo falló al pedir los datos';
+}
 function status(msg, err, holdMs) {
   if (!holdMs && Date.now() < statusHold) return; // no tapar un aviso que el usuario debe leer
   statusHold = holdMs ? Date.now() + holdMs : 0;
-  const el = $('#status'); el.textContent = msg || ''; el.className = 'status' + (err ? ' err' : '');
+  const el = $('#status'); el.textContent = msg || ''; el.title = msg || ''; el.className = 'status' + (err ? ' err' : '');
 }
 
 // ---------- robustez: reintentos y salud de las fuentes ----------
@@ -1182,7 +1186,7 @@ async function tickLive() {
     if (chosen) { sel.value = chosen.id; await loadEvent(chosen.id, chosen.blockName); }
     else { M = null; G = null; }
     render();
-  } catch (e) { status('No se pudo consultar los partidos en vivo: ' + e.message, true); }
+  } catch (e) { status('No pude ver los partidos en vivo (' + errTxt(e) + '). Reintento solo.', true); }
 }
 
 async function tickWindow() {
@@ -1194,10 +1198,11 @@ async function tickWindow() {
     const w = await feed('window', G.id, t);
     if (G !== g0 || G.loading) return; // se cambió de punto mientras llegaba la respuesta
     const f = w && lastBefore(w.frames, t);
-    if (!f) { status('Todavía no hay datos para ese momento. Suba el retraso unos segundos.', true); return; }
+    // una vez por juego (se repetiría cada 2 s y taparía todo lo demás)
+    if (!f) { if (G.avisoSinDatos !== true) { G.avisoSinDatos = true; status('Todavía no hay datos para ese momento: subí el retraso unos segundos.', true, 6000); } return; }
     processFrame(f);
     status('');
-  } catch (e) { status('Sin datos del feed (' + e.message + '). Suba el retraso si el juego acaba de empezar.', true); }
+  } catch (e) { status('Sin datos nuevos (' + errTxt(e) + '). Reintento solo; si el juego recién empieza, subí el retraso.', true); }
   render();
 }
 
@@ -1243,10 +1248,11 @@ async function tickSchedule() {
   try {
     const d = await api('getSchedule', {leagueId: WORLDS});
     schedule = d.schedule.events.filter(e => e.type === 'match' && e.startTime >= '2026-01-01');
+    store('agenda1', JSON.stringify({at: Date.now(), ev: schedule}));
     renderAgenda();
     if (C.loaded) { for (const e of schedule) if (e.state === 'completed') eloMatch(e); simCopa(); }
     if (!$('#vistaHist').hidden) renderHistList();
-  } catch (e) {}
+  } catch (e) { status('No pude actualizar el calendario del Mundial (' + errTxt(e) + '). Reintento solo.', true); }
 }
 
 // ---------- vista ----------
@@ -1310,7 +1316,7 @@ function renderHead() {
   if (FREEZE) return;
   $('#ret').textContent = delay;
   const st = $('#estado');
-  if (!M) { $('#titulo').textContent = 'Worlds 2026'; $('#titulo').dataset.k = ''; $('#subtitulo').textContent = nextText(); st.textContent = 'SIN PARTIDO'; st.className = 'badge'; $('#reloj').textContent = '—'; return; }
+  if (!M) { $('#titulo').textContent = 'Mundial 2026'; $('#titulo').dataset.k = ''; $('#subtitulo').textContent = nextText(); st.textContent = 'SIN PARTIDO'; st.className = 'badge'; $('#reloj').textContent = '—'; return; }
   // los colores de los dos equipos en toda la app (lado azul primero); se aprende el color de logos que no están en la tabla
   if (window.RPUI) { const ta = G && G.meta ? code('blue') : M.teams[0].code, tb = G && G.meta ? code('red') : M.teams[1].code; RPUI.colores(ta, tb); M.teams.forEach(t => t.image && RPUI.colorDeLogo(t.code, https(t.image))); }
   const kTit = M.id + '|' + M.teams.map(t => (t.result || {}).gameWins ?? 0).join('-') + (sinSpoilers() ? '|s' : '');
@@ -1425,14 +1431,14 @@ function pregame(meta, D, cb, cr) {
     const ez = ok ? (eloOf(cb) - eloOf(cr)) * Math.LN10 / 400 : 0, hi = ez >= 0 ? cb : cr, lo = ez >= 0 ? cr : cb;
     const ext = t => (t.ad >= 0.8 || t.ad <= 0.2) ? 1 : 0, nof = t => t.front.length ? 0 : 1;
     const x = [1, ez, ext(D.red) - ext(D.blue), nof(D.red) - nof(D.blue), (D.blue.scale - D.red.scale) * 10];
-    const txt = ['Lado del mapa', ok ? `Equipo más fuerte en 2025–26 (Elo ${Math.round(eloOf(hi))} vs ${Math.round(eloOf(lo))})` : 'Elo', 'Tipo de daño del draft', 'Frontline del draft', 'Curva del draft'];
+    const txt = ['Lado del mapa', ok ? `Equipo más fuerte en 2025–26 (fuerza ${Math.round(eloOf(hi))} vs ${Math.round(eloOf(lo))})` : 'Fuerza de los equipos', 'Tipo de daño del draft', 'Frontline del draft', 'Curva del draft'];
     let z = 0;
     x.forEach((v, i) => { z += w[i] * v; if (i < 2 || w[i] > 0) add(w[i] * v, txt[i]); });
     return {z, zNoSide: z - w[0], p: 1 / (1 + Math.exp(-z)), parts: parts.sort((q1, q2) => Math.abs(q2.z) - Math.abs(q1.z)), elo: ok};
   }
   if (C.loaded && C.r[cb] != null && C.r[cr] != null) {
     const d = (eloOf(cb) - eloOf(cr)) * ENCOGER, hi = d >= 0 ? cb : cr, lo = d >= 0 ? cr : cb;
-    add(d * Math.LN10 / 400, `Equipo más fuerte en 2025–26 (Elo ${Math.round(eloOf(hi))} vs ${Math.round(eloOf(lo))})`);
+    add(d * Math.LN10 / 400, `Equipo más fuerte en 2025–26 (fuerza ${Math.round(eloOf(hi))} vs ${Math.round(eloOf(lo))})`);
     elo = true;
   }
   add(0.08, 'Lado azul: gana un poco más seguido en el profesional');
@@ -1687,7 +1693,8 @@ function renderAgenda() {
 let resyncTimer = null;
 function renderDelay() {
   $('#ret').textContent = delay;
-  $('#retinfo').parentElement.title = `Automático. Video: ${videoDelay} s detrás del juego. Datos: llegan con ${Math.round(feedLag)} s. Se usa el mayor. Si ve una kill antes en la página que en el video, use +1.`;
+  $('#retinfo').textContent = retrasoManual() ? '(a mano)' : '(auto)';
+  $('#retinfo').parentElement.title = `${retrasoManual() ? 'Ajustado a mano' : 'Automático'}. Video: ${videoDelay} s detrás del juego. Datos: llegan con ${Math.round(feedLag)} s. Se usa el mayor. Si ves una kill antes acá que en el video, tocá +1.`;
 }
 function applyDelay() {
   const d = Math.max(5, Math.min(600, Math.round(Math.max(videoDelay, feedLag + 2))));
@@ -1699,6 +1706,7 @@ function applyDelay() {
   }
   renderDelay();
 }
+const retrasoManual = () => store('retrasoVideo') != null && +store('retrasoVideo') !== VIDEO_DEFAULT;
 function setVideoDelay(v) { videoDelay = Math.max(0, Math.min(600, Math.round(v))); store('retrasoVideo', videoDelay); applyDelay(); }
 document.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => setVideoDelay(videoDelay + (+b.dataset.d))));
 
@@ -1722,7 +1730,7 @@ async function probeLag() {
 // Se busca en los datos la última pelea (kills con menos de 15 s entre sí) y se toma su primera kill.
 $('#sync').addEventListener('click', async () => {
   const pressed = now() - 800; // tiempo de reacción
-  if (!G || !G.start) { status('El juego todavía no empieza. Presione cuando vea una kill.', true, 6000); return; }
+  if (!G || !G.start) { status('El juego todavía no empezó. Tocá cuando veas una kill.', true, 6000); return; }
   status('Buscando la última kill en los datos…');
   const from = Math.max(G.start, pressed - 240000), steps = [];
   for (let t = Math.floor(from / 10000) * 10000; t <= pressed; t += 10000) steps.push(t);
@@ -1735,7 +1743,7 @@ $('#sync').addEventListener('click', async () => {
   let k = times.length - 1;
   while (k > 0 && times[k] - times[k - 1] < 15000) k--;
   setVideoDelay((pressed - times[k]) / 1000);
-  status(`Listo: retraso ajustado a ${delay} s. Si los datos aún van adelantados, use +1; si van atrasados, −1.`, false, 10000);
+  status(`Listo: retraso ajustado a ${delay} s. Si los datos todavía van adelantados, tocá +1; si van atrasados, −1.`, false, 10000);
 });
 $('#sel').addEventListener('change', async e => { store('evento', e.target.value); G = null; const ev = liveEvents.find(x => x.id === e.target.value); await loadEvent(e.target.value, ev && ev.blockName); render(); });
 
@@ -1808,7 +1816,7 @@ async function loadCopa() {
     for (const e of ms) if (e.state === 'completed') eloMatch(e);
     C.loaded = true;
   } catch (err) {
-    el.innerHTML = `<div class="empty">No se pudo calcular: ${esc(err.message)}</div>`;
+    el.innerHTML = `<div class="empty">No pude calcular las probabilidades (${esc(errTxt(err))}). <button class="hbtn" data-reintentar="copa">↻ Reintentar</button></div>`;
     C.loading = false;
     return;
   }
@@ -1976,7 +1984,7 @@ function koHTML() {
     ? `<div class="br-champ"><div class="tr">🏆</div>${C.img[B.champion] ? `<img src="${esc(C.img[B.champion])}" alt="" style="width:46px;height:46px">` : ''}<div class="nm">${esc(B.champion)}</div><div class="pm">Campeón del Mundial 2026</div></div>`
     : `<div class="br-champ"><div class="tr">🏆</div><div class="pm" style="margin-bottom:6px">Favoritos al título</div>${favs.map(r => `<div class="br-fav">${logo(r.t)}<b>${esc(r.t)}</b><span class="br-p">${pct(r.c)}</span></div>`).join('') || '<div class="pm">Calculando…</div>'}</div>`;
   return `<div class="br-wrap"><div class="br">${qf}${sf}${fi}${col('Campeón', champ)}</div></div>
-    <div class="pm" style="margin-top:8px;white-space:normal">En cada serie, a la derecha: probabilidad de ganarla (Elo del sistema; si se está jugando, suma el juego en curso). En las llaves por definir: probabilidad de cada candidato de llegar ahí, según 20.000 simulaciones.</div>`;
+    <div class="pm" style="margin-top:8px;white-space:normal">En cada serie, a la derecha: probabilidad de ganarla (según la fuerza de cada equipo; si se está jugando, suma el juego en curso). En las llaves por definir: probabilidad de cada candidato de llegar ahí, según 20.000 simulaciones.</div>`;
 }
 
 // Fases del Mundial: Play-In, Fase suiza y Eliminatorias (se abre en la que se está jugando)
@@ -2067,7 +2075,8 @@ function renderCuadro() {
   const el = $('#cuadro'); if (!el) return;
   const W26 = schedule.filter(e => e.startTime >= '2026-09-15' && e.match && (e.match.teams || []).length === 2);
   const de = f => W26.filter(e => faseDe(e) === f).sort((a, b) => a.startTime < b.startTime ? -1 : 1);
-  if (!FASE) FASE = ['ko', 'sw', 'pi'].find(f => de(f).some(e => e.state !== 'unstarted')) || 'pi';
+  if (!schedule.length) { el.dataset.k = ''; el.innerHTML = '<div class="empty">Cargando el calendario del Mundial…</div>'; return; }
+  if (!FASE) FASE = ['ko', 'sw', 'pi'].find(f => de(f).some(e => e.state !== 'unstarted')) || 'pi';  // se abre en la que se está jugando
   document.querySelectorAll('#fsTabs button').forEach(b => b.classList.toggle('on', b.dataset.fase === FASE));
   const list = de(FASE);
   if (FASE === 'ko') { el.dataset.k = ''; el.innerHTML = koHTML() + '<div class="pm" style="margin-top:8px;white-space:normal">A la derecha de cada equipo: probabilidad de ganar la serie según el sistema. Tocá una serie para el enfrentamiento.</div>'; return; }
@@ -2115,10 +2124,10 @@ function renderCopa() {
     ${heat(r.w30, AZ)}${heat(r.l03, RO)}${heat(r.qf, AZ)}${heat(r.sf, AZ)}${heat(r.f, OR)}${heat(r.c, OR)}</tr>`).join('');
   $('#copa').innerHTML = `<div style="overflow-x:auto"><table class="copa2"><thead>
       <tr class="grp"><th colspan="3"></th><th>Play-In</th><th colspan="2">Sistema Suizo</th><th colspan="4">Eliminatorias</th></tr>
-      <tr><th></th><th style="text-align:left">Equipo</th><th>Elo</th><th>Clasifica</th><th>3-0</th><th>0-3</th><th>Cuartos</th><th>Semis</th><th>Final</th><th>Campeón</th></tr></thead>
+      <tr><th></th><th style="text-align:left">Equipo</th><th title="Fuerza estimada del equipo: más alto, más fuerte">Fuerza</th><th>Clasifica</th><th>3-0</th><th>0-3</th><th>Cuartos</th><th>Semis</th><th>Final</th><th>Campeón</th></tr></thead>
       <tbody>${rows}</tbody></table></div>
-    <div class="note">Elo: fuerza estimada de cada equipo (más alto, más fuerte). 3-0 y 0-3: terminar el Sistema Suizo invicto o sin ganar. «Directo»: no juega el Play-In.
-      Actualizado ${C.at.toLocaleTimeString('es-HN', {hour: '2-digit', minute: '2-digit'})} · ${SIMS.toLocaleString('es-HN')} simulaciones · ${C.n.toLocaleString('es-HN')} partidos en el Elo.</div>`;
+    <div class="note">Fuerza: la estimada de cada equipo (más alto, más fuerte). 3-0 y 0-3: terminar el Sistema Suizo invicto o sin ganar. «Directo»: no juega el Play-In.
+      Actualizado ${C.at.toLocaleTimeString('es-HN', {hour: '2-digit', minute: '2-digit'})} · ${SIMS.toLocaleString('es-HN')} simulaciones · ${C.n.toLocaleString('es-HN')} partidos en el cálculo de fuerza.</div>`;
   const by = f => C.rows.slice().sort((x, y) => f(y) - f(x));
   const w30 = by(x => x.w30).slice(0, 2), l03 = by(x => x.l03).slice(0, 2);
   const usedT = new Set([...w30, ...l03].map(x => x.t));
@@ -2265,7 +2274,7 @@ async function showHistGame(gameId) {
     renderHistGame(S, m);
     renderHistList();
     loadRosters([S.meta.blueTeamMetadata.esportsTeamId, S.meta.redTeamMetadata.esportsTeamId]).then(a => { if (a && HI.sel === gameId) renderHistGame(S, m); });
-  } catch (e) { if (tok === HI.token) el.innerHTML = `<div class="empty">No se pudo cargar: ${esc(e.message)}</div>`; }
+  } catch (e) { if (tok === HI.token) el.innerHTML = `<div class="empty">No pude cargar este juego (${esc(errTxt(e))}). <button class="hbtn" data-reintentar="hist" data-gid="${esc(gameId)}">↻ Reintentar</button></div>`; }
 }
 
 // Probabilidad (lado azul) del modelo entrenado para un estado del juego. Sirve para repasar juegos terminados.
@@ -2297,7 +2306,7 @@ function expDownload(name, text, mime) {
     const blob = new Blob([text], {type: (mime || 'text/plain') + ';charset=utf-8'}), url = URL.createObjectURL(blob), a = document.createElement('a');
     a.href = url; a.download = name; document.body.appendChild(a); a.click();
     setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1500);
-  } catch (e) { alert('No se pudo descargar: ' + e.message); }
+  } catch (e) { status('No se pudo descargar el archivo. Probá de nuevo.', true, 5000); }
 }
 // Arma la exportación de un juego: JSON completo + CSV de la línea de tiempo de oro.
 function buildGameExport(S, m) {
@@ -2483,7 +2492,7 @@ function fiabGroups() {
   return [
     ['2025–26, todas las ligas', P],
     ['Solo internacionales', P.filter(x => INTL.has(x.slug))],
-    ['Worlds 2026 (se actualiza solo)', P.filter(x => x.slug === 'worlds' && x.date >= '2026-01-01')],
+    ['Mundial 2026 (se actualiza solo)', P.filter(x => x.slug === 'worlds' && x.date >= '2026-01-01')],
   ].map(([n, rows]) => [n, eloStats(rows)]);
 }
 function renderFiab() {
@@ -2499,7 +2508,7 @@ function renderFiab() {
       ${kpi(p(tot.juegoAcc), 'acierta al ganador del juego', `antes del juego · ${tot.juegos.toLocaleString('es-HN')} juegos`)}
       ${J && J.m15 ? kpi(p(J.m15.acc), 'acierta en el minuto 15', `${J.m15.juegos} juegos que el modelo no vio`) : ''}
       ${J && J.m20 ? kpi(p(J.m20.acc), 'acierta en el minuto 20', `antes del entrenamiento: ${p(J.m20.accAnt)}`) : ''}
-      ${kpi(w26.series ? `${Math.round(w26.serieAcc * w26.series)} de ${w26.series}` : '—', 'series de Worlds 2026', 'se actualiza con cada resultado')}
+      ${kpi(w26.series ? `${Math.round(w26.serieAcc * w26.series)} de ${w26.series}` : '—', 'series del Mundial 2026', 'se actualiza con cada resultado')}
     </div><div class="kpi-ref">Referencia: tirar una moneda acierta el 50%. Cada predicción se hizo sin conocer el resultado.</div>`;
   const rows = G3.map(([n, s]) => `<tr><td>${n}</td><td class="num">${s.series.toLocaleString('es-HN')}</td><td class="num"><b>${s.series ? p(s.serieAcc) : '—'}</b></td>
     <td class="num">${s.juegos.toLocaleString('es-HN')}</td><td class="num"><b>${s.juegos ? p(s.juegoAcc) : '—'}</b></td><td class="num">${s.juegos ? s.brier.toFixed(3) : '—'}</td></tr>`).join('');
@@ -2508,21 +2517,21 @@ function renderFiab() {
   let jg = '<div class="pm">Sin prueba todavía.</div>';
   if (BACKTEST && BACKTEST.juego) {
     const J = BACKTEST.juego, c = k => J[k] ? `<td class="num">${J[k].juegos}</td><td class="num"><b>${p(J[k].acc)}</b></td><td class="num">${p(J[k].accAnt)}</td><td class="num">${J[k].brier.toFixed(3)} <span class="pm">(${J[k].brierAnt.toFixed(3)})</span></td>` : '<td colspan="4">—</td>';
-    jg = `<table class="odds fiab"><thead><tr><th>Momento</th><th>Juegos</th><th>Acierto</th><th>Antes (fórmula manual)</th><th>Error Brier (antes)</th></tr></thead><tbody>
+    jg = `<table class="odds fiab"><thead><tr><th>Momento</th><th>Juegos</th><th>Acierto</th><th>Antes (fórmula manual)</th><th>Error medio (antes)</th></tr></thead><tbody>
       <tr><td>Antes del juego (fuerza, lado y draft)</td>${c('pre')}</tr><tr><td>Minuto 10</td>${c('m10')}</tr><tr><td>Minuto 15</td>${c('m15')}</tr><tr><td>Minuto 20</td>${c('m20')}</tr><tr><td>Minuto 25</td>${c('m25')}</tr></tbody></table>
       <div class="note">${esc(BACKTEST.eventos)}.</div>`;
   }
   const cal = Object.values(calibLoad()).filter(x => x.win != null && x.ours != null);
-  el.innerHTML = kpis + `<details class="det"><summary>Ver el detalle técnico: tablas, calibración y error (Brier)</summary><div class="grid">
-    <div><div class="k2">Antes del juego · fuerza de los equipos (Elo)</div>
-      <table class="odds fiab"><thead><tr><th>Grupo</th><th>Series</th><th>Acierto serie</th><th>Juegos</th><th>Acierto juego</th><th>Brier</th></tr></thead><tbody>${rows}</tbody></table>
+  el.innerHTML = kpis + `<details class="det"><summary>Ver el detalle técnico: tablas, calibración y error medio</summary><div class="grid">
+    <div><div class="k2">Antes del juego · fuerza de los equipos</div>
+      <table class="odds fiab"><thead><tr><th>Grupo</th><th>Series</th><th>Acierto serie</th><th>Juegos</th><th>Acierto juego</th><th title="Error medio de las probabilidades (Brier): 0 es perfecto; tirar una moneda da 0,25">Error medio</th></tr></thead><tbody>${rows}</tbody></table>
       <div class="k2" style="margin-top:12px">¿Está bien calibrado? Partidos internacionales: cuando el sistema dice…</div>
       <table class="odds fiab"><thead><tr><th>Dice que gana el favorito</th><th>Juegos</th><th>En promedio dijo</th><th>Pasó de verdad</th></tr></thead><tbody>${bins}</tbody></table></div>
     <div><div class="k2">Modelo entrenado · juegos que no vio</div>${jg}
       <div class="k2" style="margin-top:12px">En vivo · juegos vistos desde el inicio</div>
-      <div class="pm">${cal.length ? `${cal.length} juego${cal.length === 1 ? '' : 's'} registrado${cal.length === 1 ? '' : 's'}: el sistema acertó <b>${cal.filter(x => (x.ours >= 0.5) === (x.win === 1)).length} de ${cal.length}</b> con la predicción de antes del juego.` : 'Se llena solo: por cada juego que vea en vivo desde el inicio, guarda la predicción de antes del juego y, al terminar, el resultado.'}</div></div>
+      <div class="pm">${cal.length ? `${cal.length} juego${cal.length === 1 ? '' : 's'} registrado${cal.length === 1 ? '' : 's'}: el sistema acertó <b>${cal.filter(x => (x.ours >= 0.5) === (x.win === 1)).length} de ${cal.length}</b> con la predicción de antes del juego.` : 'Se llena solo: por cada juego que veas en vivo desde el inicio, guarda la predicción de antes del juego y, al terminar, el resultado.'}</div></div>
   </div>
-  <div class="note">Cada predicción se hizo solo con lo que se sabía antes de ese partido: el sistema avanza partido por partido y después compara con el resultado. Brier: error de las probabilidades; una moneda da 0.250 (menor es mejor).</div></details>`;
+  <div class="note">Cada predicción se hizo solo con lo que se sabía antes de ese partido: el sistema avanza partido por partido y después compara con el resultado. Error medio (Brier): cuánto se equivocan las probabilidades; tirar una moneda da 0,250 (menor es mejor).</div></details>`;
 }
 function fiabResumen() {
   if (!C.loaded || !C.preds) return '<div class="pm">Calculando…</div>';
@@ -2530,7 +2539,7 @@ function fiabResumen() {
   return `<div class="iv-st">Acierta al ganador de la serie: <b>${p(all.serieAcc)}</b> <span class="pm">(${all.series.toLocaleString('es-HN')} series)</span></div>
     <div class="iv-st">Por juego: <b>${p(all.juegoAcc)}</b> · internacionales: <b>${p(intl.juegoAcc)}</b></div>
     ${BACKTEST && BACKTEST.juego && BACKTEST.juego.m15 ? `<div class="iv-st">En juego, al minuto 15: <b>${p(BACKTEST.juego.m15.acc)}</b> <span class="pm">(${BACKTEST.juego.m15.juegos} juegos)</span></div>` : ''}
-    <div class="iv-st">Worlds 2026: <b>${w26.series ? Math.round(w26.serieAcc * w26.series) + '/' + w26.series + ' series' : 'sin series terminadas'}</b></div>`;
+    <div class="iv-st">Mundial 2026: <b>${w26.series ? Math.round(w26.serieAcc * w26.series) + '/' + w26.series + ' series' : 'sin series terminadas'}</b></div>`;
 }
 
 // ---------- próximo partido (si uno de mis equipos juega en los próximos 3 días, ese primero) ----------
@@ -2672,6 +2681,13 @@ function glosario(raiz) {
   });
 }
 function pintarNovato() { const b = $('#novBtn'); if (b) { b.classList.toggle('on', novato()); b.setAttribute('aria-pressed', novato() ? 'true' : 'false'); } }
+// Mando se refresca seguido: solo se toca lo que cambió y se conserva el scroll (así el guion no salta mientras se lee)
+function ponMx(el, html) {
+  if (!el || el.dataset.k === html) return;
+  const sc = [...el.querySelectorAll('.mx-scroll')].map(x => x.scrollTop);
+  el.dataset.k = html; el.innerHTML = html;
+  el.querySelectorAll('.mx-scroll').forEach((x, i) => { if (sc[i]) x.scrollTop = sc[i]; });
+}
 function pon(el, html) { const k = html + (novato() ? '|n' : ''); if (el.dataset.k !== k) { el.dataset.k = k; el.innerHTML = html; glosario(el); } }
 // la historia del juego, qué mirar y qué cambió (del motor, cuando sigue el mismo partido que la app)
 function renderAhora() {
@@ -2796,14 +2812,14 @@ function renderTeamPanel(code) {
   else { const ps = Object.values(R).filter(p => p && (p.img || p.name)); roster = ps.length ? `<div class="idet-roster">${ps.map(p => `<div class="idet-pl">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy">` : '<div class="idet-pl-ph"></div>'}<div class="pm">${esc(p.name || '')}</div></div>`).join('')}</div>` : '<div class="pm">Roster no disponible.</div>'; }
   const tc = teamChamps(code);
   const champs = tc.n ? `<section><h3>Campeones en Worlds</h3><div class="idet-champs">${Object.entries(tc.champs).sort((a, b) => b[1].picks - a[1].picks).slice(0, 6).map(([c, o]) => `<span class="pk-chip"><img src="${champImg(c)}" alt="">${esc(cname(c))} <span class="pm">${o.picks}${o.picks ? ` · ${pct(o.wins / o.picks)}` : ''}</span></span>`).join('')}</div><div class="pm" style="margin-top:5px">De ${tc.n} juegos de sus jugadores.</div></section>` : '';
-  return `<div class="idet-head">${C.img && C.img[code] ? `<img class="idet-logo" src="${esc(C.img[code])}" alt="">` : ''}<div><div class="idet-code">${esc(code)}</div><div class="pm">${esc(C.reg[code] || '')}${elo != null ? ` · Elo ${elo}` : ''}${rank ? ` · #${rank} por Elo` : ''}</div></div>${close}</div>
+  return `<div class="idet-head">${C.img && C.img[code] ? `<img class="idet-logo" src="${esc(C.img[code])}" alt="">` : ''}<div><div class="idet-code">${esc(code)}</div><div class="pm">${esc(C.reg[code] || '')}${elo != null ? ` · fuerza ${elo}` : ''}${rank ? ` · #${rank} en fuerza` : ''}</div></div>${close}</div>
     <div class="idet-grid">
       <section><h3>Camino en el torneo</h3><p class="card-help">Probabilidad de 20.000 simulaciones.</p>${odds}</section>
       <section><h3>Forma reciente</h3><div class="nm-form">${teamForm(code).map(r => `<span class="fm ${r === 'W' ? 'w' : 'l'}">${r}</span>`).join('') || '<span class="pm">sin historial</span>'}</div><div style="margin-top:6px">${results}</div></section>
       <section><h3>Roster</h3>${roster}</section>
       ${champs}
     </div>
-    <div class="pm idet-foot">Elo: fuerza estimada del equipo según resultados 2025–26 (más alto = más fuerte).</div>`;
+    <div class="pm idet-foot">Fuerza: la estimada del equipo según resultados 2025–26 (más alto = más fuerte).</div>`;
 }
 function renderH2hPanel(a, b, ev) {
   const close = `<button class="idet-x" data-act="inidet-close" title="Cerrar">✕</button>`;
@@ -2812,16 +2828,16 @@ function renderH2hPanel(a, b, ev) {
   const eA = C.loaded && C.r[a] != null ? Math.round(eloOf(a)) : null, eB = C.loaded && C.r[b] != null ? Math.round(eloOf(b)) : null;
   const fav = ps != null ? (ps >= 0.5 ? a : b) : null, fa = teamForm(a).filter(x => x === 'W').length, fb = teamForm(b).filter(x => x === 'W').length;
   const why = [];
-  if (fav && eA != null && eB != null) why.push(`${esc(fav)} llega con más Elo (${esc(a)} ${eA} · ${esc(b)} ${eB})`);
+  if (fav && eA != null && eB != null) why.push(`${esc(fav)} llega con más fuerza (${esc(a)} ${eA} · ${esc(b)} ${eB})`);
   if (fa !== fb) why.push(`Mejor forma reciente: ${esc(fa > fb ? a : b)} (${Math.max(fa, fb)} de 5 ganadas)`);
   if (C.reg[a] && C.reg[b] && C.reg[a] !== C.reg[b]) why.push(`Regiones distintas: ${esc(a)} (${esc(C.reg[a])}) vs ${esc(b)} (${esc(C.reg[b])})`);
   const rowA = C.rows ? C.rows.find(r => r.t === a) : null, rowB = C.rows ? C.rows.find(r => r.t === b) : null;
-  const cmp = cmpRow('Elo', eA || 0, eB || 0) + cmpRow('Forma (de 5)', fa, fb) + (rowA && rowB ? cmpRow('Prob. campeón', Math.round(rowA.c * 1000), Math.round(rowB.c * 1000), v => pct(v / 1000)) : '');
+  const cmp = cmpRow('Fuerza', eA || 0, eB || 0) + cmpRow('Forma (de 5)', fa, fb) + (rowA && rowB ? cmpRow('Prob. campeón', Math.round(rowA.c * 1000), Math.round(rowB.c * 1000), v => pct(v / 1000)) : '');
   const hist = rec.list.length ? rec.list.map(m => `<div class="up-row"><span><b class="${m.ga >= m.gb ? '' : 'pm'}">${esc(a)} ${m.ga}</b>–<b class="${m.ga >= m.gb ? 'pm' : ''}">${m.gb} ${esc(b)}</b></span><span class="pm">${esc(m.block || '')} · ${fmtDate(m.date)}</span></div>`).join('') : '<div class="pm">Sin enfrentamientos previos registrados.</div>';
   return `<div class="idet-head"><div><div class="idet-code">${esc(a)} <span class="pm">vs</span> ${esc(b)}</div><div class="pm">${e ? esc(e.blockName || '') + ' · Bo' + bo : 'Enfrentamiento'}</div></div>${close}</div>
     <div class="idet-grid">
       <section><h3>Head-to-head</h3><div class="idet-h2h"><b class="b">${esc(a)}</b> <span class="iv-sc">${rec.wa}–${rec.wb}</span> <b class="r">${esc(b)}</b> <span class="pm">en series</span></div><div style="margin-top:6px">${hist}</div></section>
-      <section><h3>Probabilidad</h3>${ps != null ? `<div class="pk2">Por serie (Bo${bo})</div>${predBar(ps, a, b, true)}<div class="pk2" style="margin-top:8px">Por mapa</div>${predBar(pm, a, b, true)}` : '<div class="pm">Calculando con el Elo…</div>'}
+      <section><h3>Probabilidad</h3>${ps != null ? `<div class="pk2">Por serie (Bo${bo})</div>${predBar(ps, a, b, true)}<div class="pk2" style="margin-top:8px">Por mapa</div>${predBar(pm, a, b, true)}` : '<div class="pm">Calculando la fuerza de los equipos…</div>'}
         ${why.length ? `<div class="pk2" style="margin-top:8px">Por qué</div><ul class="idet-why">${why.map(w => `<li>${w}</li>`).join('')}</ul>` : ''}</section>
       <section><h3>Comparativa</h3>${cmp}</section>
     </div>
@@ -2956,7 +2972,7 @@ function renderInicio() {
   else if (NEXT && NEXT.e) {
     const [A, B] = NEXT.e.match.teams, bo = NEXT.e.match.strategy.count, ps = probSerie(A.code, B.code, bo);
     const col = (t, side) => `<div class="nm-team clk ${side}" data-act="team" data-arg="${esc(t.code)}"><img src="${t.image ? esc(https(t.image)) : ''}" alt="">
-      <div><div class="nm-code">${esc(t.code)}</div><div class="pm">${esc(C.reg[t.code] || '')}${C.loaded && C.r[t.code] != null ? ` · Elo ${Math.round(eloOf(t.code))}` : ''}</div><div class="nm-form">${formHtml(t.code)}</div></div></div>`;
+      <div><div class="nm-code">${esc(t.code)}</div><div class="pm">${esc(C.reg[t.code] || '')}${C.loaded && C.r[t.code] != null ? ` · fuerza ${Math.round(eloOf(t.code))}` : ''}</div><div class="nm-form">${formHtml(t.code)}</div></div></div>`;
     const dayEvents = schedule.filter(e => e.state === 'unstarted').slice(0, 4);
     const h2hArg = `${esc(A.code)}|${esc(B.code)}|${esc(NEXT.e.match.id)}`;
     h = `<div class="ini-head"><h2>${NEXT.fav ? '★ Próximo de tus equipos' : 'Próximo partido'}</h2>${go('partido', '▾ Ver los detalles del juego', true)}</div><div class="nm-head">${col(A, 'l')}<div class="nm-vs clk" data-act="h2h" data-arg="${h2hArg}"><div class="pm">${esc(NEXT.e.blockName || '')} · Bo${bo}</div><div class="nm-vsbig">VS</div><div class="pm">${fmtDate(NEXT.e.startTime)}</div>
@@ -2977,33 +2993,14 @@ function renderInicio() {
     bola = row(champImg(mp[0]), cname(mp[0]), `Más elegido · ${mp[1].picks} veces · ${pct(mp[1].wins / mp[1].picks)} victorias`)
       + row(champImg(bw[0]), cname(bw[0]), `Mejor % de victorias · ${pct(bw[1].wins / bw[1].picks)} (${bw[1].picks} juegos)`)
       + (bk ? row(champImg(bk[1].champ), bk[0], `Mejor KDA · ${((bk[1].k + bk[1].a) / Math.max(1, bk[1].d)).toFixed(1)} con ${cname(bk[1].champ)}`) : '')
-      + `<div class="pm" style="margin-top:6px">De ${cb.n} juegos de Worlds 2026.</div>`;
+      + `<div class="pm" style="margin-top:6px">De ${cb.n} juegos del Mundial 2026.</div>`;
   }
   setHtml('#iniBet', `<h2>🔮 Bola de Cristal</h2>` + bola + go('pickem', `Ver Pick'Em completo`));
-  h = '<h2>🏆 Favoritos a ganar Worlds</h2>';
+  h = '<h2>🏆 Favoritos al título</h2>';
   if (C.rows) {
     h += C.rows.slice(0, 8).map(r => `<div class="iv-bar"><span>${C.img[r.t] ? `<img src="${esc(C.img[r.t])}" alt="" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : ''} <b>${esc(r.t)}</b></span><div><div style="width:${Math.max(2, Math.round(r.c * 100 / Math.max(C.rows[0].c, 0.01)))}%"></div></div><span>${pct(r.c)}</span></div>`).join('');
   } else h += '<div class="pm">Calculando…</div>';
-  setHtml('#iniCopa', h + go('copa', 'Ver el Mundial'));
-  // Camino del torneo: probabilidad de avanzar de cada equipo.
-  let camino;
-  if (C.rows) {
-    const rows = C.rows.slice(0, 12).map(r => `<tr><td><b>${esc(r.t)}</b> <span class="pm">${esc(r.reg || '')}</span></td><td class="num pm">${Math.round(r.elo)}</td><td class="num">${r.pi != null ? pct(r.pi) : '<span class="pm">directo</span>'}</td><td class="num">${pct(r.sf)}</td><td class="num"><b>${pct(r.c)}</b></td></tr>`).join('');
-    camino = `<table class="camino"><thead><tr><th>Equipo</th><th>Elo</th><th>Avanza Play-In</th><th>Semis</th><th>Campeón</th></tr></thead><tbody>${rows}</tbody></table>`;
-  } else camino = '<div class="pm">Calculando la simulación del torneo…</div>';
-  setHtml('#iniCamino', '<h2>🗺️ Camino del torneo</h2><p class="card-help">Probabilidad de cada equipo de avanzar, de 20.000 simulaciones.</p>' + camino);
-  // Pick'Em sugerido
-  let pick;
-  if (C.rows) {
-    const by = f => C.rows.slice().sort((x, y) => f(y) - f(x));
-    const w30 = by(x => x.w30).slice(0, 2), l03 = by(x => x.l03).slice(0, 2), used = new Set([...w30, ...l03].map(x => x.t));
-    const adv = by(x => x.qf - x.w30).filter(x => !used.has(x.t)).slice(0, 3);
-    const chip = (r, v) => `<span class="pk-chip">${C.img[r.t] ? `<img src="${esc(C.img[r.t])}" alt="">` : ''}<b>${esc(r.t)}</b> <span class="pm">${pct(v)}</span></span>`;
-    pick = `<div class="pk-row"><div class="pk-k">Terminan 3-0</div><div>${w30.map(r => chip(r, r.w30)).join('')}</div></div>
-      <div class="pk-row"><div class="pk-k">Terminan 0-3</div><div>${l03.map(r => chip(r, r.l03)).join('')}</div></div>
-      <div class="pk-row"><div class="pk-k">Avanzan 3-1/3-2</div><div>${adv.map(r => chip(r, r.qf - r.w30)).join('')}</div></div>`;
-  } else pick = '<div class="pm">Calculando…</div>';
-  setHtml('#iniPickem', `<h2>🎯 Pick'Em sugerido</h2>` + pick + go('pickem', `Registrar en lolesports`));
+  setHtml('#iniCopa', h + go('copa', 'El camino de cada equipo, el Pick\'Em y más →'));
   const fmtDay = s => new Intl.DateTimeFormat('es-HN', {weekday: 'short', day: 'numeric', month: 'short'}).format(new Date(s));
   const done = schedule.filter(e => e.state === 'completed' && e.startTime >= '2026-10-01').slice(-4).reverse();
   h = '<h2>📜 Últimos resultados</h2>' + (done.map(e => {
@@ -3016,9 +3013,9 @@ function renderInicio() {
   const tzo = -new Date().getTimezoneOffset() / 60, tzs = `GMT${tzo >= 0 ? '+' : ''}${tzo}`;
   setHtml('#iniAgenda', `<h2>📅 Próximos partidos</h2><p class="card-help">En tu hora local (${tzs}). Tocá uno para el enfrentamiento.</p>` + (up.map(e => { const ok = e.match.teams.every(t => t.code && t.code !== 'TBD'); return `<div class="up-row${ok ? ' clk' : ''}${esFav(e) ? ' fav' : ''}"${ok ? ` data-act="h2h" data-arg="${e.match.teams.map(t => esc(t.code)).join('|')}|${esc(e.match.id)}"` : ''}><span><b>${e.match.teams.map(t => esc(t.code)).join(' vs ')}</b> <span class="pm">· ${esc(e.blockName || '')} · Bo${e.match.strategy.count}</span></span><span class="pm">${fmtDate(e.startTime)}</span></div>`; }).join('') || '<div class="pm">Sin agenda.</div>'));
   setHtml('#iniDatos', `<h2>📡 Estado de los datos</h2>
-    <div class="iv-st">Retraso frente al stream: <b>${delay} s</b> <span class="pm">(automático)</span></div>
+    <div class="iv-st">Retraso frente al stream: <b>${delay} s</b> <span class="pm">(${retrasoManual() ? 'ajustado a mano' : 'automático'})</span></div>
     <div class="iv-st">Los datos de lolesports llegan con <b>${Math.round(feedLag) || '—'} s</b></div>
-    <div class="iv-st">Elo: <b>${C.loaded ? C.n.toLocaleString('es-HN') + ' partidos' : 'cargando…'}</b></div>
+    <div class="iv-st">Fuerza de los equipos: <b>${C.loaded ? C.n.toLocaleString('es-HN') + ' partidos' : 'cargando…'}</b></div>
     <div class="iv-st">${salud('esports', 'lolesports')} ${salud('feed', 'feed en vivo')} ${salud('ddragon', 'Data Dragon')}</div>
     <div class="pm" style="margin-top:6px">Esports vía feed no oficial de lolesports; campeones e ítems por Data Dragon (oficial). No afiliado a Riot Games.</div>`);
   setHtml('#iniFiab', '<h2>📈 Fiabilidad del sistema</h2>' + fiabResumen() + `<button class="ini-go" data-act="fiab">Ver la tasa de aciertos completa</button>`);
@@ -3123,7 +3120,7 @@ function renderPickem() {
     h += '</div>';
   }
   h += '</section>';
-  h += `<div class="pk-cta">${go}<span class="pm">El Pick'Em oficial se juega en lolesports: ahí inicias sesión con tu cuenta de Riot y registras tus picks. Nosotros solo te sugerimos qué elegir.</span></div>`;
+  h += `<div class="pk-cta">${go}<span class="pm">El Pick'Em oficial se juega en lolesports: ahí iniciás sesión con tu cuenta de Riot y registrás tus picks. Acá solo te sugerimos qué elegir.</span></div>`;
   el.innerHTML = h;
   if (!CB.loaded && !CB.loading) crystalBall();
 }
@@ -3173,7 +3170,7 @@ function setVista(v) {
   const alPartido = v === 'partido';
   if (v === 'inicio' || v === 'partido') v = 'ahora';
   for (const [vista, id] of [['ahora', 'Ahora'], ['mando', 'Mando'], ['copa', 'Copa'], ['hist', 'Hist'], ['pickem', 'Pickem']]) $('#vista' + id).hidden = v !== vista;
-  for (const [tab, vs] of [['Ahora', ['ahora']], ['Mando', ['mando']], ['Copa', ['copa', 'pickem']], ['Hist', ['hist']]]) { const b = $('#tab' + tab); if (b) b.classList.toggle('on', vs.includes(v)); }
+  for (const [tab, vs] of [['Ahora', ['ahora']], ['Mando', ['mando']], ['Copa', ['copa', 'pickem']], ['Hist', ['hist']]]) { const b = $('#tab' + tab); if (b) { b.classList.toggle('on', vs.includes(v)); b.setAttribute('aria-current', vs.includes(v) ? 'page' : 'false'); } }
   store('vista', v);
   if (v === 'copa') { loadCopa(); renderCuadro(); }
   if (v === 'hist') renderHistList();
@@ -3280,6 +3277,7 @@ function spRender() {
     return `<div class="sp-m"><div class="hd"><b>${esc(a || 'Por definir')} vs ${esc(b || 'Por definir')}</b><span>Bo${x.bo} · ${st}</span></div>${rows}</div>`;
   }).join('') || '<div class="pm" style="margin-top:8px">No hay partidos para ese día.</div>';
 }
+const spDel = {t: 0};
 function spLoad() { if (window.RiftEngine && RiftEngine.loadMatches) RiftEngine.loadMatches().then(l => { SP_MS = l || []; spRender(); }).catch(() => {}); }
 function spUrl() {
   const d = {title: SP.title || 'Predicciones del staff', day: SP.day, members: SP.members.map(m => ({id: m.id, name: m.name})), picks: SP.picks};
@@ -3287,11 +3285,17 @@ function spUrl() {
 }
 document.addEventListener('click', e => {
   const del = e.target.closest('[data-sp-del]'), pk = e.target.closest('[data-sp-m]');
-  if (del) { const id = +del.dataset.spDel; SP.members = SP.members.filter(m => m.id !== id); for (const k in SP.picks) delete SP.picks[k][id]; spSave(); spRender(); }
+  if (del) {  // se puede deshacer unos segundos (se lleva sus picks)
+    const id = +del.dataset.spDel, antes = JSON.stringify(SP), quien = (SP.members.find(m => m.id === id) || {}).name || '';
+    SP.members = SP.members.filter(m => m.id !== id); for (const k in SP.picks) delete SP.picks[k][id]; spSave(); spRender();
+    $('#spMsg').innerHTML = `Quitaste a <b>${esc(quien)}</b>. <button class="mx-btn" id="spUndo">↶ Deshacer</button>`;
+    $('#spUndo').onclick = () => { const o = JSON.parse(antes); SP.members = o.members; SP.picks = o.picks; spSave(); spRender(); $('#spMsg').textContent = ''; };
+    clearTimeout(spDel.t); spDel.t = setTimeout(() => { if ($('#spUndo')) $('#spMsg').textContent = ''; }, 7000);
+  }
   if (pk) { const mid = pk.dataset.spM, who = pk.dataset.spWho, t = pk.dataset.spT; SP.picks[mid] = SP.picks[mid] || {}; if (SP.picks[mid][who] === t) delete SP.picks[mid][who]; else SP.picks[mid][who] = t; spSave(); spRender(); }
   if (e.target.closest('#spAdd')) spAdd();
   if (e.target.closest('#spUrl')) { const u = spUrl(), ok = () => { $('#spMsg').textContent = '✓ URL copiada. En OBS: Fuente → Navegador → pegala (1920×1080). Si cambian los picks, volvé a copiarla.'; };
-    if (navigator.clipboard) navigator.clipboard.writeText(u).then(ok, () => { $('#spMsg').textContent = u; }); else $('#spMsg').textContent = u; }
+    copiarTexto(u).then(ok, () => { $('#spMsg').textContent = u; }); }
 });
 function spAdd() { const n = ($('#spName').value || '').trim(); if (!n) return; SP.members.push({id: SP.members.reduce((a, m) => Math.max(a, m.id), 0) + 1, name: n}); $('#spName').value = ''; spSave(); spRender(); }
 document.addEventListener('keydown', e => { if (e.target && e.target.id === 'spName' && e.key === 'Enter') spAdd(); });
@@ -3310,15 +3314,22 @@ const mxHasExt = () => mxStorage() || mxEmb;
 // lo que manda el panel de la extensión: si el overlay del stream se actualiza solo, y qué juego y minuto ve en el video
 const EXTST = {shell: 0, origen: null, pantalla: null, seguir: store('mxSeguir') !== '0'};
 const ZIP_URL = OBS_BASE + 'riftpulse-extension.zip';
+// «↻ Reintentar» en los mensajes de error
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-reintentar]'); if (!b) return;
+  if (b.dataset.reintentar === 'copa') { b.disabled = true; b.textContent = 'Reintentando…'; loadCopa(); }
+  if (b.dataset.reintentar === 'hist') showHistGame(b.dataset.gid);
+});
 function avisoCerrado(k) { return store('aviso_' + k) === '1'; }
 function renderAvisos() {
   const box = $('#extAvisos'); if (!box) return;
   const out = [];
   if (mxEmb && EXTST.viejo && !avisoCerrado('shell3'))
     out.push(['shell3', `Hay una versión nueva de la extensión que sincroniza sola con el video. Se instala <b>una sola vez</b>, en un minuto: <a href="${OBS_BASE}instalar.html#extension" target="_blank" rel="noopener">seguí la guía</a> (quitá antes la RiftPulse vieja). Después solo se refresca.`]);
-  if (sinSpoilers()) out.push(['sp', '🙈 <b>Modo sin spoilers</b>: estás viendo un VOD, así que se ocultan los resultados de este partido y de los siguientes. <button class="mx-btn" data-act="spoilers" data-arg="ver" style="margin-left:6px">Mostrar resultados</button>']);
+  if (sinSpoilers()) out.push(['sp', '🙈 <b>Modo sin spoilers</b>: ' + (spVod() ? 'estás viendo un VOD, así que se ocultan los resultados de este partido y de los siguientes.' : 'los resultados de hoy quedan tapados.') + ' <button class="mx-btn" data-act="spoilers" data-arg="ver" style="margin-left:6px">Mostrar resultados</button>']);
   else if (EXTST.pantalla && EXTST.pantalla.vod && store('spoilers') === 'ver') out.push(['sp2', 'Resultados visibles. <button class="mx-btn" data-act="spoilers" data-arg="" style="margin-left:6px">🙈 Volver a ocultarlos</button>']);
-  if (EXTST.origen && EXTST.origen.origen === 'local' && !avisoCerrado('us'))
+  // sin conexión al actualizarse no hace falta tocar nada (reintenta solo): el aviso es solo si faltan los scripts de usuario
+  if (EXTST.origen && EXTST.origen.origen === 'local' && /desactivados/.test(EXTST.origen.detalle || '') && !avisoCerrado('us'))
     out.push(['us', 'Para que el <b>overlay del stream</b> se actualice solo: en <b>chrome://extensions</b> → RiftPulse → <b>Detalles</b>, activá <b>«Permitir scripts de usuario»</b> y tocá ↻ en la extensión.']);
   box.innerHTML = out.map(([k, t]) => `<div class="ext-aviso"><span>${t}</span><button class="x" data-aviso="${k}" title="Cerrar" aria-label="Cerrar">✕</button></div>`).join('');
 }
@@ -3423,7 +3434,7 @@ function renderSetup() {
   const pasos = [
     [EXTST.shell >= 3, 'Extensión actualizada', `Si no está en verde: <a href="${OBS_BASE}instalar.html#extension" target="_blank" rel="noopener">instalala de nuevo con la guía</a> (quitá antes la vieja).`],
     [EXTST.origen && (EXTST.origen.origen === 'web' || EXTST.origen.origen === 'tienda'), 'Overlay que se actualiza solo', 'En chrome://extensions → RiftPulse → <b>Detalles</b>, activá <b>«Permitir scripts de usuario»</b> y tocá ↻.'],
-    [pan, 'Video detectado', 'Abrí un partido del Mundial en Twitch o lolesports (en vivo o un VOD), con <b>auto-sync</b> encendido en la barra del overlay.']];
+    [pan, 'Video detectado', 'Abrí un partido del Mundial en Twitch (en vivo o un VOD), con la <b>sincronía automática</b> encendida en la barra del overlay.']];
   const listos = pasos.filter(p => p[0]).length;
   if (listos === 3 && store('setup_ok') === '1') { box.hidden = true; return; }
   if (listos === 3) store('setup_ok', '1');
@@ -3441,12 +3452,12 @@ function renderMando() {
   const espera = mxEmb && EXTST.seguir && !(s && s.follow);
   if (espera || !s || !s.match || !s.game || s.game.pBlue == null) {
     const nx = espera ? '' : s && s.next ? `<div class="mx-note">Próximo partido: <b>${esc(s.next.blue)} vs ${esc(s.next.red)}</b>.</div>` : '';
-    const msg = espera && !pan ? 'Esperando el video: abrí el partido en Twitch o lolesports con el overlay de RiftPulse y el auto-sync encendido.' : pan && EXTST.seguir ? `Cargando lo que ves en el video: <b>${esc((pan.codes || []).join(' vs '))}</b> · juego ${pan.juego}…` : s && s.match ? 'El juego está por empezar…' : 'No hay un partido en vivo en este momento.';
-    air.innerHTML = `<div class="mx-h"><h2>Al aire ahora</h2>${segBtn}</div><div class="empty" style="padding:10px 0">${msg}</div>${nx}
-      ${mxEmb && EXTST.seguir ? '<div class="mx-note">Abrí el partido en Twitch o lolesports (en vivo o un VOD): el overlay lee el reloj del video y este panel lo sigue solo.</div>' : ''}`;
-    $('#mxTalk').innerHTML = '<div class="mx-h"><h2>Guion para comentar</h2></div><div class="empty">Aparece con el partido.</div>';
-    $('#mxRead').innerHTML = '<div class="mx-h"><h2>Lectura del juego</h2></div><div class="empty">Aparece con el partido.</div>';
-    $('#mxSoc').innerHTML = '<div class="mx-h"><h2>Para redes</h2></div><div class="empty">Aparece con el partido.</div>';
+    const msg = espera && !pan ? 'Esperando el video: abrí el partido en Twitch con el overlay de RiftPulse y la sincronía automática encendida.' : pan && EXTST.seguir ? `Cargando lo que ves en el video: <b>${esc((pan.codes || []).join(' vs '))}</b> · juego ${pan.juego}…` : s && s.match ? 'El juego está por empezar…' : 'No hay un partido en vivo en este momento.';
+    ponMx(air, `<div class="mx-h"><h2>Al aire ahora</h2>${segBtn}</div><div class="empty" style="padding:10px 0">${msg}</div>${nx}
+      ${mxEmb && EXTST.seguir ? '<div class="mx-note">Abrí el partido en Twitch (en vivo o un VOD): el overlay lee el reloj del video y este panel lo sigue solo.</div>' : ''}`);
+    ponMx($('#mxTalk'), '<div class="mx-h"><h2>Guion para comentar</h2></div><div class="empty">Aparece con el partido.</div>');
+    ponMx($('#mxRead'), '<div class="mx-h"><h2>Lectura del juego</h2></div><div class="empty">Aparece con el partido.</div>');
+    ponMx($('#mxSoc'), '<div class="mx-h"><h2>Para redes</h2></div><div class="empty">Aparece con el partido.</div>');
     return;
   }
   const m = s.match, g = s.game, pb = Math.round(g.pBlue * 100), pr = 100 - pb;
@@ -3460,16 +3471,16 @@ function renderMando() {
   if (se && se.bo > 1) chips.push(`<div class="mx-k">Serie Bo${se.bo} <b>${se.score[0]}–${se.score[1]}</b> · si gana <b class="b">${esc(m.blue.code)}</b> ${mxPct(se.ifBlue)} · si gana <b class="r">${esc(m.red.code)}</b> ${mxPct(1 - se.ifRed)}</div>`);
   if (im) chips.push(`<div class="mx-k">${im.at <= g.gt ? `<b>${esc(im.obj)}</b> ya está en el mapa` : `Próx. <b>${esc(im.obj)}</b> en ${mmss(im.at - g.gt)}`}: <b class="b">${esc(m.blue.code)} ${im.blue >= 0 ? '+' : ''}${im.blue}</b> · <b class="r">${esc(m.red.code)} ${im.red >= 0 ? '+' : ''}${im.red}</b> pts</div>`);
   const fdt = s.feed && s.feed.estado !== 'ok' && s.feed.estado !== 'demo' ? `<span class="mx-badge demo">${esc(s.feed.txt)}</span>` : '';
-  air.innerHTML = `<div class="mx-h"><h2>Al aire ahora</h2>${segBtn}${s.demo ? '<button class="mx-btn" data-mx="live">⏹ Volver al vivo</button>' : ''}</div><div class="mx-top">${badge}${fdt}<span>${esc(m.league || '')}</span></div>
+  ponMx(air, `<div class="mx-h"><h2>Al aire ahora</h2>${segBtn}${s.demo ? '<button class="mx-btn" data-mx="live">⏹ Volver al vivo</button>' : ''}</div><div class="mx-top">${badge}${fdt}<span>${esc(m.league || '')}</span></div>
     <div class="mx-teams"><span class="b">${esc(m.blue.code)}</span><span class="sc">${m.blue.wins == null || sinSpoilers() ? 'vs' : m.blue.wins + ' – ' + m.red.wins}</span><span class="r">${esc(m.red.code)}</span></div>
     <div class="mx-bar"><div class="pb" style="width:${Math.min(85, Math.max(pb, 15))}%">${pb}%</div><div class="pr" style="width:${Math.min(85, Math.max(pr, 15))}%">${pr}%</div></div>
-    <div class="mx-row">${chips.join('')}</div>${clip ? `<div class="mx-clip">🎬 <span><b>Momento para clip</b> · min ${mmss(clip.a)}–${mmss(clip.b)}: <b class="${mxSc(clip.side)}">${esc(clip.code)} +${Math.round(Math.abs(clip.d) * 100)}</b> (${esc(RiftEngine.causaTxt(clip.cause, clip.side))})</span><button class="mx-btn${MX.copied === 'clip' ? ' on' : ''}" data-mx="cp" data-k="clip">${MX.copied === 'clip' ? '✓' : '📋 Texto'}</button></div>` : ''}${mxSpark(g)}`;
+    <div class="mx-row">${chips.join('')}</div>${clip ? `<div class="mx-clip">🎬 <span><b>Momento para clip</b> · min ${mmss(clip.a)}–${mmss(clip.b)}: <b class="${mxSc(clip.side)}">${esc(clip.code)} +${Math.round(Math.abs(clip.d) * 100)}</b> (${esc(RiftEngine.causaTxt(clip.cause, clip.side))})</span><button class="mx-btn${MX.copied === 'clip' ? ' on' : ''}" data-mx="cp" data-k="clip">${MX.copied === 'clip' ? '✓' : '📋 Texto'}</button></div>` : ''}${mxSpark(g)}`);
 
   // guion: frases con botón para copiar
   const talk = RiftEngine.talk(s);
   if (MX.copied != null && Date.now() - MX.copiedAt > 1500) MX.copied = null;
-  $('#mxTalk').innerHTML = `<div class="mx-h"><h2>Guion para comentar</h2><button class="mx-btn${MX.copied === 'all' ? ' on' : ''}" data-mx="cp" data-k="all">${MX.copied === 'all' ? '✓ Copiado' : '📋 Copiar todo'}</button></div>
-    <div class="mx-scroll"><ul class="mx-list">${talk.map((t, i) => `<li><span>${t.html}</span><button class="mx-cp${MX.copied === 't' + i ? ' ok' : ''}" data-mx="cp" data-k="t${i}">${MX.copied === 't' + i ? '✓' : '📋'}</button></li>`).join('')}</ul></div>`;
+  ponMx($('#mxTalk'), `<div class="mx-h"><h2>Guion para comentar</h2><button class="mx-btn${MX.copied === 'all' ? ' on' : ''}" data-mx="cp" data-k="all">${MX.copied === 'all' ? '✓ Copiado' : '📋 Copiar todo'}</button></div>
+    <div class="mx-scroll"><ul class="mx-list">${talk.map((t, i) => `<li><span>${t.html}</span><button class="mx-cp${MX.copied === 't' + i ? ' ok' : ''}" data-mx="cp" data-k="t${i}" aria-label="Copiar esta frase" title="Copiar esta frase">${MX.copied === 't' + i ? '✓' : '📋'}</button></li>`).join('')}</ul></div>`);
   MX.talk = talk;
 
   // lectura del juego
@@ -3485,20 +3496,20 @@ function renderMando() {
   rd += c ? `<div style="font-size:13.5px"><b class="${mxSc(c.side)}">${esc(c.code)}</b> está en ${mxPct(c.p)}. ${c.reached ? 'Necesita' : 'Lo que más lo acerca:'} <b>${esc(c.paths[0].txt)}</b> → ${mxPct(c.paths[0].p)}${c.paths[1] ? `, o <b>${esc(c.paths[1].txt)}</b> → ${mxPct(c.paths[1].p)}` : ''}.</div>` : '<div class="mx-note">Nadie está por debajo del 45%.</div>';
   if (k) rd += `<div class="mx-key">⭐ Jugador clave: <b>${esc(k.name)}</b> (${esc(k.code)}, ${esc(k.champ)}) · ${k.gd >= 0 ? '+' : '−'}${mxK(k.gd)} de oro sobre ${esc(k.vs)} · ${Math.round(k.share * 100)}% del daño · ${k.k}/${k.d}/${k.a}</div>`;
   if (dw && g.gt < 1500) rd += `<div class="mx-note">⏱ Ventana de poder: <b>${esc(dw.early)}</b> necesita ventaja antes del min ~24; después el draft favorece a <b>${esc(dw.late)}</b>.</div>`;
-  $('#mxRead').innerHTML = '<div class="mx-h"><h2>Lectura del juego</h2></div><div class="mx-scroll">' + rd + '</div>';
+  ponMx($('#mxRead'), '<div class="mx-h"><h2>Lectura del juego</h2></div><div class="mx-scroll">' + rd + '</div>');
 
   // redes
   const post = mxPost(s);
   MX.post = post;
   MX.tw = `¿Quién gana el juego ${m.gameNo || ''}: ${m.blue.code} o ${m.red.code}?`.replace('  ', ' ').slice(0, 45) + `\n1) ${m.blue.code} (RiftPulse: ${pb}%)\n2) ${m.red.code} (RiftPulse: ${pr}%)`;
-  $('#mxSoc').innerHTML = `<div class="mx-h"><h2>Para redes</h2></div>
+  ponMx($('#mxSoc'), `<div class="mx-h"><h2>Para redes</h2></div>
     <div class="mx-row" style="margin-top:0;flex-wrap:nowrap"><button class="mx-btn${MX.copied === 'post' ? ' on' : ''}" data-mx="cp" data-k="post">${MX.copied === 'post' ? '✓ Copiado' : '📋 Copiar post'}</button>
     <a class="mx-btn" href="https://x.com/intent/post?text=${encodeURIComponent(post)}" target="_blank" rel="noopener" style="text-decoration:none">Publicar en X</a>
     <button class="mx-btn gold" data-mx="png"${g.recap ? '' : ' disabled title="Disponible al terminar el juego"'}>⬇ Imagen del resumen</button></div>
     <div class="mx-row" style="margin-top:6px"><button class="mx-btn${MX.copied === 'tw' ? ' on' : ''}" data-mx="cp" data-k="tw" title="Título y opciones listos para una predicción de Twitch">${MX.copied === 'tw' ? '✓ Copiado' : '🎲 Predicción de Twitch'}</button></div>
     ${mxMomentosHTML(s)}
     <div class="mx-scroll" style="margin-top:10px"><div class="mx-post">${esc(post)}</div>
-    <div class="mx-note">${g.recap ? 'El juego terminó: el post y la imagen resumen quién ganó, el giro decisivo y el jugador clave.' : 'Se actualiza solo con el partido. Al terminar el juego se habilita la imagen del resumen.'}</div></div>`;
+    <div class="mx-note">${g.recap ? 'El juego terminó: el post y la imagen resumen quién ganó, el giro decisivo y el jugador clave.' : 'Se actualiza solo con el partido. Al terminar el juego se habilita la imagen del resumen.'}</div></div>`);
 }
 // momentos para editores: los giros y jugadas clave del juego, con el minuto del juego y, si se sigue un VOD, el segundo exacto del video
 const hms = t => { t = Math.max(0, Math.round(t)); const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), x = t % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
@@ -3534,6 +3545,14 @@ function mxMomentosHTML(s) {
 // controles del overlay del stream (no se redibujan con cada dato, para no perder lo que se escribe)
 function renderMxOv() {
   const o = mxOv(), ext = mxHasExt(), dis = ext ? '' : ' disabled';
+  // sin la extensión no hay overlay que mover: en vez de una grilla gris, cómo tenerlo
+  if (!ext) {
+    $('#mxOv').innerHTML = `<div class="mx-h"><h2>Overlay en el stream</h2></div><div class="mx-scroll">
+      <div style="font-size:14px;line-height:1.5;margin:4px 0 10px">Con la extensión de RiftPulse, la probabilidad aparece <b>encima del video</b> de Twitch y se sincroniza sola con el minuto que ves. Desde acá la manejás: qué paneles, dónde y cuándo.</div>
+      <a class="mx-btn gold" href="${OBS_BASE}instalar.html#extension" target="_blank" rel="noopener" style="text-decoration:none">🧩 Instalar la extensión</a>
+      <div class="mx-note">¿Hacés stream? Las piezas para OBS están acá abajo, en «Piezas para OBS».</div></div>`;
+    return;
+  }
   const chip = (key, label) => `<button class="mx-btn${o.ext.includes(key) ? ' on' : ''}" data-mx="ext" data-k="${key}"${dis}>${label}</button>`;
   $('#mxOv').innerHTML = `<div class="mx-h"><h2>Overlay en el stream</h2></div><div class="mx-scroll">
     <div class="mx-sub">En la barra</div><div class="mx-row" style="margin-top:0">${chip('obj', 'Próximo objetivo')}${chip('pg', 'Trayectoria')}
@@ -3547,19 +3566,28 @@ function renderMxOv() {
     <div class="mx-sub">Sincronía con el video</div>
     <div class="mx-sync"><span class="pm" style="white-space:normal">Minuto que ves:</span><input id="mxMin" placeholder="mm:ss" maxlength="5"${dis}><button class="mx-btn gold" data-mx="sync"${dis}>⟲ Clavar</button>
       <button class="mx-btn" data-mx="nudge" data-k="-5"${dis}>−5 s</button><button class="mx-btn" data-mx="nudge" data-k="5"${dis}>+5 s</button></div>
-    <div class="mx-note">${ext ? (MX.msg || 'Los cambios se aplican al instante en el overlay de Twitch o lolesports. Con «auto-sync» encendido no hace falta clavar el minuto: el overlay lee el reloj del video.') : 'Estos controles mueven el overlay de la extensión sobre Twitch o lolesports. Ábralos desde el panel lateral de la extensión.'}</div></div>`;
+    <div class="mx-note">${ext ? (MX.msg || 'Los cambios se aplican al instante en el overlay de Twitch. Con la sincronía automática encendida no hace falta clavar el minuto: el overlay lee el reloj del video.') : ''}</div></div>`;
 }
 function renderMxObs() {
-  const items = [['Director automático (recomendado · una sola URL)', 'overlay.html?view=auto'], ['Preset · solo barra (lower-third)', 'overlay.html?view=bar&modules=prob,timers,brand&pos=bottom'], ['Preset · alertas de giro (escena aparte)', 'overlay.html?view=alert'], ['Preset · entre mapas (serie)', 'overlay.html?view=serie'], ['Preset · cierre de juego (resumen)', 'overlay.html?view=recap'],
-    ['Barra en vivo (completa)', 'overlay.html'], ['Serie', 'overlay.html?view=serie'], ['Duelos por línea', 'overlay.html?view=duelos'], ['Para remontar (sola)', 'overlay.html?view=remontada'],
-    ['Resumen del juego (solo)', 'overlay.html?view=recap'], ['Cuadro de eliminatorias', 'overlay.html?view=cuadro'], ['Predicciones del staff', 'overlay.html?view=predicciones'], ['Claves del momento', 'overlay.html?view=keys'], ['Alerta de giro', 'overlay.html?view=alert'], ['Mesa de análisis', 'analista.html'], ['Control de producción (dock)', 'control.html']];
+  const items = [['Director automático (recomendado · una sola URL)', 'overlay.html?view=auto'], ['Solo la barra, abajo', 'overlay.html?view=bar&modules=prob,timers,brand&pos=bottom'], ['Barra en vivo (completa)', 'overlay.html'],
+    ['Alerta de giro (escena aparte)', 'overlay.html?view=alert'], ['Serie (entre mapas)', 'overlay.html?view=serie'], ['Resumen del juego (al cerrar)', 'overlay.html?view=recap'], ['Duelos por línea', 'overlay.html?view=duelos'], ['Para remontar', 'overlay.html?view=remontada'],
+    ['Cuadro de eliminatorias', 'overlay.html?view=cuadro'], ['Predicciones del staff', 'overlay.html?view=predicciones'], ['Claves del momento', 'overlay.html?view=keys'], ['Mesa de análisis', 'analista.html'], ['Control de producción (panel dentro de OBS)', 'control.html']];
   MX.obsAll = items.map(([l, u]) => l + ': ' + OBS_BASE + u).join('\n');
   $('#mxObs').innerHTML = `<div class="mx-h"><h2>Piezas para OBS</h2><button class="mx-btn${MX.copied === 'obsall' ? ' on' : ''}" data-mx="cp" data-k="obsall">${MX.copied === 'obsall' ? '✓ Copiadas' : '📋 Copiar todas'}</button></div><ul class="mx-obs">${items.map(([l, u], i) => `<li><b style="flex:none">${l}</b><span class="u">${OBS_BASE}${u}</span><button class="mx-cp${MX.copied === 'o' + i ? ' ok' : ''}" data-mx="cp" data-k="o${i}" data-u="${OBS_BASE}${u}">${MX.copied === 'o' + i ? '✓' : '📋'}</button></li>`).join('')}</ul>
-    <div class="mx-note">Cada pieza va como <b>Navegador</b> (Browser Source) en OBS, 1920 × 1080. Agregá <code>&delay=42</code> para tu retraso, <code>&accent=ff8800</code> y <code>&logo=https://…</code> para tus colores y logo, <code>&safe=1</code> para márgenes amplios y <code>&brand=0</code> para quitar la marca. Con <code>?demo</code> se ven con un partido ya jugado.</div>`;
+    <div class="mx-note">Cada pieza va como <b>Fuente de navegador</b> en OBS, 1920 × 1080. Agregá <code>&delay=42</code> para tu retraso, <code>&accent=ff8800</code> y <code>&logo=https://…</code> para tus colores y logo, <code>&safe=1</code> para márgenes amplios y <code>&brand=0</code> para quitar la marca. Con <code>?demo</code> se ven con un partido ya jugado.</div>`;
+}
+// copiar al portapapeles; si el navegador no deja (permisos, iframe), con el método clásico. Falla de verdad solo si los dos fallan
+function copiarTexto(text) {
+  const clasico = () => {
+    const t = document.createElement('textarea'); t.value = text; t.setAttribute('readonly', ''); t.style.cssText = 'position:fixed;top:0;opacity:0';
+    document.body.appendChild(t); t.select(); let ok = false; try { ok = document.execCommand('copy'); } catch (e) {} t.remove();
+    if (!ok) throw new Error('sin portapapeles');
+  };
+  return navigator.clipboard ? navigator.clipboard.writeText(text).catch(clasico) : Promise.resolve().then(clasico);
 }
 function mxCopy(key, text) {
   const done = () => { MX.copied = key; MX.copiedAt = Date.now(); renderMando(); renderMxObs(); setTimeout(() => { renderMando(); renderMxObs(); }, 1600); };
-  navigator.clipboard.writeText(text).then(done, done);
+  copiarTexto(text).then(done, () => status('No se pudo copiar: el navegador no dio permiso. Probá de nuevo con un clic.', true, 5000));
 }
 $('#vistaMando').addEventListener('click', e => {
   const b = e.target.closest('[data-mx]'); if (!b || b.disabled) return;
@@ -3580,7 +3608,7 @@ $('#vistaMando').addEventListener('click', e => {
   else if (a === 'nudge') { mxSend({nudge: +k}); MX.msg = `Overlay movido ${+k > 0 ? '+' : ''}${k} s.`; }
   else if (a === 'sync') {
     const mm = ($('#mxMin').value || '').trim().match(/^(\d{1,2})(?::([0-5]?\d))?$/);
-    if (!mm) { MX.msg = 'Escriba el minuto como mm:ss (por ejemplo 14:32).'; renderMxOv(); return; }
+    if (!mm) { MX.msg = 'Escribí el minuto como mm:ss (por ejemplo 14:32).'; renderMxOv(); return; }
     mxSend({sync: {secs: +mm[1] * 60 + (+mm[2] || 0), at: Date.now()}}); MX.msg = `Overlay clavado al ${mm[1]}:${String(+mm[2] || 0).padStart(2, '0')} del video.`;
   }
   renderMxOv();
@@ -3667,6 +3695,8 @@ $('#pLive').addEventListener('click', goLive);
 $('#pVel').addEventListener('change', e => { if (SCRUB) SCRUB = {...SCRUB, gt: scrubGt(), base: Date.now(), speed: +e.target.value}; });
 document.addEventListener('keydown', e => {
   if ($('#vistaAhora').hidden || /INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName)) return;
+  // los atajos son del reproductor: sin un juego cargado y a la vista, la barra espaciadora vuelve a desplazar la página
+  if (!G || !G.start || !$('#pPlay').offsetParent) return;
   if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
   else if (e.key === 'ArrowLeft') { e.preventDefault(); seek((SCRUB ? scrubGt() : edgeGt()) - 10); }
   else if (e.key === 'ArrowRight' && SCRUB) { e.preventDefault(); seek(scrubGt() + 10); }
@@ -3694,17 +3724,20 @@ async function pinGame(matchId, gameId, quedarse) {
   if (mxEmb) window.parent.postMessage({rp: 'ready'}, '*');  // avisa al panel de la extensión que la app cargó
   renderDelay();
   render();
-  await tickSchedule();
-  loadCopa().then(() => { if (G && G.start && G.pre && !G.pre.elo) rebuild(); });
+  // primero se pinta lo que quedó guardado de la visita anterior (al instante); el calendario fresco llega después
+  try { const c = JSON.parse(store('agenda1') || 'null'); if (c && Date.now() - c.at < 12 * 3600e3 && !schedule.length) schedule = c.ev; } catch (e) {}
   const v0 = q.get('vista') || store('vista'); // ?vista=partido abre directo en esa pestaña
   applyCity();  // fondo de ciudad aérea (se genera una vez)
   pintarSpx(); pintarNovato();
   setVista(['ahora', 'inicio', 'partido', 'mando', 'copa', 'hist', 'pickem'].includes(v0) ? v0 : 'ahora');
+  await tickSchedule();
+  if (!$('#vistaAhora').hidden) renderInicio();
+  loadCopa().then(() => { if (G && G.start && G.pre && !G.pre.elo) rebuild(); });
   if (q.get('hist')) { // ?vista=hist&hist=<partido>:<juego> abre ese resumen directo
     const [mid, gid] = q.get('hist').split(':');
     try { HI.open = mid; HI.events[mid] = (await api('getEventDetails', {id: mid})).event.match; renderHistList(); showHistGame(gid); } catch (e) {}
   }
-  if (REPLAY) { try { const ev = schedule.find(e => e.match.id === REPLAY); await loadEvent(REPLAY, ev ? ev.blockName : ''); } catch (e) { status('No se pudo cargar la repetición: ' + e.message, true); } }
+  if (REPLAY) { try { const ev = schedule.find(e => e.match.id === REPLAY); await loadEvent(REPLAY, ev ? ev.blockName : ''); } catch (e) { status('No pude cargar la repetición (' + errTxt(e) + ').', true, 6000); } }
   else await tickLive();
   render();
   setInterval(tickWindow, 2000);

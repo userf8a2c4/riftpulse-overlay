@@ -34,7 +34,7 @@ async function instalarOverlay() {
 }
 chrome.runtime.onInstalled.addListener(instalarOverlay);   // también al recargar la extensión
 chrome.runtime.onStartup.addListener(instalarOverlay);
-chrome.alarms.create('rp-actualizar', {periodInMinutes: 360});
+chrome.alarms.get('rp-actualizar', a => { if (!a) chrome.alarms.create('rp-actualizar', {periodInMinutes: 360}); });  // sin reiniciar el ciclo cada vez que despierta
 chrome.alarms.onAlarm.addListener(a => { if (a.name === 'rp-actualizar') instalarOverlay(); });
 
 // ---------- mensajes del overlay (como content script o como script de usuario) ----------

@@ -670,7 +670,7 @@
         blue: {code: bt.code, img: https(bt.image || ''), wins: REPLAY ? null : (bt.result || {}).gameWins},
         red: {code: rt.code, img: https(rt.image || ''), wins: REPLAY ? null : (rt.result || {}).gameWins}} : null,
       game: G ? {id: G.id, gt: G.gt, state: G.last ? G.last.gameState : null, ended: !!G.ended,
-        waiting: !!G.waiting, pBlue: G.wp ? G.wp.p : null, acc: accAt(G.gt),
+        waiting: !!G.waiting, carga: G.carga != null ? G.carga : null, pBlue: G.wp ? G.wp.p : null, acc: accAt(G.gt),
         reasons: G.wp ? G.wp.parts : [], events: G.events.slice(-8), timers: G.t,
         stats: G.last ? {blue: tstat(G.last.blueTeam), red: tstat(G.last.redTeam)} : null,
         samples: G.samples ? G.samples.slice() : [], impact: impactNext(),
@@ -754,8 +754,16 @@
       if (!w0 || !w0.frames || !w0.frames.length) { emit(); return; }
       G = newGame(g.id); G.meta = w0.gameMetadata; G.start = Date.parse(w0.frames[0].rfc460Timestamp); G.waiting = false; G.loading = false; previa();
       processFrame(w0.frames[0]);
-      var startMs = G.start + Math.max(0.1, (min == null ? 8 : min)) * 60000;
-      for (var t = G.start + 30000; t < startMs; t += 30000) { try { var w = await feed('window', g.id, t); var f = w && lastBefore(w.frames, t); if (f) processFrame(f); } catch (ex2) {} }
+      var startMs = G.start + Math.max(0.1, (min == null ? 8 : min)) * 60000, gen = GEN, ts = [];
+      for (var t = G.start + 30000; t < startMs; t += 30000) ts.push(t);
+      // ponerse al día: los tramos de 30 s se piden de a 6 en paralelo y se procesan en orden (la píldora muestra el avance)
+      for (var i = 0; i < ts.length; i += 6) {
+        var lote = ts.slice(i, i + 6), ws = await Promise.all(lote.map(function (tt) { return feed('window', g.id, tt).catch(function () { return null; }); }));
+        if (gen !== GEN) return;  // mientras tanto se pidió otro juego
+        ws.forEach(function (w, j) { var f = w && lastBefore(w.frames, lote[j]); if (f) processFrame(f); });
+        G.carga = Math.min(1, (i + lote.length) / ts.length); emit();
+      }
+      G.carga = null;
       REPLAY = {base: startMs, real: Date.now(), vel: vel || 6};
       emit();
       loopId = setInterval(function () { tickWindow().catch(function () {}); }, 1000);

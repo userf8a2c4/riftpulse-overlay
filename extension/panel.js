@@ -19,4 +19,5 @@ chrome.storage.onChanged.addListener((ch, area) => {
   if (hay) enviar(d);
 });
 app.addEventListener('load', () => setTimeout(() => { carga.style.display = 'none'; }, 400));
-setTimeout(() => { if (!lista) carga.innerHTML = 'No pude cargar RiftPulse desde la web.<br>Revisá la conexión y volvé a abrir el panel.'; }, 15000);
+// sin conexión el iframe igual «carga» (la página de error del navegador): si la app no avisó que está lista, el mensaje se ve encima
+setTimeout(() => { if (!lista) { carga.innerHTML = 'No pude cargar RiftPulse desde la web.<br>Revisá la conexión y volvé a abrir el panel.'; carga.style.display = ''; carga.style.background = '#050a17'; app.style.visibility = 'hidden'; } }, 15000);

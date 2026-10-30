@@ -270,7 +270,7 @@
   })();
   var POS = ls('rp_pos7') || 'top';
   var DMG = ls('rp_dmg6') !== '0';  // reparto de daño automático tras cada pelea
-  var XY = (function () { try { return JSON.parse(ls('rp_xy7') || 'null'); } catch (e) { return null; } })();
+  var XY = (function () { try { var o = JSON.parse(ls('rp_xy8') || 'null'); return o && o.rx != null ? o : null; } catch (e) { return null; } })();  // relativa al video
 
   if (!document.getElementById('rp-fonts')) { var fl = document.createElement('link'); fl.id = 'rp-fonts'; fl.rel = 'stylesheet';
     fl.href = 'https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap'; (document.head || document.documentElement).appendChild(fl); }
@@ -295,7 +295,7 @@
   // Nunca encima del marcador, la barra de abajo, las cámaras, el minimapa ni el centro del mapa.
   function place() {
     var v = mainVideo(), r = v ? v.getBoundingClientRect() : null;
-    if (XY) { host.style.left = XY.l + 'px'; host.style.top = XY.t + 'px'; host.style.bottom = 'auto'; host.style.transform = 'none'; }
+    if (XY && r) { host.style.left = Math.round(r.left + XY.rx * r.width) + 'px'; host.style.top = Math.round(r.top + XY.ry * r.height) + 'px'; host.style.bottom = 'auto'; host.style.transform = 'none'; }
     else {
       host.style.transform = 'translateX(-50%)';
       host.style.left = r ? (r.left + r.width / 2) + 'px' : '50%';
@@ -453,15 +453,26 @@
   .w,.col{text-shadow:0 1px 2px rgba(0,0,0,.65)}\
   .col .cd,.col .dmg{background:rgba(var(--g1-rgb),.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 8px 22px rgba(0,0,0,.35)}\
   .hint{display:none;align-items:center;gap:8px;height:28px;padding:0 12px 0 8px;border-radius:999px;background:rgba(var(--g1-rgb),.9);border:1px solid rgba(var(--line-rgb),.13);font:600 12px var(--ff);color:var(--muted);white-space:nowrap;cursor:pointer}\
-  .hint.show{display:inline-flex}.hint .logo{width:16px;height:16px}\
+  .hint.show{display:inline-flex}.hint .logo{width:16px;height:16px}.hint b{color:var(--text);font-weight:700}.hint a{color:var(--signal);text-decoration:none;font-weight:700}\
+  .ctl::before{content:"";position:absolute;left:0;right:0;top:-10px;height:10px}\
+  .ctl.auto .man{display:none}.man{display:inline-flex;align-items:center;gap:4px}\
+  #otrob{display:none}.ctl.auto #otrob.on2{display:inline-block;color:var(--signal-soft);background:none}\
+  .elegir{position:absolute;left:50%;transform:translateX(-50%);top:calc(100% + 10px);display:none;flex-direction:column;gap:4px;min-width:260px;padding:10px;border-radius:12px;z-index:7;\
+    background:rgba(var(--g1-rgb),.98);border:1px solid rgba(var(--signal-rgb),.55);box-shadow:0 14px 40px rgba(0,0,0,.55);font:600 13px var(--ff);color:var(--text);cursor:default;text-shadow:none}\
+  .elegir.show{display:flex}.elegir .t{font:800 14px var(--ffd);letter-spacing:.4px;margin-bottom:2px}.elegir .s{font-weight:400;font-size:11.5px;color:var(--muted)}\
+  .elegir button{display:flex;justify-content:space-between;gap:12px;align-items:center;height:34px;padding:0 12px;border-radius:8px;border:1px solid rgba(var(--line-rgb),.18);background:var(--g2);color:var(--text);font:600 13px var(--ff);cursor:pointer;text-align:left}\
+  .elegir button:hover{border-color:var(--signal)}.elegir button.ya{border-color:rgba(var(--signal-rgb),.6)}.elegir button small{color:var(--muted);font-weight:400}\
+  .elegir .no{background:none;border:0;color:var(--muted);height:26px;justify-content:center}\
+  .w.solo-elegir{display:inline-flex!important}.w.solo-elegir #body,.w.solo-elegir .ctl{display:none!important}\
   ';
 
   var LOGO = '<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="rplg" x1="8" y1="40" x2="56" y2="26" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="'+RPC.a+'"/><stop offset=".5" stop-color="'+RPC.ahi+'"/><stop offset="1" stop-color="'+RPC.b+'"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="15" fill="#14171d" stroke="#2a2f3a" stroke-width="3"/><path d="M10 35 H21 L25 35 L30 17 L36 49 L40 35 H54" fill="none" stroke="url(#rplg)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   sh.innerHTML = '<style>' + CSS + TOK + '</style><div class="w" id="w"><div class="mom" id="mom"></div><div class="toast" id="toast"></div><div class="diag" id="diag"></div><div id="body" style="display:inline-flex"></div>' +
-    '<div class="ctl" id="ctl"><div class="tl" id="tl"></div><span class="chip" id="autoc" title="Lee el reloj y el marcador del video y se sincroniza solo">auto-sync</span><span class="ast" id="ast"></span><button class="ic" id="diagb" title="diagnóstico del auto-sync: qué está leyendo del video">?</button><span class="chip" data-ext="obj">objetivo</span><span class="chip" data-ext="pg">trayectoria</span><span class="chip" data-ext="oro">oro</span><span class="chip" data-ext="dano">daño</span><span class="chip" data-ext="imp">impacto</span><span class="chip" data-ext="duelos">duelos</span><span class="chip" data-ext="mini">mínimo</span>' +
-    '<button class="ic" id="posbtn" title="arriba/abajo">↑↓</button><button class="ic" data-d="-5" title="atrasar">−</button><button class="ic" data-d="5" title="adelantar">+</button>' +
-    '<span class="syncg" title="Escribe el minuto que ves en el stream y pulsa ⟲ (o Enter) para clavar el overlay a ese momento">ves <input id="scm" placeholder="mm:ss" maxlength="5"><button class="ic" id="syncb" title="sincronizar al minuto que ves">⟲</button> va <span class="gt" id="gtnow">—</span></span></div></div>';
+    '<div class="ctl" id="ctl"><div class="tl" id="tl"></div><span class="chip" id="autoc" title="Lee el reloj y el marcador del video y se sincroniza solo con el minuto que ves">sincronía automática</span><span class="ast" id="ast"></span><button class="ic" id="diagb" title="Qué está leyendo del video (por si no sincroniza)">?</button><span class="chip" id="otrob" title="Elegir a mano el partido que estás viendo">¿otro partido?</span>' +
+    '<span class="chip" data-ext="obj" title="El próximo objetivo (dragón, Barón…) y cuánto puede mover la probabilidad">objetivo</span><span class="chip" data-ext="pg" title="Cómo fue cambiando la probabilidad en el juego">trayectoria</span><span class="chip" data-ext="oro" title="Panel: la diferencia de oro minuto a minuto">oro</span><span class="chip" data-ext="dano" title="Panel: el daño de cada jugador">daño</span><span class="chip" data-ext="imp" title="Panel: las jugadas que más movieron la probabilidad">impacto</span><span class="chip" data-ext="duelos" title="Panel: cómo va cada jugador contra su rival de línea">duelos</span><span class="chip" data-ext="mini" title="Solo los porcentajes, lo más chico posible">mínimo</span>' +
+    '<button class="ic" id="posbtn" title="Volver a su lugar (debajo del marcador o arriba de las estadísticas)">↑↓</button><span class="man"><button class="ic" data-d="-5" title="Atrasar el overlay 5 segundos">−</button><button class="ic" data-d="5" title="Adelantar el overlay 5 segundos">+</button>' +
+    '<span class="syncg" title="Escribí el minuto del juego que ves en el stream y tocá ⟲ (o Enter) para clavar el overlay a ese momento">minuto <input id="scm" placeholder="mm:ss" maxlength="5"><button class="ic" id="syncb" title="Sincronizar al minuto que escribiste">⟲</button> va <span class="gt" id="gtnow">—</span></span></span><button class="ic" id="ocub" title="Ocultar RiftPulse (Alt+R lo vuelve a mostrar)">✕</button></div><div class="elegir" id="elegir"></div></div>';
   sh2.innerHTML = '<style>' + CSS + TOK + '</style><div class="col" id="cards"><div class="dmg" id="dmg"></div><div id="cardsx" style="display:contents"></div></div>';
   var hintEl = document.createElement('div'); hintEl.className = 'hint'; sh.appendChild(hintEl);
   var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom'), dmgEl = sh2.getElementById('dmg'), cardsEl = sh2.getElementById('cards'), cardsX = sh2.getElementById('cardsx');
@@ -471,7 +482,7 @@
   // bienvenida (solo la primera vez): qué quiere ver el espectador, en un clic
   if (!ls('rp_bienv')) {
     var bv = document.createElement('div'); bv.className = 'bv';
-    bv.innerHTML = '<b>¿Qué querés ver?</b><button data-bv="minimo">Solo la barra</button><button data-bv="estandar">La barra y la historia</button><button data-bv="show">Todo</button><button class="x" data-bv="" title="Cerrar">✕</button>';
+    bv.innerHTML = '<b>¿Qué querés ver?</b><button data-bv="minimo">Solo la barra</button><button data-bv="estandar">Barra y objetivos</button><button data-bv="show">Todo</button><button class="x" data-bv="" title="Cerrar">✕</button>';
     bv.addEventListener('mousedown', function (e) { e.stopPropagation(); });
     bv.addEventListener('click', function (e) {
       var b = e.target.closest('[data-bv]'); if (!b) return; e.stopPropagation();
@@ -483,7 +494,7 @@
   }
   var LAST = null;
   ctl.querySelectorAll('.chip[data-ext]').forEach(function (c) { c.addEventListener('mousedown', function (e) { e.stopPropagation(); }); c.addEventListener('click', function (e) { e.stopPropagation(); var k = c.getAttribute('data-ext'), i = EXT.indexOf(k); if (i >= 0) EXT.splice(i, 1); else EXT.push(k); ls('rp_ext7', JSON.stringify(EXT)); syncChips(); if (LAST) render(LAST); }); });
-  sh.getElementById('posbtn').addEventListener('click', function (e) { e.stopPropagation(); POS = POS === 'top' ? 'bottom' : 'top'; XY = null; ls('rp_xy7', 'null'); ls('rp_pos7', POS); place(); });
+  sh.getElementById('posbtn').addEventListener('click', function (e) { e.stopPropagation(); POS = POS === 'top' ? 'bottom' : 'top'; XY = null; ls('rp_xy8', 'null'); ls('rp_pos7', POS); place(); });
   ctl.querySelectorAll('button[data-d]').forEach(function (b) { b.addEventListener('mousedown', function (e) { e.stopPropagation(); }); b.addEventListener('click', function (e) { e.stopPropagation(); R.nudge(+b.getAttribute('data-d')); }); });
   var scmEl = sh.getElementById('scm'), gtnowEl = sh.getElementById('gtnow');
   function doSync() {
@@ -500,7 +511,7 @@
   (function () { var sx, sy, ox, oy, on = false;
     wEl.addEventListener('mousedown', function (e) { if (e.target.closest('.ctl')) return; on = true; wEl.classList.add('drag'); var r = host.getBoundingClientRect(); sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top; e.preventDefault(); });
     window.addEventListener('mousemove', function (e) { if (!on) return; var l = Math.max(0, Math.min(innerWidth - 80, ox + e.clientX - sx)), t = Math.max(0, Math.min(innerHeight - 24, oy + e.clientY - sy)); host.style.left = l + 'px'; host.style.top = t + 'px'; host.style.bottom = 'auto'; host.style.transform = 'none'; });
-    window.addEventListener('mouseup', function () { if (!on) return; on = false; wEl.classList.remove('drag'); var r = host.getBoundingClientRect(); XY = {l: Math.round(r.left), t: Math.round(r.top)}; ls('rp_xy7', JSON.stringify(XY)); });
+    window.addEventListener('mouseup', function () { if (!on) return; on = false; wEl.classList.remove('drag'); var r = host.getBoundingClientRect(), v = mainVideo(), rv = v && v.getBoundingClientRect(); if (!rv) return; XY = {rx: +((r.left - rv.left) / rv.width).toFixed(4), ry: +((r.top - rv.top) / rv.height).toFixed(4)}; ls('rp_xy8', JSON.stringify(XY)); });
   })();
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]; }); }
@@ -570,15 +581,41 @@
     if (terminado(s) && Date.now() - FIN.at > 6000) return true;
     return false;
   }
+  // en lolesports.com el video va en un reproductor aparte (de Twitch o YouTube) que el overlay no puede leer: se ofrece abrirlo en Twitch
+  function enLolesports() {
+    if (!/(^|\.)lolesports\.com$/.test(location.hostname) || mainVideo()) return null;
+    var fr = null; document.querySelectorAll('iframe').forEach(function (f) { var r = f.getBoundingClientRect(); if (r.width > 300 && /twitch\.tv|youtube/.test(f.src || '')) fr = f; });
+    if (!fr) return null;
+    var ch = /twitch\.tv/.test(fr.src) && (fr.src.match(/[?&]channel=([\w]+)/) || [])[1];
+    return 'https://www.twitch.tv/' + (ch || 'riotgames');
+  }
+  // el aviso chico aparece solo donde tiene sentido: una página con el juego (el HUD ya se leyó), lolesports, o un stream de LoL
+  // con el Mundial en vivo. En cualquier otro stream de Twitch, RiftPulse no molesta.
+  function esStreamDeLoL() { return !!document.querySelector('a[href*="/directory/category/league-of-legends"],a[href*="/directory/game/League"]'); }
+  function relevante() {
+    if (typeof AS === 'undefined') return false;
+    return AS.vistoAlguna || !!enLolesports() || !!(LAST && LAST.match && esStreamDeLoL());
+  }
+  function motivo() {
+    var st = (AS.diag && AS.diag.estado) || '';
+    if (/no se puede leer/.test(st)) return 'este video está protegido y no se puede leer';
+    if (LAST && LAST.feed && LAST.feed.estado === 'caido') return 'sin conexión con lolesports · reintento solo';
+    if (AS.id) return 'vuelve con el juego' + (AS.cands && AS.cands.length > 1 ? ' · <b>¿no es ' + esc(AS.id.codes.join(' vs ')) + '?</b>' : '');
+    if (/no reconozco/.test(st)) return 'todavía no reconozco este partido';
+    return 'aparece cuando el juego está en pantalla';
+  }
   function pintarHint() {
-    var oc = wEl.classList.contains('oculto'), ver = oc && Date.now() - MOUSE < 3000;
+    var oc = wEl.classList.contains('oculto') && !wEl.classList.contains('solo-elegir'), ver = oc && Date.now() - MOUSE < 3000 && relevante();
     hintEl.classList.toggle('show', ver);
-    if (ver) hintEl.innerHTML = LOGO + '<span>RiftPulse · ' + (typeof AS !== 'undefined' && AS.id ? 'vuelve con el juego' : 'aparece cuando el juego está en pantalla') + '</span>';
+    if (!ver) return;
+    var lol = enLolesports();
+    hintEl.innerHTML = LOGO + '<span>' + (lol ? 'Para ver RiftPulse sobre el video, <a href="' + lol + '" target="_blank" rel="noopener">abrí este partido en Twitch →</a>' : '<b>RiftPulse</b> · ' + motivo()) + '</span>';
   }
   document.addEventListener('mousemove', function () { MOUSE = Date.now(); }, {passive: true});
+  if (/lolesports\.com$/.test(location.hostname)) MOUSE = Date.now() + 8000;  // en lolesports, el aviso se ve solo al entrar
   setInterval(pintarHint, 600);
   hintEl.addEventListener('mousedown', function (e) { e.stopPropagation(); });
-  hintEl.addEventListener('click', function (e) { e.stopPropagation(); MOSTRAR = Date.now() + 20000; if (LAST) render(LAST); });  // ver los controles un rato
+  hintEl.addEventListener('click', function (e) { if (e.target.closest('a')) return; e.stopPropagation(); if (AS.cands && AS.cands.length > 1) { abrirElegir(); return; } MOSTRAR = Date.now() + 20000; if (LAST) render(LAST); });  // ver los controles un rato
   function render(s) {
     var oc = oculto(s);
     wEl.classList.toggle('oculto', oc); pintarHint();
@@ -602,6 +639,10 @@
       body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div><div class="wait">' + (AS.id && !AS.trasSalto ? 'Cargando ' + esc(AS.id.codes.join(' vs ')) + ' · juego ' + AS.id.juego + '…' : 'Sincronizando con el video…') + '</div>';
       return;
     }
+    if (s.game && s.game.carga != null && s.match) {  // entrando a mitad de juego: se pone al día con lo que ya pasó
+      body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div><div class="wait">Poniéndome al día · ' + esc(s.match.blue.code) + ' vs ' + esc(s.match.red.code) + ' · ' + Math.round(s.game.carga * 100) + ' %</div>';
+      return;
+    }
     if (s.match && s.game && s.game.ended) {
       var gw = s.game.recap && s.game.recap.code;
       body.innerHTML = '<div class="mini">' + LOGO + (gw ? '<span class="' + (gw === s.match.blue.code ? 'b' : 'r') + '">' + esc(gw) + '</span><span class="k">gana el juego</span>' : '<span class="k">Terminó el juego</span>') + '</div>';
@@ -617,7 +658,7 @@
     var html = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div>';
 
     if (!g || g.pBlue == null) {
-      html += '<div class="mini"><span class="k">' + ((g && g.waiting) ? 'Cargando el juego' : 'Draft') + '</span><span class="b">' + esc(m.blue.code) + '</span><span class="k">vs</span><span class="r">' + esc(m.red.code) + '</span></div>';
+      html += '<div class="mini"><span class="k">' + ((g && g.waiting) ? 'Cargando el juego' : 'Selección de campeones') + '</span><span class="b">' + esc(m.blue.code) + '</span><span class="k">vs</span><span class="r">' + esc(m.red.code) + '</span></div>';
       if (s.next) html += '<div class="seg next"><span class="sl">Próximo</span><span class="vs"><span class="b">' + esc(s.next.blue) + '</span> vs <span class="r">' + esc(s.next.red) + '</span></span></div>';
       body.innerHTML = html; return;
     }
@@ -767,7 +808,7 @@
     var toB = d > 0, code = toB ? s.match.blue.code : s.match.red.code;
     var ev = (s.game.events || []).filter(function (e) { return ['baron', 'elder', 'dragon', 'inhib'].indexOf(e.kind) >= 0 && s.game.gt - e.gt <= 60; }).slice(-1)[0];
     lastMom = now;
-    momEl.innerHTML = '<span class="zap">⚡</span><span class="k ' + (toB ? 'b' : 'r') + '">' + esc(code) + ' +' + Math.abs(d) + '</span>' + (ev ? '<span>· ' + esc(ev.txt) + '</span>' : '<span>de momentum</span>');
+    momEl.innerHTML = '<span class="zap">⚡</span><span class="k ' + (toB ? 'b' : 'r') + '">' + esc(code) + ' +' + Math.abs(d) + '</span>' + (ev ? '<span>· ' + esc(ev.txt) + '</span>' : '<span>de golpe</span>');
     momEl.classList.add('show'); setTimeout(function () { momEl.classList.remove('show'); }, 6500);
   }
 
@@ -776,9 +817,9 @@
     if (!c) return;
     var viejo = inicial && c.v !== 7;  // una orden guardada antes de v7 no vuelve a fijar los paneles ni la posición vieja
     if (c.ext && !viejo) { EXT = c.ext.slice(); ls('rp_ext7', JSON.stringify(EXT)); syncChips(); }
-    if (c.pos && !viejo) { POS = c.pos; XY = null; ls('rp_xy7', 'null'); ls('rp_pos7', POS); place(); }
+    if (c.pos && !viejo) { POS = c.pos; XY = null; ls('rp_xy8', 'null'); ls('rp_pos7', POS); place(); }
     if (c.dmg != null) { DMG = !!c.dmg; ls('rp_dmg6', DMG ? '1' : '0'); if (!DMG) dmgEl.classList.remove('show'); }
-    if (c.hidden != null) host.style.display = c.hidden ? 'none' : '';
+    if (c.hidden != null) ocultarUsr(!!c.hidden);
     // la fuerza de los equipos que usa el panel: así los dos muestran el mismo porcentaje
     if (c.fuerza && R.setFuerza) { R.setFuerza(c.fuerza); ls('rp_fuerza', JSON.stringify(c.fuerza)); }
     if (!inicial && c.sync) R.syncTo(c.sync.secs + (Date.now() - c.sync.at) / 1000);  // las órdenes de un solo uso no se repiten al recargar
@@ -820,7 +861,7 @@
   };
   // si el reloj no está en su lugar, se busca solo en la franja del marcador (arriba al centro), nunca en otras zonas
   var RELOJES = [HUD.reloj, [0.466, 0.04, 0.534, 0.125], [0.466, 0.0, 0.534, 0.065], [0.466, 0.085, 0.534, 0.155]];
-  var AS = {on: ls('rp_auto6') !== '0', busy: false, zona: null, fallas: 0, lect: [], contra: [], off: null, id: null, vid: null, visto: 0, codes: null, codesAt: 0, n: 0, malas: 0, pend: null, trasSalto: false, diag: {}, err: ''};
+  var AS = {t0: Date.now(), on: ls('rp_auto6') !== '0', busy: false, zona: null, fallas: 0, lect: [], contra: [], off: null, id: null, vid: null, visto: 0, codes: null, codesAt: 0, n: 0, malas: 0, pend: null, trasSalto: false, diag: {}, err: ''};
   // «mm:ss»; sin los dos puntos solo se acepta en la zona principal del reloj
   if (window.RP_DEBUG) { window.__rpAS = AS; window.__rpRender = function (f) { return render(f(LAST)); }; }  // solo para las pruebas
   function parseReloj(s, conPuntos) {
@@ -857,7 +898,7 @@
   }
   var autoc = sh.getElementById('autoc'), astEl = sh.getElementById('ast'), diagEl = sh.getElementById('diag');
   function asEstado(t, ok) { astEl.textContent = t; astEl.classList.toggle('ok', !!ok); AS.diag.estado = t; }
-  function asChip() { autoc.classList.toggle('on', AS.on); if (!AS.on) asEstado(''); }
+  function asChip() { autoc.classList.toggle('on', AS.on); ctl.classList.toggle('auto', AS.on); if (!AS.on) asEstado(''); }
   asChip();
   autoc.addEventListener('mousedown', function (e) { e.stopPropagation(); });
   autoc.addEventListener('click', function (e) { e.stopPropagation(); AS.on = !AS.on; ls('rp_auto6', AS.on ? '1' : '0'); AS.id = null; AS.off = null; AS.lect = []; AS.contra = []; asChip(); if (!AS.on) R.follow(null); if (LAST) render(LAST); });
@@ -876,7 +917,7 @@
     try { if (chrome.storage && chrome.storage.local) chrome.storage.local.set({rp_pantalla: d}); else chrome.runtime.sendMessage({type: 'rp-pantalla', data: d}, function () { void chrome.runtime.lastError; }); } catch (e) {}
   }
   function soltar() {
-    AS.id = null; AS.off = null; AS.lect = []; AS.contra = []; AS.trasSalto = false; AS.playing = null; AS.pend = null;
+    AS.id = null; AS.manual = null; AS.cands = null; pintarOtro(); AS.off = null; AS.lect = []; AS.contra = []; AS.trasSalto = false; AS.playing = null; AS.pend = null;
     R.follow(null); publicar();
   }
   // atar el motor al video: minuto = desfase + posición del video
@@ -965,6 +1006,8 @@
       var cerca = [id].concat(id.alts.filter(function (a) { return a.score - id.score < 1.5; }));
       if (cerca.length > 1) { var c = await porCampeones(v, cerca).catch(function () { return null; }); if (c && c.caras > 0.2) id = c; AS.diag.campeones = cerca.map(function (x) { return x.codes.join('-') + ' J' + x.juego + ': ' + (x.caras == null ? '—' : x.caras.toFixed(2)); }); }
     }
+    AS.cands = id ? [id].concat((id.alts || []).filter(function (a, i, l) { return a.gameId !== id.gameId && l.findIndex(function (b) { return b.gameId === a.gameId; }) === i; })).slice(0, 5) : null;
+    pintarOtro();
     AS.diag.partido = id ? id.codes.join(' vs ') + ' · J' + id.juego + ' (dif. ' + id.score.toFixed(1) + ', ' + id.revisados + ' juegos revisados)' : 'ninguno';
     return id;
   }
@@ -972,6 +1015,8 @@
   async function asTick() {
     if (!AS.on || AS.busy || !L || document.hidden) return;  // pestaña oculta: el lector descansa
     var v = video(); if (!v || v.readyState < 2 || !v.videoWidth) return;
+    // sin juego en pantalla hace más de 2 minutos (otro stream, el desk): se lee cada 6 s en vez de cada 1,5 s
+    if (Date.now() - AS.t0 > 120000 && Date.now() - (AS.visto || AS.t0) > 120000 && (AS.salto = (AS.salto || 0) + 1) % 4) return;
     AS.busy = true; AS.n++;
     try {
       var ct = v.currentTime, playing = !v.paused && !v.ended, txt = '', zi = null, vars = [], zonas = AS.zona != null ? [AS.zona] : RELOJES.map(function (z, i) { return i; });
@@ -993,7 +1038,7 @@
         asEstado(AS.id ? 'sincronizado · ' + AS.id.codes.join(' vs ') + ' · ' + mmss(AS.off + ct) + ' (reloj tapado)' : 'buscando el reloj del juego…', !!AS.id);
         seguir(v); return;
       }
-      AS.fallas = 0; AS.visto = Date.now(); AS.buenas = (AS.buenas || 0) + 1;
+      AS.fallas = 0; AS.visto = Date.now(); AS.buenas = (AS.buenas || 0) + 1; AS.vistoAlguna = true;
       // el oro (si se lee bien) descarta minutos imposibles; sin oro confiable no descarta nada
       var esperado = AS.off != null ? AS.off + ct : null, og = oroHUD(v);
       AS.diag.oro = og ? og.join('k · ') + 'k' : 'no se lee';
@@ -1040,14 +1085,15 @@
         else { asEstado('no reconozco el partido (mirá el diagnóstico)'); return; }
       } else if (AS.n % 7 === 0) await verificar(v, gt);  // cada ~10 s
       seguir(v); publicar();
-      asEstado('auto · ' + AS.id.codes.join(' vs ') + ' · J' + AS.id.juego + ' · ' + mmss(gt), true);
+      asEstado('sincronizado · ' + AS.id.codes.join(' vs ') + ' · J' + AS.id.juego + ' · ' + mmss(gt), true);
     } catch (err) {
-      asEstado(/insecure|tainted|SecurityError/i.test(String(err)) ? 'este video no se puede leer (protegido)' : 'auto-sync: ' + String(err).slice(0, 60));
+      asEstado(/insecure|tainted|SecurityError/i.test(String(err)) ? 'este video no se puede leer (protegido)' : 'no pude leer el video, reintento…');
     } finally { AS.busy = false; pintarDiag(); if (LAST) render(LAST); }
   }
   // control de confirmación: las kills del HUD contra las del feed oficial en ese minuto. Solo se cambia de juego
   // si no coinciden 3 controles seguidos y otro juego gana por amplio margen dos veces seguidas.
   async function verificar(v, gt) {
+    if (AS.manual && AS.id && AS.manual === AS.id.gameId) return;  // lo eligió el espectador: no se cambia solo
     // en una transmisión en vivo siguiendo un juego que no es el que se juega ahora (un clip): si el del vivo cuadra, se pasa a ese
     if (!esVod() && !AS.id.live) {
       var iv = await identificar(v, gt);
@@ -1072,7 +1118,7 @@
     if (!diagEl.classList.contains('show')) return;
     var d = AS.diag, sg = function (s) { return (s || []).map(function (x) { return esc(x.code) + ' ' + x.s.toFixed(2); }).join(', ') || '—'; };
     var mk = d.marcador || {};
-    diagEl.innerHTML = '<div class="dg-t">Diagnóstico del auto-sync</div>' +
+    diagEl.innerHTML = '<div class="dg-t">Qué está leyendo del video</div>' +
       '<div class="dg-r"><span>Estado</span><b>' + esc(d.estado || '—') + '</b></div>' +
       '<div class="dg-r"><span>Reloj leído</span><b>' + esc(d.reloj || '—') + (d.zona != null ? ' · zona ' + (d.zona + 1) : '') + '</b></div>' +
       (d.img ? '<img class="dg-i" src="' + d.img + '" alt="">' : '') +
@@ -1085,9 +1131,37 @@
       (d.descarte ? '<div class="dg-r"><span>Descartado</span><b>' + esc(d.descarte) + '</b></div>' : '') +
       (d.campeones ? '<div class="dg-r"><span>Campeones</span><b>' + esc(d.campeones.join(' · ')) + '</b></div>' : '') +
       '<div class="dg-r"><span>Video</span><b>' + (function () { var v = video(); return v ? v.videoWidth + '×' + v.videoHeight + ' · ' + mmss(v.currentTime) + (v.paused ? ' · en pausa' : '') : 'no hay video'; })() + '</b></div>' +
-      '<div class="dg-n">Si no sincroniza, sacá una captura de este cuadro.</div>';
+      '<div class="dg-n">¿No sincroniza? Sacá una captura de este cuadro y dejala en github.com/userf8a2c4/riftpulse-overlay/issues</div>';
   }
   setInterval(function () { asTick(); }, 1500);
+  // ---------- «¿otro partido?»: si reconoció mal, el espectador elige entre los que mejor cuadran con lo que se ve ----------
+  var elegirEl = sh.getElementById('elegir'), otroEl = sh.getElementById('otrob');
+  function pintarOtro() { otroEl.classList.toggle('on2', !!(AS.cands && AS.cands.length > 1 && AS.id)); }
+  function abrirElegir() {
+    var cs = AS.cands || [];
+    if (!cs.length) return;
+    elegirEl.innerHTML = '<div class="t">¿Qué partido estás viendo?</div><div class="s">Los que mejor cuadran con el minuto y el marcador del video</div>' +
+      cs.map(function (c, i) { return '<button data-i="' + i + '"' + (AS.id && AS.id.gameId === c.gameId ? ' class="ya"' : '') + '><span><span class="ca">' + esc(c.codes[0]) + '</span> vs <span class="cb">' + esc(c.codes[1]) + '</span> · juego ' + c.juego + '</span><small>' + (c.live ? 'en vivo' : 'ya jugado') + '</small></button>'; }).join('') +
+      '<button class="no" data-i="-1">Cerrar</button>';
+    elegirEl.classList.add('show'); wEl.classList.add('solo-elegir');
+  }
+  function cerrarElegir() { elegirEl.classList.remove('show'); wEl.classList.remove('solo-elegir'); }
+  elegirEl.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+  elegirEl.addEventListener('click', function (e) {
+    e.stopPropagation(); var b = e.target.closest('[data-i]'); if (!b) return;
+    var c = (AS.cands || [])[+b.getAttribute('data-i')]; cerrarElegir();
+    if (!c) return;
+    AS.id = c; AS.manual = c.gameId; AS.playing = null; AS.malas = 0; AS.pend = null; MOSTRAR = Date.now() + 4000;
+    aviso('Listo · <span class="ca">' + esc(c.codes[0]) + '</span> vs <span class="cb">' + esc(c.codes[1]) + '</span> · juego ' + c.juego);
+    var v = video(); if (v) seguir(v); publicar(); pintarOtro(); if (LAST) render(LAST);
+  });
+  otroEl.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+  otroEl.addEventListener('click', function (e) { e.stopPropagation(); abrirElegir(); });
+  var OCULTO_USR = false;
+  function ocultarUsr(si) { OCULTO_USR = si; host.style.display = si ? 'none' : ''; host2.style.display = si ? 'none' : ''; }
+  sh.getElementById('ocub').addEventListener('mousedown', function (e) { e.stopPropagation(); });
+  sh.getElementById('ocub').addEventListener('click', function (e) { e.stopPropagation(); ocultarUsr(true); });
+  document.addEventListener('keydown', function (e) { if (e.altKey && !e.ctrlKey && !e.metaKey && (e.code === 'KeyR' || e.key === 'r' || e.key === 'R')) { e.preventDefault(); ocultarUsr(!OCULTO_USR); } }, true);
   // pausa, velocidad o salto del video: el minuto sale de la posición del video, así que basta con volver a atar
   ['pause', 'play', 'ratechange', 'seeked', 'waiting', 'playing'].forEach(function (ev) { document.addEventListener(ev, function (e) {
     if (!AS.on || e.target !== video()) return;

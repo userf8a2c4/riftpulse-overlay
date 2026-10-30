@@ -1,7 +1,8 @@
 {
   "manifest_version": 3,
   "name": "RiftPulse",
-  "version": "3.0",
+  "version": "0.9.1",
+  "version_name": "0.9 beta",
   "description": "Panel lateral y overlay de RiftPulse para el Mundial. Se actualiza solo desde la web.",
   "permissions": [
     "sidePanel",
