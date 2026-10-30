@@ -19,7 +19,7 @@ Desde ahí no hay nada que descargar: el panel siempre abre la última versión,
 
 ## Sincronía automática con el video
 
-Con la **sincronía automática** encendida (viene así), el overlay **lee el video**: el reloj del juego, las siglas de los equipos, las kills, el oro y los campeones en pantalla. Con eso:
+Con la **sincronía automática** encendida (viene así), el overlay **lee el video**: el reloj del juego, las siglas de los equipos, las kills, el oro, los campeones en pantalla y **las victorias de cada equipo en la serie** (los rectángulos junto a los logos). Con la serie en pantalla sabe qué juego es aunque saltes a cualquier minuto del VOD, sin preguntarte nada. Con eso:
 
 - **reconoce el partido y el juego de la serie**, aunque sea un VOD de otro día del Mundial;
 - **se ata al minuto exacto** de lo que estás viendo: sigue la pausa, la velocidad, los saltos hacia adelante o atrás y los cortes de carga;

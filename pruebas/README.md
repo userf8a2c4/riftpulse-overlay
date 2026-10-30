@@ -27,7 +27,7 @@ En GitHub corren solas con cada cambio en `main`, junto con el linter (`.eslintr
 | `t_simulador` | El simulador de «Cómo funciona» da lo mismo que el motor, y la página no se desborda en celular |
 | `t_contraste` | Contraste WCAG de los colores de equipo sobre el grafito, y que los dos equipos siempre se distingan |
 | `t_director` | El director automático: qué pieza muestra y cuándo, la pelea en equipo 5v5 (y que un 2v2 no cuenta), los atajos y el control |
-| `t_magia` | El overlay que «lee la sala»: se oculta sin el juego en pantalla, no muestra clips de otro partido en vivo, desaparece al terminar el juego, y la línea de tiempo salta el VOD |
+| `t_magia` | El overlay que «lee la sala»: se oculta sin el juego en pantalla, no muestra clips de otro partido en vivo, desaparece al terminar el juego, reconoce el juego 2 de una serie por las victorias en pantalla aunque los campeones parezcan del 1, no molesta en streams que no son de LoL, Alt+R lo oculta, y la línea de tiempo salta el VOD |
 | `t_historia` | La historia del juego, qué cambió, qué mirar, niveles, visión e ítems (solo si el feed los trae) y la banda de confianza |
 | `t_app` | La app: «Ahora», Mis equipos, sin spoilers, la fase suiza, las tarjetas para compartir, las predicciones del staff y el marcador de la serie al instante |
 | `t_espectador` | «Tu pronóstico» contra RiftPulse, «Para entender», la app instalable y la bienvenida de la extensión |
