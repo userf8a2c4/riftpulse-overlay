@@ -549,6 +549,13 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
 .mx{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
 @media(max-width:900px){.mx{grid-template-columns:1fr}}
 .mx-wide{grid-column:1/-1}
+.sp-top,.sp-add{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.sp-in{flex:1;min-width:160px;background:var(--surface-3);border:1px solid var(--line-2);color:var(--text);border-radius:8px;padding:7px 10px;font:inherit;font-size:13px}
+.sp-mem{display:flex;gap:6px;flex-wrap:wrap}.sp-chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface-3);border:1px solid var(--line-2);border-radius:99px;padding:3px 4px 3px 10px;font-size:13px;font-weight:600}
+.sp-chip .n{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:500}.sp-chip.lead{border-color:var(--signal)}.sp-chip button{background:none;border:0;color:var(--muted);cursor:pointer;font-size:12px}
+.sp-m{background:var(--surface-3);border:1px solid var(--line-2);border-radius:10px;padding:8px 10px;margin-top:8px}.sp-m .hd{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:4px}.sp-m .hd span{color:var(--muted)}
+.sp-pk{display:grid;grid-template-columns:minmax(80px,1fr) auto auto;gap:6px;align-items:center;font-size:13px;padding:2px 0}
+.sp-pk button{min-width:64px;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:3px 10px;font:inherit;font-weight:700;cursor:pointer}
+.sp-pk button.on{border-color:var(--signal);background:rgba(var(--signal-rgb),.15)}.sp-pk button.ok{border-color:var(--ok);background:rgba(61,220,151,.18)}.sp-pk button.no{border-color:var(--team-b);background:rgba(var(--team-b-rgb),.12);text-decoration:line-through}
 /* alturas fijas: los botones no se mueven aunque cambie el texto */
 #mxAir{height:268px;overflow:hidden;display:flex;flex-direction:column}
 #mxAir .mx-row{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}#mxAir .mx-row .mx-k{flex:none}
@@ -690,6 +697,15 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
       <section class="card mx-fix2" id="mxRead"></section>
       <section class="card mx-fix2" id="mxSoc"></section>
       <section class="card mx-wide" id="mxObs"></section>
+      <section class="card mx-wide" id="mxPred">
+        <div class="mx-h"><h2>Predicciones del staff</h2><button class="mx-btn" id="spUrl">📋 Copiar URL para OBS</button></div>
+        <p class="card-help" style="margin-top:-4px">Los picks de los integrantes del stream. Al terminar cada partido se marcan solos como acierto o fallo y suman al marcador.</p>
+        <div class="sp-top"><input class="sp-in" id="spTitle" maxlength="40" placeholder="Título (ej.: Predicciones del staff)"><select class="sp-in" id="spDay"></select></div>
+        <div class="sp-mem" id="spMem"></div>
+        <div class="sp-add"><input class="sp-in" id="spName" maxlength="18" placeholder="Nombre del integrante"><button class="mx-btn" id="spAdd">+ Agregar</button></div>
+        <div id="spMatches"></div>
+        <div class="pm" id="spMsg" style="margin-top:6px"></div>
+      </section>
     </div>
   </div>
   <div id="vistaPickem" hidden>
@@ -1075,7 +1091,10 @@ function processFrame(f) {
   if (f.gameState === 'finished') {
     const wasEnded = G.ended;
     G.ended = true; ENDS[G.id] = gt;
-    if (!wasEnded && !REPLAY && !PIN) { confirmSeries(); saveEndedGame(G.id); }  // marcador al instante + guardar el análisis en el Historial
+    if (!wasEnded && !REPLAY && !PIN) {  // marcador al instante + guardar el análisis en el Historial
+      FIN[G.id] = code(winnerOf(f.blueTeam, f.redTeam)); aplicarFin(M);
+      confirmSeries(); saveEndedGame(G.id);
+    }
   }
   Engine.emit();
 }
@@ -1123,11 +1142,28 @@ async function backfill(gen) {
 }
 
 // ---------- ciclos ----------
+// Lolesports tarda minutos en sumar el punto al terminar un juego: mientras tanto, el ganador que ya vimos en el feed
+// (FIN) se suma al marcador de la serie, en todos lados igual. Cuando lolesports lo cuenta, la corrección se apaga sola.
+const FIN = {};
+function aplicarFin(m) {
+  if (!m || !m.games || !m.teams) return;
+  for (const gm of m.games) {
+    const w = FIN[gm.id]; if (!w) continue;
+    if (gm.state === 'completed') { delete FIN[gm.id]; continue; }  // ya lo cuenta lolesports
+    gm.state = 'completed';
+    const hechos = m.games.filter(x => x.state === 'completed').length, suma = m.teams.reduce((a, t) => a + ((t.result || {}).gameWins || 0), 0);
+    const t = m.teams.find(x => x.code === w);
+    if (t && suma < hechos) t.result = Object.assign({}, t.result, {gameWins: ((t.result || {}).gameWins || 0) + 1});
+  }
+  const se = (schedule || []).find(e => e.match && e.match.id === m.id);
+  if (se) se.match.teams.forEach(t => { const mt = m.teams.find(x => x.code === t.code), w = (mt && mt.result || {}).gameWins || 0; if (w > ((t.result || {}).gameWins || 0)) t.result = Object.assign({}, t.result, {gameWins: w}); });
+}
 async function loadEvent(id, blockName) {
   const d = await api('getEventDetails', {id});
   const e = d.event;
   M = {id, league: e.league, block: blockName || (M && M.id === id ? M.block : ''), strategy: e.match.strategy,
     teams: e.match.teams, games: e.match.games};
+  aplicarFin(M);
   const g = PIN && PIN.matchId === id ? M.games.find(x => x.id === PIN.gameId) : REPLAY ? M.games[RP.juego - 1] : M.games.find(x => x.state === 'inProgress');
   if (g && (!G || G.id !== g.id)) await startGame(g.id);
   else if (!g && G && !M.games.some(x => x.id === G.id)) G = null;
@@ -1182,13 +1218,12 @@ let serieEnd = 0;
 async function confirmSeries() {
   const token = ++serieEnd;
   if (!M) return;
-  const total = () => M ? M.teams.reduce((a, t) => a + ((t.result || {}).gameWins || 0), 0) : 0;
-  const before = total();
-  for (const wait of [0, 4000, 8000, 15000, 25000, 40000]) {
+  const gid = G && G.id;
+  for (const wait of [3000, 6000, 10000, 15000, 25000, 40000, 60000, 60000]) {
     await new Promise(r => setTimeout(r, wait));
     if (token !== serieEnd || !M || !G || !G.ended || REPLAY || PIN) return;
     await tickSeries();
-    if (total() > before) return;  // el feed ya sumó el juego al marcador
+    if (!FIN[gid]) return;  // lolesports ya sumó el juego (la corrección se apagó sola)
   }
 }
 // Al terminar un juego, reconstruye y guarda su análisis en el Historial (localStorage) para que no se pierda aunque el feed deje de servirlo.
@@ -3224,6 +3259,46 @@ document.addEventListener('click', e => {
 // Usa el motor compartido (engine.js): las mismas frases, giros y simulaciones que la mesa de análisis y el overlay.
 const MX = {on: false, s: null, ov: null, copied: null, copiedAt: 0, msg: ''};
 const OBS_BASE = 'https://userf8a2c4.github.io/riftpulse-overlay/';
+// ---------- predicciones del staff (Mando): integrantes, picks y aciertos automáticos; la URL para OBS lleva todo ----------
+const SP = (() => { let p = null; try { p = JSON.parse(store('predStaff') || 'null'); } catch (e) {} p = p || {}; return Object.assign({title: '', members: [], picks: {}, day: 'auto'}, p); })();
+let SP_MS = [];
+const spSave = () => store('predStaff', JSON.stringify(SP));
+const spWinner = x => x.state === 'completed' ? (x.teams[0].won ? x.teams[0].code : x.teams[1].won ? x.teams[1].code : null) : null;
+function spRender() {
+  if (!$('#mxPred') || !window.RiftEngine) return;
+  const days = RiftEngine.predDays(SP_MS), list = RiftEngine.predMatches(SP_MS, SP.day);
+  $('#spDay').innerHTML = '<option value="auto">Partidos: el próximo día con partidos</option>' + days.map(d => `<option value="${esc(d.key)}"${SP.day === d.key ? ' selected' : ''}>${esc(d.label)}</option>`).join('');
+  const hits = {}, tot = {};
+  SP_MS.forEach(x => { const w = spWinner(x), pk = SP.picks[x.id] || {}; if (!w) return; for (const m in pk) { tot[m] = (tot[m] || 0) + 1; if (pk[m] === w) hits[m] = (hits[m] || 0) + 1; } });
+  const best = Math.max(0, ...SP.members.map(m => hits[m.id] || 0));
+  $('#spMem').innerHTML = SP.members.map(m => `<span class="sp-chip${best && (hits[m.id] || 0) === best ? ' lead' : ''}">${best && (hits[m.id] || 0) === best ? '👑 ' : ''}${esc(m.name)} <span class="n">${hits[m.id] || 0}/${tot[m.id] || 0}</span><button data-sp-del="${m.id}" title="Quitar">✕</button></span>`).join('') || '<span class="pm">Agregá a los integrantes del stream para cargar sus picks.</span>';
+  $('#spMatches').innerHTML = list.map(x => {
+    const a = x.teams[0].code, b = x.teams[1].code, w = spWinner(x);
+    const st = x.state === 'inProgress' ? '● en vivo' : w ? 'terminó ' + x.teams[0].wins + '–' + x.teams[1].wins : new Date(x.start).toLocaleString('es', {weekday: 'short', hour: '2-digit', minute: '2-digit'});
+    const rows = SP.members.map(m => { const pk = (SP.picks[x.id] || {})[m.id], bt = t => `<button data-sp-m="${esc(x.id)}" data-sp-who="${m.id}" data-sp-t="${esc(t)}" class="${pk === t ? 'on' : ''}${w && pk === t ? (t === w ? ' ok' : ' no') : ''}">${esc(t)}</button>`;
+      return `<div class="sp-pk"><span>${esc(m.name)}</span>${a && b ? bt(a) + bt(b) : '<span class="pm">por definir</span><span></span>'}</div>`; }).join('');
+    return `<div class="sp-m"><div class="hd"><b>${esc(a || 'Por definir')} vs ${esc(b || 'Por definir')}</b><span>Bo${x.bo} · ${st}</span></div>${rows}</div>`;
+  }).join('') || '<div class="pm" style="margin-top:8px">No hay partidos para ese día.</div>';
+}
+function spLoad() { if (window.RiftEngine && RiftEngine.loadMatches) RiftEngine.loadMatches().then(l => { SP_MS = l || []; spRender(); }).catch(() => {}); }
+function spUrl() {
+  const d = {title: SP.title || 'Predicciones del staff', day: SP.day, members: SP.members.map(m => ({id: m.id, name: m.name})), picks: SP.picks};
+  return OBS_BASE + 'overlay.html?view=predicciones&p=' + encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(d)))));
+}
+document.addEventListener('click', e => {
+  const del = e.target.closest('[data-sp-del]'), pk = e.target.closest('[data-sp-m]');
+  if (del) { const id = +del.dataset.spDel; SP.members = SP.members.filter(m => m.id !== id); for (const k in SP.picks) delete SP.picks[k][id]; spSave(); spRender(); }
+  if (pk) { const mid = pk.dataset.spM, who = pk.dataset.spWho, t = pk.dataset.spT; SP.picks[mid] = SP.picks[mid] || {}; if (SP.picks[mid][who] === t) delete SP.picks[mid][who]; else SP.picks[mid][who] = t; spSave(); spRender(); }
+  if (e.target.closest('#spAdd')) spAdd();
+  if (e.target.closest('#spUrl')) { const u = spUrl(), ok = () => { $('#spMsg').textContent = '✓ URL copiada. En OBS: Fuente → Navegador → pegala (1920×1080). Si cambian los picks, volvé a copiarla.'; };
+    if (navigator.clipboard) navigator.clipboard.writeText(u).then(ok, () => { $('#spMsg').textContent = u; }); else $('#spMsg').textContent = u; }
+});
+function spAdd() { const n = ($('#spName').value || '').trim(); if (!n) return; SP.members.push({id: SP.members.reduce((a, m) => Math.max(a, m.id), 0) + 1, name: n}); $('#spName').value = ''; spSave(); spRender(); }
+document.addEventListener('keydown', e => { if (e.target && e.target.id === 'spName' && e.key === 'Enter') spAdd(); });
+document.addEventListener('input', e => { if (e.target && e.target.id === 'spTitle') { SP.title = e.target.value; spSave(); } });
+document.addEventListener('change', e => { if (e.target && e.target.id === 'spDay') { SP.day = e.target.value; spSave(); spRender(); } });
+setTimeout(() => { if ($('#spTitle')) $('#spTitle').value = SP.title; spLoad(); }, 0);
+setInterval(spLoad, 60000);
 const mxPct = x => Math.round(x * 100) + '%';
 const mxK = g => (Math.abs(g) / 1000).toFixed(1).replace('.', ',') + 'k';
 const mxSc = side => side === 'blue' ? 'b' : 'r';

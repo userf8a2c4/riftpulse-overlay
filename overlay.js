@@ -181,8 +181,24 @@
   .cd .hs{margin:0;padding-left:18px;font-size:13px;line-height:1.5}.cd .hs li{padding:2px 0}\
   .col{display:flex;flex-direction:column;align-items:flex-start;gap:8px;overflow:hidden;color:var(--text);font-family:var(--ff)}\
   .col .cd,.col .dmg{width:300px;max-width:300px}.col .cd[style]{width:340px!important;max-width:340px}.col .dmg{max-width:340px;width:340px}\
-  .col .dmg .dcols{grid-template-columns:1fr;gap:6px}\
+  .col .dmg{width:470px;max-width:470px}.dmg.show+#cardsx{display:none!important}\
+  .fsc{display:flex;justify-content:center;gap:10px;align-items:baseline;font:800 22px var(--ffd);margin:-2px 0 2px}.fsc .b{color:var(--team-a-txt)}.fsc .r{color:var(--team-b-txt)}.fsc span{color:var(--muted)}\
+  .fx{text-align:center;font-size:11.5px;color:var(--muted);margin-bottom:6px}.fx b{color:var(--text)}.fx b.b{color:var(--team-a-txt)}.fx b.r{color:var(--team-b-txt)}\
+  .fcols{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}\
+  .frow{display:grid;grid-template-columns:22px minmax(0,1fr) 40px 44px 30px;align-items:center;gap:5px;height:26px;font-size:11.5px}\
+  .frow.fuera{opacity:.45}.frow .fc{width:22px;height:22px;border-radius:4px;background:var(--g2);display:block}\
+  .frow .fn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}.frow.b .fn{color:var(--team-a-txt)}.frow.r .fn{color:var(--team-b-txt)}.frow .fn i{font-style:normal;opacity:.8}\
+  .frow .fk{font-variant-numeric:tabular-nums;text-align:center;color:var(--text)}\
+  .frow .fb{height:7px;background:rgba(var(--line-rgb),.08);border-radius:2px;overflow:hidden}.frow .fb i{display:block;height:7px}\
+  .frow.b .fb i.mas{background:var(--team-a)}.frow.r .fb i.mas{background:var(--team-b)}.frow .fb i.menos{background:rgba(var(--line-rgb),.35)}\
+  .frow .fd{font-size:10.5px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}\
+  .frow .tp{color:var(--muted);font-size:10px}\
+  .fl{margin-top:6px;font-size:10px;color:var(--muted);text-align:center;line-height:1.3}\
   .w.oculto{display:none}\
+  .w{background:rgba(var(--g1-rgb),.58);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 8px 22px rgba(0,0,0,.35);transition:background .2s}\
+  .w:hover{background:rgba(var(--g1-rgb),.95)}\
+  .w,.col{text-shadow:0 1px 2px rgba(0,0,0,.65)}\
+  .col .cd,.col .dmg{background:rgba(var(--g1-rgb),.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 8px 22px rgba(0,0,0,.35)}\
   .hint{display:none;align-items:center;gap:8px;height:28px;padding:0 12px 0 8px;border-radius:999px;background:rgba(var(--g1-rgb),.9);border:1px solid rgba(var(--line-rgb),.13);font:600 12px var(--ff);color:var(--muted);white-space:nowrap;cursor:pointer}\
   .hint.show{display:inline-flex}.hint .logo{width:16px;height:16px}\
   ';
@@ -246,25 +262,61 @@
   }
 
   var hist = [], lastMom = 0, lastFightGt = -1, fightTimer = null;
+  // pelea en equipo (5v5): aparece solo al terminar una, unos segundos, con lo que pasó en ella (todo del feed oficial)
+  var CHV = null;
+  function caraCampeon(id) {
+    if (!CHV) { CHV = 'cargando'; fetch('https://ddragon.leagueoflegends.com/api/versions.json').then(function (r) { return r.json(); }).then(function (v) { CHV = v[0]; }).catch(function () { CHV = null; }); }
+    return CHV && CHV !== 'cargando' ? '<img class="fc" src="https://ddragon.leagueoflegends.com/cdn/' + CHV + '/img/champion/' + encodeURIComponent(id) + '.png" alt="">' : '<span class="fc"></span>';
+  }
   function showFight(s) {
     if (!DMG) return;
     var f = s.game && s.game.fight;
-    if (!f || f.gt == null || !(f.blue || f.red)) return;
+    if (!f || f.gt == null || !f.blue || !f.red || f.kb == null) return;
     if (f.gt === lastFightGt) return;  // ya mostrada
     lastFightGt = f.gt;
-    var m = s.match;
-    function col(side, cls) {
-      side = side || []; var mx = side.reduce(function (a, p) { return Math.max(a, p.share); }, 0.01);
-      return '<div class="dcol ' + cls + '">' + side.map(function (p) { return '<div class="drow"><span class="dn">' + esc(p.name) + '</span><div class="dbar"><div style="width:' + Math.round(p.share / mx * 100) + '%"></div></div><span class="dp">' + Math.round(p.share * 100) + '%</span></div>'; }).join('') + '</div>';
-    }
-    dmgEl.innerHTML = '<div class="dh"><span>Reparto de daño · tras la pelea</span><span class="wl">' + esc(f.win === 'blue' ? m.blue.code : m.red.code) + ' ganó el cambio</span></div><div class="dcols">' + col(f.blue, 'b') + col(f.red, 'r') + '</div>';
+    if (s.game.gt - f.gt > 40) return;  // vieja (por ejemplo, al saltar en un VOD)
+    var m = s.match, mx = 0.5;
+    f.blue.concat(f.red).forEach(function (p) { mx = Math.max(mx, Math.abs(p.dsh)); });
+    var fila = function (p, cls) {
+      var w = Math.round(Math.min(1, Math.abs(p.dsh) / mx) * 100), sg = p.dsh > 0.05 ? '+' : p.dsh < -0.05 ? '−' : '';
+      return '<div class="frow ' + cls + (p.part ? '' : ' fuera') + '">' + caraCampeon(p.champId) +
+        '<span class="fn">' + (p.tipo ? '<span class="tp" title="daño ' + p.tipo + ' (por su campeón)">' + {'físico': '⚔', 'mágico': '✦', 'mixto': '◐'}[p.tipo] + '</span> ' : '') + esc(p.name) + (p.d > 0 ? ' <i title="murió en la pelea">☠</i>' : '') + '</span>' +
+        '<span class="fk">' + p.k + '/' + p.d + '/' + p.a + '</span>' +
+        '<span class="fb" title="Cuánto cambió su parte del daño de su equipo en la pelea"><i style="width:' + w + '%" class="' + (p.dsh >= 0 ? 'mas' : 'menos') + '"></i></span>' +
+        '<span class="fd">' + sg + Math.abs(p.dsh).toFixed(1).replace('.', ',') + '</span></div>';
+    };
+    var gana = f.win ? (f.win === 'blue' ? m.blue.code : m.red.code) : null, kc = function (g) { return (Math.abs(g) / 1000).toFixed(1).replace('.', ',') + 'k'; };
+    var extra = [];
+    if (f.oro) extra.push('oro <b class="b">+' + kc(f.oro.blue) + '</b> · <b class="r">+' + kc(f.oro.red) + '</b>');
+    if (f.obj) extra.push('después: <b class="' + (f.obj.side === 'blue' ? 'b' : 'r') + '">' + esc(f.obj.txt) + '</b>');
+    if (f.p0 != null && f.p1 != null) extra.push(esc(m.blue.code) + ' ' + Math.round(f.p0 * 100) + '% → <b>' + Math.round(f.p1 * 100) + '%</b>');
+    dmgEl.innerHTML = '<div class="dh"><span>Pelea en equipo · min ' + mmss(f.ini != null ? f.ini : f.gt) + '</span><span class="wl">' + (gana ? esc(gana) + ' la gana' : 'pareja') + '</span></div>' +
+      '<div class="fsc"><b class="b">' + esc(m.blue.code) + ' ' + f.kb + '</b><span>–</span><b class="r">' + f.kr + ' ' + esc(m.red.code) + '</b></div>' +
+      (extra.length ? '<div class="fx">' + extra.join(' · ') + '</div>' : '') +
+      '<div class="fcols"><div>' + f.blue.map(function (p) { return fila(p, 'b'); }).join('') + '</div><div>' + f.red.map(function (p) { return fila(p, 'r'); }).join('') + '</div></div>' +
+      '<div class="fl">K/D/A en la pelea · barra: cuánto más (o menos) daño que su promedio hizo en la pelea<br>⚔ físico · ✦ mágico · ◐ mixto, según su campeón</div>';
     dmgEl.classList.add('show');
-    clearTimeout(fightTimer); fightTimer = setTimeout(function () { dmgEl.classList.remove('show'); }, 8500);
+    clearTimeout(fightTimer); fightTimer = setTimeout(function () { dmgEl.classList.remove('show'); }, 11000);
   }
   // el overlay se ve solo cuando el juego está en pantalla (el HUD con su reloj, leído al menos dos veces seguidas).
   // Repetición, desk, publicidad, entrevista o multivista: no queda nada a la vista. Al mover el mouse aparece un aviso chico.
   var MOSTRAR = 0, MOUSE = 0;
-  function oculto() { return typeof AS !== 'undefined' && AS.on && !!L && Date.now() > MOSTRAR && !(AS.buenas >= 2 && Date.now() - AS.visto <= 5000); }
+  // el juego terminó: el resultado se ve unos segundos y después nada (los mejores momentos muestran el HUD, pero no hay que estorbar)
+  var FIN = null;
+  function terminado(s) {
+    var g = s && s.game;
+    if (!g || !g.ended) { FIN = null; return false; }
+    if (!FIN || FIN.id !== g.id) FIN = {id: g.id, at: Date.now()};
+    return true;
+  }
+  function oculto(s) {
+    if (typeof AS === 'undefined' || !AS.on || !L || Date.now() <= MOSTRAR) return false;
+    if (!(AS.buenas >= 2 && Date.now() - AS.visto <= 5000)) return true;
+    // en una transmisión en vivo solo se acompaña al juego que se está jugando (no a clips, repeticiones ni mejores momentos)
+    if (!esVod() && (!AS.id || !AS.id.live)) return true;  // en vivo: aparece recién al reconocer el juego en curso
+    if (terminado(s) && Date.now() - FIN.at > 6000) return true;
+    return false;
+  }
   function pintarHint() {
     var oc = wEl.classList.contains('oculto'), ver = oc && Date.now() - MOUSE < 3000;
     hintEl.classList.toggle('show', ver);
@@ -275,7 +327,7 @@
   hintEl.addEventListener('mousedown', function (e) { e.stopPropagation(); });
   hintEl.addEventListener('click', function (e) { e.stopPropagation(); MOSTRAR = Date.now() + 20000; if (LAST) render(LAST); });  // ver los controles un rato
   function render(s) {
-    var oc = oculto();
+    var oc = oculto(s);
     wEl.classList.toggle('oculto', oc); pintarHint();
     if (oc) {
       LAST = s; tarjetas(null);
@@ -283,7 +335,7 @@
       return;
     }
     render0(s);
-    var quieto = !!body.querySelector('.wait');
+    var quieto = !!body.querySelector('.wait') || !!(s.game && s.game.ended);  // al terminar, nada de paneles sobre los mejores momentos
     tarjetas(quieto ? null : s);
     if (quieto) { if (typeof tlEl !== 'undefined' && tlEl) tlEl.classList.remove('on'); dmgEl.classList.remove('show'); momEl.classList.remove('show'); }
   }
@@ -295,6 +347,11 @@
     var leyendo = typeof AS !== 'undefined' && AS.on && Date.now() - AS.visto < 20000;
     if (leyendo && (!AS.id || AS.trasSalto || !s.match || s.match.id !== AS.id.matchId)) {
       body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div><div class="wait">' + (AS.id && !AS.trasSalto ? 'Cargando ' + esc(AS.id.codes.join(' vs ')) + ' · juego ' + AS.id.juego + '…' : 'Sincronizando con el video…') + '</div>';
+      return;
+    }
+    if (s.match && s.game && s.game.ended) {
+      var gw = s.game.recap && s.game.recap.code;
+      body.innerHTML = '<div class="mini">' + LOGO + (gw ? '<span class="' + (gw === s.match.blue.code ? 'b' : 'r') + '">' + esc(gw) + '</span><span class="k">gana el juego</span>' : '<span class="k">Terminó el juego</span>') + '</div>';
       return;
     }
     if (!s.match) {
@@ -512,7 +569,7 @@
   var RELOJES = [HUD.reloj, [0.466, 0.04, 0.534, 0.125], [0.466, 0.0, 0.534, 0.065], [0.466, 0.085, 0.534, 0.155]];
   var AS = {on: ls('rp_auto6') !== '0', busy: false, zona: null, fallas: 0, lect: [], contra: [], off: null, id: null, vid: null, visto: 0, codes: null, codesAt: 0, n: 0, malas: 0, pend: null, trasSalto: false, diag: {}, err: ''};
   // «mm:ss»; sin los dos puntos solo se acepta en la zona principal del reloj
-  if (window.RP_DEBUG) window.__rpAS = AS;  // solo para las pruebas
+  if (window.RP_DEBUG) { window.__rpAS = AS; window.__rpRender = function (f) { return render(f(LAST)); }; }  // solo para las pruebas
   function parseReloj(s, conPuntos) {
     s = String(s || '').replace(/[^\d:]/g, '');
     var m = s.match(/^(\d{1,2}):(\d{2})$/) || (!conPuntos && s.match(/^(\d{1,2})(\d{2})$/));
@@ -707,7 +764,7 @@
           var directas = lista.filter(function (r) { return r.o != null && Math.abs(r.o - r.ct - o) <= 1; }).length;
           if (!mejor || apoyan.length > mejor.n || (apoyan.length === mejor.n && directas > mejor.d)) mejor = {gt: x.gt, off: o, n: apoyan.length, d: directas, span: rango(apoyan)};
         });
-        var hace = 3, avanza = playing ? mejor.span >= (hace - 1) * 1.2 : true;
+        var hace = AS.off == null || AS.trasSalto ? 3 : 5, avanza = playing ? mejor.span >= (hace - 1) * 1.2 : true;
         // el ganador tiene que estar en casi todas las lecturas recientes, no solo en algunas
         var mayoria = mejor.n >= Math.max(hace, Math.ceil(lista.length * 0.7));
         AS.diag.confirmando = mejor.n + '/' + lista.length + ' lecturas de ' + mmss(mejor.gt);
