@@ -55,3 +55,10 @@ Es pronóstico y análisis, sin apuestas. No está avalado por Riot Games. Leagu
 - `5-mando.png`: Mando, con el guion y las predicciones del staff.
 
 Se regeneran con `node pruebas/captura-extension.js` (datos del simulador de las pruebas).
+
+## Ícono y promocionales
+- `icon128.png`: ícono de la tienda (128 × 128).
+- `promo-440x280.png`: imagen promocional pequeña.
+- `promo-1400x560.png`: imagen promocional de marquesina.
+
+Las promocionales se regeneran con `node pruebas/promo.js`.
