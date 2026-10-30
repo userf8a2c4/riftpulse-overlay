@@ -73,7 +73,7 @@
 <div class="wrap">
   <div class="eyebrow"><img src="logo.svg" alt="">RiftPulse · tu segunda pantalla del Mundial · para Nick Daboom</div>
   <h1>Nick, esto lo hice pensando en <span class="hl">streams como el tuyo</span></h1>
-  <p class="lead">¡Hola, Nick! Soy <b>VectisDev</b>. Armé <b>RiftPulse</b>, un overlay que le muestra a tu chat <b>quién va ganando la partida, en vivo y en porcentaje</b>, en los colores de cada equipo. Ponés <b>una sola URL en OBS y RiftPulse decide qué mostrar</b> en cada momento. No es un número inventado: el modelo está entrenado con más de 2.200 juegos profesionales y <b>acierta el 75 % al minuto 15</b>, medido sobre 589 partidas que nunca había visto.</p>
+  <p class="lead">¡Hola, Nick! Soy <b>VectisDev</b>. Armé <b>RiftPulse</b>, un sistema para vivir el Mundial en tu stream: un overlay que le muestra a tu chat <b>quién va ganando la partida, en vivo y en porcentaje</b>, un panel con todo lo que necesitás para comentar y una extensión para que tu comunidad lo tenga en su propia pantalla. Ponés <b>una sola URL en OBS y RiftPulse decide qué mostrar</b> en cada momento. No es un número inventado: el modelo está entrenado con más de 2.200 juegos profesionales y <b>acierta el 75 % al minuto 15</b>, medido sobre 589 partidas que nunca había visto.</p>
 
   <div class="stage">
     <span class="live">● DEMO · PARTIDO REAL DEL MUNDIAL</span>
@@ -81,7 +81,7 @@
       <iframe src="overlay.html?demo&view=auto&director=show" title="RiftPulse con el director automático" scrolling="no"></iframe>
     </div>
   </div>
-  <p class="snote">Esto está corriendo ahora mismo: un partido real del Mundial ya jugado, acelerado ×8, con <b>una sola URL</b>. Las piezas entran y salen solas: el impacto antes del dragón o el Barón, el daño tras una pelea, la alerta en un giro y el resumen al terminar.</p>
+  <p class="snote">Esto está corriendo ahora mismo: un partido real del Mundial ya jugado, acelerado ×8, con <b>una sola URL</b>. Las piezas entran y salen solas: el impacto antes del dragón o el Barón, lo que pasó en cada pelea en equipo, la alerta en un giro y el resumen al terminar.</p>
 
   <div class="cta">
     <button class="btn primary" id="copy">📋 Copiar URL para OBS</button>
@@ -90,15 +90,31 @@
   </div>
   <div class="msg" id="msg"></div>
 
-  <h2>Lo que le suma a tu stream</h2>
+  <h2>En tu stream (OBS)</h2>
   <div class="grid">
     <div class="card"><div class="ic">🤖</div><h3>Se maneja solo</h3><p>Una sola URL y RiftPulse decide qué mostrar en cada momento, sin dos piezas encima de la partida. Si querés, lo manejás con el teclado desde un panel dentro de OBS.</p></div>
-    <div class="card"><div class="ic">🎨</div><h3>En los colores de cada equipo</h3><p>Un GEN vs T1 se ve dorado y rojo; un G2 vs FNC, en sus colores. O todo en <b>los colores de tu canal</b>, con tu logo.</p></div>
+    <div class="card"><div class="ic">🎨</div><h3>Como el HUD de la transmisión</h3><p>El equipo de la izquierda en azul y el de la derecha en rojo, igual que el marcador de Riot: nadie se confunde. O todo en <b>los colores de tu canal</b>, con tu logo.</p></div>
     <div class="card"><div class="ic">🔥</div><h3>Discusión con el chat</h3><p><q>RiftPulse le da 81 % a T1… ¿se la dan vuelta?</q> El número arma la conversación solo.</p></div>
     <div class="card"><div class="ic">⚡</div><h3>Alerta cuando la partida da vuelta</h3><p>Si tras un Barón la probabilidad salta 20 puntos, aparece un aviso en pantalla, justo cuando todos quieren comentar.</p></div>
-    <div class="card"><div class="ic">🎙</div><h3>Datos para comentar sin buscarlos</h3><p>Una segunda pantalla con frases listas: quién gana cada línea, qué necesita el que va abajo para remontar y cuánto vale el juego para la serie.</p></div>
+    <div class="card"><div class="ic">⚔️</div><h3>Cada pelea en equipo, explicada</h3><p>Después de un 5v5: quién la ganó, el oro, el objetivo que siguió y qué hizo cada jugador en la pelea. Las peleas chicas no interrumpen.</p></div>
     <div class="card"><div class="ic">🏁</div><h3>Resumen al terminar cada juego</h3><p>Quién ganó, el momento que lo decidió y el jugador clave, con una imagen lista para tus redes.</p></div>
   </div>
+
+  <h2>Para vos mientras comentás</h2>
+  <div class="grid">
+    <div class="card"><div class="ic">🎙</div><h3>Guion listo para leer</h3><p>En el panel (Mando), frases para decir al aire: quién va ganando y por qué, la figura de la última pelea, qué necesita el que va abajo y el momento justo para un clip.</p></div>
+    <div class="card"><div class="ic">🗳</div><h3>Predicciones del staff</h3><p>Cargás los picks tuyos y de tus co-casters, los aciertos se marcan solos al terminar cada partido y la tabla sale en pantalla con una URL. Ideal para picarse con el chat.</p></div>
+  </div>
+  <img src="docs/img/predicciones.png" alt="Predicciones del staff en pantalla (datos de ejemplo)" loading="lazy" style="display:block;width:100%;border-radius:14px;border:1px solid var(--line);margin-top:14px">
+  <p class="snote">Predicciones del staff en pantalla (datos de ejemplo). También tenés la <a href="analista.html?demo" target="_blank" rel="noopener" style="color:var(--link)">mesa de análisis</a> para una segunda pantalla.</p>
+
+  <h2>Para tu chat</h2>
+  <div class="grid">
+    <div class="card"><div class="ic">🖥</div><h3>La extensión, sobre el video</h3><p>Cada uno ve la probabilidad encima del partido en Twitch o lolesports, <b>sincronizada sola con el minuto que está viendo</b>: en vivo, en un VOD o en tu co-stream con su retraso. Aparece solo cuando el juego está en pantalla.</p></div>
+    <div class="card"><div class="ic">📱</div><h3>La app, con todo el Mundial</h3><p>El partido en vivo, la fase suiza, las eliminatorias, el pronóstico de cada uno contra RiftPulse y un modo sin spoilers para ver los VOD.</p></div>
+  </div>
+  <img src="docs/chrome-web-store/1-overlay.png" alt="La extensión sobre el video del partido" loading="lazy" style="display:block;width:100%;border-radius:14px;border:1px solid var(--line);margin-top:14px">
+  <p class="snote"><b>Si tu chat lo usa, todos miran el mismo número que vos.</b> Se instala en un minuto desde <a href="instalar.html" style="color:var(--link)">riftpulse · Instalar</a>.</p>
 
   <h2>Probarlo te lleva un minuto</h2>
   <ol class="steps">
@@ -111,7 +127,7 @@
   <div class="ask">
     <p><b>Nada obligatorio.</b> Es gratis y no te pido nada a cambio.</p>
     <p>Si lo probás un rato en una partida y me contás qué te gustó y qué no, ya me ayudás muchísimo. Y si te convence y te dan ganas de mostrarlo en el stream, para mí sería enorme.</p>
-    <p>Ya podés ponerle <b>los colores de tu canal o del SoloBoom y tu logo</b> con solo agregarlos a la URL (<code>&amp;tema=canal&amp;accent=…&amp;logo=…</code>). Y si se te ocurre una pieza que le falta, la hago.</p>
+    <p>Ya podés ponerle <b>los colores de tu canal o del SoloBoom y tu logo</b> con solo agregarlos a la URL (<code>&amp;tema=canal&amp;accent=…&amp;logo=…</code>). Las predicciones del staff también están listas para usar. Y si se te ocurre una pieza que le falta, la hago.</p>
   </div>
 
   <h2>Para que estés tranquilo</h2>
