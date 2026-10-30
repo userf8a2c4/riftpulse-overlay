@@ -5,7 +5,7 @@ Todo lo que pide la tienda ya está listo; solo falta subirlo con tu cuenta.
 ## Lo que hacés vos (una sola vez, ~20 minutos)
 1. Entrá a la [consola de desarrolladores de Chrome Web Store](https://chrome.google.com/webstore/devconsole) con tu cuenta de Google y pagá la inscripción única (5 USD).
 2. **Nuevo elemento** → subí `riftpulse-extension-tienda.zip` (está en la raíz de este repositorio y en la página: `https://userf8a2c4.github.io/riftpulse-overlay/riftpulse-extension-tienda.zip`).
-3. Copiá los textos de abajo en cada campo, subí las tres capturas de esta carpeta y el ícono `extension/icon128.png`.
+3. Copiá los textos de abajo en cada campo, subí las cinco capturas de esta carpeta y el ícono `extension/icon128.png`.
 4. **Enviar para revisión.** Suele tardar de 1 a 3 días.
 
 Después, cada versión nueva se sube igual (otro ZIP con la versión mayor) y les llega sola a todos los que la instalaron.
@@ -49,5 +49,9 @@ Es pronóstico y análisis, sin apuestas. No está avalado por Riot Games. Leagu
 
 ## Capturas (1280 × 800)
 - `1-overlay.png`: el overlay sobre el video (video de prueba generado, no es una transmisión real).
-- `2-ahora.png`: la app en «Ahora».
-- `3-mundial.png`: la fase suiza.
+- `2-panel.png`: el video con el panel lateral abierto.
+- `3-ahora.png`: la app en «Ahora».
+- `4-mundial.png`: la fase suiza.
+- `5-mando.png`: Mando, con el guion y las predicciones del staff.
+
+Se regeneran con `node pruebas/captura-extension.js` (datos del simulador de las pruebas).

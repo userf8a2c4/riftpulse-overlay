@@ -30,13 +30,17 @@ No es un número inventado: es un modelo entrenado con más de 2.200 juegos prof
 - 📊 **Mesa de análisis** para una segunda pantalla.
 
 <p align="center"><img src="docs/img/predicciones.png" width="720" alt="Predicciones del staff (datos de ejemplo)"></p>
+<p align="center"><img src="docs/chrome-web-store/5-mando.png" width="720" alt="Mando: guion y predicciones del staff"></p>
 
 ## Para tu chat
 
 - 🖥 **La extensión, sobre el video.** Cada uno ve la probabilidad encima del partido en Twitch o lolesports, sincronizada sola con el minuto que está viendo: en vivo, en un VOD o en tu co-stream con su retraso. Aparece solo cuando el juego está en pantalla.
 - 📱 **La app, con todo el Mundial.** El partido en vivo, la fase suiza, las eliminatorias, el pronóstico de cada uno contra RiftPulse y un modo sin spoilers.
 
-**Si tu chat lo usa, todos miran el mismo número que vos.** Se instala en un minuto desde [la página Instalar](https://userf8a2c4.github.io/riftpulse-overlay/instalar.html).
+<p align="center"><img src="docs/chrome-web-store/1-overlay.png" width="720" alt="La extensión sobre el video"></p>
+<p align="center"><img src="docs/chrome-web-store/2-panel.png" width="360" alt="El video con el panel lateral"> <img src="docs/chrome-web-store/3-ahora.png" width="360" alt="La app en Ahora"></p>
+
+**Si tu chat lo usa, todos miran el mismo número que vos.** 👉 **[Instalar la extensión](https://userf8a2c4.github.io/riftpulse-overlay/instalar.html#extension)** (3 pasos, 1 minuto) o **[abrir la app](https://userf8a2c4.github.io/riftpulse-overlay/app.html)** sin instalar nada.
 
 ## Probarlo te lleva un minuto
 
@@ -50,7 +54,7 @@ No es un número inventado: es un modelo entrenado con más de 2.200 juegos prof
 
 Si lo probás un rato en una partida y me contás qué te gustó y qué no, ya me ayudás muchísimo. Y si te convence y te dan ganas de mostrarlo en el stream, para mí sería enorme.
 
-Ya podés ponerle **los colores de tu canal o del SoloBoom y tu logo** con solo agregarlos a la URL (`&tema=canal&accent=` y `&logo=`). Las predicciones del staff también están listas para usar. Y si se te ocurre una pieza que le falta, la hago.
+Ya podés ponerle **los colores de tu canal y tu logo** con solo agregarlos a la URL (`&tema=canal&accent=` y `&logo=`). Las predicciones del staff también están listas para usar. Y si se te ocurre una pieza que le falta, la hago.
 
 ## Para que estés tranquilo
 

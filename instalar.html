@@ -89,31 +89,26 @@
 
   <!-- 1) extensión -->
   <section class="card" id="extension" hidden>
-    <h2>Sobre el video, en 4 pasos</h2>
-    <p class="lead">Tocá cada botón en orden. Al terminar un paso, marcalo con <b>Hecho</b> y pasá al siguiente.</p>
+    <h2>Sobre el video, en 3 pasos</h2>
+    <p class="lead">Una sola vez y listo.</p>
     <div class="aviso" id="navAviso" hidden></div>
-    <div class="aviso">⭐ <span><b>Muy pronto en la Chrome Web Store:</b> un clic en «Agregar a Chrome» y listo, sin estos pasos.</span></div>
     <div class="pasos" id="pasos">
       <div class="paso" data-p="1"><div class="n"><span>1</span></div>
-        <div><h3>Descargá RiftPulse</h3><p>Abrí el archivo descargado y tocá <b>Extraer todo</b> (en Mac, doble clic). Queda una carpeta llamada <b>RiftPulse</b>.</p></div>
-        <div class="acc"><a class="ib pri" href="riftpulse-extension.zip" download id="bajar">⬇ Descargar</a><button class="ib ok" data-hecho="1">Hecho</button></div></div>
+        <div><h3>Descargá y descomprimí</h3><p>Abrí el archivo y tocá <b>Extraer todo</b> (en Mac, doble clic): queda la carpeta <b>RiftPulse</b>.</p></div>
+        <div class="acc"><a class="ib pri" href="riftpulse-extension.zip" download id="bajar">⬇ Descargar</a></div></div>
       <div class="paso" data-p="2"><div class="n"><span>2</span></div>
-        <div><h3>Abrí la página de extensiones</h3><p>Copiá la dirección, pegala en la barra de direcciones de una pestaña nueva y apretá <b>Enter</b>. <span class="copiado" id="copiado"></span></p></div>
-        <div class="acc"><button class="ib pri" id="copiar">📋 Copiar <span id="dir">chrome://extensions</span></button><button class="ib ok" data-hecho="2">Hecho</button></div></div>
-      <div class="paso" data-p="3"><div class="n"><span>3</span></div>
-        <div><h3>Activá el «Modo de desarrollador»</h3><p id="dondeModo">Es el interruptor de <b>arriba a la derecha</b>.</p>
+        <div><h3>Abrí las extensiones y activá el «Modo de desarrollador»</h3><p>Pegá la dirección copiada en una pestaña nueva. <span id="dondeModo">El interruptor está <b>arriba a la derecha</b>.</span> <span class="copiado" id="copiado"></span></p>
           <div class="mock">Modo de desarrollador <span class="sw"></span></div></div>
-        <div class="acc"><button class="ib ok" data-hecho="3">Hecho</button></div></div>
-      <div class="paso" data-p="4"><div class="n"><span>4</span></div>
-        <div><h3>Tocá «Cargar descomprimida» y elegí la carpeta RiftPulse</h3><p>Si ya tenías una RiftPulse vieja, tocá <b>Quitar</b> en ella antes.</p>
+        <div class="acc"><button class="ib pri" id="copiar">📋 Copiar <span id="dir">chrome://extensions</span></button></div></div>
+      <div class="paso" data-p="3"><div class="n"><span>3</span></div>
+        <div><h3>«Cargar descomprimida» → carpeta RiftPulse</h3>
           <div class="mock"><span class="bt hl">Cargar descomprimida</span><span class="bt dim">Empaquetar extensión</span><span class="bt dim">Actualizar</span></div></div>
-        <div class="acc"><button class="ib ok" data-hecho="4">Hecho</button></div></div>
+        <div class="acc"><button class="ib ok" data-hecho="3">Listo</button></div></div>
     </div>
     <div class="listo" id="listo" hidden>
       <h3>¡Listo! 🎉</h3>
       <div>Abrí un partido en <a href="https://www.twitch.tv/riotgames" target="_blank" rel="noopener">twitch.tv</a> o <a href="https://lolesports.com" target="_blank" rel="noopener">lolesports.com</a>: RiftPulse aparece solo cuando el juego está en pantalla y se sincroniza con el minuto que ves. Para tener el panel a mano, tocá la pieza de rompecabezas 🧩 de la barra del navegador y fijá RiftPulse 📌.</div>
     </div>
-    <details><summary>Opcional: que se actualice sola</summary>En la página de extensiones → RiftPulse → <b>Detalles</b>, activá <b>«Permitir scripts de usuario»</b>. Así las mejoras del overlay te llegan sin volver a instalar. El panel ya se actualiza solo siempre.</details>
     <details><summary>¿Es seguro?</summary>RiftPulse solo trabaja en twitch.tv y lolesports.com, no lee ni envía nada de ninguna cuenta y la lectura del video ocurre en tu compu. El «Modo de desarrollador» solo permite instalar extensiones desde una carpeta; podés apagarlo después. No está afiliada a Riot Games.</details>
   </section>
 
@@ -155,7 +150,7 @@
   var ua = navigator.userAgent, nav = /Edg\//.test(ua) ? 'edge' : /OPR\//.test(ua) ? 'opera' : navigator.brave ? 'brave' : /Firefox\//.test(ua) ? 'firefox' : /Chrome\//.test(ua) ? 'chrome' : 'otro';
   var dir = {edge: 'edge://extensions', opera: 'opera://extensions', brave: 'brave://extensions'}[nav] || 'chrome://extensions';
   $('#dir').textContent = dir;
-  if (nav === 'edge') $('#dondeModo').innerHTML = 'Es el interruptor de la <b>columna de la izquierda</b>, abajo.';
+  if (nav === 'edge') $('#dondeModo').innerHTML = 'El interruptor está en la <b>columna de la izquierda</b>, abajo.';
   var av = $('#navAviso');
   if (movil) { av.hidden = false; av.classList.add('mal'); av.innerHTML = '📱 <span>La extensión es para la compu. En el celu usá RiftPulse <a href="#app">como app</a>.</span>'; }
   else if (nav === 'firefox' || nav === 'otro') { av.hidden = false; av.classList.add('mal'); av.innerHTML = '⚠ <span>La extensión funciona en <b>Chrome, Edge, Brave u Opera</b>. En este navegador podés usar RiftPulse <a href="#app">como app</a>.</span>'; }
@@ -168,7 +163,7 @@
   function pintar() {
     var h = hechos();
     document.querySelectorAll('.paso[data-p]').forEach(function (p) { p.classList.toggle('hecho', h.indexOf(+p.dataset.p) >= 0); });
-    $('#listo').hidden = h.indexOf(4) < 0;
+    $('#listo').hidden = h.indexOf(3) < 0;
   }
   document.querySelectorAll('[data-hecho]').forEach(function (b) { b.addEventListener('click', function () { marcar(+b.dataset.hecho); }); });
   $('#bajar').addEventListener('click', function () { marcar(1); });

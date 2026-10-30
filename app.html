@@ -613,7 +613,7 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
 <div id="tinte"><div class="city"></div><div class="grad"></div></div>
 <div class="wrap">
   <header class="top">
-    <div class="brand"><img class="logo" src="logo.svg" alt="RiftPulse"><div><div class="brand-t">RiftPulse</div><div class="brand-s">Tu segunda pantalla del Mundial</div><div class="brand-p" id="precHdr"></div><a class="brand-p" href="https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html" target="_blank" rel="noopener" style="color:var(--link);text-decoration:none">¿Cómo funciona? →</a></div></div>
+    <div class="brand"><img class="logo" src="logo.svg" alt="RiftPulse"><div><div class="brand-t">RiftPulse</div><div class="brand-s">Tu segunda pantalla del Mundial</div><div class="brand-p" id="precHdr">El Mundial, jugada a jugada</div><a class="brand-p" href="https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html" target="_blank" rel="noopener" style="color:var(--link);text-decoration:none">¿Cómo funciona? →</a></div></div>
     <nav class="tabs"><button id="tabAhora">Ahora</button><button id="tabCopa">Mundial</button><button id="tabHist">Historial</button><button id="tabMando" title="Centro de mando para streamers y analistas">Mando</button></nav>
     <div class="hstat">
       <select id="sel" title="Partido en vivo" hidden></select>
@@ -2464,7 +2464,7 @@ function calibTick() {
 const BACKTEST = {"fecha":"2026-10-16","juego":{"pre":{"juegos":589,"acc":0.6248,"brier":0.2208,"accAnt":0.6265,"brierAnt":0.2256},"m10":{"juegos":589,"acc":0.6842,"brier":0.2023,"accAnt":0.6418,"brierAnt":0.2187},"m15":{"juegos":589,"acc":0.7453,"brier":0.1729,"accAnt":0.7267,"brierAnt":0.1831},"m20":{"juegos":588,"acc":0.7857,"brier":0.145,"accAnt":0.7704,"brierAnt":0.1513},"m25":{"juegos":554,"acc":0.8357,"brier":0.1137,"accAnt":0.8303,"brierAnt":0.1172}},"eventos":"Prueba con 589 juegos de agosto a octubre de 2026 que el modelo no vio (ligas regionales e internacionales). Entrenado con 1658 juegos anteriores; la version activa usa los 2247 juegos"};
 const seriesP = (p, bo) => { const need = Math.ceil(bo / 2), f = (x, y) => x >= need ? 1 : y >= need ? 0 : p * f(x + 1, y) + (1 - p) * f(x, y + 1); return f(0, 0); };
 // Badge de precisión en la cabecera (siempre visible): dato real del backtest.
-try { const _j = BACKTEST && BACKTEST.juego, _e = $('#precHdr'); if (_e && _j && _j.m15) _e.textContent = 'Acierta ' + deCada(_j.m15.acc) + ' al minuto 15 · medido en ' + (_j.m15.juegos || 589) + ' juegos'; } catch (e) {}
+// el encabezado lleva el slogan; el acierto del modelo se explica en «¿Cómo funciona?»
 function eloStats(rows) {
   let gOk = 0, gN = 0, br = 0, sOk = 0;
   const bins = {};
@@ -3537,10 +3537,10 @@ function renderMxOv() {
   const chip = (key, label) => `<button class="mx-btn${o.ext.includes(key) ? ' on' : ''}" data-mx="ext" data-k="${key}"${dis}>${label}</button>`;
   $('#mxOv').innerHTML = `<div class="mx-h"><h2>Overlay en el stream</h2></div><div class="mx-scroll">
     <div class="mx-sub">En la barra</div><div class="mx-row" style="margin-top:0">${chip('obj', 'Próximo objetivo')}${chip('pg', 'Trayectoria')}
-      <button class="mx-btn${o.dmg ? ' on' : ''}" data-mx="dmg"${dis}>Daño tras cada pelea</button></div>
+      <button class="mx-btn${o.dmg ? ' on' : ''}" data-mx="dmg"${dis}>Pelea en equipo (5v5)</button></div>
     <div class="mx-sub">Paneles automáticos (aparecen solos cuando aportan)</div><div class="mx-row" style="margin-top:0">${['minimo', 'estandar', 'show'].map(k => `<button class="mx-btn${(o.director || 'estandar') === k ? ' on' : ''}" data-mx="dir" data-k="${k}"${dis}>${{minimo: 'Mínimo', estandar: 'Estándar', show: 'Show'}[k]}</button>`).join('')}<button class="mx-btn" data-mx="dirSaltar"${dis} title="Quita el panel automático que se está mostrando">⏭ Saltar panel</button></div>
-    <div class="mx-note" style="margin-top:4px">Mínimo: la barra y los giros. Estándar: además el objetivo que viene, el daño tras cada pelea y el resumen. Show: además el oro y los duelos de vez en cuando.</div>
-    <div class="mx-sub">Paneles fijos debajo de la barra</div><div class="mx-row" style="margin-top:0">${chip('oro', 'Gráfico de oro')}${chip('imp', 'Impacto y remontada')}${chip('duelos', 'Duelos por línea')}${chip('dano', 'Daño de los 10')}${chip('mini', 'Barra mínima (solo %)')}</div>
+    <div class="mx-note" style="margin-top:4px">Mínimo: la barra y los giros. Estándar: además el objetivo que viene y lo que pasó en cada pelea en equipo. Show: además el oro y los duelos de vez en cuando.</div>
+    <div class="mx-sub">Paneles fijos (opcional: si no, aparecen solos en su momento)</div><div class="mx-row" style="margin-top:0">${chip('oro', 'Gráfico de oro')}${chip('imp', 'Impacto y remontada')}${chip('duelos', 'Duelos por línea')}${chip('dano', 'Daño de los 10')}${chip('mini', 'Barra mínima (solo %)')}</div>
     <div class="mx-sub">Posición y visibilidad</div><div class="mx-row" style="margin-top:0">
       <button class="mx-btn${o.pos === 'top' ? ' on' : ''}" data-mx="pos" data-k="top"${dis}>Arriba</button><button class="mx-btn${o.pos === 'bottom' ? ' on' : ''}" data-mx="pos" data-k="bottom"${dis}>Abajo</button>
       <button class="mx-btn" data-mx="hide"${dis}>${o.hidden ? '👁 Mostrar overlay' : '🙈 Ocultar overlay'}</button></div>
@@ -3552,7 +3552,7 @@ function renderMxOv() {
 function renderMxObs() {
   const items = [['Director automático (recomendado · una sola URL)', 'overlay.html?view=auto'], ['Preset · solo barra (lower-third)', 'overlay.html?view=bar&modules=prob,timers,brand&pos=bottom'], ['Preset · alertas de giro (escena aparte)', 'overlay.html?view=alert'], ['Preset · entre mapas (serie)', 'overlay.html?view=serie'], ['Preset · cierre de juego (resumen)', 'overlay.html?view=recap'],
     ['Barra en vivo (completa)', 'overlay.html'], ['Serie', 'overlay.html?view=serie'], ['Duelos por línea', 'overlay.html?view=duelos'], ['Para remontar (sola)', 'overlay.html?view=remontada'],
-    ['Resumen del juego (solo)', 'overlay.html?view=recap'], ['Cuadro de eliminatorias', 'overlay.html?view=cuadro'], ['Predicciones del stream', 'overlay.html?view=predicciones'], ['Claves del momento', 'overlay.html?view=keys'], ['Alerta de giro', 'overlay.html?view=alert'], ['Mesa de análisis', 'analista.html'], ['Control de producción (dock)', 'control.html']];
+    ['Resumen del juego (solo)', 'overlay.html?view=recap'], ['Cuadro de eliminatorias', 'overlay.html?view=cuadro'], ['Predicciones del staff', 'overlay.html?view=predicciones'], ['Claves del momento', 'overlay.html?view=keys'], ['Alerta de giro', 'overlay.html?view=alert'], ['Mesa de análisis', 'analista.html'], ['Control de producción (dock)', 'control.html']];
   MX.obsAll = items.map(([l, u]) => l + ': ' + OBS_BASE + u).join('\n');
   $('#mxObs').innerHTML = `<div class="mx-h"><h2>Piezas para OBS</h2><button class="mx-btn${MX.copied === 'obsall' ? ' on' : ''}" data-mx="cp" data-k="obsall">${MX.copied === 'obsall' ? '✓ Copiadas' : '📋 Copiar todas'}</button></div><ul class="mx-obs">${items.map(([l, u], i) => `<li><b style="flex:none">${l}</b><span class="u">${OBS_BASE}${u}</span><button class="mx-cp${MX.copied === 'o' + i ? ' ok' : ''}" data-mx="cp" data-k="o${i}" data-u="${OBS_BASE}${u}">${MX.copied === 'o' + i ? '✓' : '📋'}</button></li>`).join('')}</ul>
     <div class="mx-note">Cada pieza va como <b>Navegador</b> (Browser Source) en OBS, 1920 × 1080. Agregá <code>&delay=42</code> para tu retraso, <code>&accent=ff8800</code> y <code>&logo=https://…</code> para tus colores y logo, <code>&safe=1</code> para márgenes amplios y <code>&brand=0</code> para quitar la marca. Con <code>?demo</code> se ven con un partido ya jugado.</div>`;
