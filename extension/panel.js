@@ -8,7 +8,7 @@ const CLAVES = ['rp_origen', 'rp_pantalla', 'rp_cmd'];
 function enviar(data) { try { app.contentWindow.postMessage({rp: 'store', shell: CASCARON, data}, '*'); } catch (e) {} }
 window.addEventListener('message', e => {
   if (e.source !== app.contentWindow || !e.data || !e.data.rp) return;
-  if (e.data.rp === 'ready') { lista = true; carga.style.display = 'none'; chrome.storage.local.get(CLAVES, enviar); }
+  if (e.data.rp === 'ready') { lista = true; carga.style.display = 'none'; app.style.visibility = ''; chrome.storage.local.get(CLAVES, enviar); }
   if (e.data.rp === 'set' && e.data.data) chrome.storage.local.set(e.data.data);
   if (e.data.rp === 'reinstalar') chrome.runtime.sendMessage({type: 'rp-reinstalar'}, () => chrome.storage.local.get(CLAVES, enviar));
 });
