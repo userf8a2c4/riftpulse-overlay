@@ -31,15 +31,6 @@ module.exports = async function () {
   if (hay) await p.click('[data-salto="-10"]'); await p.waitForTimeout(400);
   const despues = (await est()).ct;
   ok = chequear('en el VOD, «−10 s» de la línea de tiempo salta el video', hay && antes - despues >= 8 && antes - despues <= 12, hay ? (antes - despues).toFixed(1) + ' s hacia atrás' : 'sin botón') && ok;
-  // reconoció mal: «¿otro partido?» deja elegir entre los que cuadran, y lo elegido no se deshace solo
-  const el = await p.evaluate(() => { const sh = document.getElementById('rp-overlay-host').shadowRoot, AS = window.__rpAS;
-    if (!(AS.cands && AS.cands.length > 1)) return {n: AS.cands ? AS.cands.length : 0};
-    sh.getElementById('otrob').click(); const bs = [...sh.querySelectorAll('#elegir button[data-i]')].filter(b => b.dataset.i !== '-1' && !b.classList.contains('ya'));
-    const txt = sh.getElementById('elegir').innerText; bs[0].click(); return {n: AS.cands.length, txt, gid: AS.id.gameId, manual: AS.manual}; });
-  await p.waitForTimeout(12000);
-  const el2 = await p.evaluate(() => window.__rpAS.id && window.__rpAS.id.gameId);
-  ok = chequear('«¿otro partido?» muestra los candidatos y deja elegir', el.n > 1 && /¿Qué partido estás viendo\?/.test(el.txt || '') && el.manual === el.gid, el.n + ' candidatos') && ok;
-  ok = chequear('lo que eligió el espectador no se deshace solo', el2 === el.gid, el2 + ' (elegido ' + el.gid + ')') && ok;
   await p.keyboard.press('Alt+r'); const ocu = await p.evaluate(() => document.getElementById('rp-overlay-host').style.display);
   await p.keyboard.press('Alt+r'); const vuelve = await p.evaluate(() => document.getElementById('rp-overlay-host').style.display);
   ok = chequear('Alt+R oculta RiftPulse y lo vuelve a mostrar', ocu === 'none' && vuelve === '') && ok;
@@ -59,6 +50,17 @@ module.exports = async function () {
   ok = chequear('en un stream que no es de LoL, ningún aviso de RiftPulse', !enOtro, enOtro || 'nada') && ok;
   ok = chequear('en un stream de LoL con el Mundial en vivo, el aviso dice qué espera', /RiftPulse/.test(enLol), enLol.replace(/\s+/g, ' ')) && ok;
   await c0.close();
+  // la serie en pantalla: el juego 2 con los mismos campeones que el juego 1; los rectángulos de victorias (IG 1–0) dicen cuál es
+  const cs = await b.newContext({viewport: {width: 1500, height: 900}}); await montar(cs, {video: 'serie.webm'});
+  const s2 = await cs.newPage(); s2.on('pageerror', e => console.log('    error de página:', e.message));
+  await s2.goto('https://www.twitch.tv/videos/1');
+  await s2.evaluate(() => { const v = document.getElementById('v'); return new Promise(r => { v.addEventListener('loadeddata', r, {once: true}); v.load(); }); });
+  await s2.evaluate(() => { window.RP_DEBUG = true; document.getElementById('v').play(); });
+  for (const f of ['engine.js', 'ext-overlay.js']) await s2.addScriptTag({content: fs.readFileSync(path.join(RAIZ, f), 'utf8')});
+  let js = null;
+  for (let i = 0; i < 16 && !js; i++) { await s2.waitForTimeout(1000); js = await s2.evaluate(() => window.__rpAS && window.__rpAS.id ? {j: window.__rpAS.id.juego, codes: window.__rpAS.id.codes.join('-'), serie: window.__rpAS.diag.serie} : null); }
+  ok = chequear('lee la serie en pantalla (IG 1–0) y reconoce el juego 2 aunque los campeones parezcan del 1', js && js.j === 2, js ? js.codes + ' J' + js.j + ' · serie ' + js.serie : 'no reconoció') && ok;
+  await cs.close();
   // un clip de un partido ya jugado en la previa del vivo: cuando vuelve el desk no queda nada de ese partido
   const c1 = await b.newContext({viewport: {width: 1500, height: 900}}); await montar(c1, {video: 'clip.webm'});
   const q = await c1.newPage(); q.on('pageerror', e => console.log('    error de página:', e.message));

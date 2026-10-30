@@ -363,7 +363,7 @@
   function renderObj(s) {
     if (!s.match || !s.game || s.game.pBlue == null) { main.style.display = 'none'; return; }
     main.style.display = 'flex'; main.className = 'rp-obj';
-    var g = s.game, items = [['Tiempo', mmss(g.gt)]], o = nextObj(g.timers, g.gt);
+    var g = s.game, items = [['Tiempo', mmss(g.gt)]];
     if (g.timers && g.timers.dragon && g.timers.dragon.at > g.gt) items.push([g.timers.dragon.elder ? 'Ancestral' : 'Dragón', mmss(g.timers.dragon.at - g.gt)]);
     if (g.timers && g.timers.baron && g.timers.baron.at > g.gt) items.push(['Barón', mmss(g.timers.baron.at - g.gt)]);
     main.innerHTML = items.map(function (a) { return '<div class="tm"><span class="v">' + a[1] + '</span><span class="k">' + a[0] + '</span></div>'; }).join('');

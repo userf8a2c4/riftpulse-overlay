@@ -1,0 +1,70 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2022": true,
+    "node": true,
+    "webextensions": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "script"
+  },
+  "rules": {
+    "no-unused-vars": [
+      "warn",
+      {
+        "args": "none",
+        "caughtErrors": "none"
+      }
+    ],
+    "no-undef": "error",
+    "no-redeclare": "error",
+    "no-dupe-keys": "error",
+    "no-unreachable": "error",
+    "no-self-assign": "error",
+    "no-dupe-else-if": "error",
+    "no-duplicate-case": "error",
+    "no-constant-condition": [
+      "warn",
+      {
+        "checkLoops": false
+      }
+    ],
+    "no-useless-escape": "off",
+    "eqeqeq": "off",
+    "no-cond-assign": "off",
+    "no-empty": "off",
+    "no-func-assign": "error",
+    "no-shadow-restricted-names": "error",
+    "use-isnan": "error",
+    "valid-typeof": "error",
+    "no-unsafe-finally": "error",
+    "no-sparse-arrays": "warn",
+    "no-unexpected-multiline": "error",
+    "no-import-assign": "error",
+    "getter-return": "error",
+    "no-loss-of-precision": "error"
+  },
+  "globals": {
+    "RiftEngine": "readonly",
+    "RiftLector": "readonly",
+    "RPUI": "readonly",
+    "RPC": "readonly",
+    "chrome": "readonly"
+  },
+  "overrides": [
+    {
+      "files": [
+        "pruebas/*.js"
+      ],
+      "rules": {
+        "no-undef": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "pruebas/.gen/",
+    "node_modules/"
+  ]
+}

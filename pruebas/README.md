@@ -14,6 +14,8 @@ node pruebas/todas.js t_feed
 
 **Requisitos:** Node, Playwright con Chromium, y Python 3 con Pillow y ffmpeg (para generar los videos de prueba la primera vez).
 
+En GitHub corren solas con cada cambio en `main`, junto con el linter (`.eslintrc.json`, cero errores y cero avisos): [Pruebas](../.github/workflows/pruebas.yml).
+
 ## Las 11 baterías
 
 | Prueba | Qué comprueba |

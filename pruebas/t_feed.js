@@ -7,7 +7,7 @@ module.exports = async function () {
   await p.goto(BASE + 'overlay.html?view=bar&delay=30');
   await p.waitForTimeout(6000);
   const ver = () => p.evaluate(() => ({barra: (document.querySelector('.rp-bar') || {}).innerText || '', ins: getComputedStyle(document.querySelector('.rp-fd')).display === 'none' ? '' : document.querySelector('.rp-fd').innerText, estado: RiftEngine.state.feed.estado, delay: RiftEngine.delay}));
-  let v = await ver(); const base = v.barra;
+  let v = await ver();
   ok = chequear('con datos normales muestra la probabilidad y ninguna insignia', /%/.test(v.barra) && !v.ins, v.barra.replace(/\s+/g, ' ').slice(0, 60)) && ok;
   ok = chequear('?delay=30 en la URL se aplica', v.delay === 30, v.delay + ' s') && ok;
   st.modo = 'caido'; await p.waitForTimeout(9000); v = await ver();

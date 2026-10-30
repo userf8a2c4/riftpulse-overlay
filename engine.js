@@ -454,8 +454,6 @@
   function rgb2hex(c) { return '#' + c.map(function (v) { return ('0' + Math.max(0, Math.min(255, Math.round(v))).toString(16)).slice(-2); }).join(''); }
   function lum(c) { var a = c.map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2]; }
   function contraste(c1, c2) { var a = lum(c1), b = lum(c2); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); }
-  function hsl(c) { var r = c[0] / 255, g = c[1] / 255, b = c[2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), h = 0, l = (mx + mn) / 2, d = mx - mn, s2 = d ? d / (1 - Math.abs(2 * l - 1)) : 0;
-    if (d) h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return [(h * 60 + 360) % 360, s2, l]; }
   function mezcla(c, d, t) { return c.map(function (v, i) { return v + (d[i] - v) * t; }); }
   var GRAFITO = [12, 14, 18];
   // legible sobre el grafito: se aclara hasta contraste 3:1 (los colores muy oscuros, como el negro de una marca)
@@ -466,7 +464,6 @@
     return {main: rgb2hex(c), dark: rgb2hex(mezcla(c, [0, 0, 0], 0.28)), hi: rgb2hex(mezcla(c, [255, 255, 255], 0.38)), ink: rgb2hex(ink), rgb: c.map(Math.round).join(','),
       txt: rgb2hex(contraste(c, GRAFITO) >= 4.5 ? c : mezcla(c, [255, 255, 255], 0.35))};
   }
-  function baseDe(code, lado) { var h = COLC[code] || TEAMCOL[code]; return hex2rgb(h) || hex2rgb(LADO[lado]); }
   // colores para un partido: siempre los del lado, como el HUD de la transmisión. El de la izquierda (lado azul) es azul y el
   // de la derecha (lado rojo) es rojo, sin importar los colores de marca de los equipos (TES es rojo de marca, pero del lado
   // azul va en azul). Así nunca se contradice lo que muestra el video.
@@ -712,7 +709,7 @@
     // arranca: busca el partido en vivo, lo carga y sigue el feed cada 2 s
     start: async function () {
       if (running) return; running = true;
-      var self = this, gen = ++RUNGEN;
+      var gen = ++RUNGEN;
       loadSchedule().catch(function () {});  // el calendario da el Elo del Mundial para la previa (si la app no manda el suyo)
       async function sync() {
         try {
@@ -859,6 +856,7 @@
   RiftEngine.identify = async function (o) {
     await loadSchedule();
     // o.sig = [{CODIGO: parecido}, {...}] (izquierda y derecha del HUD); o.tags = [izq, der] como texto, si no hay puntajes
+    // o.juego: el número de juego de la serie según las victorias que muestra el HUD (si se ven)
     var tags = (o.tags || []).map(function (t) { return String(t || '').replace(/[^A-Z0-9]/gi, '').toUpperCase(); });
     var sig = o.sig || null, top = sig ? sig.map(function (m) { var v = 0; for (var k in m) v = Math.max(v, m[k]); return v; }) : null;
     var parece = function (lado, code) {  // 0 = igual a lo mejor leído de ese lado; más alto = menos parecido
@@ -894,6 +892,7 @@
         if (o.kills) sc += Math.abs(f.blueTeam.totalKills - o.kills[0]) + Math.abs(f.redTeam.totalKills - o.kills[1]);
         if (o.gold) sc += 2 * (Math.abs(f.blueTeam.totalGold / 1000 - o.gold[0]) + Math.abs(f.redTeam.totalGold / 1000 - o.gold[1]));
         if (gm.state === 'inProgress') sc -= 0.5;
+        if (o.juego && k + 1 !== o.juego) sc += 4;  // las victorias de la serie que se ven en el HUD dicen qué juego es
         var champs = function (side) { return ((gi.meta[side + 'TeamMetadata'] || {}).participantMetadata || []).map(function (p) { return p.championId; }); };
         all.push({matchId: c.id, juego: k + 1, gameId: gm.id, codes: [cb, cr], score: sc, live: gm.state === 'inProgress', champs: {blue: champs('blue'), red: champs('red')}});
       }

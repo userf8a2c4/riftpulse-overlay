@@ -157,8 +157,8 @@
     try { localStorage.setItem('rp_ctrl', JSON.stringify(state())); } catch(e){}  // persiste sin testAlert
     if (bc) bc.postMessage(s);
     msg('Aplicado ✓');
-    var k = extra ? Object.keys(extra)[0] : 'ajustes';
-    document.getElementById('stOrden').textContent = ({dirAtajo: 'pieza a mano', dirSaltar: 'saltar pieza', dirRetener: 'retener pieza', director: 'nivel del director', showRecap: 'mostrar resumen', hideRecap: 'cortar resumen', testAlert: 'alerta de prueba', delay: 'retraso', hideAll: hideAll ? 'ocultar todo' : 'mostrar todo'}[k] || 'ajustes') + ' · ' + new Date().toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+    var orden = extra ? Object.keys(extra)[0] : 'ajustes';
+    document.getElementById('stOrden').textContent = ({dirAtajo: 'pieza a mano', dirSaltar: 'saltar pieza', dirRetener: 'retener pieza', director: 'nivel del director', showRecap: 'mostrar resumen', hideRecap: 'cortar resumen', testAlert: 'alerta de prueba', delay: 'retraso', hideAll: hideAll ? 'ocultar todo' : 'mostrar todo'}[orden] || 'ajustes') + ' · ' + new Date().toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
   }
   function msg(t){ var m=document.getElementById('msg'); m.textContent=t; m.className='note ok'; setTimeout(function(){m.textContent='';m.className='note';},1500); }
 

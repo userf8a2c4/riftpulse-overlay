@@ -1,6 +1,6 @@
 // La extensión real, instalada desde el ZIP publicado (como la instala un usuario), en sus dos modos:
 // con «Permitir scripts de usuario» (el overlay llega de la web) y sin él (copia local).
-const {chromium} = require('playwright'), fs = require('fs'), path = require('path'), os = require('os'), zlib = require('zlib');
+const {chromium} = require('playwright'), fs = require('fs'), path = require('path'), os = require('os');
 const {execFileSync} = require('child_process');
 const {montar, chequear, RAIZ, GEN} = require('./mocks');
 function descomprimir(zip) {

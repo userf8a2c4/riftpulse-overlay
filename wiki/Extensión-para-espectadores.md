@@ -8,17 +8,18 @@ La extensión pone RiftPulse **encima del video** de Twitch o de lolesports.com 
 
 La forma más fácil: **[la página Instalar](https://userf8a2c4.github.io/riftpulse-overlay/instalar.html)**. Elegís qué querés (sobre el video, como app o para tu stream) y te guía con un botón por paso.
 
-1. **Descargá** el [ZIP](https://userf8a2c4.github.io/riftpulse-overlay/riftpulse-extension.zip) y extraelo: queda la carpeta **RiftPulse**.
+1. **Descargá** el [ZIP](https://userf8a2c4.github.io/riftpulse-overlay/riftpulse-extension.zip) y extraelo: queda la carpeta **riftpulse-extension**. Movela a Documentos y no la borres.
 2. Abrí `chrome://extensions` (o `edge://`, `brave://`, `opera://extensions`) y activá el **Modo de desarrollador**.
-3. **Cargar descomprimida** → carpeta **RiftPulse**. Listo.
+3. **Cargar descomprimida** → esa carpeta.
+4. En RiftPulse → **Detalles**, activá **«Permitir scripts de usuario»**: así el overlay se actualiza solo desde la web. (Si tu navegador no lo tiene, funciona igual.)
 
-Opcional: en RiftPulse → **Detalles**, **«Permitir scripts de usuario»** hace que el overlay se actualice solo desde la web.
+¿Dice «Falta el archivo de manifiesto»? Elegiste otra carpeta: tiene que ser la que tiene `manifest.json`.
 
 Desde ahí no hay nada que descargar: el panel siempre abre la última versión, y el overlay se renueva al tocar ↻ en la extensión, al abrir el navegador y cada 6 horas.
 
 ## Sincronía automática con el video
 
-Con **auto-sync** encendido (viene así), el overlay **lee el video**: el reloj del juego, las siglas de los equipos, las kills, el oro y los campeones en pantalla. Con eso:
+Con la **sincronía automática** encendida (viene así), el overlay **lee el video**: el reloj del juego, las siglas de los equipos, las kills, el oro y los campeones en pantalla. Con eso:
 
 - **reconoce el partido y el juego de la serie**, aunque sea un VOD de otro día del Mundial;
 - **se ata al minuto exacto** de lo que estás viendo: sigue la pausa, la velocidad, los saltos hacia adelante o atrás y los cortes de carga;
@@ -26,6 +27,10 @@ Con **auto-sync** encendido (viene así), el overlay **lee el video**: el reloj 
 - al reconocerlo, un aviso de 3 s lo confirma: **«Sincronizado · IG vs LYON · juego 2 · 17:42»**, en los colores de los equipos.
 
 El lector funciona dentro del navegador, sin servicios externos, y no envía imágenes a ningún lado.
+
+**Para ocultarlo:** el botón **✕** de la barra, o **Alt+R** (lo mismo para volver a mostrarlo).
+
+**Cuando no está a la vista**, al mover el mouse aparece un aviso chico que dice por qué: *aparece cuando el juego está en pantalla*, *vuelve con el juego*, *sin conexión con lolesports*. En un stream que no es de LoL, RiftPulse no muestra nada. En **lolesports.com** el video va en un reproductor aparte que no se puede leer: el aviso ofrece abrir el mismo partido en Twitch.
 
 El **panel lateral** sigue lo mismo que tu video: arriba dice *Sincronizado con tu video* y el centro de mando usa ese juego y ese minuto. Si preferís mirar otra cosa en el panel, apagá **📺 Seguir el video** en Mando.
 

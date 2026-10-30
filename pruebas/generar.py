@@ -8,6 +8,9 @@ retratos de campeones (colores planos). Así se prueba el lector sin usar imáge
   clip.webm  60 s: 15 s de un juego ya jugado (juego 1 desde 4:20), como un clip en la previa, y después el desk
   final.webm 40 s: el final del juego 1 (25:00) con el HUD todavía en pantalla, como en los mejores momentos
   correr.webm 40 s: juego 2 corriendo desde 16:58, con marcador 2–3
+  serie.webm 40 s: juego 2 desde 1:40 con los mismos retratos que el juego 1: solo la serie en pantalla (1–0) dice que es el 2
+
+En los cuadros del juego 2, junto a cada sigla se ven las victorias en la serie (IG 1–0), como en el HUD de 2026.
 """
 import os, random, subprocess, shutil
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
@@ -51,8 +54,22 @@ def fondo():
 BASE = fondo()
 
 
-def cuadro(gt, oro_a, oro_b, ka, kb, retratos, con_hud=True):
+def serie(dr, wa, wb, bo=3):
+    """Las victorias de la serie: una columna de rectángulos junto a cada logo, que se llenan con el color del lado."""
+    n = bo // 2 + 1
+    for x0, bar, col, w in ((511, 513, (61, 139, 255), wa), (1380, 1402, (255, 70, 85), wb)):
+        dr.rectangle((x0, 8, x0 + 29, 72), fill=(10, 12, 16))
+        dr.rectangle((bar, 8, bar + 5, 72), fill=col)  # la barra de color del lado
+        px = 522 if x0 == 511 else 1389
+        alto = (64 - 16 - 4 * (n - 1)) // n
+        for i in range(n):
+            y = 16 + i * (alto + 4)
+            dr.rectangle((px, y, px + 9, y + alto), fill=col if i < w else (6, 7, 9), outline=(70, 74, 82))
+
+
+def cuadro(gt, oro_a, oro_b, ka, kb, retratos, con_hud=True, vict=None):
     im = BASE.copy(); dr = ImageDraw.Draw(im)
+    if con_hud and vict: serie(dr, *vict)
     if con_hud:
         dr.rectangle((540, 0, 1380, 128), fill=(10, 12, 16))
         dr.text((640, 34), 'IG', font=F44, fill=(80, 160, 255), anchor='mm')
@@ -85,11 +102,12 @@ if __name__ == '__main__':
     for t in range(80):
         if t < 50: gt, ret = 260 + t, {'blue': 'A', 'red': 'B'}
         else: gt, ret = 5 + (t - 50), {'blue': 'C', 'red': 'D'}
-        vod.append(cuadro(gt, oro(gt), oro(gt) + 0.1, 0, 0, ret, con_hud=not (15 <= t < 25)))
+        vod.append(cuadro(gt, oro(gt), oro(gt) + 0.1, 0, 0, ret, con_hud=not (15 <= t < 25), vict=(1, 0) if t >= 50 else None))
     video('vod.webm', vod)
     # desk.webm 60 s: juego 1 desde 4:20; de 20 s a 45 s el desk (sin marcador); luego el juego sigue en 4:45
     video('desk.webm', [cuadro(260 + t, oro(260 + t), oro(260 + t) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, con_hud=not (20 <= t < 45)) for t in range(60)])
     video('clip.webm', [cuadro(260 + t, oro(260 + t), oro(260 + t) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, con_hud=t < 15) for t in range(60)])
     video('final.webm', [cuadro(1480 + t, oro(1480 + t), oro(1480 + t) + 0.1, 5, 1, {'blue': 'A', 'red': 'B'}) for t in range(40)])
-    video('correr.webm', [cuadro(1018 + t, 28.7, 29.7, 2, 3, {'blue': 'C', 'red': 'D'}) for t in range(40)])
+    video('correr.webm', [cuadro(1018 + t, 28.7, 29.7, 2, 3, {'blue': 'C', 'red': 'D'}, vict=(1, 0)) for t in range(40)])
+    video('serie.webm', [cuadro(100 + t, oro(100 + t), oro(100 + t) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, vict=(1, 0)) for t in range(40)])
     print('Videos listos en', GEN)

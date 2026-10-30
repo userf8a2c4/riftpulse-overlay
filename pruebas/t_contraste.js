@@ -6,7 +6,7 @@ module.exports = async function () {
   global.window = global; global.location = {search: ''}; global.localStorage = {_: {}, getItem(k) { return this._[k] || null; }, setItem(k, v) { this._[k] = v; }};
   global.fetch = () => Promise.reject(new Error('sin red')); const si = global.setInterval; global.setInterval = () => 0;
   delete require.cache[require.resolve(path.join(__dirname, '..', 'engine.js'))]; require(path.join(__dirname, '..', 'engine.js')); global.setInterval = si;
-  const R = global.RiftEngine, G = '#0C0E12', ok0 = [];
+  const R = global.RiftEngine, G = '#0C0E12';
   const PARES = [['T1', 'GEN'], ['T1', 'KT'], ['T1', '100'], ['G2', 'IG'], ['BLG', 'C9'], ['HLE', 'FNC'], ['FUR', 'FLY'], ['IG', 'LYON'], ['TES', 'JDG'], ['MKOI', 'AL'], ['XX', 'YY'], ['GEN', 'GX']];
   let ok = true;
   const hue = h => { const n = parseInt(h.slice(1), 16), r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;

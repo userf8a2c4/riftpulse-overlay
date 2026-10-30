@@ -59,7 +59,7 @@
 <img src="docs/chrome-web-store/2-panel.png" alt="La extensión con el panel lateral" width="100%">
 <h3>🖥 Extensión</h3>
 La probabilidad <b>encima del video</b> en Twitch o lolesports, <b>sincronizada sola con el minuto que ves</b> (en vivo, en un VOD o en un co-stream con retraso), y un panel lateral con todo el Mundial.<br><br>
-<a href="https://userf8a2c4.github.io/riftpulse-overlay/instalar.html#extension"><b>Instalar en 3 pasos →</b></a>
+<a href="https://userf8a2c4.github.io/riftpulse-overlay/instalar.html#extension"><b>Instalar en 4 pasos →</b></a>
 </td>
 <td width="33%" valign="top" align="center">
 <img src="docs/chrome-web-store/3-ahora.png" alt="La app en el partido en vivo" width="100%">
@@ -71,7 +71,7 @@ En el celu o en la compu, <b>sin instalar nada</b>: el partido en vivo, la fase 
 <img src="docs/img/overlay-en-transmision.jpg" alt="El overlay sobre una transmisión de OBS" width="100%">
 <h3>🎥 OBS</h3>
 El overlay para tu stream o co-stream: <b>una sola URL</b> y el director automático decide qué mostrar en cada momento, nunca dos piezas a la vez.<br><br>
-<a href="https://userf8a2c4.github.io/riftpulse-overlay/"><b>Copiar la URL →</b></a>
+<a href="https://userf8a2c4.github.io/riftpulse-overlay/"><b>Armar la URL →</b></a>
 </td>
 </tr>
 </table>
@@ -127,9 +127,10 @@ Muestra <b>por qué</b> va ganando cada equipo, qué movería el próximo dragó
 
 ### 🖥 Extensión (Chrome, Edge, Brave, Opera)
 
-1. **[Descargá el ZIP](https://userf8a2c4.github.io/riftpulse-overlay/riftpulse-extension.zip)** y extraelo: queda la carpeta **RiftPulse**.
+1. **[Descargá el ZIP](https://userf8a2c4.github.io/riftpulse-overlay/riftpulse-extension.zip)** y extraelo: queda la carpeta **riftpulse-extension**.
 2. Abrí `chrome://extensions` y activá el **Modo de desarrollador**.
-3. **Cargar descomprimida** → carpeta **RiftPulse**. ¡Listo!
+3. **Cargar descomprimida** → esa carpeta.
+4. En **Detalles**, activá **Permitir scripts de usuario**: así se actualiza sola. ¡Listo!
 
 <sub>La guía con imágenes está en la <a href="https://userf8a2c4.github.io/riftpulse-overlay/instalar.html">página Instalar</a>. Pronto, con un clic desde la Chrome Web Store.</sub>
 
@@ -138,9 +139,9 @@ Muestra <b>por qué</b> va ganando cada equipo, qué movería el próximo dragó
 
 ### 🎥 OBS
 
-1. En la **[página para streamers](https://userf8a2c4.github.io/riftpulse-overlay/)**, tocá **📋 Copiar URL del overlay**.
+1. En la **[página](https://userf8a2c4.github.io/riftpulse-overlay/#stream)**, elegí la pieza y tu retraso, y tocá **📋 Copiar URL**.
 2. En OBS: **＋ Fuentes → Navegador** → pegá la URL.
-3. Ponele **1920 × 1080**. Fondo transparente, detecta solo el partido.
+3. Ponele **1920 × 1080**. Fondo transparente, detecta solo el partido (sin partido, avisa «RiftPulse listo» unos segundos).
 
 <sub>Piezas sueltas, colores de tu canal y escena lista en el <a href="https://github.com/userf8a2c4/riftpulse-overlay/wiki/Paquete-de-gráficos">paquete de gráficos</a>.</sub>
 
@@ -169,7 +170,7 @@ Una regresión logística por minuto, entrenada con juegos profesionales 2025–
 | `index.html` | Página para streamers: la URL para OBS, la escena y el paquete de gráficos |
 | `instalar.html` | Instalar: la extensión en 3 pasos, la app o OBS |
 | `como-funciona.html` | Cómo calcula, con simulador y precisión |
-| `app.html` | La app para fans (también es el panel lateral de la extensión) |
+| `app.html`, `app.css`, `app.js` | La app para fans (también es el panel lateral de la extensión) |
 | `overlay.html` + `obs.js` | El overlay de OBS y todas sus piezas (`?view=`) |
 | `analista.html`, `control.html` | La mesa de análisis y el control de producción |
 | `nick.html` | Presentación para casters |
@@ -186,7 +187,8 @@ Una regresión logística por minuto, entrenada con juegos profesionales 2025–
 | `modelo/` | Recolección de juegos reales y reentrenamiento del modelo |
 | `pruebas/` | Pruebas automáticas, simulador del feed y generadores de imágenes ([detalle](pruebas/README.md)) |
 | `wiki/` | La fuente de la [wiki](https://github.com/userf8a2c4/riftpulse-overlay/wiki), que se publica sola |
-| `.github/workflows/` | Publicar la wiki, sondear el feed real, probar con video real y reentrenar el modelo |
+| `.github/workflows/` | Pruebas y linter en cada cambio, publicar la wiki, sondear el feed real, probar con video real y reentrenar el modelo |
+| `.eslintrc.json` | Las reglas del linter (cero errores y cero avisos) |
 
 </details>
 
@@ -194,7 +196,7 @@ Una regresión logística por minuto, entrenada con juegos profesionales 2025–
 <summary><b>🛠 Para desarrollar</b></summary>
 <br>
 
-Hace falta Node, Playwright con Chromium, y Python 3 con Pillow y ffmpeg. El detalle de cada prueba está en [`pruebas/README.md`](pruebas/README.md).
+Hace falta Node, Playwright con Chromium, y Python 3 con Pillow y ffmpeg. Las mismas pruebas y el linter corren solos en GitHub con cada cambio ([Pruebas](.github/workflows/pruebas.yml)). El detalle de cada prueba está en [`pruebas/README.md`](pruebas/README.md).
 
 Las 11 baterías de pruebas, con un simulador del feed y videos generados:
 

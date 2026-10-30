@@ -5,7 +5,7 @@
 | `index.html` | Página para streamers: copiar la URL, descargar la escena y el paquete de gráficos |
 | `instalar.html` | Instalar RiftPulse: la extensión en 3 pasos, la app o OBS |
 | `como-funciona.html` | Cómo funciona, con simulador y precisión |
-| `app.html` | La app para fans; también es el panel lateral de la extensión |
+| `app.html`, `app.css`, `app.js` | La app para fans; también es el panel lateral de la extensión |
 | `overlay.html` + `obs.js` | El overlay de OBS (todas las piezas con `?view=`, ver [Paquete de gráficos](Paquete-de-gráficos)) |
 | `analista.html` | [Mesa de análisis](Mesa-de-análisis) (segunda pantalla) |
 | `control.html` | [Control de producción](Control-de-producción) |
@@ -24,7 +24,8 @@
 | `modelo/` | Recolección de juegos reales y reentrenamiento del modelo |
 | `pruebas/` | Pruebas automáticas (`node pruebas/todas.js`), simulador del feed y generadores de imágenes |
 | `wiki/` | Fuente de esta wiki |
-| `.github/workflows/` | Publicar la wiki, sondear el feed real, probar con video real y reentrenar el modelo |
+| `.github/workflows/` | Pruebas y linter en cada cambio, publicar la wiki, sondear el feed real, probar con video real y reentrenar el modelo |
+| `.eslintrc.json` | Las reglas del linter (cero errores y cero avisos) |
 
 ## Cómo se actualiza esta wiki
 Las páginas viven en la carpeta `wiki/` del repositorio. Cada vez que cambian en `main`, la acción **Publicar wiki** (`.github/workflows/wiki.yml`) las copia aquí automáticamente. También se puede lanzar a mano desde **Actions → Publicar wiki → Run workflow**.

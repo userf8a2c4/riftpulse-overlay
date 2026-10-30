@@ -411,7 +411,7 @@
       '<div class="lg"><span><i style="background:var(--team-a)"></i>'+esc(s.match.blue.code)+'</span><span><i style="background:var(--team-b)"></i>'+esc(s.match.red.code)+'</span></div>';
   }
   function perfCard(s){
-    var L=s.game.lanes, m=s.match, gt=Math.max(60,s.game.gt);
+    var L=s.game.lanes, gt=Math.max(60,s.game.gt);
     if(!L||!L.length) return '<div class="note">Aparece cuando llega el feed de detalles de los jugadores.</div>';
     var all=[]; L.forEach(function(l){ all.push(l.blue,l.red); });
     var mxS=Math.max.apply(null,all.map(function(p){ return p.share||0; }))||1, mxG=Math.max.apply(null,all.map(function(p){ return p.gold||0; }))||1;

@@ -1,0 +1,40 @@
+# Calidad en cada cambio: el linter (sin errores ni avisos) y las 11 baterías de pruebas de punta a punta
+# (sincronía con el video, feed caído, extensión real, legibilidad, director, app…). Si algo se rompe, se ve acá.
+name: Pruebas
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['wiki/**', 'docs/**', '**.md']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pruebas-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Herramientas
+        run: |
+          sudo apt-get install -y ffmpeg >/dev/null
+          pip install pillow
+          npm i --no-save eslint@8.57.0 playwright@1.48.2
+          npx playwright install --with-deps chromium
+      - name: Linter
+        run: npx eslint --no-eslintrc -c .eslintrc.json --max-warnings 0 engine.js obs.js rp-ui.js sw.js ext-overlay.js app.js pruebas/*.js modelo/*.js
+      - name: Pruebas
+        run: xvfb-run -a node pruebas/todas.js

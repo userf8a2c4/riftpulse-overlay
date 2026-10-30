@@ -28,11 +28,11 @@ const RAIZ = path.join(__dirname, '..'), VIDEO = process.argv[2];
       const cs = getComputedStyle(w), vis = cs.display !== 'none' && cs.visibility !== 'hidden' && +cs.opacity > 0.1 && !w.classList.contains('oculto');
       const cx = sh.getElementById('cardsx');
       return {ct: v.currentTime, ended: v.ended, reloj: d.reloj, zona: d.zona, visto: AS.visto ? Date.now() - AS.visto : null, id: AS.id ? AS.id.codes.join('-') + ' J' + AS.id.juego : '', estado: d.estado || '',
-        siglas: (d.siglas || []).map(s => (s[0] || {}).code + ':' + ((s[0] || {}).s || 0).toFixed(2)).join(' '), mk: d.marcador ? JSON.stringify({k: d.marcador.kills, o: d.marcador.gold}) : '',
+        siglas: (d.siglas || []).map(s => (s[0] || {}).code + ':' + ((s[0] || {}).s || 0).toFixed(2)).join(' '), mk: d.marcador ? JSON.stringify({k: d.marcador.kills, o: d.marcador.gold}) : '', serie: d.serie || '',
         vis, chico: w.classList.contains('chico'), cards: cx ? cx.innerText.replace(/\s+/g, ' ').slice(0, 40) : '', body: sh.getElementById('body').innerText.replace(/\s+/g, ' ').slice(0, 50)};
     });
     n.t++; if (e.visto != null && e.visto < 1500) n.reloj++; if (e.vis) n.visible++; if (e.cards) n.cards++; if (e.id) partidos[e.id] = (partidos[e.id] || 0) + 1;
-    console.log([Math.round(e.ct), 'reloj=' + e.reloj, 'z=' + e.zona, 'hace=' + (e.visto == null ? '-' : Math.round(e.visto / 1000)), e.id || '·', e.siglas, e.mk, e.vis ? (e.chico ? 'PASTILLA' : 'VISIBLE') : 'oculto', e.cards ? 'paneles: ' + e.cards : '', '| ' + e.body].join(' '));
+    console.log([Math.round(e.ct), 'reloj=' + e.reloj, 'z=' + e.zona, 'hace=' + (e.visto == null ? '-' : Math.round(e.visto / 1000)), e.id || '·', e.serie ? 'serie=' + e.serie : '', e.siglas, e.mk, e.vis ? (e.chico ? 'PASTILLA' : 'VISIBLE') : 'oculto', e.cards ? 'paneles: ' + e.cards : '', '| ' + e.body].join(' '));
     if (n.t % 45 === 0) { const jpg = await p.screenshot({type: 'jpeg', quality: 35, clip: {x: 100, y: 60, width: 1280, height: 720}}); console.log('IMG s' + String(n.t).padStart(3, '0') + '.jpg ' + jpg.toString('base64')); }
     if (e.ended || e.ct >= dur - 0.5) break;
   }
