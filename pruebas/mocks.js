@@ -48,14 +48,15 @@ const EVS = {
   MLI: ev('MLI', 'completed', T0, tm('tIG', 'IG', 2), tm('tLY', 'LYON', 1), ['g1', 'g2', 'g3'].map(id => ({id, state: 'completed'}))),
   TM: ev('TM', 'inProgress', AHORA - 20 * 60e3, tm('tT1', 'T1', 0), tm('tMK', 'MKOI', 0), [{id: 'm1', state: 'inProgress'}]),
   TK: ev('TK', 'completed', T0 - 86400e3, tm('tT1', 'T1', 1), tm('tKO', 'KOI', 0), [{id: 'k1', state: 'completed'}]),
-  PX: ev('PX', 'unstarted', AHORA + 86400e3, tm('tG2', 'G2', 0), tm('tHL', 'HLE', 0), [{id: 'p1', state: 'unstarted'}, {id: 'p2', state: 'unstarted'}, {id: 'p3', state: 'unstarted'}])};
+  PX: ev('PX', 'unstarted', AHORA + 2 * 3600e3, tm('tG2', 'G2', 0), tm('tHL', 'HLE', 0), [{id: 'p1', state: 'unstarted'}, {id: 'p2', state: 'unstarted'}, {id: 'p3', state: 'unstarted'}])};
 const TIPOS = {'.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.json': 'application/json', '.webm': 'video/webm', '.zip': 'application/zip', '.ttf': 'font/ttf'};
 const HDR = {'access-control-allow-origin': '*', 'access-control-allow-headers': '*'};
 
 // estado: {modo: 'ok' | 'caido' | 'congelado', cong: ms}
 async function montar(ctx, o) {
   o = o || {}; const st = {modo: 'ok', cong: 0, video: o.video || 'vod.webm', detalles: o.detalles !== false, serie: 2, detalleAlDia: false};
-  const evs = () => o.serieViva ? Object.assign({SV: serieViva(st)}, EVS) : EVS;
+  // {sinVivo: true}: no hay ningún partido en curso (T1 vs MKOI no está)
+  const evs = () => { const e = o.serieViva ? Object.assign({SV: serieViva(st)}, EVS) : Object.assign({}, EVS); if (o.sinVivo) delete e.TM; return e; };
   P = o.pausaVivo ? PAUSA_VIVO : PAUSA;
   // el navegador de las pruebas, en español (RiftPulse arranca en el idioma del navegador)
   await ctx.addInitScript(() => { try { Object.defineProperty(navigator, 'language', {get: () => 'es-AR'}); } catch (e) {} });
@@ -64,7 +65,7 @@ async function montar(ctx, o) {
     const u = new URL(r.request().url()); let data = {};
     if (/getSchedule/.test(u.pathname)) data = {schedule: {pages: {}, events: Object.values(evs())}};
     else if (/getEventDetails/.test(u.pathname)) { const e = evs()[u.searchParams.get('id')]; if (!e) return r.fulfill({status: 404, headers: HDR, body: '{}'}); data = {event: {league: {name: 'Worlds'}, match: e.match}}; }
-    else if (/getLive/.test(u.pathname)) data = {schedule: {events: [Object.assign({}, EVS.TM, {id: 'TM'})]}};
+    else if (/getLive/.test(u.pathname)) data = {schedule: {events: o.sinVivo ? [] : [Object.assign({}, EVS.TM, {id: 'TM'})]}};
     else if (/\/window\//.test(u.pathname)) {
       const id = u.pathname.split('/').pop(), gs = GAMES[id], s = u.searchParams.get('startingTime');
       if (!gs || (id === 'v3' && st.serie < 3)) return r.fulfill({status: 204, headers: HDR, body: ''});  // el juego 3 todavía sin feed

@@ -1229,6 +1229,56 @@
   RiftEngine.loadBracket = loadBracket;     // el overlay lo pide solo (se refresca cada minuto)
   Object.defineProperty(RiftEngine, 'bracket', {get: function () { return BR.data; }});
   RiftEngine.loadMatches = async function () { await loadSchedule(); return matchList(); };
+  // ---------- la previa deportiva del próximo partido en vivo (o del que se juega ahora, si no es el que se mira) ----------
+  // {matchId, codes, imgs, start, block, bo, vivo, pMapa, pSerie, fav, enJuego, record, fase, forma, h2h, claves}
+  RiftEngine.previa = async function (excluir) {
+    await loadSchedule();
+    var ahora = Date.now(), ms = matchList().filter(function (x) { return x.id !== excluir && x.teams[0].code && x.teams[1].code; });
+    var m = ms.filter(function (x) { return x.state === 'inProgress'; })[0] ||
+      ms.filter(function (x) { return x.state === 'unstarted' && Date.parse(x.start) > ahora - 12 * 3600e3; })[0];
+    if (!m) return null;
+    var a = m.teams[0].code, b = m.teams[1].code, anio = String(m.start).slice(0, 4);
+    var jugados = SCH.events.filter(function (e) { return e.state === 'completed' && String(e.startTime).slice(0, 4) === anio && (e.match.teams || []).length === 2; })
+      .sort(function (x, y) { return x.startTime < y.startTime ? 1 : -1; });
+    var res = function (e, c) { var t = e.match.teams.filter(function (x) { return x.code === c; })[0], o = e.match.teams.filter(function (x) { return x.code !== c; })[0];
+      return t && o ? ((t.result || {}).gameWins || 0) > ((o.result || {}).gameWins || 0) ? 'W' : 'L' : null; };
+    var deEquipo = function (c, bloque) { return jugados.filter(function (e) { return (!bloque || e.blockName === bloque) && e.match.teams.some(function (t) { return t.code === c; }); }); };
+    var cuenta = function (lista, c) { var w = 0, l = 0; lista.forEach(function (e) { if (res(e, c) === 'W') w++; else l++; }); return {w: w, l: l}; };
+    var record = [cuenta(deEquipo(a), a), cuenta(deEquipo(b), b)], fase = [cuenta(deEquipo(a, m.block), a), cuenta(deEquipo(b, m.block), b)];
+    var forma = [a, b].map(function (c) { return deEquipo(c).slice(0, 5).map(function (e) { return res(e, c); }); });
+    // qué está en juego, según la fase y el récord en la fase
+    var bl = String(m.block || ''), enJuego = '';
+    if (/suiz|swiss/i.test(bl)) {
+      var f0 = fase[0], f1 = fase[1], igual = f0.w === f1.w && f0.l === f1.l;
+      enJuego = !igual ? L('Fase suiza: ', 'Swiss Stage: ') + a + ' ' + f0.w + '–' + f0.l + ' · ' + b + ' ' + f1.w + '–' + f1.l
+        : f0.w === 2 && f0.l === 2 ? L('Decisivo: el que gane clasifica a cuartos y el que pierda queda eliminado', 'Decider: the winner goes to the quarterfinals and the loser is out')
+        : f0.w === 2 ? L('El que gane clasifica a cuartos de final', 'The winner qualifies for the quarterfinals')
+        : f0.l === 2 ? L('El que pierda queda eliminado del Mundial', 'The loser is eliminated from Worlds')
+        : L('Fase suiza: los dos llegan ', 'Swiss Stage: both come in at ') + f0.w + '–' + f0.l;
+    } else if (/cuartos|quarter/i.test(bl)) enJuego = L('El que gane pasa a semifinales', 'The winner goes to the semifinals');
+    else if (/semi/i.test(bl)) enJuego = L('El que gane juega la final del Mundial', 'The winner plays the Worlds final');
+    else if (/final/i.test(bl)) enJuego = L('La final del Mundial', 'The Worlds final');
+    // pronóstico: la fuerza de cada equipo (la de la app, o el Elo del Mundial) por mapa y por serie
+    var p = pMapa(a, b), q = p == null ? null : 1 - p;
+    var pSerie = p == null ? null : m.bo === 1 ? p : m.bo === 5 ? p * p * p * (1 + 3 * q + 6 * q * q) : p * p * (3 - 2 * p);
+    var fav = pSerie == null ? null : pSerie >= 0.5 ? a : b, pc = function (x) { return Math.round(x * 100) + '%'; };
+    try { await loadH2H(a, b); } catch (e) {}
+    var h2h = h2hFor(a, b);
+    // los datos clave, del más al menos interesante
+    var claves = [];
+    if (pSerie != null) claves.push(Math.abs(pSerie - 0.5) >= 0.08 ? fav + L(' llega como favorito: ', ' comes in as the favorite: ') + pc(Math.max(pSerie, 1 - pSerie)) + L(' de ganar la serie', ' to win the series')
+      : L('Serie pareja: ', 'Even series: ') + a + ' ' + pc(pSerie) + ' · ' + b + ' ' + pc(1 - pSerie));
+    var racha = function (i) { var f = forma[i], n = 0; while (n < f.length && f[n] === f[0]) n++; return {n: n, r: f[0], c: [a, b][i]}; };
+    var rs = [racha(0), racha(1)].filter(function (r) { return r.n >= 2; }).sort(function (x, y) { return y.n - x.n; })[0];
+    if (rs) claves.push(rs.c + (rs.r === 'W' ? L(' ganó sus últimas ', ' won its last ') : L(' perdió sus últimas ', ' lost its last ')) + rs.n + L(' series en el Mundial', ' series at Worlds'));
+    if (h2h && h2h.wa + h2h.wb > 0) {
+      if (!h2h.wa || !h2h.wb) { var gana = h2h.wa ? a : b, pierde = h2h.wa ? b : a; claves.push(pierde + L(' nunca le ganó a ', ' has never beaten ') + gana + L(' desde 2025 (', ' since 2025 (') + Math.max(h2h.wa, h2h.wb) + '–0)'); }
+      else claves.push(a + ' ' + h2h.wa + '–' + h2h.wb + ' ' + b + L(' en series desde 2025', ' in series since 2025'));
+    }
+    if (record[0].w + record[0].l && record[1].w + record[1].l) claves.push(a + L(' llega ', ' comes in ') + record[0].w + '–' + record[0].l + L(' en el Mundial; ', ' at Worlds; ') + b + ' ' + record[1].w + '–' + record[1].l);
+    return {matchId: m.id, codes: [a, b], imgs: [m.teams[0].img, m.teams[1].img], start: m.start, block: m.block, bo: m.bo, vivo: m.state === 'inProgress',
+      pMapa: p, pSerie: pSerie, fav: fav, enJuego: enJuego, record: record, fase: fase, forma: forma, h2h: h2h, claves: claves.slice(0, 5)};
+  };
   // los enfrentamientos más recientes entre dos equipos en cualquier liga o torneo desde 2025: {a, b, wa, wb, last: [{date, league, block, ga, gb}]}
   RiftEngine.enfrentamientos = async function (a, b) { await loadH2H(a, b); return h2hFor(a, b); };
   // predicciones del stream: opciones para elegir qué partidos mostrar (un día o una fase completa) y los partidos de esa opción

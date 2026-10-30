@@ -207,7 +207,7 @@ Después de cambiar algo en `fuente/`, `app.js`, `app.css`, `engine.js`, `rp-ui.
 python3 fuente/construir_extension.py
 ```
 
-Las 13 baterías de pruebas, con un simulador del feed y videos generados:
+Las 14 baterías de pruebas, con un simulador del feed y videos generados:
 
 ```bash
 node pruebas/todas.js

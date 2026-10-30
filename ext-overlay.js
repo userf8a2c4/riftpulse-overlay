@@ -225,6 +225,22 @@
   };
   // ---- el resto de la app, el sitio, el overlay y OBS (generado desde el código; {} = un valor que cambia: un equipo, un número, un campeón) ----
   var D2 = {
+    "Esperando los datos de lolesports: suelen tardar unos minutos al empezar cada juego": "Waiting for lolesports data: it usually takes a few minutes when each game starts",
+    "sin historial": "no history",
+    "Datos clave": "Key facts",
+    "Jugadores a seguir": "Players to watch",
+    "Previa · próximo en vivo": "Preview · next live match",
+    "● En vivo ahora": "● Live now",
+    "● en vivo ahora": "● live now",
+    "en vivo en": "live in",
+    "Ver en vivo →": "Watch live →",
+    "Versus histórico": "Head-to-head history",
+    "Primer cruce entre ellos desde 2025.": "First meeting between them since 2025.",
+    "La previa del próximo partido en vivo": "The preview of the next live match",
+    "¡Empieza": "Now starting:",
+    "en vivo!": "live!",
+    "Buscando sus últimos cruces…": "Looking up their latest meetings…",
+    "No se cruzaron desde 2025.": "They haven't met since 2025.",
     "{} · juego {}: lolesports todavía no publica sus datos · reintento solo": "{} · game {}: lolesports isn't publishing its data yet · retrying",
     "minuto": "minute",
     "va": "now",
@@ -1552,6 +1568,13 @@
   .pzr{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;font-size:13px;padding:3px 0;border-top:1px solid rgba(var(--line-rgb),0.055);font-variant-numeric:tabular-nums}\
   .pzr span{color:var(--muted);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;text-align:center;align-self:center}.pzr i{font-style:normal;color:var(--muted)}.pzr i:last-child{text-align:right}.pzr b:last-child{text-align:right}\
   .pzk{font-size:12.5px;margin-top:6px;line-height:1.4}.pz .hs{margin-top:6px;font-size:12.5px}\
+  .seg.prox{cursor:pointer}.seg.prox .sv b{font-variant-numeric:tabular-nums}.seg.prox:hover{background:rgba(var(--signal-rgb),.12)}\
+  .prv{pointer-events:auto}.prv .ch b{font-size:16px}.prv-l{color:var(--signal);text-decoration:none;font-weight:700;letter-spacing:.5px}\
+  .prv-vs{display:flex;align-items:baseline;justify-content:center;gap:8px;font:800 24px var(--ffd);margin:2px 0}.prv-vs small{font:600 12px var(--ff);color:var(--muted)}.prv-vs em{font:700 13px var(--ff);color:var(--muted);font-style:normal}\
+  .prv-sub{text-align:center;font-size:11.5px;color:var(--muted);margin-bottom:6px}.prv-st{font-size:12.5px;font-weight:600;padding:5px 8px;border-radius:5px;background:rgba(var(--signal-rgb),.1);margin-bottom:6px}\
+  .prv .hs{font-size:12.5px;margin:4px 0 6px}.prv-fm{display:flex;justify-content:space-between;font-size:12px;margin:2px 0 6px}.prv-fm i{font-style:normal;font-weight:700;font-size:10.5px;padding:0 3px;border-radius:3px;margin:0 1px}.prv-fm i.w{background:rgba(47,214,160,.25)}.prv-fm i.l{background:rgba(255,77,90,.22)}\
+  .prv-h{font-size:12.5px;border-top:1px solid rgba(var(--line-rgb),.08);padding-top:6px}.prv-h .sl{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}\
+  .prv-r{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:2px 0}.prv-r .mut{font-size:11px}\
   .ctl.auto .man{display:none}.man{display:inline-flex;align-items:center;gap:4px}\
   ';
 
@@ -1562,7 +1585,7 @@
     '<span class="chip" data-ext="obj" title="El próximo objetivo (dragón, Barón…) y cuánto puede mover la probabilidad">objetivo</span><span class="chip" data-ext="pg" title="Cómo fue cambiando la probabilidad en el juego">trayectoria</span><span class="chip" data-ext="oro" title="Panel: la diferencia de oro minuto a minuto">oro</span><span class="chip" data-ext="dano" title="Panel: el daño de cada jugador">daño</span><span class="chip" data-ext="imp" title="Panel: las jugadas que más movieron la probabilidad">impacto</span><span class="chip" data-ext="duelos" title="Panel: cómo va cada jugador contra su rival de línea">duelos</span><span class="chip" data-ext="mini" title="Solo los porcentajes, lo más chico posible">mínimo</span>' +
     '<button class="ic" id="posbtn" title="Volver a su lugar (debajo del marcador o arriba de las estadísticas)">↑↓</button><span class="man"><button class="ic" data-d="-5" title="Atrasar el overlay 5 segundos">−</button><button class="ic" data-d="5" title="Adelantar el overlay 5 segundos">+</button>' +
     '<span class="syncg" title="Escribí el minuto del juego que ves en el stream y tocá ⟲ (o Enter) para clavar el overlay a ese momento">minuto <input id="scm" placeholder="mm:ss" maxlength="5"><button class="ic" id="syncb" title="Sincronizar al minuto que escribiste">⟲</button> va <span class="gt" id="gtnow">—</span></span></span><button class="ic" id="ocub" title="Ocultar RiftPulse (Alt+R lo vuelve a mostrar)">✕</button></div></div>';
-  sh2.innerHTML = '<style>' + CSS + TOK + '</style><div class="col" id="cards"><div id="pausa" style="display:contents"></div><div class="dmg" id="dmg"></div><div id="cardsx" style="display:contents"></div></div>';
+  sh2.innerHTML = '<style>' + CSS + TOK + '</style><div class="col" id="cards"><div id="previa" style="display:contents"></div><div id="pausa" style="display:contents"></div><div class="dmg" id="dmg"></div><div id="cardsx" style="display:contents"></div></div>';
   var hintEl = document.createElement('div'); hintEl.className = 'hint'; sh.appendChild(hintEl);
   // idioma (ES | EN): el que se eligió en la app (llega con las órdenes de Mando) o el del navegador. Solo se traduce lo de
   // RiftPulse, nunca la página de Twitch
@@ -1585,7 +1608,7 @@
       if (l === 'en') { idioma(); pintarLang(); } else location.reload();  // volver al español: se recarga para rehacer todos los textos
     });
   }
-  var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom'), dmgEl = sh2.getElementById('dmg'), cardsX = sh2.getElementById('cardsx'), pausaEl = sh2.getElementById('pausa');
+  var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom'), dmgEl = sh2.getElementById('dmg'), cardsX = sh2.getElementById('cardsx'), pausaEl = sh2.getElementById('pausa'), previaEl = sh2.getElementById('previa');
 
   function syncChips() { ctl.querySelectorAll('.chip[data-ext]').forEach(function (c) { c.classList.toggle('on', EXT.indexOf(c.getAttribute('data-ext')) >= 0); }); }
   syncChips();
@@ -1662,7 +1685,7 @@
   }
   // el overlay se ve solo cuando el juego está en pantalla (el HUD con su reloj, leído al menos dos veces seguidas).
   // Repetición, desk, publicidad, entrevista o multivista: no queda nada a la vista. Al mover el mouse aparece un aviso chico.
-  var MOSTRAR = 0, MOUSE = 0, pausaSig = '';
+  var MOSTRAR = 0, MOUSE = 0, pausaSig = '', previaSig = '';
   // el juego terminó: el resultado se ve unos segundos y después nada (los mejores momentos muestran el HUD, pero no hay que estorbar)
   var FIN = null;
   function terminado(s) {
@@ -1679,6 +1702,7 @@
     // en vez de desaparecer, queda casi transparente y vuelve a la normalidad apenas se ve el juego
     var sigue = !!(AS.id && AS.off != null && (esVod() || AS.id.live));
     if (AS.pausa && sigue) return 'pausa';  // pausa del juego: en vez de la barra, el resumen de lo que va (debajo del cartel)
+    if (previaEnVivo()) return 'previa';  // la previa de la transmisión en vivo: todavía no hay juego en pantalla
     if (AS.replay && Date.now() - AS.replay < 180000) return sigue ? 'tenue' : true;  // una repetición (hasta 3 min)
     if (!(AS.buenas >= 2 && Date.now() - AS.visto <= 5000)) return sigue && AS.visto ? 'tenue' : true;
     // en una transmisión en vivo solo se acompaña al juego que se está jugando (no a clips ni mejores momentos)
@@ -1728,7 +1752,10 @@
     wEl.classList.toggle('oculto', oc === true || pz); wEl.classList.toggle('tenue', tenue); host2.style.opacity = tenue ? '0.12' : ''; pintarHint();
     var ph = pz ? grafPausa(s) : '';
     if (ph !== pausaSig) { pausaSig = ph; pausaEl.innerHTML = ph; if (pz && window.RPUI) RPUI.numeros(pausaEl); }
-    if (oc === true || pz) {
+    var pv = oc === 'previa' || (!pz && oc !== true && PRV.abierta > Date.now() && PRV.d) ? grafPrevia(PRV.d) : '';
+    if (pv !== previaSig) { previaSig = pv; previaEl.innerHTML = pv; tickPrevia(); }
+    if (oc === 'previa') wEl.classList.add('oculto');
+    if (oc === true || pz || oc === 'previa') {
       LAST = s; tarjetas(null);
       if (typeof tlEl !== 'undefined' && tlEl) tlEl.classList.remove('on'); dmgEl.classList.remove('show'); momEl.classList.remove('show');
       return;
@@ -1794,6 +1821,7 @@
       html += '<div class="seg spark">' + miniSpark(g.samples || []) + '<div style="display:flex;flex-direction:column"><span class="sl">trayectoria</span><span class="sv">' + esc(pb >= pr ? m.blue.code : m.red.code) + ' ' + Math.max(pb, pr) + '%</span></div></div>';
     }
     html += fdo;  // el estado de los datos (retrasados, caídos), solo si hace falta
+    html += segProximo();
 
     body.innerHTML = html;
     if (window.RPUI) RPUI.numeros(body);
@@ -1866,6 +1894,61 @@
     var hs = R.historia ? R.historia(s).slice(-3) : [];
     if (hs.length) h += '<ol class="hs">' + hs.map(function (x) { return '<li>' + x.html + '</li>'; }).join('') + '</ol>';
     return h + '</div>';  // compacto: entra entero debajo del cartel
+  }
+  // ---------- la previa del próximo partido en vivo: se ve aunque se mire un VOD ----------
+  // PRV.d = RiftEngine.previa() (se pide cada minuto); PRV.abierta = hasta cuándo se ve la tarjeta en la columna
+  var PRV = {d: null, at: 0, abierta: 0, auto: {}, vivoAntes: {}};
+  function relojTxt(start) {
+    var ms = Date.parse(start) - Date.now(); if (ms <= 0) return '¡ya empieza!';
+    var x = Math.floor(ms / 1000), p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return (x >= 86400 ? Math.floor(x / 86400) + 'd ' : '') + p(Math.floor(x % 86400 / 3600)) + ':' + p(Math.floor(x % 3600 / 60)) + ':' + p(x % 60);
+  }
+  function tickPrevia() { [sh, sh2].forEach(function (r) { r.querySelectorAll('[data-start]').forEach(function (x) { var t = relojTxt(x.getAttribute('data-start')); if (x.textContent !== t) x.textContent = t; }); }); }
+  setInterval(tickPrevia, 1000);
+  function enContexto() { return !!(AS.vistoAlguna || enLolesports() || esStreamDeLoL()); }
+  async function pedirPrevia() {
+    if (!R.previa || document.hidden || !enContexto()) return;
+    var d = null; try { d = await R.previa(AS.id ? AS.id.matchId : null); } catch (e) { return; }
+    PRV.d = d; PRV.at = Date.now();
+    if (!d) return;
+    var falta = Date.parse(d.start) - Date.now();
+    // sola: 30 s cuando faltan 15 min, y al empezar en vivo (con un aviso)
+    if (!d.vivo && falta < 15 * 60e3 && !PRV.auto[d.matchId]) { PRV.auto[d.matchId] = 1; PRV.abierta = Date.now() + 30000; }
+    if (d.vivo && PRV.vivoAntes[d.matchId] === false) { PRV.abierta = Date.now() + 30000; aviso('¡Empieza <span class="ca">' + esc(d.codes[0]) + '</span> vs <span class="cb">' + esc(d.codes[1]) + '</span> en vivo!'); }
+    PRV.vivoAntes[d.matchId] = !!d.vivo;
+    render(LAST || {});
+  }
+  setInterval(pedirPrevia, 60000); setInterval(function () { if (!PRV.d) pedirPrevia(); }, 5000);  // la primera, apenas se puede
+  // la previa en una transmisión en vivo: es de LoL, todavía no hay juego en pantalla y el partido empieza en menos de 3 h
+  function previaEnVivo() {
+    var d = PRV.d; if (!d || esVod() || AS.id || !enContexto()) return false;
+    return d.vivo || Date.parse(d.start) - Date.now() < 3 * 3600e3;
+  }
+  // en la barra (mirando un VOD): cuánto falta para el próximo partido en vivo; al tocarlo se abre la previa
+  function segProximo() {
+    var d = PRV.d; if (!d || !esVod() || (!d.vivo && Date.parse(d.start) - Date.now() > 24 * 3600e3)) return '';
+    return '<div class="seg prox" title="La previa del próximo partido en vivo"><span class="sl">' + (d.vivo ? '● en vivo ahora' : 'en vivo en') + '</span><span class="sv">' +
+      (d.vivo ? '' : '<b data-start="' + esc(d.start) + '">' + relojTxt(d.start) + '</b> · ') + '<span class="b">' + esc(d.codes[0]) + '</span> vs <span class="r">' + esc(d.codes[1]) + '</span></span></div>';
+  }
+  body.addEventListener('click', function (e) { if (!e.target.closest('.prox')) return; e.stopPropagation(); PRV.abierta = PRV.abierta > Date.now() ? 0 : Date.now() + 600000; render(LAST || {}); });
+  // la tarjeta: cuenta regresiva, qué está en juego, pronóstico, datos clave, cómo llegan y versus histórico
+  function grafPrevia(d) {
+    var a = d.codes[0], b = d.codes[1], pct = function (x) { return Math.round(x * 100); };
+    var fm = function (f) { return (f || []).map(function (r) { return '<i class="fm ' + (r === 'W' ? 'w' : 'l') + '">' + r + '</i>'; }).join(''); };
+    var rec = function (i) { var r = d.record && d.record[i]; return r && r.w + r.l ? r.w + '–' + r.l : ''; };
+    var h = '<div class="cd prv" style="width:340px"><div class="ch"><span>' + (d.vivo ? '● En vivo ahora' : 'Previa · próximo en vivo') + '</span>' +
+      (d.vivo ? '<a class="prv-l" href="https://lolesports.com/live" target="_blank" rel="noopener">Ver en vivo →</a>' : '<b data-start="' + esc(d.start) + '">' + relojTxt(d.start) + '</b>') + '</div>' +
+      '<div class="prv-vs"><span class="b">' + esc(a) + '</span><small>' + rec(0) + '</small><em>vs</em><small>' + rec(1) + '</small><span class="r">' + esc(b) + '</span></div>' +
+      '<div class="prv-sub">' + esc(d.block || '') + ' · Bo' + d.bo + '</div>';
+    if (d.enJuego) h += '<div class="prv-st">🏆 ' + esc(d.enJuego) + '</div>';
+    if (d.pSerie != null) h += '<div class="pzp"><span class="b">' + esc(a) + ' <b>' + pct(d.pSerie) + '%</b></span><div class="pzm"><i style="width:' + pct(d.pSerie) + '%"></i></div><span class="r"><b>' + (100 - pct(d.pSerie)) + '%</b> ' + esc(b) + '</span></div>';
+    if (d.claves && d.claves.length) h += '<ul class="hs">' + d.claves.slice(0, 3).map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>';
+    if ((d.forma[0] || []).length || (d.forma[1] || []).length) h += '<div class="prv-fm"><span><b class="b">' + esc(a) + '</b> ' + fm(d.forma[0]) + '</span><span>' + fm(d.forma[1]) + ' <b class="r">' + esc(b) + '</b></span></div>';
+    var v = d.h2h;
+    if (v && v.last && v.last.length) h += '<div class="prv-h"><span class="sl">Versus histórico</span> <b class="b">' + esc(a) + '</b> ' + v.wa + '–' + v.wb + ' <b class="r">' + esc(b) + '</b></div>' +
+      v.last.slice(0, 3).map(function (m) { return '<div class="prv-r"><span>' + esc(a) + ' ' + m.ga + '–' + m.gb + ' ' + esc(b) + '</span><span class="mut">' + esc(m.league || '') + (m.block ? ' · ' + esc(m.block) : '') + ' · ' + esc(m.date) + '</span></div>'; }).join('');
+    else if (v) h += '<div class="prv-h"><span class="sl">Versus histórico</span> Primer cruce entre ellos desde 2025.</div>';
+    return h + '</div>';
   }
   var cardsSig = '';
   function tarjetas(s) {

@@ -534,15 +534,14 @@ function gtNow() {
 // Cronómetro del Hero: tiempo de juego (sincronizado con el stream) o cuenta regresiva al próximo partido.
 function relojText(start) {
   const ms = Date.parse(start) - Date.now();
-  if (ms <= 0) return '¡ya empieza!';
+  if (ms <= 0) return L('¡ya empieza!', 'starting now!');
   const s = Math.floor(ms / 1000), d = Math.floor(s / 86400), p = n => String(n).padStart(2, '0');
   return (d ? d + 'd ' : '') + p(Math.floor(s % 86400 / 3600)) + ':' + p(Math.floor(s % 3600 / 60)) + ':' + p(s % 60);
 }
 function tickReloj() {
   const el = document.getElementById('iniReloj');
-  if (!el) return;
-  const t = el.dataset.start ? relojText(el.dataset.start) : mmss(gtNow());
-  if (el.textContent !== t) el.textContent = t;  // solo escribe si cambió: evita el parpadeo
+  if (el && !el.dataset.start) { const t = mmss(gtNow()); if (el.textContent !== t) el.textContent = t; }  // solo escribe si cambió: evita el parpadeo
+  document.querySelectorAll('[data-start]').forEach(x => { const t = relojText(x.dataset.start); if (x.textContent !== t) x.textContent = t; });  // las cuentas regresivas
 }
 
 function render() {
@@ -669,7 +668,7 @@ function renderScore() {
   if (!G || !G.last) {
     const g = G ? (M.games.find(x => x.id === G.id) || {}) : {};
     const note = g.state === 'inProgress'
-      ? `<b>Juego ${g.number || ''} en vivo</b> <span class="pm">· lolesports aún no transmite su feed de datos · reintentando (suele tardar al empezar cada juego)</span>`
+      ? `<b>Juego ${g.number || ''} en vivo</b><span class="sc-esp">Esperando los datos de lolesports: suelen tardar unos minutos al empezar cada juego</span>`
       : 'Esperando que empiece el juego (draft)';
     if (M.games.some(x => x.state === 'completed'))
       el.innerHTML = `<div class="srwrap"><div class="pm" style="margin-bottom:8px;white-space:normal">${note}</div>${seriesRecap()}</div>`;
@@ -2195,6 +2194,41 @@ function sharePickem() {
     c.fillStyle = '#6E7686'; c.font = '500 18px "Inter Tight", sans-serif'; c.fillText('Probabilidad de cada pick en 20.000 simulaciones del torneo con su formato oficial.', 60, 490);
   });
 }
+// ---------- la previa del próximo partido en vivo: también mientras se sigue un VOD u otro juego ----------
+let PREV = null;
+async function cargarPrevia() {
+  if (!window.RiftEngine || !RiftEngine.previa) return;
+  try { PREV = await RiftEngine.previa(M ? M.id : null); } catch (e) {}
+  if (!$('#vistaAhora').hidden) renderInicio();
+}
+// la tarjeta: cuenta regresiva, qué está en juego, pronóstico, datos clave, cómo llegan, jugadores a seguir y versus histórico
+function tarjetaProximo(P, compacta) {
+  const e = schedule.find(x => x.match && x.match.id === P.matchId), ts = e ? e.match.teams : P.codes.map((c, i) => ({code: c, image: P.imgs && P.imgs[i]}));
+  const [A, B] = ts, bo = P.bo || (e ? e.match.strategy.count : 3), ps = probSerie(A.code, B.code, bo) ?? P.pSerie, fav = esFav(e || {match: {teams: ts}});
+  const formHtml = code => { const f = teamForm(code); return f.length ? f.map(r => `<span class="fm ${r === 'W' ? 'w' : 'l'}">${r}</span>`).join('') : '<span class="pm">sin historial</span>'; };
+  const col = (t, side, i) => `<div class="nm-team clk ${side}" data-act="team" data-arg="${esc(t.code)}"><img src="${t.image ? esc(https(t.image)) : ''}" alt="">
+    <div><div class="nm-code">${esc(t.code)}</div><div class="pm">${esc(C.reg[t.code] || '')}${C.loaded && C.r[t.code] != null ? ` · fuerza ${Math.round(eloOf(t.code))}` : ''}${P.record && P.record[i] && P.record[i].w + P.record[i].l ? ` · ${P.record[i].w}–${P.record[i].l}` : ''}</div><div class="nm-form">${formHtml(t.code)}</div></div></div>`;
+  const h2hArg = `${esc(A.code)}|${esc(B.code)}|${esc(P.matchId)}`;
+  const reloj = P.vivo ? `<div class="hc-t prv-vivo">${L('● EN VIVO', '● LIVE')}</div>` : `<div class="hc-t"${compacta ? '' : ' id="iniReloj"'} data-start="${esc(P.start)}"></div><div class="hc-l">⏱ para el partido</div>`;
+  // jugadores a seguir: el de mejor KDA de cada equipo en el Mundial, con sus campeones más jugados
+  const st = cbStats(), aSeguir = t => { const up = t.code.toUpperCase(), j = Object.entries(st.player).filter(([n, o]) => n.split(' ')[0].toUpperCase() === up && o.g >= 2).map(([n, o]) => [n, o, (o.k + o.a) / Math.max(1, o.d)]).sort((x, y) => y[2] - x[2])[0];
+    const tc = teamChamps(t.code), top = Object.entries(tc.champs).sort((x, y) => y[1].picks - x[1].picks).slice(0, 3);
+    return j || top.length ? `<div class="prv-pl"><b>${esc(t.code)}</b>${j ? ` ${esc(j[0].replace(/^\S+\s/, ''))} <span class="pm">KDA ${j[2].toFixed(1)} · ${j[1].g} juegos</span>` : ''}${top.length ? `<span class="prv-ch">${top.map(([c]) => `<img src="${champImg(c)}" alt="" title="${esc(cname(c))}">`).join('')}</span>` : ''}</div>` : ''; };
+  const pls = aSeguir(A) + aSeguir(B);
+  const enf = P.h2h || enfrentamientos(A.code, B.code);
+  const vs = enf === undefined ? '<div class="pm">Buscando sus últimos cruces…</div>' : !enf || !enf.last.length ? `<div class="pm">${L('Primer cruce entre ellos desde 2025.', 'First meeting between them since 2025.')}</div>`
+    : `<div class="idet-h2h" style="margin-bottom:4px"><b class="b">${esc(A.code)}</b> <span class="iv-sc">${enf.wa}–${enf.wb}</span> <b class="r">${esc(B.code)}</b> <span class="pm">en series desde 2025</span></div>` +
+      enf.last.slice(0, compacta ? 3 : 5).map(m => `<div class="up-row"><span><b class="${m.ga > m.gb ? '' : 'pm'}">${esc(A.code)} ${m.ga}</b>–<b class="${m.gb > m.ga ? '' : 'pm'}">${m.gb} ${esc(B.code)}</b></span><span class="pm">${esc(m.league || '')}${m.block ? ' · ' + esc(m.block) : ''} · ${new Intl.DateTimeFormat(LOC, {day: 'numeric', month: 'short', year: 'numeric'}).format(new Date(m.date + 'T12:00:00Z'))}</span></div>`).join('');
+  const titulo = P.vivo ? L('● En vivo ahora', '● Live now') : fav ? L('★ Previa · próximo de tus equipos', '★ Preview · your teams play next') : L('Previa · próximo en vivo', 'Preview · next live match');
+  return `<div class="ini-head"><h2>${titulo}</h2></div>
+    <div class="nm-head">${col(A, 'l', 0)}<div class="nm-vs clk" data-act="h2h" data-arg="${h2hArg}"><div class="pm">${esc(P.block || '')} · Bo${bo}</div><div class="nm-vsbig">VS</div><div class="pm">${fmtDate(P.start)}</div>${reloj}</div>${col(B, 'r', 1)}</div>
+    ${P.enJuego ? `<div class="prv-stake">🏆 ${esc(P.enJuego)}</div>` : ''}
+    ${ps != null ? `<div class="betrow clk" data-act="h2h" data-arg="${h2hArg}"><span class="pm">Probabilidad de serie</span>${predBar(ps, A.code, B.code, true)}</div>` : ''}
+    ${P.claves && P.claves.length ? `<div class="pk2" style="margin-top:8px">${L('Datos clave', 'Key facts')}</div><ul class="prv-claves">${P.claves.map(c => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}
+    ${pls ? `<div class="pk2" style="margin-top:8px">${L('Jugadores a seguir', 'Players to watch')}</div>${pls}` : ''}
+    <div class="pk2" style="margin-top:8px">${L('Versus histórico', 'Head-to-head history')}</div>${vs}
+    <div class="mx-row" style="margin-top:10px"><button class="mx-btn" data-act="h2h" data-arg="${h2hArg}">${L('Ver la previa completa', 'See the full preview')}</button>${P.vivo || Date.parse(P.start) - Date.now() < 15 * 60e3 ? `<a class="mx-btn on" href="https://lolesports.com/live" target="_blank" rel="noopener">${L('Ver en vivo', 'Watch live')}</a>` : ''}</div>`;
+}
 function renderInicio() {
   if ($('#vistaAhora').hidden) return;
   if (!CB.loaded && !CB.loading) crystalBall();  // carga la Bola de Cristal (se cachea)
@@ -2240,6 +2274,7 @@ function renderInicio() {
     else
       h += `<div class="iv-top"><b>${esc(M.teams.map(t => t.code).join(' vs '))}</b> <span class="pm">· ${note}</span></div>${go('partido', '▾ Ver los detalles del juego', true)}`;
   }
+  else if (PREV) h = tarjetaProximo(PREV) + `<div class="pk2" style="margin-top:8px">Agenda <span class="pm">· tocá un partido para ver el enfrentamiento</span></div><div class="ini-day">${schedule.filter(e => e.state === 'unstarted').slice(0, 4).map(e => { const ok = e.match.teams.every(t => t.code && t.code !== 'TBD'); return `<span class="d${ok ? ' clk' : ''}"${ok ? ` data-act="h2h" data-arg="${e.match.teams.map(t => esc(t.code)).join('|')}|${esc(e.match.id)}"` : ''}><b>${e.match.teams.map(t => esc(t.code)).join(' vs ')}</b> <span class="pm">${fmtDate(e.startTime).replace(/^\S+,?\s/, '')}</span></span>`; }).join('') || '<span class="pm">Sin próximos partidos.</span>'}</div>`;
   else if (NEXT && NEXT.e) {
     const [A, B] = NEXT.e.match.teams, bo = NEXT.e.match.strategy.count, ps = probSerie(A.code, B.code, bo);
     const col = (t, side) => `<div class="nm-team clk ${side}" data-act="team" data-arg="${esc(t.code)}"><img src="${t.image ? esc(https(t.image)) : ''}" alt="">
@@ -2251,7 +2286,11 @@ function renderInicio() {
       ${ps != null ? `<div class="betrow clk" data-act="h2h" data-arg="${h2hArg}"><span class="pm">Probabilidad de serie</span>${predBar(ps, A.code, B.code, true)}</div>` : ''}
       <div class="pk2" style="margin-top:8px">Agenda <span class="pm">· tocá un partido para ver el enfrentamiento</span></div><div class="ini-day">${dayEvents.map(e => { const ok = e.match.teams.every(t => t.code && t.code !== 'TBD'); return `<span class="d${ok ? ' clk' : ''}"${ok ? ` data-act="h2h" data-arg="${e.match.teams.map(t => esc(t.code)).join('|')}|${esc(e.match.id)}"` : ''}><b>${e.match.teams.map(t => esc(t.code)).join(' vs ')}</b> <span class="pm">${fmtDate(e.startTime).replace(/^\S+,?\s/, '')}</span></span>`; }).join('') || '<span class="pm">Sin próximos partidos.</span>'}</div>`;
   } else h += `<div class="pm">No hay partido en vivo. ${esc(nextText())}</div>`;
-  setHtml('#iniVivo', h); tickReloj();
+  setHtml('#iniVivo', h);
+  // con un partido cargado (un VOD que se sigue, u otro juego), la previa del próximo en vivo va aparte y no desaparece
+  const px = $('#ahProx'), conPrevia = !!(M && PREV && PREV.matchId !== M.id);
+  if (px) { px.hidden = !conPrevia; if (conPrevia) setHtml('#ahProx', tarjetaProximo(PREV, true)); }
+  tickReloj();
   // Bola de Cristal: campeón más elegido, mejor % de victorias y jugador con mejor KDA (de los juegos ya jugados).
   const cb = cbStats();
   let bola;
@@ -3030,6 +3069,7 @@ async function pinGame(matchId, gameId, quedarse) {
   setInterval(renderInicio, 2000);
   setInterval(tickNext, 60000);
   tickNext();
+  setInterval(cargarPrevia, 60000); cargarPrevia();
   setInterval(calibTick, 5000);
   tickDetails();
 })();

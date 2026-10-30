@@ -161,6 +161,22 @@
   };
   // ---- el resto de la app, el sitio, el overlay y OBS (generado desde el código; {} = un valor que cambia: un equipo, un número, un campeón) ----
   var D2 = {
+    "Esperando los datos de lolesports: suelen tardar unos minutos al empezar cada juego": "Waiting for lolesports data: it usually takes a few minutes when each game starts",
+    "sin historial": "no history",
+    "Datos clave": "Key facts",
+    "Jugadores a seguir": "Players to watch",
+    "Previa · próximo en vivo": "Preview · next live match",
+    "● En vivo ahora": "● Live now",
+    "● en vivo ahora": "● live now",
+    "en vivo en": "live in",
+    "Ver en vivo →": "Watch live →",
+    "Versus histórico": "Head-to-head history",
+    "Primer cruce entre ellos desde 2025.": "First meeting between them since 2025.",
+    "La previa del próximo partido en vivo": "The preview of the next live match",
+    "¡Empieza": "Now starting:",
+    "en vivo!": "live!",
+    "Buscando sus últimos cruces…": "Looking up their latest meetings…",
+    "No se cruzaron desde 2025.": "They haven't met since 2025.",
     "{} · juego {}: lolesports todavía no publica sus datos · reintento solo": "{} · game {}: lolesports isn't publishing its data yet · retrying",
     "minuto": "minute",
     "va": "now",

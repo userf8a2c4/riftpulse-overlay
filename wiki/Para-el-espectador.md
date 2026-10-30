@@ -13,6 +13,9 @@ En **Ahora**, elegí quién gana cada serie **antes de que empiece**. El pronós
 ## Para entender
 En el encabezado de la app, **📘 Para entender** subraya los términos del juego (Barón, alma, inhibidor, Elo, Bo3, fase suiza, puntos de probabilidad…). Tocalos o pasá el mouse para ver qué significan. «Qué mirar ahora» suma por qué importa el próximo objetivo.
 
+## La previa del próximo partido
+En «Ahora», aunque el panel siga un VOD, la tarjeta **Previa · próximo en vivo** muestra la cuenta regresiva, qué está en juego, el pronóstico de la serie, los datos clave, los jugadores a seguir de cada equipo y el versus histórico. «Ver la previa completa» abre el enfrentamiento con la comparativa.
+
 ## En inglés
 Arriba a la derecha, en la app y en todas las páginas, **ES | EN** cambia el idioma. La elección se recuerda y la sigue el overlay sobre el video.
 

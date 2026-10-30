@@ -12,6 +12,7 @@ retratos de campeones (colores planos). Así se prueba el lector sin usar imáge
   tomas.webm 125 s: juego 1 desde 4:20; de 10 s a 110 s sin marcador (tomas de los jugadores, repetición larga); después sigue en 6:10
   pausa.webm 76 s: juego 2 desde 9:40, pausa en 10:00 (reloj quieto y cartel «GAME PAUSE») y sigue
   vivo.webm  40 s: el juego en vivo en 5:30, después de una pausa larga que ya terminó
+  previa.webm 20 s: la previa de una transmisión, sin el juego en pantalla
   serie3.webm 60 s: una serie en vivo que avanza: el juego 2 y, desde los 25 s, el juego 3 (la serie 1–1 en pantalla)
   serie.webm 40 s: juego 2 desde 1:40 con los mismos retratos que el juego 1: solo la serie en pantalla (1–0) dice que es el 2
 
@@ -145,4 +146,6 @@ if __name__ == '__main__':
         if t < 25: sv.append(cuadro(1200 + t, oro(1200 + t), oro(1200 + t) + 0.1, 3, 4, {'blue': 'C', 'red': 'D'}, vict=(0, 1), siglas=('BLG', 'TES')))
         else: sv.append(cuadro(40 + t - 25, oro(40 + t - 25), oro(40 + t - 25) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, vict=(1, 1), siglas=('TES', 'BLG')))
     video('serie3.webm', sv)
+    # previa.webm 20 s: la previa de una transmisión (el desk, sin el juego en pantalla)
+    video('previa.webm', [cuadro(0, 2.5, 2.5, 0, 0, {'blue': 'A', 'red': 'B'}, con_hud=False) for t in range(20)])
     print('Videos listos en', GEN)

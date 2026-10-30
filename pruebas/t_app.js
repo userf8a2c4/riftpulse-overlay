@@ -67,6 +67,12 @@ module.exports = async function () {
   await p.waitForTimeout(3000);
   const cru = await p.evaluate(() => document.getElementById('iniDetalle').innerText.replace(/\s+/g, ' '));
   ok = chequear('enfrentamiento: muestra los últimos cruces con torneo, fecha y resultado', /Últimos cruces/i.test(cru) && /IG 2\s*–\s*1 LYON/.test(cru) && /Worlds · Fase Suiza/.test(cru) && /2026/.test(cru), cru.slice(cru.search(/Últimos cruces/i), cru.search(/Últimos cruces/i) + 90)) && ok;
+  // la previa del próximo partido en vivo: con un partido cargado (el que se ve), va aparte y no desaparece
+  await p.evaluate(() => setVista('ahora')); await p.waitForTimeout(2500);
+  const pv = await p.evaluate(() => { const x = document.getElementById('ahProx'); return x ? {vis: !x.hidden, txt: x.innerText.replace(/\s+/g, ' ')} : {vis: false, txt: ''}; });
+  ok = chequear('Ahora: con un partido cargado, la previa del próximo en vivo sigue a la vista', pv.vis && /G2/.test(pv.txt) && /HLE/.test(pv.txt) && /\d\d:\d\d:\d\d/.test(pv.txt) && /Versus histórico/i.test(pv.txt) && /🏆/.test(pv.txt), pv.txt.slice(0, 140)) && ok;
+  await p.evaluate(() => document.querySelector('#ahProx [data-act="h2h"].mx-btn').click()); await p.waitForTimeout(800);
+  ok = chequear('«Ver la previa completa» abre el enfrentamiento', await p.evaluate(() => !document.getElementById('iniDetalle').hidden && /G2/.test(document.getElementById('iniDetalle').textContent))) && ok;
   // Mando: si deja de verse un partido, se queda con el último (el guion y la lectura no se pierden)
   const mq = await p.evaluate(async () => { setVista('mando'); await new Promise(r => setTimeout(r, 2500));
     const antes = document.getElementById('mxTalk').textContent; MX.s = Object.assign({}, MX.s, {game: null, match: null}); renderMando();
