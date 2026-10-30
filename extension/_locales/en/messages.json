@@ -1,0 +1,14 @@
+{
+  "desc": {
+    "message": "Live LoL Worlds win probability on top of the Twitch video, synced on its own to the minute you are watching."
+  },
+  "abrir": {
+    "message": "Open RiftPulse"
+  },
+  "cargando": {
+    "message": "Loading RiftPulse…"
+  },
+  "sinRed": {
+    "message": "Couldn't load RiftPulse from the web.<br>Check your connection and open the panel again."
+  }
+}

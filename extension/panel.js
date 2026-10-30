@@ -1,7 +1,8 @@
 // Cascarón del panel: carga la app desde la web y le pasa el almacenamiento de la extensión.
 // Todo lo visible (avisos incluidos) lo dibuja la app, así que se actualiza solo desde la web.
 const WEB = 'https://userf8a2c4.github.io/riftpulse-overlay/', CASCARON = 3;
-const app = document.getElementById('app'), carga = document.getElementById('carga');
+const app = document.getElementById('app'), carga = document.getElementById('carga'), msg = k => chrome.i18n.getMessage(k);
+carga.textContent = msg('cargando');
 app.src = WEB + 'app.html?ext=1&v=' + Date.now();
 let lista = false;
 const CLAVES = ['rp_origen', 'rp_pantalla', 'rp_cmd'];
@@ -20,4 +21,4 @@ chrome.storage.onChanged.addListener((ch, area) => {
 });
 app.addEventListener('load', () => setTimeout(() => { carga.style.display = 'none'; }, 400));
 // sin conexión el iframe igual «carga» (la página de error del navegador): si la app no avisó que está lista, el mensaje se ve encima
-setTimeout(() => { if (!lista) { carga.innerHTML = 'No pude cargar RiftPulse desde la web.<br>Revisá la conexión y volvé a abrir el panel.'; carga.style.display = ''; carga.style.background = '#050a17'; app.style.visibility = 'hidden'; } }, 15000);
+setTimeout(() => { if (!lista) { carga.innerHTML = msg('sinRed'); carga.style.display = ''; carga.style.background = '#050a17'; app.style.visibility = 'hidden'; } }, 15000);

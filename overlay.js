@@ -215,7 +215,7 @@
     '<span class="syncg" title="Escribí el minuto del juego que ves en el stream y tocá ⟲ (o Enter) para clavar el overlay a ese momento">minuto <input id="scm" placeholder="mm:ss" maxlength="5"><button class="ic" id="syncb" title="Sincronizar al minuto que escribiste">⟲</button> va <span class="gt" id="gtnow">—</span></span></span><button class="ic" id="ocub" title="Ocultar RiftPulse (Alt+R lo vuelve a mostrar)">✕</button></div></div>';
   sh2.innerHTML = '<style>' + CSS + TOK + '</style><div class="col" id="cards"><div id="pausa" style="display:contents"></div><div class="dmg" id="dmg"></div><div id="cardsx" style="display:contents"></div></div>';
   var hintEl = document.createElement('div'); hintEl.className = 'hint'; sh.appendChild(hintEl);
-  // idioma (ES | EN): el que se eligió en la app (llega con las órdenes de Mando) (si no, español). Solo se traduce lo de
+  // idioma (ES | EN): el que se eligió en la app (llega con las órdenes de Mando) o el del navegador. Solo se traduce lo de
   // RiftPulse, nunca la página de Twitch
   var IDIOMA_ON = false;
   function idioma(l) {

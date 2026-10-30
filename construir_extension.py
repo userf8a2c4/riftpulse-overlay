@@ -19,7 +19,7 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 WEB = 'https://userf8a2c4.github.io/riftpulse-overlay/'
 # beta: cada ZIP nuevo para la tienda sube el último número (0.9.1, 0.9.2…); la 1.0.0, cuando esté terminada.
 # La versión manual lleva el mismo número, así se sabe qué tiene instalado cada uno.
-VERSION, VERSION_NOMBRE = '0.9.1', '0.9 beta'
+VERSION, VERSION_NOMBRE = '0.9.2', '0.9 beta'
 ext = os.path.join(AQUI, 'extension')
 os.makedirs(ext, exist_ok=True)
 
@@ -45,19 +45,30 @@ manifest = {
     "manifest_version": 3,
     "name": "RiftPulse",
     "version": VERSION, "version_name": VERSION_NOMBRE,
-    "description": "Panel lateral y overlay de RiftPulse para el Mundial. Se actualiza solo desde la web.",
+    "description": "__MSG_desc__", "default_locale": "es",
     "permissions": ["sidePanel", "storage", "userScripts", "scripting", "alarms"],
     "host_permissions": [
         "https://esports-api.lolesports.com/*", "https://feed.lolesports.com/*",
         "https://ddragon.leagueoflegends.com/*", "https://static.lolesports.com/*",
         "https://userf8a2c4.github.io/*", "*://*.twitch.tv/*", "*://*.lolesports.com/*"
     ],
-    "action": {"default_title": "Abrir RiftPulse"},
+    "action": {"default_title": "__MSG_abrir__"},
     "side_panel": {"default_path": "panel.html"},
     "background": {"service_worker": "background.js"},
     "icons": {"128": "icon128.png"}
 }
 escribir('manifest.json', json.dumps(manifest, ensure_ascii=False, indent=2))
+# nombre, descripción y textos del panel en el idioma del navegador (español o inglés)
+MENSAJES = {
+    'es': {'desc': 'Probabilidad en vivo del Mundial de LoL sobre el video de Twitch, sincronizada sola con el minuto que ves.',
+           'abrir': 'Abrir RiftPulse', 'cargando': 'Cargando RiftPulse…',
+           'sinRed': 'No pude cargar RiftPulse desde la web.<br>Revisá la conexión y volvé a abrir el panel.'},
+    'en': {'desc': 'Live LoL Worlds win probability on top of the Twitch video, synced on its own to the minute you are watching.',
+           'abrir': 'Open RiftPulse', 'cargando': 'Loading RiftPulse…',
+           'sinRed': "Couldn't load RiftPulse from the web.<br>Check your connection and open the panel again."}}
+for lg, ms in MENSAJES.items():
+    os.makedirs(os.path.join(ext, '_locales', lg), exist_ok=True)
+    escribir(os.path.join('_locales', lg, 'messages.json'), json.dumps({k: {'message': v} for k, v in ms.items()}, ensure_ascii=False, indent=2))
 
 escribir('background.js', r"""// RiftPulse — proceso de fondo de la extensión.
 const WEB = '__WEB__';
@@ -118,7 +129,7 @@ escribir('panel.html', """<!doctype html>
   #carga{position:absolute;inset:0;display:grid;place-items:center;color:#8fa0c2;text-align:center;padding:20px}
 </style></head>
 <body>
-<div id="carga">Cargando RiftPulse…</div>
+<div id="carga"></div>
 <iframe id="app" title="RiftPulse" allow="clipboard-write"></iframe>
 <script src="panel.js"></script>
 </body></html>
@@ -126,7 +137,8 @@ escribir('panel.html', """<!doctype html>
 escribir('panel.js', r"""// Cascarón del panel: carga la app desde la web y le pasa el almacenamiento de la extensión.
 // Todo lo visible (avisos incluidos) lo dibuja la app, así que se actualiza solo desde la web.
 const WEB = '__WEB__', CASCARON = 3;
-const app = document.getElementById('app'), carga = document.getElementById('carga');
+const app = document.getElementById('app'), carga = document.getElementById('carga'), msg = k => chrome.i18n.getMessage(k);
+carga.textContent = msg('cargando');
 app.src = WEB + 'app.html?ext=1&v=' + Date.now();
 let lista = false;
 const CLAVES = ['rp_origen', 'rp_pantalla', 'rp_cmd'];
@@ -145,7 +157,7 @@ chrome.storage.onChanged.addListener((ch, area) => {
 });
 app.addEventListener('load', () => setTimeout(() => { carga.style.display = 'none'; }, 400));
 // sin conexión el iframe igual «carga» (la página de error del navegador): si la app no avisó que está lista, el mensaje se ve encima
-setTimeout(() => { if (!lista) { carga.innerHTML = 'No pude cargar RiftPulse desde la web.<br>Revisá la conexión y volvé a abrir el panel.'; carga.style.display = ''; carga.style.background = '#050a17'; app.style.visibility = 'hidden'; } }, 15000);
+setTimeout(() => { if (!lista) { carga.innerHTML = msg('sinRed'); carga.style.display = ''; carga.style.background = '#050a17'; app.style.visibility = 'hidden'; } }, 15000);
 """.replace('__WEB__', WEB))
 
 # las instrucciones, para abrir con doble clic desde la carpeta descomprimida
@@ -198,13 +210,13 @@ if os.path.isdir(web):
     # los archivos van sueltos en la raíz del ZIP: «Extraer todo» (Windows) o el doble clic (Mac) dejan UNA carpeta,
     # riftpulse-extension, que es justo la que se elige en «Cargar descomprimida» (sin carpetas dentro de carpetas)
     with zipfile.ZipFile(os.path.join(web, 'riftpulse-extension.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
-        for f in sorted(os.listdir(ext)): z.write(os.path.join(ext, f), f)
+        for raiz, _, fs in sorted(os.walk(ext)):  # con las subcarpetas (_locales)
+            for f in sorted(fs): z.write(os.path.join(raiz, f), os.path.relpath(os.path.join(raiz, f), ext))
     # versión para la Chrome Web Store: la tienda no acepta código que se baje de la web, así que el overlay va
     # dentro del paquete (se actualiza con cada versión de la tienda). El panel sigue abriendo la app desde la web.
     tmp = tempfile.mkdtemp(); tienda = os.path.join(tmp, 'extension')
     shutil.copytree(ext, tienda)
     man = json.load(open(os.path.join(ext, 'manifest.json'), encoding='utf-8'))
-    man['description'] = 'Probabilidad en vivo del Mundial de LoL sobre el video de Twitch y lolesports, sincronizada sola con el minuto que ves.'
     man['permissions'] = ['sidePanel', 'storage']
     man['host_permissions'] = [h for h in man['host_permissions'] if 'github.io' not in h]
     man['content_scripts'] = [{'matches': ['*://*.twitch.tv/*', '*://*.lolesports.com/*'], 'js': ['engine.js', 'overlay.js'], 'run_at': 'document_idle'}]
@@ -213,7 +225,8 @@ if os.path.isdir(web):
     os.remove(os.path.join(tienda, 'INSTALAR.html'))
     # la tienda exige manifest.json en la raíz del ZIP (sin carpeta)
     with zipfile.ZipFile(os.path.join(web, 'riftpulse-extension-tienda.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
-        for f in sorted(os.listdir(tienda)): z.write(os.path.join(tienda, f), f)
+        for raiz, _, fs in sorted(os.walk(tienda)):  # con las subcarpetas (_locales)
+            for f in sorted(fs): z.write(os.path.join(raiz, f), os.path.relpath(os.path.join(raiz, f), tienda))
     shutil.rmtree(tmp)
     print('Publicado en la carpeta web:', web)
 
