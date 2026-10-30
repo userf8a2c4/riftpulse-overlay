@@ -67,6 +67,11 @@ module.exports = async function () {
   await p.waitForTimeout(3000);
   const cru = await p.evaluate(() => document.getElementById('iniDetalle').innerText.replace(/\s+/g, ' '));
   ok = chequear('enfrentamiento: muestra los últimos cruces con torneo, fecha y resultado', /Últimos cruces/i.test(cru) && /IG 2\s*–\s*1 LYON/.test(cru) && /Worlds · Fase Suiza/.test(cru) && /2026/.test(cru), cru.slice(cru.search(/Últimos cruces/i), cru.search(/Últimos cruces/i) + 90)) && ok;
+  // Mando: si deja de verse un partido, se queda con el último (el guion y la lectura no se pierden)
+  const mq = await p.evaluate(async () => { setVista('mando'); await new Promise(r => setTimeout(r, 2500));
+    const antes = document.getElementById('mxTalk').textContent; MX.s = Object.assign({}, MX.s, {game: null, match: null}); renderMando();
+    return {antes: !/Aparece con el partido/.test(antes), air: document.getElementById('mxAir').textContent, talk: document.getElementById('mxTalk').textContent}; });
+  ok = chequear('Mando: sin partido en pantalla conserva el último juego y lo avisa', mq.antes && /SIN PARTIDO EN PANTALLA/.test(mq.air) && !/Aparece con el partido/.test(mq.talk), mq.air.replace(/\s+/g, ' ').slice(0, 90)) && ok;
   ok = chequear('sin errores de JavaScript', !errores.length, errores.slice(0, 3).join(' | ')) && ok;
   // celular
   const c2 = await b.newContext({viewport: {width: 390, height: 844}}); await montar(c2);
