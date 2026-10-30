@@ -62,6 +62,11 @@ module.exports = async function () {
   });
   ok = chequear('marcador: al terminar el juego suma el punto al instante', mc.ya === '0-1', mc.ya) && ok;
   ok = chequear('marcador: cuando lolesports lo suma, no lo cuenta dos veces', mc.luego === '0-1' && !mc.queda, JSON.stringify(mc)) && ok;
+  // enfrentamiento: los últimos cruces entre los dos equipos, en cualquier liga, con torneo, fecha y resultado
+  await p.evaluate(() => { setVista('ahora'); INIDET = {type: 'h2h', a: 'IG', b: 'LYON', ev: 'MLI'}; renderIniDetalle(); });
+  await p.waitForTimeout(3000);
+  const cru = await p.evaluate(() => document.getElementById('iniDetalle').innerText.replace(/\s+/g, ' '));
+  ok = chequear('enfrentamiento: muestra los últimos cruces con torneo, fecha y resultado', /Últimos cruces/i.test(cru) && /IG 2\s*–\s*1 LYON/.test(cru) && /Worlds · Fase Suiza/.test(cru) && /2026/.test(cru), cru.slice(cru.search(/Últimos cruces/i), cru.search(/Últimos cruces/i) + 90)) && ok;
   ok = chequear('sin errores de JavaScript', !errores.length, errores.slice(0, 3).join(' | ')) && ok;
   // celular
   const c2 = await b.newContext({viewport: {width: 390, height: 844}}); await montar(c2);
