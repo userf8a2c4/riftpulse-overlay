@@ -1774,9 +1774,7 @@
     if (EXT.indexOf('pg') >= 0) {
       html += '<div class="seg spark">' + miniSpark(g.samples || []) + '<div style="display:flex;flex-direction:column"><span class="sl">trayectoria</span><span class="sv">' + esc(pb >= pr ? m.blue.code : m.red.code) + ' ' + Math.max(pb, pr) + '%</span></div></div>';
     }
-    // el acierto medido del modelo en este minuto del juego (sube a medida que avanza)
-    html += fdo;
-    html += '<div class="seg acc" title="Con lo que se sabe a este minuto, el modelo acertó este porcentaje de juegos que no había visto"><span class="n">' + (g.acc != null ? Math.round(g.acc * 100) + '%' : '—') + '</span><span class="l">acierta al min ' + Math.floor(g.gt / 60) + '</span></div>';
+    html += fdo;  // el estado de los datos (retrasados, caídos), solo si hace falta
 
     body.innerHTML = html;
     if (window.RPUI) RPUI.numeros(body);

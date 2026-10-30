@@ -2717,12 +2717,18 @@ function renderSetup() {
 }
 function renderMando() {
   renderSetup();
-  const s = MX.s, air = $('#mxAir');
+  // si deja de verse un partido (desk, pausa, otro stream, el overlay lo soltó), Mando se queda con el último juego que
+  // mostró: el guion, la lectura y lo de redes no se pierden; se avisa que es lo último y vuelve solo con el siguiente
+  const valido = x => !!(x && x.match && x.game && x.game.pBlue != null);
+  let s = MX.s, ultimo = false;
+  if (valido(s) && !(mxEmb && EXTST.seguir && !s.follow)) MX.ultimo = s;
+  else if (MX.ultimo) { s = MX.ultimo; ultimo = true; }
+  const air = $('#mxAir');
   if (!air) return;
   const pan = EXTST.pantalla && Date.now() - EXTST.pantalla.at < 60000 ? EXTST.pantalla : null;
   const segBtn = mxEmb ? `<button class="mx-btn${EXTST.seguir ? ' on' : ''}" data-mx="seguir" title="El panel muestra el mismo juego y minuto que tu video">📺 Seguir el video</button>` : '';
   // siguiendo el video: hasta que el overlay diga qué juego es, no se muestra ningún otro partido
-  const espera = mxEmb && EXTST.seguir && !(s && s.follow);
+  const espera = !ultimo && mxEmb && EXTST.seguir && !(s && s.follow);
   if (espera || !s || !s.match || !s.game || s.game.pBlue == null) {
     const nx = espera ? '' : s && s.next ? `<div class="mx-note">Próximo partido: <b>${esc(s.next.blue)} vs ${esc(s.next.red)}</b>.</div>` : '';
     const msg = espera && !pan ? 'Esperando el video: abrí el partido en Twitch con el overlay de RiftPulse y la sincronía automática encendida.' : pan && EXTST.seguir ? `Cargando lo que ves en el video: <b>${esc((pan.codes || []).join(' vs '))}</b> · juego ${pan.juego}…` : s && s.match ? 'El juego está por empezar…' : 'No hay un partido en vivo en este momento.';
@@ -2735,7 +2741,7 @@ function renderMando() {
   }
   const m = s.match, g = s.game, pb = Math.round(g.pBlue * 100), pr = 100 - pb;
   if (window.RPUI) RPUI.colores(m.blue.code, m.red.code);
-  const badge = s.follow ? (sinSenal() ? `<span class="mx-badge demo">📺 SIN SEÑAL DEL VIDEO · se mantiene el último juego</span>` : `<span class="mx-badge vid">📺 SINCRONIZADO CON TU VIDEO</span>`) : s.demo ? `<span class="mx-badge demo">DEMO · partido real del ${s.demo.date.slice(8, 10)}/${s.demo.date.slice(5, 7)} · ×${s.demo.vel}</span>` : g.ended ? '<span class="mx-badge fin">FINAL</span>' : '<span class="mx-badge live">● EN VIVO</span>';
+  const badge = ultimo ? `<span class="mx-badge demo">${L('📺 SIN PARTIDO EN PANTALLA · se mantiene el último', '📺 NO MATCH ON SCREEN · keeping the last one')}</span>` : s.follow ? (sinSenal() ? `<span class="mx-badge demo">📺 SIN SEÑAL DEL VIDEO · se mantiene el último juego</span>` : `<span class="mx-badge vid">📺 SINCRONIZADO CON TU VIDEO</span>`) : s.demo ? `<span class="mx-badge demo">DEMO · partido real del ${s.demo.date.slice(8, 10)}/${s.demo.date.slice(5, 7)} · ×${s.demo.vel}</span>` : g.ended ? '<span class="mx-badge fin">FINAL</span>' : '<span class="mx-badge live">● EN VIVO</span>';
   const se = s.series, im = g.impact, chips = [];
   chips.push(`<div class="mx-k">Min <b>${mmss(g.gt)}</b>${m.gameNo ? ` · juego ${m.gameNo}` : ''}</div>`);
   if (g.acc != null) chips.push(`<div class="mx-k" title="Acierto medido del modelo a este minuto, sobre 589 juegos que no había visto">A este minuto acierta <b>${mxPct(g.acc)}</b></div>`);
