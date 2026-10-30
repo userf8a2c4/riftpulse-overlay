@@ -1,4 +1,4 @@
-// Capturas de la extensión para la Chrome Web Store y el pitch (docs/chrome-web-store/, 1280×800): node pruebas/captura-extension.js
+// Capturas de la extensión para la página y la carta de Nick (docs/img/nick/, 1280×800): node pruebas/captura-extension.js
 // 1: el overlay sobre el video de prueba generado (no es una transmisión real), con un panel de pelea en equipo de ejemplo.
 // 2: el video con el panel lateral abierto. 3: la app en «Ahora». 4: el Mundial. 5: Mando con el guion y las predicciones del staff.
 // Partidos y datos del simulador de las pruebas.
@@ -20,7 +20,7 @@ const {montar, RAIZ} = require('./mocks');
       red: [J('Top', 0, 1, 0, -1.6, 'físico'), J('Jungla', 0, 1, 1, -0.4, 'mixto'), J('Mid', 1, 1, 0, 1.1, 'mágico'), J('ADC', 0, 0, 1, 0.5, 'físico'), J('Soporte', 0, 0, 0, 0, 'mágico')]}})}));
   });
   await p.waitForTimeout(1500);
-  const OUT = path.join(RAIZ, 'docs', 'chrome-web-store');
+  const OUT = path.join(RAIZ, 'docs', 'img', 'nick');
   await p.screenshot({path: path.join(OUT, '1-overlay.png'), clip: {x: 100, y: 20, width: 1280, height: 800}});
   await ctx.close();
 
@@ -62,5 +62,5 @@ const {montar, RAIZ} = require('./mocks');
   });
   await a.waitForTimeout(1200);
   await a.screenshot({path: path.join(OUT, '5-mando.png')});
-  await b.close(); console.log('Capturas en docs/chrome-web-store/');
+  await b.close(); console.log('Capturas en docs/img/nick/');
 })();

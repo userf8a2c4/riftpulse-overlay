@@ -56,13 +56,13 @@
 <table>
 <tr>
 <td width="33%" valign="top" align="center">
-<img src="docs/chrome-web-store/2-panel.png" alt="La extensión con el panel lateral" width="100%">
+<img src="docs/img/nick/2-panel.png" alt="La extensión con el panel lateral" width="100%">
 <h3>🖥 Extensión</h3>
 La probabilidad <b>encima del video</b> en Twitch o lolesports, <b>sincronizada sola con el minuto que ves</b> (en vivo, en un VOD o en un co-stream con retraso), y un panel lateral con todo el Mundial.<br><br>
 <a href="https://userf8a2c4.github.io/riftpulse-overlay/instalar.html#extension"><b>Instalar en 4 pasos →</b></a>
 </td>
 <td width="33%" valign="top" align="center">
-<img src="docs/chrome-web-store/3-ahora.png" alt="La app en el partido en vivo" width="100%">
+<img src="docs/img/nick/3-ahora.png" alt="La app en el partido en vivo" width="100%">
 <h3>📱 App</h3>
 En el celu o en la compu, <b>sin instalar nada</b>: el partido en vivo, la fase suiza, las eliminatorias, <b>tu pronóstico contra RiftPulse</b> y el modo sin spoilers.<br><br>
 <a href="https://userf8a2c4.github.io/riftpulse-overlay/app.html"><b>Abrir la app →</b></a>
@@ -211,16 +211,16 @@ Las imágenes de la documentación y la wiki:
 node pruebas/imagenes.js
 ```
 
-Las capturas de la Chrome Web Store:
+La ficha de la Chrome Web Store (capturas y promocionales, en español y en inglés):
+
+```bash
+node pruebas/ficha-tienda.js
+```
+
+Las capturas de la página y la carta para Nick:
 
 ```bash
 node pruebas/captura-extension.js
-```
-
-Las imágenes promocionales de la tienda:
-
-```bash
-node pruebas/promo.js
 ```
 
 El GIF de este README:

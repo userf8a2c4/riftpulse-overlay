@@ -40,8 +40,8 @@ En GitHub corren solas con cada cambio en `main`, junto con el linter (`.eslintr
 | `generar.py` | Los videos de prueba con un HUD dibujado a mano (en `pruebas/.gen/`, que no se sube) |
 | `mocks.js` | El simulador del feed de LoL Esports, de Data Dragon, de Twitch y de la página publicada |
 | `imagenes.js` | Las imágenes del README y de la wiki (`docs/img/`) |
-| `captura-extension.js` | Las 5 capturas de la Chrome Web Store (`docs/chrome-web-store/`) |
-| `promo.js` | Las imágenes promocionales de la tienda |
+| `captura-extension.js` | Las 5 capturas de la página y la carta para Nick (`docs/img/nick/`) |
+| `ficha-tienda.js` | La ficha de la Chrome Web Store en español e inglés: capturas y promocionales (`docs/chrome-web-store/es` y `/en`) |
 | `gif.js` | El GIF del README (`docs/img/demo.gif`) |
 | `capturas.js` | Capturas sueltas de las páginas, para revisar el diseño |
 | `sondeo.js` | El sondeo del feed real (corre en GitHub Actions) |

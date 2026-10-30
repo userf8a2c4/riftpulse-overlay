@@ -30,15 +30,15 @@ No es un número inventado: es un modelo entrenado con más de 2.200 juegos prof
 - 📊 **Mesa de análisis** para una segunda pantalla.
 
 <p align="center"><img src="img/predicciones.png" width="720" alt="Predicciones del staff (datos de ejemplo)"></p>
-<p align="center"><img src="chrome-web-store/5-mando.png" width="720" alt="Mando: guion y predicciones del staff"></p>
+<p align="center"><img src="img/nick/5-mando.png" width="720" alt="Mando: guion y predicciones del staff"></p>
 
 ## Para tu chat
 
 - 🖥 **La extensión, sobre el video.** Cada uno ve la probabilidad encima del partido en Twitch o lolesports, sincronizada sola con el minuto que está viendo: en vivo, en un VOD o en tu co-stream con su retraso. Aparece solo cuando el juego está en pantalla.
 - 📱 **La app, con todo el Mundial.** El partido en vivo, la fase suiza, las eliminatorias, el pronóstico de cada uno contra RiftPulse y un modo sin spoilers.
 
-<p align="center"><img src="chrome-web-store/1-overlay.png" width="720" alt="La extensión sobre el video"></p>
-<p align="center"><img src="chrome-web-store/2-panel.png" width="360" alt="El video con el panel lateral"> <img src="chrome-web-store/3-ahora.png" width="360" alt="La app en Ahora"></p>
+<p align="center"><img src="img/nick/1-overlay.png" width="720" alt="La extensión sobre el video"></p>
+<p align="center"><img src="img/nick/2-panel.png" width="360" alt="El video con el panel lateral"> <img src="img/nick/3-ahora.png" width="360" alt="La app en Ahora"></p>
 
 **Si tu chat lo usa, todos miran el mismo número que vos.** 👉 **[Instalar la extensión](https://userf8a2c4.github.io/riftpulse-overlay/instalar.html#extension)** (3 pasos, 1 minuto) o **[abrir la app](https://userf8a2c4.github.io/riftpulse-overlay/app.html)** sin instalar nada.
 
