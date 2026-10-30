@@ -505,7 +505,7 @@
     if (kp) h += '<div class="pzk">Figura hasta ahora: <b class="' + (kp.side === 'blue' ? 'b' : 'r') + '">' + esc(kp.name) + '</b> (' + esc(kp.champ) + ') · ' + kp.k + '/' + kp.d + '/' + kp.a + '</div>';
     var hs = R.historia ? R.historia(s).slice(-3) : [];
     if (hs.length) h += '<ol class="hs">' + hs.map(function (x) { return '<li>' + x.html + '</li>'; }).join('') + '</ol>';
-    return h + '</div>' + grafOro(s);
+    return h + '</div>';  // compacto: entra entero debajo del cartel
   }
   var cardsSig = '';
   function tarjetas(s) {

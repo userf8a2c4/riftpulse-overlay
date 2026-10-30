@@ -225,6 +225,18 @@
   };
   // ---- el resto de la app, el sitio, el overlay y OBS (generado desde el código; {} = un valor que cambia: un equipo, un número, un campeón) ----
   var D2 = {
+    "{} la gana": "{} wins it",
+    "{} · ya está": "{} · already up",
+    "Próx. {} · {}": "Next {} · {}",
+    "Jungla": "Jungle",
+    "Soporte": "Support",
+    "{} · ya está en el mapa": "{} · already on the map",
+    "Dragón disponible": "Dragon available",
+    "disponible": "available",
+    "sin tomar": "not taken",
+    "pelea": "fight",
+    "Pelea en equipo": "Teamfight",
+    "oro": "gold",
     "Ver el perfil de {}": "See {}'s profile",
     "Tocá un jugador para ver su perfil (Leaguepedia).": "Tap a player to see their profile (Leaguepedia).",
     "Le gané al modelo {n} vez": "I beat the model {n} time",
@@ -1836,7 +1848,7 @@
     if (kp) h += '<div class="pzk">Figura hasta ahora: <b class="' + (kp.side === 'blue' ? 'b' : 'r') + '">' + esc(kp.name) + '</b> (' + esc(kp.champ) + ') · ' + kp.k + '/' + kp.d + '/' + kp.a + '</div>';
     var hs = R.historia ? R.historia(s).slice(-3) : [];
     if (hs.length) h += '<ol class="hs">' + hs.map(function (x) { return '<li>' + x.html + '</li>'; }).join('') + '</ol>';
-    return h + '</div>' + grafOro(s);
+    return h + '</div>';  // compacto: entra entero debajo del cartel
   }
   var cardsSig = '';
   function tarjetas(s) {

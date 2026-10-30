@@ -15,6 +15,7 @@
   // idioma elegido en ES | EN (rp-i18n.js): los datos de lolesports y las fechas vienen en ese idioma
   var EN = (function () { try { return localStorage.getItem('rp_lang') === 'en'; } catch (e) { return false; } })();
   var HL = EN ? 'en-US' : 'es-MX', LOC = EN ? 'en-US' : 'es';
+  var L = function (es, en) { return EN ? en : es; };  // el texto armado acá (la historia del juego), en el idioma elegido
   var WORLDS = '98767975604431411';
   var DRAG = {
     ocean: ['Océano'], mountain: ['Montaña'], infernal: ['Infernal'], cloud: ['Nube'],
@@ -369,18 +370,19 @@
   var other = function (side) { return side === 'blue' ? 'red' : 'blue'; };
 
   // la causa de un giro, dicha en castellano y desde el equipo del giro: «una pelea ganada 3–0 y el Barón»
+  var DRAG_EN = {'Océano': 'Ocean', 'Montaña': 'Mountain', 'Infernal': 'Infernal', 'Nube': 'Cloud', 'Química': 'Chemtech', 'Hextech': 'Hextech', 'Ancestral': 'Elder'};
   function causaTxt(cause, side) {
     var partes = String(cause || '').split(/,\s*/).filter(Boolean).map(function (c) {
       var p = c.match(/^Pelea:\s*\S+\s+(\d+)\s*[–-]\s*(\d+)\s+\S+/);
-      if (p) { var a = +p[1], b = +p[2], mio = side === 'blue' ? a : b, suyo = side === 'blue' ? b : a; return mio >= suyo ? 'una pelea ganada ' + mio + '–' + suyo : 'una pelea perdida ' + mio + '–' + suyo; }
-      if (/^Barón/.test(c)) return 'el Barón';
-      if (/^Primera sangre/.test(c)) return 'la primera sangre';
-      if (/^Inhibidor/.test(c)) return 'un inhibidor';
-      if (/^Dragón/.test(c)) return 'el ' + c.replace(' · ¡ALMA!', ' (alma)');
-      if (/torres?$/i.test(c)) return /^\d/.test(c) ? c : 'una torre';
+      if (p) { var a = +p[1], b = +p[2], mio = side === 'blue' ? a : b, suyo = side === 'blue' ? b : a; return mio >= suyo ? L('una pelea ganada ', 'a won fight ') + mio + '–' + suyo : L('una pelea perdida ', 'a lost fight ') + mio + '–' + suyo; }
+      if (/^Barón/.test(c)) return L('el Barón', 'the Baron');
+      if (/^Primera sangre/.test(c)) return L('la primera sangre', 'first blood');
+      if (/^Inhibidor/.test(c)) return L('un inhibidor', 'an inhibitor');
+      if (/^Dragón/.test(c)) return EN ? 'the ' + (DRAG_EN[c.replace(' · ¡ALMA!', '').replace(/^Dragón\s*/, '')] || 'dragon') + ' dragon' + (/ALMA/.test(c) ? ' (soul)' : '') : 'el ' + c.replace(' · ¡ALMA!', ' (alma)');
+      if (/torres?$/i.test(c)) return /^\d/.test(c) ? (EN ? c.replace(/torres?/, function (w) { return w === 'torre' ? 'tower' : 'towers'; }) : c) : L('una torre', 'a tower');
       return c;
     });
-    return partes.length > 1 ? partes.slice(0, -1).join(', ') + ' y ' + partes[partes.length - 1] : partes[0] || '';
+    return partes.length > 1 ? partes.slice(0, -1).join(', ') + L(' y ', ' and ') + partes[partes.length - 1] : partes[0] || '';
   }
   // Giros clave: tramos donde la probabilidad saltó 9 pts o más, con la causa más probable (eventos de ese equipo en el tramo).
   function keyMoments(maxN) {
@@ -1306,42 +1308,42 @@
     if (g.gt >= 420 && e14) {
       var la = e14.diff >= 0 ? 'blue' : 'red', fb = ev.filter(function (e) { return e.kind === 'fb'; })[0];
       var dl = cuenta('dragon', la, 840);
-      if (Math.abs(e14.diff) >= 1000) out.push(C[la] + ' tomó el control temprano: +' + kc(e14.diff) + ' de oro al min ' + mmss(e14.gt) + (dl >= 2 ? ' y ' + dl + ' dragones' : '') + '.');
-      else out.push('Arranque parejo: al min ' + mmss(e14.gt) + (Math.abs(e14.diff) < 150 ? ' estaban iguales en oro' : ' la diferencia era de ' + kc(e14.diff) + ' de oro') + (fb ? ', con la primera sangre para ' + C[fb.side] : '') + '.');
+      if (Math.abs(e14.diff) >= 1000) out.push(C[la] + L(' tomó el control temprano: +', ' took control early: +') + kc(e14.diff) + L(' de oro al min ', ' gold at min ') + mmss(e14.gt) + (dl >= 2 ? L(' y ', ' and ') + dl + L(' dragones', ' dragons') : '') + '.');
+      else out.push(L('Arranque parejo: al min ', 'Even start: at min ') + mmss(e14.gt) + (Math.abs(e14.diff) < 150 ? L(' estaban iguales en oro', ' gold was level') : L(' la diferencia era de ', ' the gap was ') + kc(e14.diff) + L(' de oro', ' gold')) + (fb ? L(', con la primera sangre para ', ', with first blood for ') + C[fb.side] : '') + '.');
     }
     // 2) el giro: el más grande; con el juego terminado, el decisivo del ganador (y el del que perdió, si fue mayor)
-    var pts = function (w) { return '<b>+' + Math.round(Math.abs(w.d) * 100) + ' puntos</b>'; };
+    var pts = function (w) { return '<b>+' + Math.round(Math.abs(w.d) * 100) + L(' puntos', ' points') + '</b>'; };
     var giroTxt = function (w, pre) {
       // «de a poco» solo si la ventaja crece desde el arranque, o por más de 10 min sin un Barón ni una pelea que la explique
       var largo = (w.a < 60 && w.b - w.a > 360) || (w.b - w.a > 600 && !/Barón|Pelea|Ancestral|Inhibidor|ALMA/.test(w.cause || ''));
-      if (largo) return C[w.side] + ' fue ampliando la ventaja de a poco: ' + pts(w) + ' entre el min ' + mmss(w.a) + ' y el ' + mmss(w.b) + '.';
+      if (largo) return C[w.side] + L(' fue ampliando la ventaja de a poco: ', ' built the lead little by little: ') + pts(w) + L(' entre el min ', ' between min ') + mmss(w.a) + L(' y el ', ' and ') + mmss(w.b) + '.';
       var ca = causaTxt(w.cause, w.side);
-      return (pre || 'El giro') + ': entre el min ' + mmss(w.a) + ' y el ' + mmss(w.b) + ', ' + C[w.side] + ' sumó ' + pts(w) + (ca ? ' con ' + eh(ca) : '') + '.';
+      return (pre || L('El giro', 'The swing')) + L(': entre el min ', ': between min ') + mmss(w.a) + L(' y el ', ' and ') + mmss(w.b) + ', ' + C[w.side] + L(' sumó ', ' gained ') + pts(w) + (ca ? L(' con ', ' with ') + eh(ca) : '') + '.';
     };
     var sws = (g.swings || []).slice().sort(function (a, b) { return Math.abs(b.d) - Math.abs(a.d); }), sw = sws[0];
     if (g.ended && g.recap) {
       var gan = g.recap.win, dec = sws.filter(function (w) { return w.side === gan; })[0], per = sws.filter(function (w) { return w.side !== gan; })[0];
-      if (dec && Math.abs(dec.d) >= 0.12) out.push(giroTxt(dec, 'El giro decisivo'));
+      if (dec && Math.abs(dec.d) >= 0.12) out.push(giroTxt(dec, L('El giro decisivo', 'The decisive swing')));
       if (per && Math.abs(per.d) >= 0.12 && (!dec || Math.abs(per.d) > Math.abs(dec.d)))
-        out.push(C[per.side] + ' tuvo su momento entre el min ' + mmss(per.a) + ' y el ' + mmss(per.b) + ' (' + pts(per) + '), pero no le alcanzó.');
+        out.push(C[per.side] + L(' tuvo su momento entre el min ', ' had their moment between min ') + mmss(per.a) + L(' y el ', ' and ') + mmss(per.b) + ' (' + pts(per) + L('), pero no le alcanzó.', '), but it wasn\'t enough.'));
     } else if (sw && Math.abs(sw.d) >= 0.12) out.push(giroTxt(sw));
     // 3) cómo está ahora (o cómo terminó)
-    if (g.ended && g.recap) out.push(C[g.recap.win] + ' cerró el juego en ' + mmss(g.recap.dur) + (g.recap.comeback ? ', remontando desde el ' + pc(g.recap.low.p) : '') + '.');
+    if (g.ended && g.recap) out.push(C[g.recap.win] + L(' cerró el juego en ', ' closed the game in ') + mmss(g.recap.dur) + (g.recap.comeback ? L(', remontando desde el ', ', coming back from ') + pc(g.recap.low.p) : '') + '.');
     else {
       var ld = g.pBlue >= 0.5 ? 'blue' : 'red', ot = ld === 'blue' ? 'red' : 'blue', st = g.stats, xs = [];
       if (st) {
-        var gd = (st[ld].gold - st[ot].gold); if (gd >= 800) xs.push('+' + kc(gd) + ' de oro');
-        var td = st[ld].towers - st[ot].towers; if (td >= 2) xs.push(td + ' torres más');
-        if (st[ld].dragons >= 4) xs.push('el alma de dragón'); else if (st[ld].dragons - st[ot].dragons >= 2) xs.push((st[ld].dragons - st[ot].dragons) + ' dragones más');
+        var gd = (st[ld].gold - st[ot].gold); if (gd >= 800) xs.push('+' + kc(gd) + L(' de oro', ' gold'));
+        var td = st[ld].towers - st[ot].towers; if (td >= 2) xs.push(td + L(' torres más', ' more towers'));
+        if (st[ld].dragons >= 4) xs.push(L('el alma de dragón', 'the dragon soul')); else if (st[ld].dragons - st[ot].dragons >= 2) xs.push((st[ld].dragons - st[ot].dragons) + L(' dragones más', ' more dragons'));
       }
-      var bb = g.timers && g.timers.baronBuff; if (bb && bb.until > g.gt && bb.side === ld) xs.push('el Barón activo');
+      var bb = g.timers && g.timers.baronBuff; if (bb && bb.until > g.gt && bb.side === ld) xs.push(L('el Barón activo', 'Baron buff'));
       var pl = Math.max(g.pBlue, 1 - g.pBlue);
-      out.push((Math.round(pl * 100) === 50 ? 'Ahora está parejo: 50 % para cada uno' : pl < 0.56 ? 'Ahora está parejo: ' + C[ld] + ' apenas arriba, con ' + pc(pl) : 'Ahora ' + C[ld] + ' va ' + pc(pl)) +
-        (xs.length ? ', con ' + xs.slice(0, 3).join(', ').replace(/, ([^,]*)$/, ' y $1') : '') + '.');
+      out.push((Math.round(pl * 100) === 50 ? L('Ahora está parejo: 50 % para cada uno', 'Right now it\'s even: 50% each') : pl < 0.56 ? L('Ahora está parejo: ', 'Right now it\'s even: ') + C[ld] + L(' apenas arriba, con ', ' barely ahead at ') + pc(pl) : L('Ahora ', 'Right now ') + C[ld] + L(' va ', ' is at ') + pc(pl)) +
+        (xs.length ? L(', con ', ', with ') + xs.slice(0, 3).join(', ').replace(/, ([^,]*)$/, L(' y $1', ' and $1')) : '') + '.');
       // 4) qué necesita el otro
       var c = g.comeback;
-      if (c && c.paths && c.paths[0] && c.p < 0.45) out.push(C[c.side] + ' ' + (c.reached ? 'necesita ' : 'se acerca con ') + '<b>' + eh(c.paths[0].txt) + '</b>: con eso vuelve al ' + pc(c.paths[0].p) + '.');
-      else if (Math.abs(g.pBlue - 0.5) < 0.08 && g.impact) out.push('Todo abierto: el próximo ' + eh(g.impact.obj) + ' puede inclinarlo.');
+      if (c && c.paths && c.paths[0] && c.p < 0.45) out.push(C[c.side] + ' ' + (c.reached ? L('necesita ', 'needs ') : L('se acerca con ', 'gets closer with ')) + '<b>' + eh(EN && window.RPI18N ? RPI18N.t(c.paths[0].txt) : c.paths[0].txt) + '</b>' + L(': con eso vuelve al ', ': that brings them back to ') + pc(c.paths[0].p) + '.');
+      else if (Math.abs(g.pBlue - 0.5) < 0.08 && g.impact) out.push(L('Todo abierto: el próximo ', 'Wide open: the next ') + eh(EN && window.RPI18N ? RPI18N.t(g.impact.obj) : g.impact.obj) + L(' puede inclinarlo.', ' could tip it.'));
     }
     return conTexto(out.slice(0, 5));
   };
