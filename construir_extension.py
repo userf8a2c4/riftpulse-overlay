@@ -187,7 +187,8 @@ if os.path.isdir(web):
     tmp = tempfile.mkdtemp(); tienda = os.path.join(tmp, 'extension')
     shutil.copytree(ext, tienda)
     man = json.load(open(os.path.join(ext, 'manifest.json'), encoding='utf-8'))
-    man['version'] = '3.1.0'
+    # beta: cada ZIP nuevo para la tienda sube el último número (0.9.1, 0.9.2…); la 1.0.0, cuando esté terminada
+    man['version'] = '0.9.0'; man['version_name'] = '0.9 beta'
     man['description'] = 'Probabilidad en vivo del Mundial de LoL sobre el video de Twitch y lolesports, sincronizada sola con el minuto que ves.'
     man['permissions'] = ['sidePanel', 'storage']
     man['host_permissions'] = [h for h in man['host_permissions'] if 'github.io' not in h]
