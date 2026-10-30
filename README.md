@@ -1,73 +1,162 @@
 <div align="center">
 
-<img src="docs/img/banner.jpg" alt="RiftPulse: tu segunda pantalla del Mundial">
+<img src="docs/img/banner.jpg" alt="RiftPulse: tu segunda pantalla del Mundial" width="100%">
 
-# RiftPulse
+<h1>RIFTPULSE</h1>
 
-**Tu segunda pantalla del Mundial. El Mundial, jugada a jugada.**
+<h3>Tu segunda pantalla del Mundial · <i>El Mundial, jugada a jugada</i></h3>
 
-Quién va ganando cada partida del Mundial de League of Legends, en vivo y en porcentaje: sobre el video que estás viendo, en tu stream de OBS o en el celular.
+<p>Quién va ganando cada partida del Mundial de League of Legends, <b>en vivo y en porcentaje</b>,<br>sobre el video que estás viendo, en tu stream de OBS o en el celular.</p>
 
-![Acierto](https://img.shields.io/badge/acierto-75%25%20al%20min%2015-22D3EE)
-![Prueba](https://img.shields.io/badge/medido%20en-juegos%20que%20no%20vio-0EA5C6)
-![Extensión](https://img.shields.io/badge/extensi%C3%B3n-Chrome%20%C2%B7%20Edge%20%C2%B7%20Brave-3D8BFF)
-![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-en%20revisi%C3%B3n-F5B700)
-![OBS](https://img.shields.io/badge/OBS-Browser%20Source-302E87)
-![Sin apuestas](https://img.shields.io/badge/pron%C3%B3stico-sin%20apuestas-FF4655)
+<a href="https://userf8a2c4.github.io/riftpulse-overlay/instalar.html#extension"><img src="https://img.shields.io/badge/INSTALAR%20LA%20EXTENSI%C3%93N-22D3EE?style=for-the-badge&logo=googlechrome&logoColor=0C0E12" alt="Instalar la extensión"></a>
+<a href="https://userf8a2c4.github.io/riftpulse-overlay/app.html"><img src="https://img.shields.io/badge/ABRIR%20LA%20APP-3D8BFF?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Abrir la app"></a>
+<a href="https://userf8a2c4.github.io/riftpulse-overlay/"><img src="https://img.shields.io/badge/PARA%20STREAMERS%20%C2%B7%20OBS-302E87?style=for-the-badge&logo=obsstudio&logoColor=white" alt="Para streamers en OBS"></a>
+<a href="https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html"><img src="https://img.shields.io/badge/C%C3%93MO%20FUNCIONA-1B1F27?style=for-the-badge&logo=readthedocs&logoColor=22D3EE" alt="Cómo funciona"></a>
 
-**[Instalar](https://userf8a2c4.github.io/riftpulse-overlay/instalar.html)** · **[App](https://userf8a2c4.github.io/riftpulse-overlay/app.html)** · **[Para streamers](https://userf8a2c4.github.io/riftpulse-overlay/)** · **[Cómo funciona](https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html)** · **[Wiki](https://github.com/userf8a2c4/riftpulse-overlay/wiki)**
+<br>
+
+![Acierto](https://img.shields.io/badge/acierto-75%25%20al%20min%2015-22D3EE?style=flat-square)
+![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-en%20revisi%C3%B3n-F5B700?style=flat-square)
+![Versión](https://img.shields.io/badge/versi%C3%B3n-0.9%20beta-9AA3B2?style=flat-square)
+![Sin apuestas](https://img.shields.io/badge/pron%C3%B3stico-sin%20apuestas-FF4655?style=flat-square)
+![Wiki](https://img.shields.io/badge/docs-wiki-3D8BFF?style=flat-square)
+
+</div>
+
+<img src="docs/img/divisor.svg" width="100%" alt="">
+
+<div align="center">
+
+<img src="docs/img/demo.gif" alt="RiftPulse en acción: la probabilidad se mueve, llega una pelea en equipo y la partida da vuelta" width="90%">
+
+<sub>La extensión en acción: la probabilidad se mueve con la partida, llega una <b>pelea en equipo</b> y el juego da vuelta.<br>Video de prueba generado y números de ejemplo; las piezas son las reales.</sub>
 
 </div>
 
 > [!NOTE]
-> **La extensión está en revisión en la Chrome Web Store.** Cuando Google la apruebe se va a instalar con un clic desde la tienda. Mientras tanto se instala a mano en 3 pasos ([ver abajo](#instalar)), con la misma extensión.
+> **La extensión está en revisión en la Chrome Web Store.** Cuando Google la apruebe se va a instalar con un clic desde la tienda. Mientras tanto se instala a mano en 3 pasos ([ver Instalar](#-instalar)), y es la misma extensión.
 
-<p align="center"><img src="docs/chrome-web-store/1-overlay.png" alt="La extensión de RiftPulse sobre el video de un partido" width="860"></p>
+<div align="center">
 
-## Tres formas de usarlo
+| <h2>75 %</h2>de acierto al minuto 15 | <h2>4.805</h2>juegos profesionales reales analizados | <h2>1 URL</h2>en OBS, y decide sola qué mostrar | <h2>0</h2>apuestas: pronóstico y análisis |
+|:---:|:---:|:---:|:---:|
 
-| | Para quién | Qué ves | Cómo |
-|---|---|---|---|
-| 🖥 **Extensión** | Cualquier espectador | La probabilidad encima del video en Twitch o lolesports, **sincronizada sola con el minuto que ves** (en vivo, en un VOD o en un co-stream con retraso), y un panel lateral con todo el Mundial | [Instalar en 3 pasos](https://userf8a2c4.github.io/riftpulse-overlay/instalar.html#extension) |
-| 📱 **App** | En el celu o en la compu | El partido en vivo, la fase suiza, las eliminatorias, tu pronóstico contra RiftPulse y el modo sin spoilers | [Abrir](https://userf8a2c4.github.io/riftpulse-overlay/app.html) (se puede instalar como app) |
-| 🎥 **OBS** | Streamers y casters | El overlay sobre tu transmisión, que decide solo qué mostrar en cada momento | [Una URL en OBS](https://userf8a2c4.github.io/riftpulse-overlay/) |
+</div>
 
-<p align="center">
-<img src="docs/chrome-web-store/2-panel.png" width="32%" alt="El video con el panel lateral">
-<img src="docs/chrome-web-store/3-ahora.png" width="32%" alt="La app: el partido en vivo">
-<img src="docs/chrome-web-store/5-mando.png" width="32%" alt="Mando: guion y predicciones del staff">
-</p>
+<img src="docs/img/divisor.svg" width="100%" alt="">
 
-## Lo que hace
+## 🎮 Tres formas de vivir el Mundial
 
-- **Como el HUD de la transmisión.** El equipo de la izquierda en azul y el de la derecha en rojo, igual que el marcador de Riot.
-- **Solo cuando importa.** El overlay de la extensión aparece con el juego en pantalla y desaparece en las repeticiones, el desk, la publicidad y al terminar el juego.
-- **Pelea en equipo, explicada.** Después de cada 5v5: quién la ganó, el oro, el objetivo que siguió y lo que hizo cada jugador en la pelea.
-- **Qué mirar ahora.** Cuánto vale el próximo dragón o Barón para cada equipo, qué necesita el que va abajo para remontar y la historia del juego en pocas frases.
-- **Director automático para OBS.** Una sola URL: la barra siempre y, en cada momento, la pieza que aporta, nunca dos a la vez.
-- **Para el que comenta.** Guion listo para leer, mesa de análisis en una segunda pantalla y **predicciones del staff** con aciertos automáticos y su propia URL para OBS.
-- **Honesto con sus números.** Muestra cuánto acierta en cada minuto, medido en juegos que el modelo no vio.
+<table>
+<tr>
+<td width="33%" valign="top" align="center">
+<img src="docs/chrome-web-store/2-panel.png" alt="La extensión con el panel lateral" width="100%">
+<h3>🖥 Extensión</h3>
+La probabilidad <b>encima del video</b> en Twitch o lolesports, <b>sincronizada sola con el minuto que ves</b> (en vivo, en un VOD o en un co-stream con retraso), y un panel lateral con todo el Mundial.<br><br>
+<a href="https://userf8a2c4.github.io/riftpulse-overlay/instalar.html#extension"><b>Instalar en 3 pasos →</b></a>
+</td>
+<td width="33%" valign="top" align="center">
+<img src="docs/chrome-web-store/3-ahora.png" alt="La app en el partido en vivo" width="100%">
+<h3>📱 App</h3>
+En el celu o en la compu, <b>sin instalar nada</b>: el partido en vivo, la fase suiza, las eliminatorias, <b>tu pronóstico contra RiftPulse</b> y el modo sin spoilers.<br><br>
+<a href="https://userf8a2c4.github.io/riftpulse-overlay/app.html"><b>Abrir la app →</b></a>
+</td>
+<td width="33%" valign="top" align="center">
+<img src="docs/img/overlay-en-transmision.jpg" alt="El overlay sobre una transmisión de OBS" width="100%">
+<h3>🎥 OBS</h3>
+El overlay para tu stream o co-stream: <b>una sola URL</b> y el director automático decide qué mostrar en cada momento, nunca dos piezas a la vez.<br><br>
+<a href="https://userf8a2c4.github.io/riftpulse-overlay/"><b>Copiar la URL →</b></a>
+</td>
+</tr>
+</table>
 
-## Instalar
+## ⚡ Lo que hace
 
-**Extensión (Chrome, Edge, Brave u Opera, en la compu):**
-1. Descargá el [ZIP](https://userf8a2c4.github.io/riftpulse-overlay/riftpulse-extension.zip) y extraelo: queda la carpeta **RiftPulse**.
+<table>
+<tr>
+<td width="50%" valign="top">
+<img src="docs/img/tarjetas/pelea.png" alt="Panel de pelea en equipo" width="100%">
+<h3>⚔️ Pelea en equipo, explicada</h3>
+Después de cada <b>5v5</b>: quién la ganó, el oro, el objetivo que siguió, cómo cambió la probabilidad y lo que hizo cada jugador en la pelea. Las peleas chicas no interrumpen.
+</td>
+<td width="50%" valign="top">
+<img src="docs/img/tarjetas/barra.png" alt="La barra sincronizada con el video" width="100%">
+<h3>🎯 Como el HUD de la transmisión</h3>
+Azul a la izquierda y rojo a la derecha, pegado bajo el marcador oficial. Aparece <b>solo con el juego en pantalla</b> y desaparece en repeticiones, desk, publicidad y al terminar.
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+<img src="docs/img/tarjetas/mesa.png" alt="Mesa de análisis" width="100%">
+<h3>🎙 Mesa de análisis</h3>
+Segunda pantalla para casters: la historia del juego, qué cambió en el último minuto, qué mirar ahora, giros clave y <b>frases listas para comentar</b>.
+</td>
+<td width="50%" valign="top">
+<img src="docs/img/tarjetas/predicciones.png" alt="Predicciones del staff" width="100%">
+<h3>🗳 Predicciones del staff</h3>
+Los picks de cada integrante del stream, con <b>aciertos que se marcan solos</b> al terminar cada partido y una URL lista para OBS.
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+<img src="docs/img/tarjetas/mundial.png" alt="Todo el Mundial" width="100%">
+<h3>🏆 Todo el Mundial</h3>
+Fase suiza visual, eliminatorias en vivo, favoritos al título con 20.000 simulaciones del torneo, y Pick'Em y Bola de Cristal.
+</td>
+<td width="50%" valign="top">
+<img src="docs/img/tarjetas/ahora.png" alt="El partido en vivo en la app" width="100%">
+<h3>📊 Honesto con sus números</h3>
+Muestra <b>por qué</b> va ganando cada equipo, qué movería el próximo dragón o Barón, y cuánto acierta el modelo en cada minuto, medido en juegos que no vio.
+</td>
+</tr>
+</table>
+
+<img src="docs/img/divisor.svg" width="100%" alt="">
+
+## 🚀 Instalar
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 🖥 Extensión (Chrome, Edge, Brave, Opera)
+
+1. **[Descargá el ZIP](https://userf8a2c4.github.io/riftpulse-overlay/riftpulse-extension.zip)** y extraelo: queda la carpeta **RiftPulse**.
 2. Abrí `chrome://extensions` y activá el **Modo de desarrollador**.
-3. **Cargar descomprimida** → carpeta **RiftPulse**.
+3. **Cargar descomprimida** → carpeta **RiftPulse**. ¡Listo!
 
-La guía con imágenes está en la [página Instalar](https://userf8a2c4.github.io/riftpulse-overlay/instalar.html). Cuando Google apruebe la versión de la Chrome Web Store (versión 0.9 beta, en revisión), este enlace va a llevar a la tienda.
+<sub>La guía con imágenes está en la <a href="https://userf8a2c4.github.io/riftpulse-overlay/instalar.html">página Instalar</a>. Pronto, con un clic desde la Chrome Web Store.</sub>
 
-**OBS:** en la [página para streamers](https://userf8a2c4.github.io/riftpulse-overlay/), tocá **📋 Copiar URL del overlay**. En OBS: **＋ Fuentes → Navegador** → pegá la URL → **1920 × 1080**.
+</td>
+<td width="50%" valign="top">
 
-## Precisión
+### 🎥 OBS
 
-Una regresión logística por minuto, entrenada con juegos profesionales 2025–26: oro, kills, torres, dragones, Barón, inhibidores, el draft y la fuerza de cada equipo.
-- **75 % de acierto al minuto 15** y 84 % al 25, medido en 589 juegos que no vio.
-- En octubre de 2026 se reentrenó con 4.805 juegos y se confirmó en 691 juegos nuevos de 2026: nivel, CS, wards e ítems no mejoran la predicción, así que el modelo se quedó como está.
+1. En la **[página para streamers](https://userf8a2c4.github.io/riftpulse-overlay/)**, tocá **📋 Copiar URL del overlay**.
+2. En OBS: **＋ Fuentes → Navegador** → pegá la URL.
+3. Ponele **1920 × 1080**. Fondo transparente, detecta solo el partido.
 
-El detalle está en [Cómo funciona](https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html) y en [Precisión y pruebas](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Precisión-y-pruebas).
+<sub>Piezas sueltas, colores de tu canal y escena lista en el <a href="https://github.com/userf8a2c4/riftpulse-overlay/wiki/Paquete-de-gráficos">paquete de gráficos</a>.</sub>
 
-## Estructura del repositorio
+</td>
+</tr>
+</table>
+
+## 🧠 Cómo calcula
+
+Una regresión logística por minuto, entrenada con juegos profesionales 2025–26. Usa el oro, las kills, las torres, los dragones (y el alma), el Barón, los inhibidores, el draft y la fuerza de cada equipo.
+
+| Momento | Antes del juego | Min 10 | Min 15 | Min 20 | Min 25 |
+|---|:---:|:---:|:---:|:---:|:---:|
+| **Acierto** | 62 % | 68 % | **75 %** | 79 % | 84 % |
+
+<sub>Medido en 589 juegos que el modelo no vio. En octubre de 2026 se reentrenó con 4.805 juegos y se confirmó en 691 juegos nuevos de 2026. Nivel, CS, wards e ítems no mejoraron la predicción, así que el modelo se quedó como está. Detalle en <a href="https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html">Cómo funciona</a>, con simulador incluido.</sub>
+
+<img src="docs/img/divisor.svg" width="100%" alt="">
+
+<details>
+<summary><b>📁 Estructura del repositorio</b></summary>
+<br>
 
 | Carpeta o archivo | Qué es |
 |---|---|
@@ -78,35 +167,70 @@ El detalle está en [Cómo funciona](https://userf8a2c4.github.io/riftpulse-over
 | `engine.js` | El motor: datos en vivo, modelo, director, historia del juego y peleas en equipo |
 | `ext-overlay.js`, `riftpulse-extension*.zip` | El overlay de la extensión y sus paquetes (manual y Chrome Web Store) |
 | `rp-tokens.css`, `rp-design.css`, `rp-ui.js` | El sistema visual común |
-| `docs/` | Imágenes de la documentación, la ficha y las imágenes de la Chrome Web Store, y la carta para casters |
+| `docs/` | Imágenes, la ficha de la Chrome Web Store y la carta para casters |
 | `modelo/` | Recolección de juegos reales y reentrenamiento del modelo |
 | `pruebas/` | Pruebas automáticas, simulador del feed y generadores de imágenes |
-| `wiki/` | El código fuente de la [wiki](https://github.com/userf8a2c4/riftpulse-overlay/wiki), que se publica sola |
-| `.github/workflows/` | Acciones: publicar la wiki, sondear el feed real, probar con video real y reentrenar el modelo |
+| `wiki/` | La fuente de la [wiki](https://github.com/userf8a2c4/riftpulse-overlay/wiki), que se publica sola |
+| `.github/workflows/` | Publicar la wiki, sondear el feed real, probar con video real y reentrenar el modelo |
 
-**Para desarrollar:**
+</details>
+
+<details>
+<summary><b>🛠 Para desarrollar</b></summary>
+<br>
+
+Las 11 baterías de pruebas, con un simulador del feed y videos generados:
 
 ```bash
 node pruebas/todas.js
 ```
 
-Corre las 11 baterías de pruebas, con un simulador del feed y videos generados.
+Las imágenes de la documentación y la wiki:
 
 ```bash
 node pruebas/imagenes.js
 ```
 
-Regenera las imágenes de la documentación.
+Las capturas de la Chrome Web Store:
 
 ```bash
 node pruebas/captura-extension.js
 ```
 
-Regenera las capturas de la tienda.
+Las imágenes promocionales de la tienda:
 
-> [!IMPORTANT]
-> **Es pronóstico y análisis, no una casa de apuestas.** Las probabilidades son estimaciones de un modelo propio, no una certeza. RiftPulse no está avalado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de League of Legends. League of Legends y Riot Games son marcas de Riot Games, Inc. Usa los datos públicos de LoL Esports. Más en [Cumplimiento y datos](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Cumplimiento-y-datos).
+```bash
+node pruebas/promo.js
+```
+
+El GIF de este README:
+
+```bash
+node pruebas/gif.js
+```
+
+</details>
+
+<details>
+<summary><b>⚖️ Aviso legal</b></summary>
+<br>
+
+**Es pronóstico y análisis, no una casa de apuestas.** Las probabilidades son estimaciones de un modelo propio, no una certeza.
+
+RiftPulse no está avalado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de League of Legends. League of Legends y Riot Games son marcas de Riot Games, Inc.
+
+Usa los datos públicos de LoL Esports. Más en [Cumplimiento y datos](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Cumplimiento-y-datos).
+
+</details>
+
+<div align="center">
+
+<br>
+
+<img src="logo.svg" width="56" alt="RiftPulse">
+
+**Hecho por VectisDev** · [@CaZe_18](https://x.com/CaZe_18) · [Wiki](https://github.com/userf8a2c4/riftpulse-overlay/wiki) · [Preguntas frecuentes](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Preguntas-frecuentes)
 
 <sub>Las imágenes usan partidos de ejemplo con datos simulados y videos de prueba generados, no transmisiones reales.</sub>
 
-**VectisDev** · [@CaZe_18](https://x.com/CaZe_18)
+</div>
