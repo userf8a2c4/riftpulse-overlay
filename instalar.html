@@ -59,6 +59,8 @@
   .mock .bt{border:1px solid #5f6368;border-radius:6px;padding:3px 9px;color:#8ab4f8}
   .mock .bt.hl{border-color:#8ab4f8;box-shadow:0 0 0 2px rgba(138,180,248,.35)}
   .mock .dim{opacity:.45}
+  .tienda{display:block;margin-top:4px;font-size:.92em;opacity:.85}
+  details.ayuda{margin-top:12px}
   .listo{margin-top:14px;background:linear-gradient(180deg,rgba(var(--signal-rgb),.1),rgba(var(--signal-rgb),.02));border:1px solid rgba(var(--signal-rgb),.4);border-radius:14px;padding:16px 18px}
   .listo h3{margin:0 0 4px}
   details{margin-top:14px;color:var(--muted);font-size:14.5px}
@@ -78,42 +80,47 @@
 
   <div class="hero">
     <h1>Instalá RiftPulse</h1>
-    <p>Elegí cómo querés ver el Mundial. Es gratis, no pide cuenta y en un minuto está listo.</p>
+    <p>Elegí cómo querés ver el Mundial. Es gratis y no pide cuenta.</p>
   </div>
 
   <div class="elegir" role="tablist">
-    <button class="op" data-op="extension" role="tab"><span class="rec">Recomendado</span><span class="ic">🖥</span><b>Sobre el video</b><span>La probabilidad en vivo encima del partido en Twitch o lolesports.com, y un panel con todo el Mundial. Chrome, Edge, Brave u Opera en la compu.</span></button>
-    <button class="op" data-op="app" role="tab"><span class="ic">📱</span><b>Como app</b><span>En el celu o en la compu, sin instalar nada: el partido en vivo, la fase suiza, las eliminatorias y tu pronóstico.</span></button>
-    <button class="op" data-op="stream" role="tab"><span class="ic">🎥</span><b>Para mi stream</b><span>El overlay para tu co-stream en OBS, con la mesa de análisis y el control de producción.</span></button>
+    <button class="op" data-op="extension" role="tab" aria-controls="extension"><span class="rec">Recomendado</span><span class="ic">🖥</span><b>Sobre el video</b><span>La probabilidad en vivo encima del partido en Twitch, y un panel con todo el Mundial. Chrome, Edge, Brave u Opera en la compu.</span></button>
+    <button class="op" data-op="app" role="tab" aria-controls="app"><span class="ic">📱</span><b>Como app</b><span>En el celu o en la compu, sin instalar nada: el partido en vivo, la fase suiza, las eliminatorias y tu pronóstico.</span></button>
+    <button class="op" data-op="stream" role="tab" aria-controls="stream"><span class="ic">🎥</span><b>Para mi stream</b><span>El overlay para tu co-stream en OBS, con la mesa de análisis y el control de producción.</span></button>
   </div>
 
   <!-- 1) extensión -->
-  <section class="card" id="extension" hidden>
-    <h2>Sobre el video, en 3 pasos</h2>
-    <p class="lead">Una sola vez y listo.</p>
+  <section class="card" id="extension" role="tabpanel" hidden>
+    <h2>Sobre el video, en 4 pasos</h2>
+    <p class="lead">Una sola vez: después se actualiza sola. <span class="tienda">Está en revisión en la tienda de Chrome; cuando la aprueben, va a ser un solo clic.</span></p>
     <div class="aviso" id="navAviso" hidden></div>
     <div class="pasos" id="pasos">
       <div class="paso" data-p="1"><div class="n"><span>1</span></div>
-        <div><h3>Descargá y descomprimí</h3><p>Abrí el archivo y tocá <b>Extraer todo</b> (en Mac, doble clic): queda la carpeta <b>RiftPulse</b>.</p></div>
+        <div><h3>Descargá y descomprimí</h3><p>Abrí el archivo y tocá <b>Extraer todo</b> (en Mac, doble clic): queda la carpeta <b>riftpulse-extension</b>. Movela a <b>Documentos</b> y no la borres: el navegador la usa.</p></div>
         <div class="acc"><a class="ib pri" href="riftpulse-extension.zip" download id="bajar">⬇ Descargar</a></div></div>
       <div class="paso" data-p="2"><div class="n"><span>2</span></div>
         <div><h3>Abrí las extensiones y activá el «Modo de desarrollador»</h3><p>Pegá la dirección copiada en una pestaña nueva. <span id="dondeModo">El interruptor está <b>arriba a la derecha</b>.</span> <span class="copiado" id="copiado"></span></p>
           <div class="mock">Modo de desarrollador <span class="sw"></span></div></div>
         <div class="acc"><button class="ib pri" id="copiar">📋 Copiar <span id="dir">chrome://extensions</span></button></div></div>
       <div class="paso" data-p="3"><div class="n"><span>3</span></div>
-        <div><h3>«Cargar descomprimida» → carpeta RiftPulse</h3>
+        <div><h3>«Cargar descomprimida» → carpeta riftpulse-extension</h3>
           <div class="mock"><span class="bt hl">Cargar descomprimida</span><span class="bt dim">Empaquetar extensión</span><span class="bt dim">Actualizar</span></div></div>
-        <div class="acc"><button class="ib ok" data-hecho="3">Listo</button></div></div>
+        <div class="acc"><button class="ib ok" data-hecho="3">Hecho</button></div></div>
+      <div class="paso" data-p="4"><div class="n"><span>4</span></div>
+        <div><h3>Para que se actualice sola: «Permitir scripts de usuario»</h3><p>En la tarjeta de RiftPulse tocá <b>Detalles</b> y activá el interruptor. Si tu navegador no lo tiene, salteá este paso: RiftPulse funciona igual.</p>
+          <div class="mock">Permitir scripts de usuario <span class="sw"></span></div></div>
+        <div class="acc"><button class="ib ok" data-hecho="4">Listo</button></div></div>
     </div>
+    <details class="ayuda"><summary>¿Dice «Falta el archivo de manifiesto» o no se pudo cargar?</summary>Elegiste una carpeta de más arriba o de más abajo. Tiene que ser la carpeta donde están <code>manifest.json</code> e <code>INSTALAR.html</code>: abrila en el explorador para comprobarlo y elegí esa.</details>
     <div class="listo" id="listo" hidden>
       <h3>¡Listo! 🎉</h3>
-      <div>Abrí un partido en <a href="https://www.twitch.tv/riotgames" target="_blank" rel="noopener">twitch.tv</a> o <a href="https://lolesports.com" target="_blank" rel="noopener">lolesports.com</a>: RiftPulse aparece solo cuando el juego está en pantalla y se sincroniza con el minuto que ves. Para tener el panel a mano, tocá la pieza de rompecabezas 🧩 de la barra del navegador y fijá RiftPulse 📌.</div>
+      <div>Abrí un partido en <a href="https://www.twitch.tv/riotgames" target="_blank" rel="noopener">twitch.tv</a> (en lolesports.com te ofrece abrirlo ahí): RiftPulse aparece solo cuando el juego está en pantalla y se sincroniza con el minuto que ves. Para tener el panel a mano, tocá la pieza de rompecabezas 🧩 de la barra del navegador y fijá RiftPulse 📌.</div>
     </div>
     <details><summary>¿Es seguro?</summary>RiftPulse solo trabaja en twitch.tv y lolesports.com, no lee ni envía nada de ninguna cuenta y la lectura del video ocurre en tu compu. El «Modo de desarrollador» solo permite instalar extensiones desde una carpeta; podés apagarlo después. No está afiliada a Riot Games.</details>
   </section>
 
   <!-- 2) app -->
-  <section class="card" id="app" hidden>
+  <section class="card" id="app" role="tabpanel" hidden>
     <h2>Como app</h2>
     <p class="lead">No hay nada que descargar: se abre en el navegador y la podés dejar como un ícono más en tu celu o en tu compu.</p>
     <div class="pasos">
@@ -125,7 +132,7 @@
   </section>
 
   <!-- 3) stream -->
-  <section class="card" id="stream" hidden>
+  <section class="card" id="stream" role="tabpanel" hidden>
     <h2>Para tu stream</h2>
     <p class="lead">El overlay se agrega a OBS pegando <b>una sola URL</b> como fuente de navegador, o importando la escena lista. Todo lo explica la página para streamers.</p>
     <div class="acc" style="justify-content:flex-start"><a class="ib pri" href="./">Ir a RiftPulse para streamers</a><a class="ib" href="analista.html?demo" target="_blank" rel="noopener">Ver la mesa de análisis</a></div>
@@ -163,7 +170,7 @@
   function pintar() {
     var h = hechos();
     document.querySelectorAll('.paso[data-p]').forEach(function (p) { p.classList.toggle('hecho', h.indexOf(+p.dataset.p) >= 0); });
-    $('#listo').hidden = h.indexOf(3) < 0;
+    $('#listo').hidden = h.indexOf(3) < 0 || h.indexOf(4) < 0;
   }
   document.querySelectorAll('[data-hecho]').forEach(function (b) { b.addEventListener('click', function () { marcar(+b.dataset.hecho); }); });
   $('#bajar').addEventListener('click', function () { marcar(1); });

@@ -6,7 +6,7 @@ const {montar, chequear, RAIZ, GEN} = require('./mocks');
 function descomprimir(zip) {
   const dest = path.join(GEN, zip || 'zip'); fs.rmSync(dest, {recursive: true, force: true}); fs.mkdirSync(dest, {recursive: true});
   execFileSync('python3', ['-I', '-c', 'import sys,zipfile;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])', path.join(RAIZ, (zip ? 'riftpulse-extension-tienda' : 'riftpulse-extension') + '.zip'), dest]);
-  return zip ? dest : path.join(dest, 'RiftPulse');
+  return dest;  // los dos ZIP traen los archivos sueltos en la raíz
 }
 async function una(EXT, conScripts) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rp-'));
@@ -23,12 +23,15 @@ async function una(EXT, conScripts) {
   const p = await ctx.newPage(); await p.goto('https://www.twitch.tv/videos/1');
   await p.evaluate(() => document.getElementById('v').play());
   let estado = '';
-  for (let i = 0; i < 12; i++) { await p.waitForTimeout(1500); estado = await p.evaluate(() => { const h = document.getElementById('rp-overlay-host'); return h ? h.shadowRoot.getElementById('ast').textContent : 'sin overlay'; }); if (/auto ·/.test(estado) && i > 3) break; }
+  for (let i = 0; i < 12; i++) { await p.waitForTimeout(1500); estado = await p.evaluate(() => { const h = document.getElementById('rp-overlay-host'); return h ? h.shadowRoot.getElementById('ast').textContent : 'sin overlay'; }); if (/sincronizado ·/.test(estado) && i > 3) break; }
   const pn = await ctx.newPage(); await pn.setViewportSize({width: 420, height: 900}); await pn.goto('chrome-extension://' + id + '/panel.html'); await pn.waitForTimeout(4000);
   const fr = pn.frames().find(f => f.url().includes('app.html')); let panel = {};
   if (fr) { await fr.evaluate(() => setVista('mando')); await pn.waitForTimeout(3500);
     panel = await fr.evaluate(() => ({aire: document.getElementById('mxAir').innerText.replace(/\s+/g, ' '), guion: document.getElementById('mxTalk').innerText.replace(/\s+/g, ' '),
-      alturas: ['mxAir', 'mxOv', 'mxTalk', 'mxRead', 'mxSoc'].map(i => document.getElementById(i).getBoundingClientRect().height)})); }
+      alturas: ['mxAir', 'mxOv', 'mxTalk', 'mxRead', 'mxSoc'].map(i => document.getElementById(i).getBoundingClientRect().height)}));
+    // mientras se lee el guion, el refresco de Mando no lo devuelve arriba
+    panel.scroll0 = await fr.evaluate(() => { const x = document.querySelector('#mxRead .mx-scroll'); if (!x || x.scrollHeight <= x.clientHeight + 20) return null; x.scrollTop = 30; return x.scrollTop; });
+    await pn.waitForTimeout(6500); panel.scroll1 = await fr.evaluate(() => { const x = document.querySelector('#mxRead .mx-scroll'); return x ? x.scrollTop : null; }); }
   // el mismo porcentaje en el overlay y en el panel (los dos con la misma fuerza de los equipos)
   let pcts = null;
   if (fr) { await p.waitForTimeout(3000);
@@ -48,6 +51,7 @@ module.exports = async function () {
     ok = chequear(modo + 'el panel sigue el mismo juego del video', /SINCRONIZADO CON TU VIDEO/.test(r.panel.aire || '') && /IG/.test(r.panel.aire || '') && /juego 2/.test(r.panel.aire || ''), (r.panel.aire || '').slice(0, 90)) && ok;
     ok = chequear(modo + 'el guion habla del mismo partido', /IG|LYON/.test(r.panel.guion || '') && !/MKOI/.test(r.panel.guion || ''), (r.panel.guion || '').slice(0, 70)) && ok;
     ok = chequear(modo + 'el overlay y el panel muestran el mismo porcentaje', r.pcts && r.pcts.ov != null && r.pcts.ap != null && Math.abs(r.pcts.ov - r.pcts.ap) <= 1, JSON.stringify(r.pcts)) && ok;
+    if (r.panel.scroll0 != null) ok = chequear(modo + 'Mando no devuelve arriba lo que se está leyendo', r.panel.scroll1 === r.panel.scroll0, r.panel.scroll0 + ' → ' + r.panel.scroll1) && ok;
     ok = chequear(modo + 'las casillas de Mando tienen altura fija', r.panel.alturas && r.panel.alturas.join() === '300,430,430,340,340', (r.panel.alturas || []).join(' ')) && ok;
   }
   // la versión de la Chrome Web Store: el overlay va dentro del paquete y no pide scripts de usuario

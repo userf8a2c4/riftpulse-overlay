@@ -31,7 +31,34 @@ module.exports = async function () {
   if (hay) await p.click('[data-salto="-10"]'); await p.waitForTimeout(400);
   const despues = (await est()).ct;
   ok = chequear('en el VOD, «−10 s» de la línea de tiempo salta el video', hay && antes - despues >= 8 && antes - despues <= 12, hay ? (antes - despues).toFixed(1) + ' s hacia atrás' : 'sin botón') && ok;
+  // reconoció mal: «¿otro partido?» deja elegir entre los que cuadran, y lo elegido no se deshace solo
+  const el = await p.evaluate(() => { const sh = document.getElementById('rp-overlay-host').shadowRoot, AS = window.__rpAS;
+    if (!(AS.cands && AS.cands.length > 1)) return {n: AS.cands ? AS.cands.length : 0};
+    sh.getElementById('otrob').click(); const bs = [...sh.querySelectorAll('#elegir button[data-i]')].filter(b => b.dataset.i !== '-1' && !b.classList.contains('ya'));
+    const txt = sh.getElementById('elegir').innerText; bs[0].click(); return {n: AS.cands.length, txt, gid: AS.id.gameId, manual: AS.manual}; });
+  await p.waitForTimeout(12000);
+  const el2 = await p.evaluate(() => window.__rpAS.id && window.__rpAS.id.gameId);
+  ok = chequear('«¿otro partido?» muestra los candidatos y deja elegir', el.n > 1 && /¿Qué partido estás viendo\?/.test(el.txt || '') && el.manual === el.gid, el.n + ' candidatos') && ok;
+  ok = chequear('lo que eligió el espectador no se deshace solo', el2 === el.gid, el2 + ' (elegido ' + el.gid + ')') && ok;
+  await p.keyboard.press('Alt+r'); const ocu = await p.evaluate(() => document.getElementById('rp-overlay-host').style.display);
+  await p.keyboard.press('Alt+r'); const vuelve = await p.evaluate(() => document.getElementById('rp-overlay-host').style.display);
+  ok = chequear('Alt+R oculta RiftPulse y lo vuelve a mostrar', ocu === 'none' && vuelve === '') && ok;
   await ctx.close();
+  // en otro stream de Twitch (no de LoL) RiftPulse no molesta: ningún aviso al mover el mouse; en un stream de LoL, sí
+  const c0 = await b.newContext({viewport: {width: 1500, height: 900}}); await montar(c0);
+  let lol = false;
+  await c0.route(/www\.twitch\.tv\/(otro|lol)$/, r => r.fulfill({contentType: 'text/html', body: '<!doctype html><meta charset=utf-8><body style="margin:0;background:#000"><video style="position:absolute;left:100px;top:60px;width:1280px;height:720px"></video>' + (lol ? '<a href="/directory/category/league-of-legends">League of Legends</a>' : '') + '</body>'}));
+  const avisoVisible = async url => {
+    const o = await c0.newPage(); await o.goto(url);
+    for (const f of ['engine.js', 'ext-overlay.js']) await o.addScriptTag({content: fs.readFileSync(path.join(RAIZ, f), 'utf8')});
+    await o.waitForTimeout(4000); await o.mouse.move(400, 300); await o.mouse.move(500, 320); await o.waitForTimeout(1000);
+    const r = await o.evaluate(() => { const h = document.getElementById('rp-overlay-host').shadowRoot.querySelector('.hint'); return h.classList.contains('show') ? h.innerText : ''; });
+    await o.close(); return r;
+  };
+  const enOtro = await avisoVisible('https://www.twitch.tv/otro'); lol = true; const enLol = await avisoVisible('https://www.twitch.tv/lol');
+  ok = chequear('en un stream que no es de LoL, ningún aviso de RiftPulse', !enOtro, enOtro || 'nada') && ok;
+  ok = chequear('en un stream de LoL con el Mundial en vivo, el aviso dice qué espera', /RiftPulse/.test(enLol), enLol.replace(/\s+/g, ' ')) && ok;
+  await c0.close();
   // un clip de un partido ya jugado en la previa del vivo: cuando vuelve el desk no queda nada de ese partido
   const c1 = await b.newContext({viewport: {width: 1500, height: 900}}); await montar(c1, {video: 'clip.webm'});
   const q = await c1.newPage(); q.on('pageerror', e => console.log('    error de página:', e.message));
