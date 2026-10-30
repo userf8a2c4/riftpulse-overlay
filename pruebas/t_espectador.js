@@ -46,18 +46,13 @@ module.exports = async function () {
   const q = await c2.newPage(); await q.goto(BASE + 'app.html'); await q.waitForTimeout(4500);
   ok = chequear('celular: «Ahora» compacto (sin las condiciones de victoria) y sin desborde', await q.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1 && [...document.querySelectorAll('#iniVivo .wincond')].every(e => !e.offsetHeight))) && ok;
   await c2.close();
-  // ---- bienvenida de la extensión ----
+  // ---- extensión: cero preguntas. Arranca sola con la barra y el próximo objetivo ----
   const c3 = await b.newContext({viewport: {width: 1500, height: 900}}); await montar(c3, {video: 'correr.webm'});
   const e = await c3.newPage(); e.on('pageerror', x => errores.push(x.message)); await e.goto('https://www.twitch.tv/videos/1');
   await e.addScriptTag({content: fs.readFileSync(path.join(RAIZ, 'engine.js'), 'utf8')}); await e.addScriptTag({content: fs.readFileSync(path.join(RAIZ, 'ext-overlay.js'), 'utf8')});
   await e.waitForTimeout(2500);
-  const hay = await e.evaluate(() => { const h = document.getElementById('rp-overlay-host'); return !!(h && h.shadowRoot.querySelector('.bv')); });
-  ok = chequear('extensión: la primera vez pregunta «¿Qué querés ver?»', hay) && ok;
-  await e.evaluate(() => document.getElementById('rp-overlay-host').shadowRoot.querySelector('.bv [data-bv="estandar"]').click()); await e.waitForTimeout(400);
-  const tras = await e.evaluate(() => ({ext: localStorage.getItem('rp_ext7'), dir: localStorage.getItem('rp_dir'), bv: !!document.getElementById('rp-overlay-host').shadowRoot.querySelector('.bv')}));
-  ok = chequear('extensión: «La barra y la historia» deja el director estándar y se cierra', tras.ext === '["obj"]' && tras.dir === 'estandar' && !tras.bv, JSON.stringify(tras)) && ok;
-  await e.reload(); await e.addScriptTag({content: fs.readFileSync(path.join(RAIZ, 'engine.js'), 'utf8')}); await e.addScriptTag({content: fs.readFileSync(path.join(RAIZ, 'ext-overlay.js'), 'utf8')}); await e.waitForTimeout(1500);
-  ok = chequear('extensión: no vuelve a preguntar', await e.evaluate(() => !document.getElementById('rp-overlay-host').shadowRoot.querySelector('.bv'))) && ok;
+  const ini = await e.evaluate(() => { const sh = document.getElementById('rp-overlay-host').shadowRoot; return {pregunta: !!sh.querySelector('.bv'), obj: !!sh.querySelector('.chip.on[data-ext="obj"]')}; });
+  ok = chequear('extensión: no pregunta nada y arranca con la barra y el próximo objetivo', !ini.pregunta && ini.obj, JSON.stringify(ini)) && ok;
   ok = chequear('sin errores de JavaScript', !errores.length, errores.slice(0, 3).join(' | ')) && ok;
   await b.close(); return ok;
 };

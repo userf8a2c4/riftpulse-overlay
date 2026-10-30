@@ -2,7 +2,7 @@
 // Requiere: Node, Playwright (con Chromium), Python 3 con Pillow y ffmpeg (para generar los videos).
 const {execFileSync} = require('child_process'), fs = require('fs'), path = require('path');
 const GEN = path.join(__dirname, '.gen');
-if (!fs.existsSync(path.join(GEN, 'replay.webm'))) { console.log('Generando los videos de prueba…'); execFileSync('python3', [path.join(__dirname, 'generar.py')], {stdio: 'inherit'}); }
+if (!fs.existsSync(path.join(GEN, 'tomas.webm'))) { console.log('Generando los videos de prueba…'); execFileSync('python3', [path.join(__dirname, 'generar.py')], {stdio: 'inherit'}); }
 const PRUEBAS = [['Sincronía con el video', 't_sincronia'], ['Fallos del feed, control y mesa', 't_feed'], ['Extensión real (desde el ZIP)', 't_extension'], ['Legibilidad', 't_legibilidad'], ['Simulador de «Cómo funciona»', 't_simulador']]
   .concat(fs.existsSync(path.join(__dirname, 't_contraste.js')) ? [['Contraste de colores de equipo', 't_contraste']] : [])
   .concat(fs.existsSync(path.join(__dirname, 't_director.js')) ? [['Director automático', 't_director']] : [])

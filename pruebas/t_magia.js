@@ -10,21 +10,21 @@ module.exports = async function () {
   await p.evaluate(() => { const v = document.getElementById('v'); return new Promise(r => { v.addEventListener('loadeddata', r, {once: true}); v.load(); }); });
   await p.evaluate(() => { window.RP_DEBUG = true; document.getElementById('v').play(); });
   for (const f of ['engine.js', 'ext-overlay.js']) await p.addScriptTag({content: fs.readFileSync(path.join(RAIZ, f), 'utf8')});
-  const est = () => p.evaluate(() => { const sh = document.getElementById('rp-overlay-host').shadowRoot, sh2 = () => document.getElementById('rp-overlay-paneles').shadowRoot; return {toast: sh.getElementById('toast').classList.contains('show') ? sh.getElementById('toast').textContent : '', oculto: sh.getElementById('w').classList.contains('oculto'), cards: sh2().getElementById('cardsx').innerText.trim(), body: sh.getElementById('body').textContent, ct: document.getElementById('v').currentTime}; });
+  const est = () => p.evaluate(() => { const sh = document.getElementById('rp-overlay-host').shadowRoot, sh2 = () => document.getElementById('rp-overlay-paneles').shadowRoot; return {toast: sh.getElementById('toast').classList.contains('show') ? sh.getElementById('toast').textContent : '', oculto: sh.getElementById('w').classList.contains('oculto'), tenue: sh.getElementById('w').classList.contains('tenue'), p2: document.getElementById('rp-overlay-paneles').style.opacity, cards: sh2().getElementById('cardsx').innerText.trim(), body: sh.getElementById('body').textContent, ct: document.getElementById('v').currentTime}; });
   let toast = '', ocultoEn = null, vuelveEn = null, visibleAntes = false, panelesOculto = false;
   for (let i = 0; i < 60; i++) {
     await p.waitForTimeout(1000); const e = await est();
     if (e.toast && !toast) toast = e.toast;
-    if (!e.oculto && e.ct < 20) visibleAntes = true;
-    if (e.oculto && e.ct > 19 && ocultoEn == null) ocultoEn = e.ct;
-    if (e.oculto && e.cards) panelesOculto = true;
-    if (ocultoEn != null && !e.oculto && vuelveEn == null && e.ct > 44) vuelveEn = e.ct;
+    if (!e.oculto && !e.tenue && e.ct < 20) visibleAntes = true;
+    if (e.tenue && e.ct > 19 && ocultoEn == null) ocultoEn = e.ct;
+    if (e.tenue && e.cards && e.p2 !== '0.12') panelesOculto = true;
+    if (ocultoEn != null && !e.oculto && !e.tenue && vuelveEn == null && e.ct > 44) vuelveEn = e.ct;
     if (vuelveEn != null) break;
   }
   ok = chequear('aviso «Sincronizado» con el partido, el juego y el minuto', /Sincronizado · IG vs LYON · juego 1 · 4:2\d/.test(toast), toast) && ok;
   ok = chequear('con el juego en pantalla, el overlay se ve', visibleAntes) && ok;
-  ok = chequear('sin el HUD (desk, repetición): el overlay se oculta entero en menos de 7 s', ocultoEn != null && ocultoEn <= 27 && !panelesOculto, ocultoEn != null ? 'a los ' + ocultoEn.toFixed(0) + ' s (el HUD se va a los 20)' + (panelesOculto ? ', pero quedaron paneles' : '') : 'nunca') && ok;
-  ok = chequear('vuelve el juego: el overlay reaparece en menos de 4 s', vuelveEn != null && vuelveEn <= 49, vuelveEn != null ? 'a los ' + vuelveEn.toFixed(0) + ' s (el HUD vuelve a los 45)' : 'nunca') && ok;
+  ok = chequear('sin el HUD (desk, repetición): todo queda casi transparente en menos de 7 s', ocultoEn != null && ocultoEn <= 27 && !panelesOculto, ocultoEn != null ? 'a los ' + ocultoEn.toFixed(0) + ' s (el HUD se va a los 20)' + (panelesOculto ? ', pero los paneles siguieron opacos' : '') : 'nunca') && ok;
+  ok = chequear('vuelve el juego: el overlay vuelve a la normalidad en menos de 4 s', vuelveEn != null && vuelveEn <= 49, vuelveEn != null ? 'a los ' + vuelveEn.toFixed(0) + ' s (el HUD vuelve a los 45)' : 'nunca') && ok;
   // línea de tiempo: −10 s salta el video
   await p.hover('#w'); await p.waitForTimeout(1800);
   const antes = (await est()).ct, hay = await p.evaluate(() => !!document.getElementById('rp-overlay-host').shadowRoot.querySelector('[data-salto="-10"]'));
@@ -57,7 +57,7 @@ module.exports = async function () {
   await rp.evaluate(() => { const v = document.getElementById('v'); return new Promise(r => { v.addEventListener('loadeddata', r, {once: true}); v.load(); }); });
   await rp.evaluate(() => { window.RP_DEBUG = true; document.getElementById('v').play(); });
   for (const f of ['engine.js', 'ext-overlay.js']) await rp.addScriptTag({content: fs.readFileSync(path.join(RAIZ, f), 'utf8')});
-  const er = () => rp.evaluate(() => ({oculto: document.getElementById('rp-overlay-host').shadowRoot.getElementById('w').classList.contains('oculto'), id: window.__rpAS && window.__rpAS.id ? window.__rpAS.id.gameId : '', ct: document.getElementById('v').currentTime}));
+  const er = () => rp.evaluate(() => ({oculto: document.getElementById('rp-overlay-host').shadowRoot.getElementById('w').classList.contains('oculto') || document.getElementById('rp-overlay-host').shadowRoot.getElementById('w').classList.contains('tenue'), id: window.__rpAS && window.__rpAS.id ? window.__rpAS.id.gameId : '', ct: document.getElementById('v').currentTime}));
   let antesR = false, ocultoR = null, vuelveR = null, idR = '';
   for (let i = 0; i < 48; i++) {
     await rp.waitForTimeout(1000); const e = await er();
@@ -66,9 +66,28 @@ module.exports = async function () {
     if (e.ct >= 27 && !e.oculto && vuelveR == null) vuelveR = {ct: e.ct, id: e.id};
     if (vuelveR || e.ct > 44) break;
   }
-  ok = chequear('repetición con el HUD: el overlay se oculta', antesR && ocultoR != null && ocultoR <= 20, ocultoR != null ? 'a los ' + ocultoR.toFixed(0) + ' s (la repetición empieza a los 15)' : 'no se ocultó') && ok;
+  ok = chequear('repetición con el HUD: el overlay queda casi transparente', antesR && ocultoR != null && ocultoR <= 20, ocultoR != null ? 'a los ' + ocultoR.toFixed(0) + ' s (la repetición empieza a los 15)' : 'no se ocultó') && ok;
   ok = chequear('termina la repetición: vuelve solo, con el mismo juego', vuelveR && vuelveR.ct <= 32 && vuelveR.id === idR, vuelveR ? 'a los ' + vuelveR.ct.toFixed(0) + ' s (termina a los 27) · ' + vuelveR.id : 'no volvió') && ok;
   await cr.close();
+  // tomas de los jugadores / repetición larga sin marcador (100 s) en un VOD: no suelta el juego; el panel sigue y al volver el HUD reaparece
+  const ct2 = await b.newContext({viewport: {width: 1500, height: 900}}); await montar(ct2, {video: 'tomas.webm'});
+  const tp = await ct2.newPage(); tp.on('pageerror', e => console.log('    error de página:', e.message));
+  await tp.goto('https://www.twitch.tv/videos/1');
+  await tp.evaluate(() => { const v = document.getElementById('v'); return new Promise(r => { v.addEventListener('loadeddata', r, {once: true}); v.load(); }); });
+  await tp.evaluate(() => { window.RP_DEBUG = true; document.getElementById('v').play(); });
+  for (const f of ['engine.js', 'ext-overlay.js']) await tp.addScriptTag({content: fs.readFileSync(path.join(RAIZ, f), 'utf8')});
+  const et = () => tp.evaluate(() => ({oculto: document.getElementById('rp-overlay-host').shadowRoot.getElementById('w').classList.contains('oculto') || document.getElementById('rp-overlay-host').shadowRoot.getElementById('w').classList.contains('tenue'), id: window.__rpAS && window.__rpAS.id ? window.__rpAS.id.gameId : '', ct: document.getElementById('v').currentTime}));
+  let idT = '', perdio = false, vuelveT = null;
+  for (let i = 0; i < 125; i++) {
+    await tp.waitForTimeout(1000); const e = await et();
+    if (e.ct < 10 && e.id) idT = e.id;
+    if (idT && e.ct >= 10 && e.ct < 110 && e.id !== idT) perdio = true;
+    if (e.ct >= 110 && !e.oculto && vuelveT == null) vuelveT = e.ct;
+    if (vuelveT != null || e.ct > 120) break;
+  }
+  ok = chequear('100 s sin marcador (tomas, repetición larga): sigue con el mismo juego', idT && !perdio, idT ? (perdio ? 'lo soltó' : 'siguió con ' + idT) : 'no sincronizó al principio') && ok;
+  ok = chequear('vuelve el marcador: reaparece solo', vuelveT != null && vuelveT <= 114, vuelveT != null ? 'a los ' + vuelveT.toFixed(0) + ' s (vuelve a los 110)' : 'no reapareció') && ok;
+  await ct2.close();
   // la serie en pantalla: el juego 2 con los mismos campeones que el juego 1; los rectángulos de victorias (IG 1–0) dicen cuál es
   const cs = await b.newContext({viewport: {width: 1500, height: 900}}); await montar(cs, {video: 'serie.webm'});
   const s2 = await cs.newPage(); s2.on('pageerror', e => console.log('    error de página:', e.message));

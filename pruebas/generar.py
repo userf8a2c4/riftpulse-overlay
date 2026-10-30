@@ -9,6 +9,7 @@ retratos de campeones (colores planos). Así se prueba el lector sin usar imáge
   final.webm 40 s: el final del juego 1 (25:00) con el HUD todavía en pantalla, como en los mejores momentos
   correr.webm 40 s: juego 2 corriendo desde 16:58, con marcador 2–3
   replay.webm 50 s: juego 1 desde 4:20; de 15 s a 27 s una repetición con el HUD (el reloj vuelve a 3:50); después sigue en 4:47
+  tomas.webm 125 s: juego 1 desde 4:20; de 10 s a 110 s sin marcador (tomas de los jugadores, repetición larga); después sigue en 6:10
   serie.webm 40 s: juego 2 desde 1:40 con los mismos retratos que el juego 1: solo la serie en pantalla (1–0) dice que es el 2
 
 En los cuadros del juego 2, junto a cada sigla se ven las victorias en la serie (IG 1–0), como en el HUD de 2026.
@@ -112,5 +113,6 @@ if __name__ == '__main__':
     video('correr.webm', [cuadro(1018 + t, 28.7, 29.7, 2, 3, {'blue': 'C', 'red': 'D'}, vict=(1, 0)) for t in range(40)])
     rep = lambda t: 260 + t if not (15 <= t < 27) else 230 + (t - 15)
     video('replay.webm', [cuadro(rep(t), oro(rep(t)), oro(rep(t)) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}) for t in range(50)])
+    video('tomas.webm', [cuadro(260 + t, oro(260 + t), oro(260 + t) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, con_hud=not (10 <= t < 110)) for t in range(125)])
     video('serie.webm', [cuadro(100 + t, oro(100 + t), oro(100 + t) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, vict=(1, 0)) for t in range(40)])
     print('Videos listos en', GEN)
