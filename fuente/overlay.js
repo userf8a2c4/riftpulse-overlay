@@ -339,6 +339,7 @@
     if (AS.pausa && sigue) return 'pausa';  // pausa del juego: en vez de la barra, el resumen de lo que va (debajo del cartel)
     if (previaEnVivo()) return 'previa';  // la previa de la transmisión en vivo: todavía no hay juego en pantalla
     if (AS.replay && Date.now() - AS.replay < 180000) return sigue ? 'tenue' : true;  // una repetición (hasta 3 min)
+    if (AS.clip && Date.now() - AS.clip < 4000) return sigue ? 'tenue' : true;  // en vivo, un clip de otro juego
     if (!(AS.buenas >= 2 && Date.now() - AS.visto <= 5000)) return sigue && AS.visto ? 'tenue' : true;
     // en una transmisión en vivo solo se acompaña al juego que se está jugando (no a clips ni mejores momentos)
     if (!esVod() && (!AS.id || !AS.id.live)) return true;  // en vivo: aparece recién al reconocer el juego en curso
@@ -387,7 +388,7 @@
     wEl.classList.toggle('oculto', oc === true || pz); wEl.classList.toggle('tenue', tenue); host2.style.opacity = tenue ? '0.12' : ''; pintarHint();
     var ph = pz ? grafPausa(s) : '';
     if (ph !== pausaSig) { pausaSig = ph; pausaEl.innerHTML = ph; if (pz && window.RPUI) RPUI.numeros(pausaEl); }
-    var pv = oc === 'previa' || (!pz && oc !== true && PRV.abierta > Date.now() && PRV.d) ? grafPrevia(PRV.d) : '';
+    var pv = oc === 'previa' || (!pz && oc !== true && PRV.abierta > Date.now() && PRV.d && !(AS.id && PRV.d.matchId === AS.id.matchId)) ? grafPrevia(PRV.d) : '';
     if (pv !== previaSig) { previaSig = pv; previaEl.innerHTML = pv; tickPrevia(); }
     if (oc === 'previa') wEl.classList.add('oculto');
     if (oc === true || pz || oc === 'previa') {
@@ -553,16 +554,20 @@
     PRV.vivoAntes[d.matchId] = !!d.vivo;
     render(LAST || {});
   }
-  setInterval(pedirPrevia, 60000); setInterval(function () { if (!PRV.d) pedirPrevia(); }, 5000);  // la primera, apenas se puede
-  // la previa en una transmisión en vivo: es de LoL, todavía no hay juego en pantalla y el partido empieza en menos de 3 h
+  setInterval(pedirPrevia, 60000); setInterval(function () { if (!PRV.d || (AS.id && PRV.d.matchId === AS.id.matchId)) pedirPrevia(); }, 5000);  // la primera, apenas se puede
+  // la previa en una transmisión en vivo: es de LoL, el partido todavía no empezó (empieza en menos de 3 h) y no hay juego
+  // en pantalla. Una vez empezado, el desk o una repetición no la traen de vuelta: no se tapa la transmisión a cada rato
   function previaEnVivo() {
-    var d = PRV.d; if (!d || esVod() || AS.id || !enContexto()) return false;
-    return d.vivo || Date.parse(d.start) - Date.now() < 3 * 3600e3;
+    var d = PRV.d; if (!d || d.vivo || esVod() || AS.id || AS.pend || !enContexto()) return false;
+    if (AS.visto && Date.now() - AS.visto < 120000) return false;
+    return Date.parse(d.start) - Date.now() < 3 * 3600e3;
   }
-  // en la barra (mirando un VOD): cuánto falta para el próximo partido en vivo; al tocarlo se abre la previa
+  // en la barra: cuánto falta para el próximo partido en vivo (mirando un VOD, o en la transmisión en vivo el que sigue
+  // al que se está jugando); al tocarlo se abre la previa
   function segProximo() {
-    var d = PRV.d; if (!d || !esVod() || (!d.vivo && Date.parse(d.start) - Date.now() > 24 * 3600e3)) return '';
-    return '<div class="seg prox" title="La previa del próximo partido en vivo"><span class="sl">' + (d.vivo ? '● en vivo ahora' : 'en vivo en') + '</span><span class="sv">' +
+    var d = PRV.d, vivo = !esVod();
+    if (!d || (vivo && !(AS.id && AS.id.live)) || (AS.id && d.matchId === AS.id.matchId) || (!d.vivo && Date.parse(d.start) - Date.now() > 24 * 3600e3)) return '';
+    return '<div class="seg prox" title="La previa del próximo partido en vivo"><span class="sl">' + (d.vivo ? (vivo ? '● también en vivo' : '● en vivo ahora') : (vivo ? 'el próximo en' : 'en vivo en')) + '</span><span class="sv">' +
       (d.vivo ? '' : '<b data-start="' + esc(d.start) + '">' + relojTxt(d.start) + '</b> · ') + '<span class="b">' + esc(d.codes[0]) + '</span> vs <span class="r">' + esc(d.codes[1]) + '</span></span></div>';
   }
   body.addEventListener('click', function (e) { if (!e.target.closest('.prox')) return; e.stopPropagation(); PRV.abierta = PRV.abierta > Date.now() ? 0 : Date.now() + 600000; render(LAST || {}); });
@@ -767,6 +772,7 @@
   }
   function soltar() {
     AS.pausa = null; AS.id = null; AS.off = null; AS.lect = []; AS.contra = []; AS.trasSalto = false; AS.playing = null; AS.pend = null;
+    AS.clip = AS.clipDesde = AS.clipHasta = 0;
     R.follow(null); publicar();
   }
   // atar el motor al video: minuto = desfase + posición del video
@@ -864,6 +870,7 @@
     var o = {gt: gt, vivo: !esVod(), juego: vs ? vs[0] + vs[1] + 1 : null, tags: [sig(sI), sig(sD)], sig: sI.length && sD.length ? [mapa(sI), mapa(sD)] : null, kills: isFinite(kI) && isFinite(kD) ? [kI, kD] : null, gold: oI != null && oD != null ? [oI, oD] : null};
     AS.diag.siglas = [sI.slice(0, 3), sD.slice(0, 3)]; AS.diag.marcador = o;
     var id = await R.identify(o);
+    if (id && id.sinSiglas) { AS.diag.partido = 'no leo las siglas de los equipos: no muestro un partido sin confirmarlo'; AS.sinSiglas = Date.now(); return null; }
     if (id && id.pendiente) { AS.diag.partido = id.codes.join(' vs ') + ' · J' + id.juego + ' (sin datos de lolesports todavía)'; return id; }
     if (id && id.alts && id.alts.length) {  // empate (por ejemplo, juegos de la misma serie al principio): mirar los campeones
       var cerca = [id].concat(id.alts.filter(function (a) { return a.score - id.score < 1.5; }));
@@ -926,7 +933,7 @@
       var vale = og ? vars.filter(function (x) { return oroPosible(og[0], x.gt) && oroPosible(og[1], x.gt); }) : vars;
       if (!vale.length) { AS.diag.descarte = mmss(vars[0].gt) + ' (imposible con el oro en pantalla)'; asEstado(AS.id ? 'sincronizado · ' + AS.id.codes.join(' vs ') + ' · ' + mmss(esperado) : 'leyendo el reloj…', !!AS.id); seguir(v); return; }
       var cerca = esperado != null ? vale.filter(function (x) { return Math.abs(x.gt - esperado) <= 2.5; })[0] : null;
-      var gt, off;
+      var gt, off, antes = null;
       AS.zona = zi;
       // repetición en la transmisión: el reloj del HUD va bastante atrás de lo esperado sin que nadie haya movido el video.
       // Se oculta todo y no se cambia el ancla; cuando el reloj vuelve a coincidir, reaparece. (Si dura más de 3 min, era otra cosa.)
@@ -941,7 +948,7 @@
       } else AS.replay = 0;
       if (cerca) {
         // coincide con el ancla (aunque sea con la segunda opción de un dígito): se afina sin saltos
-        gt = cerca.gt; off = gt - ct; AS.contra = []; AS.trasSalto = false;
+        gt = cerca.gt; off = gt - ct; AS.contra = []; AS.trasSalto = false; AS.clip = 0; AS.clipDesde = 0;
         if (Math.abs(off - AS.off) > 1.2) AS.off = off;
       } else {
         // no coincide (o todavía no hay ancla): gana el minuto que aparece en más lecturas, contando las segundas
@@ -959,9 +966,18 @@
         // el ganador tiene que estar en casi todas las lecturas recientes, no solo en algunas
         var mayoria = mejor.n >= Math.max(hace, Math.ceil(lista.length * 0.7));
         AS.diag.confirmando = mejor.n + '/' + lista.length + ' lecturas de ' + mmss(mejor.gt);
-        if (!mayoria || !avanza) { asEstado(AS.id ? 'sincronizado · ' + AS.id.codes.join(' vs ') + ' · ' + mmss(esperado) + ' (confirmando ' + mmss(mejor.gt) + ')' : 'leyendo el reloj… ' + mmss(mejor.gt), !!AS.id); seguir(v); return; }
+        if (!mayoria || !avanza) {
+          if (!esVod() && AS.id && AS.id.live && AS.contra.length >= 2) AS.clip = Date.now();  // en vivo, otro reloj: la barra se aparta
+          asEstado(AS.id ? 'sincronizado · ' + AS.id.codes.join(' vs ') + ' · ' + mmss(esperado) + ' (confirmando ' + mmss(mejor.gt) + ')' : 'leyendo el reloj… ' + mmss(mejor.gt), !!AS.id); seguir(v); return; }
         gt = mejor.gt; off = mejor.off;
         var salto = AS.off == null || Math.abs(off - AS.off) > 30;
+        // en vivo, siguiendo el juego que se está jugando, otro reloj en pantalla suele ser un clip o la repetición de otro
+        // juego: se sigue con el del vivo (y su ancla) salvo que lo nuevo sea también un juego en vivo (el siguiente de la serie)
+        // (en vivo el ancla de un mismo juego no cambia: el video corre a la par del juego. Si el otro reloj dura más de 45 s,
+        // no era un clip: el ancla estaba mal y se reconoce de nuevo)
+        antes = salto && !esVod() && AS.id && AS.id.live ? {id: AS.id, off: AS.off} : null;
+        if (antes) { if (!AS.clipDesde) AS.clipDesde = Date.now(); if (Date.now() - AS.clipDesde > 45000) antes = null; }
+        if (antes && AS.clipHasta > Date.now()) { AS.lect = []; AS.contra = []; AS.clip = Date.now(); asEstado('un clip en pantalla · sigo con ' + antes.id.codes.join(' vs ') + ' en vivo', true); seguir(v); return; }
         AS.off = off; AS.lect = []; AS.contra = []; AS.trasSalto = false;
         if (salto) AS.id = null;  // otro juego (o el primer anclaje): identificar de nuevo
       }
@@ -970,7 +986,15 @@
         // el juego que se ve todavía no está en los datos de lolesports: se espera unos segundos y se vuelve a probar
         if (AS.pend && Date.now() < AS.pend.hasta) { asEstado(AS.pend.txt); return; }
         asEstado('reconociendo el partido…');
-        var id = await identificar(v, gt);
+        var id = antes ? await identificar(v, gt).catch(function () { return null; }) : await identificar(v, gt);
+        if (antes && !(id && (id.pendiente || (id.live && id.gameId !== antes.id.gameId)))) {  // era un clip: se vuelve al juego en vivo, sin tocar nada
+          AS.id = antes.id; AS.off = antes.off; AS.playing = null; AS.clip = Date.now(); AS.clipHasta = Date.now() + 20000;
+          asEstado('un clip en pantalla · sigo con ' + antes.id.codes.join(' vs ') + ' en vivo', true); seguir(v); return;
+        }
+        if (id && !id.pendiente && !id.live && !esVod()) {  // en vivo, un juego ya jugado (un clip, un resumen) no se sigue
+          AS.pend = {hasta: Date.now() + 15000, txt: 'en pantalla: ' + id.codes.join(' vs ') + ' (juego ' + id.juego + ', ya jugado) · espero el juego en vivo'};
+          asEstado(AS.pend.txt); return;
+        }
         if (id && id.pendiente) {
           AS.pend = {hasta: Date.now() + 3000, txt: id.codes.join(' vs ') + ' · juego ' + id.juego + ': lolesports todavía no publica sus datos · reintento solo'};
           asEstado(AS.pend.txt); return;
@@ -978,12 +1002,12 @@
         AS.pend = null;
         if (id) {
           var nuevo = !AS.id || AS.id.gameId !== id.gameId;
-          AS.id = id; AS.playing = null; AS.malas = 0; AS.pend = null;
+          AS.id = id; AS.playing = null; AS.malas = 0; AS.pend = null; AS.clip = 0; AS.clipDesde = 0; AS.clipHasta = 0;
           if (nuevo) aviso('Sincronizado · <span class="ca">' + esc(id.codes[0]) + '</span> vs <span class="cb">' + esc(id.codes[1]) + '</span> · juego ' + id.juego + ' · ' + mmss(gt));
           AS.serie = victoriasHUD(v);
           colorHUD(v, id.codes);
         }
-        else { asEstado('no reconozco el partido (mirá el diagnóstico)'); return; }
+        else { asEstado(AS.sinSiglas && Date.now() - AS.sinSiglas < 3000 ? 'no leo las siglas de los equipos · no muestro un partido sin confirmarlo' : 'no reconozco el partido (mirá el diagnóstico)'); return; }
       } else if (AS.n % 7 === 0) await verificar(v, gt);  // cada ~10 s
       seguir(v); publicar();
       asEstado('sincronizado · ' + AS.id.codes.join(' vs ') + ' · J' + AS.id.juego + ' · ' + mmss(gt), true);
@@ -992,6 +1016,15 @@
     } finally { AS.busy = false; pintarDiag(); if (LAST) render(LAST); }
   }
   var real = function (id) { return id && id.pendiente ? null : id; };  // un juego que todavía no tiene datos no reemplaza al que se sigue
+  // ¿se puede pasar a ese juego? Del mismo partido, sí; de otro partido, solo si las siglas que se leen en pantalla son las
+  // suyas y no las del que se sigue (sin siglas legibles, kills y oro parecidos por casualidad no alcanzan para cambiar de
+  // equipos). En una transmisión en vivo, además, tiene que ser el juego que se está jugando
+  function puedeCambiar(id, todos) {
+    if (!id || (!esVod() && !id.live)) return false;
+    if (id.matchId === AS.id.matchId) return true;
+    var act = (todos || []).filter(function (x) { return x.matchId === AS.id.matchId; })[0];
+    return !!id.siglas && id.tg <= 1 && (!act || act.tg > id.tg + 1.5);
+  }
   // control de confirmación: las kills del HUD contra las del feed oficial en ese minuto. Solo se cambia de juego
   // si no coinciden 3 controles seguidos y otro juego gana por amplio margen dos veces seguidas.
   async function verificar(v, gt) {
@@ -1002,7 +1035,7 @@
     if (otro && AS.serieOtro >= 2) {
       AS.serieOtro = 0;
       var ij = real(await identificar(v, gt));
-      if (ij && ij.juego === vs[0] + vs[1] + 1 && ij.gameId !== AS.id.gameId) { AS.id = ij; AS.playing = null; AS.malas = 0; AS.pend = null; aviso('Sincronizado · <span class="ca">' + esc(ij.codes[0]) + '</span> vs <span class="cb">' + esc(ij.codes[1]) + '</span> · juego ' + ij.juego + ' · ' + mmss(gt)); }
+      if (ij && ij.juego === vs[0] + vs[1] + 1 && ij.gameId !== AS.id.gameId && puedeCambiar(ij, [ij].concat(ij.alts || []))) { AS.id = ij; AS.playing = null; AS.malas = 0; AS.pend = null; aviso('Sincronizado · <span class="ca">' + esc(ij.codes[0]) + '</span> vs <span class="cb">' + esc(ij.codes[1]) + '</span> · juego ' + ij.juego + ' · ' + mmss(gt)); }
       return;
     }
     // en una transmisión en vivo siguiendo un juego que no es el que se juega ahora (un clip): si el del vivo cuadra, se pasa a ese
@@ -1020,7 +1053,7 @@
     if (++AS.malas < 3) return;
     var id = real(await identificar(v, gt)); if (!id) return;
     var todos = [id].concat(id.alts || []), actual = todos.filter(function (x) { return x.gameId === AS.id.gameId; })[0];
-    if (id.gameId !== AS.id.gameId && (!actual || id.score + 1.5 < actual.score)) {
+    if (id.gameId !== AS.id.gameId && (!actual || id.score + 1.5 < actual.score) && puedeCambiar(id, todos)) {
       if (AS.pend === id.gameId) { AS.id = id; AS.playing = null; AS.malas = 0; AS.pend = null; }
       else AS.pend = id.gameId;
     } else { AS.malas = 0; AS.pend = null; }

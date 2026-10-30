@@ -161,6 +161,12 @@
   };
   // ---- el resto de la app, el sitio, el overlay y OBS (generado desde el código; {} = un valor que cambia: un equipo, un número, un campeón) ----
   var D2 = {
+    "el próximo en": "next in",
+    "● también en vivo": "● also live",
+    "no leo las siglas de los equipos · no muestro un partido sin confirmarlo": "can't read the team tags · not showing a match without confirming it",
+    "no leo las siglas de los equipos: no muestro un partido sin confirmarlo": "can't read the team tags: not showing a match without confirming it",
+    "un clip en pantalla · sigo con {} en vivo": "a clip on screen · staying on {} live",
+    "en pantalla: {} (juego {}, ya jugado) · espero el juego en vivo": "on screen: {} (game {}, already played) · waiting for the live game",
     "Esperando los datos de lolesports: suelen tardar unos minutos al empezar cada juego": "Waiting for lolesports data: it usually takes a few minutes when each game starts",
     "sin historial": "no history",
     "Datos clave": "Key facts",

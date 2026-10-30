@@ -8,7 +8,7 @@ const {chromium} = require('playwright'), fs = require('fs'), path = require('pa
   await p.addScriptTag({content: fs.readFileSync(path.join(__dirname, '..', 'engine.js'), 'utf8')});
   for (const o of JSON.parse(process.env.LECTURAS || '[]')) {
     const r = await p.evaluate(async o => {
-      const id = await RiftEngine.identify(Object.assign({vivo: false}, o));
+      let id = await RiftEngine.identify(Object.assign({vivo: false}, o)); if (id && (id.sinSiglas || id.pendiente)) id = null;
       const ms = await RiftEngine.loadMatches();
       return {id: id && [id].concat(id.alts || []).map(x => x.codes.join('-') + ' J' + x.juego + ' score=' + x.score.toFixed(2) + ' kd=' + x.kd), partidos: ms.filter(m => m.teams.some(t => o.tags.includes(t.code))).map(m => m.teams.map(t => t.code).join('-') + ' ' + m.state + ' ' + m.start)};
     }, o);

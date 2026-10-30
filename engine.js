@@ -758,18 +758,24 @@
     // reproduce un juego ya jugado desde el minuto `min`, acelerado `vel` veces
     replay: async function (eventId, juego, min, vel) {
       this.stop(); running = true; REPLAY = null; M = null; G = null; GEN++;  // invalida cualquier carga del vivo en curso
+      // si mientras carga se pide otro juego, esta carga se abandona: nunca pisa al juego pedido después
+      var tok = ++REPTOK;
       var d = await api('getEventDetails', {id: eventId}); var e = d.event;
+      if (tok !== REPTOK) return;
       M = {id: eventId, league: e.league, strategy: e.match.strategy, teams: e.match.teams, games: e.match.games};
       if (M.teams.length === 2) loadH2H(M.teams[0].code, M.teams[1].code).catch(function () {});
       var g = M.games[(juego || 1) - 1] || M.games.find(function (x) { return x.state !== 'unstarted'; });
       if (!g) { emit(); return; }
       var w0; try { w0 = await feed('window', g.id); } catch (ex) { w0 = null; }
+      if (tok !== REPTOK) return;
       if (!w0 || !w0.frames || !w0.frames.length) { emit(); return; }
       G = newGame(g.id); G.meta = w0.gameMetadata; G.start = Date.parse(w0.frames[0].rfc460Timestamp); G.waiting = false; G.loading = false; previa();
       processFrame(w0.frames[0]);
       // las pausas del juego (en uno en curso, hasta el vivo): el minuto del HUD no las cuenta, el feed sí
-      var gid = g.id, ps0 = await pausasDe(g.id, G.start, g.state !== 'completed').catch(function () { return null; }); if (G && G.id === gid) G.pausas = ps0;
-      var startMs = feedDe(G.start, G.pausas, Math.max(0.1, (min == null ? 8 : min)) * 60), tok = ++REPTOK, ts = [];
+      var gid = g.id, ps0 = await pausasDe(g.id, G.start, g.state !== 'completed').catch(function () { return null; });
+      if (tok !== REPTOK) return;
+      if (G && G.id === gid) G.pausas = ps0;
+      var startMs = feedDe(G.start, G.pausas, Math.max(0.1, (min == null ? 8 : min)) * 60), ts = [];
       for (var t = G.start + 30000; t < startMs; t += 30000) ts.push(t);
       // ponerse al día: los tramos de 30 s se piden de a 6 en paralelo y se procesan en orden (la píldora muestra el avance)
       for (var i = 0; i < ts.length; i += 6) {
@@ -934,7 +940,9 @@
     var tags = (o.tags || []).map(function (t) { return String(t || '').replace(/[^A-Z0-9]/gi, '').toUpperCase(); });
     var sig = o.sig || null, top = sig ? sig.map(function (m) { var v = 0; for (var k in m) v = Math.max(v, m[k]); return v; }) : null;
     var parece = function (lado, code) {  // 0 = igual a lo mejor leído de ese lado; más alto = menos parecido
-      if (sig) return sig[lado] && code in sig[lado] ? Math.max(0, top[lado] - sig[lado][code]) * 4 : 0;
+      // con las siglas bien leídas, un equipo que no es el que se lee queda muy atrás: ni la serie mal leída ni kills y oro
+      // parecidos por casualidad alcanzan para mostrar otros equipos
+      if (sig) { if (!sig[lado] || !(code in sig[lado])) return 0; var d = Math.max(0, top[lado] - sig[lado][code]); return d * 4 + (top[lado] > 0.35 && d > 0.15 ? 3 : 0); }
       return tags[lado] ? 3 * (1 - tagSim(tags[lado], code)) : 0;
     };
     // todos los partidos del Mundial ya empezados (un VOD puede ser de cualquier día del torneo). También los que el
@@ -984,7 +992,7 @@
         // y el juego que dice la serie del HUD (1–1 → juego 3), aunque el detalle todavía no lo marque
         if (gm.state !== 'completed' && gm.state !== 'inProgress' && !siguiente && o.juego !== k + 1) continue;
         var gi = await gameInfo(gm.id);
-        if (!gi || !gi.meta) { if (gm.state !== 'completed' && i < 3) sinFeed.push({c: c, k: k, ev: ev}); continue; }
+        if (!gi || !gi.meta) { if (gm.state !== 'completed' && c.state !== 'completed' && i < 3) sinFeed.push({c: c, k: k, ev: ev}); continue; }
         if (gm.state !== 'completed') gm = Object.assign({}, gm, {state: 'inProgress'});
         // el juego en curso no puede ir más adelantado en el video que en la realidad
         if (gm.state === 'inProgress' && o.gt > (Date.now() - gi.start) / 1000 + 30) continue;
@@ -1026,7 +1034,14 @@
     // mejor esperar que mostrar otro juego: la serie del HUD dice que es otro juego del mismo partido, o las siglas son las
     // de un partido cuyo juego todavía no tiene datos (al principio de un juego, 0–0 y el mismo oro cuadran con cualquiera)
     if (pe && (pe.matchId === best.matchId ? !!o.juego && best.juego !== o.juego : best.tg > 1.5)) return pe;
+    // sin las siglas del HUD, kills y oro parecidos cuadran con juegos de cualquier equipo (medido con los datos reales: casi
+    // siempre elegía otros equipos). Sin siglas solo vale el juego en vivo de una transmisión en vivo; con siglas, tienen que
+    // ser las de ese partido
+    var leidas = !!(sig || tags[0] || tags[1]);
+    if (!leidas && !(o.vivo && best.live)) return pe || {sinSiglas: true};
+    if (leidas && best.tg > 2.5) return pe;
     best.alts = all.slice(1, 6);  // los más parecidos, para desempatar (por ejemplo, con los campeones en pantalla)
+    best.siglas = leidas;
     best.revisados = all.length;
     return best;
   };
@@ -1038,7 +1053,7 @@
     if (!o) { if (FOLLOW) { FOLLOW = null; return this.live(); } return; }
     if (DEMO) { clearTimeout(DEMO.next); DEMO = null; }  // lo que se ve en el video manda sobre la demo
     var gtAt = function () { return Math.max(0, o.gt + (o.playing ? (Date.now() - o.at) / 1000 * (o.speed || 1) : 0)); };
-    var same = FOLLOW && FOLLOW.matchId === o.matchId && FOLLOW.juego === o.juego && G && G.start;
+    var same = FOLLOW && FOLLOW.matchId === o.matchId && FOLLOW.juego === o.juego && G && G.start && M && M.id === o.matchId && M.games[o.juego - 1] && M.games[o.juego - 1].id === G.id;
     var back = same && gtAt() < G.gt - 5;  // hacia atrás hay que rehacer el estado desde el inicio
     // la pantalla manda: el reloj del HUD corre (o.reloj) pero el feed, en ese instante, está en pausa (una pausa larga que
     // todavía no estaba medida, un juego reiniciado). Se miden de nuevo las pausas y se rehace el estado (como mucho cada 20 s)

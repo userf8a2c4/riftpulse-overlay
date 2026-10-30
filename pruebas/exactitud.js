@@ -46,14 +46,16 @@ const KEY = '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z', API = 'https://esports-a
       for (const c of casos) for (const variante of ['siglas', 'sin siglas']) {
         const o = {gt: c.gt, vivo: c.vivo, tags: variante === 'siglas' ? c.tags : ['', ''], kills: c.kills, gold: c.gold, juego: c.serie[0] + c.serie[1] + 1};
         let id = null; try { id = await RiftEngine.identify(o); } catch (e) {}
-        const dio = !id ? 'nada' : id.pendiente ? 'espera ' + id.codes.join('-') + ' J' + id.juego : id.codes.join(' vs ') + ' J' + id.juego;
-        r.push({caso: c.partido + ' J' + c.juego + (c.vivo ? ' (vivo)' : '') + ' min ' + Math.round(c.gt / 60) + ' · ' + variante, ok: !!(id && id.gameId === c.gameId), equipos: !!(id && id.codes && id.codes.slice().sort().join() === c.tags.slice().sort().join()), dio});
+        const dio = !id ? 'nada' : id.sinSiglas ? 'no muestra nada (sin siglas)' : id.pendiente ? 'espera ' + id.codes.join('-') + ' J' + id.juego : id.codes.join(' vs ') + ' J' + id.juego;
+        r.push({caso: c.partido + ' J' + c.juego + (c.vivo ? ' (vivo)' : '') + ' min ' + Math.round(c.gt / 60) + ' · ' + variante, ok: !!(id && id.gameId === c.gameId), equipos: !!(id && id.codes && id.codes.slice().sort().join() === c.tags.slice().sort().join()),
+          // lo grave es mostrar OTROS equipos; no mostrar nada sin siglas es lo correcto
+          otros: !!(id && id.codes && !id.pendiente && id.codes.slice().sort().join() !== c.tags.slice().sort().join()), dio});
       }
       return r;
     }, casos);
-    const bien = res.filter(x => x.ok).length, eq = res.filter(x => x.equipos).length;
-    console.log('\n=== MOTOR', m, '· juego correcto', bien + '/' + res.length, '· equipos correctos', eq + '/' + res.length);
-    res.forEach(x => console.log((x.ok ? '  ✓ ' : x.equipos ? '  ~ ' : '  ✗ ') + x.caso + ' → ' + x.dio));
+    const bien = res.filter(x => x.ok).length, eq = res.filter(x => x.equipos).length, otros = res.filter(x => x.otros).length;
+    console.log('\n=== MOTOR', m, '· juego correcto', bien + '/' + res.length, '· equipos correctos', eq + '/' + res.length, '· OTROS EQUIPOS en pantalla', otros + '/' + res.length);
+    res.forEach(x => console.log((x.ok ? '  ✓ ' : x.otros ? '  ✗ ' : '  · ') + x.caso + ' → ' + x.dio));
     await p.close();
   }
   await b.close();

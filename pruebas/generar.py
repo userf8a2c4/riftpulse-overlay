@@ -14,6 +14,8 @@ retratos de campeones (colores planos). Así se prueba el lector sin usar imáge
   vivo.webm  40 s: el juego en vivo en 5:30, después de una pausa larga que ya terminó
   previa.webm 20 s: la previa de una transmisión, sin el juego en pantalla
   serie3.webm 60 s: una serie en vivo que avanza: el juego 2 y, desde los 25 s, el juego 3 (la serie 1–1 en pantalla)
+  vivoclip.webm 60 s: en vivo, T1 vs MKOI desde 5:30; de 20 s a 38 s, un clip de otro partido ya jugado (IG vs LYON, juego 1
+             desde 4:20, con sus siglas) y de 38 s a 48 s otro clip sin siglas legibles; después sigue el juego en vivo
   serie.webm 40 s: juego 2 desde 1:40 con los mismos retratos que el juego 1: solo la serie en pantalla (1–0) dice que es el 2
 
 En los cuadros del juego 2, junto a cada sigla se ven las victorias en la serie (IG 1–0), como en el HUD de 2026.
@@ -146,6 +148,12 @@ if __name__ == '__main__':
         if t < 25: sv.append(cuadro(1200 + t, oro(1200 + t), oro(1200 + t) + 0.1, 3, 4, {'blue': 'C', 'red': 'D'}, vict=(0, 1), siglas=('BLG', 'TES')))
         else: sv.append(cuadro(40 + t - 25, oro(40 + t - 25), oro(40 + t - 25) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, vict=(1, 1), siglas=('TES', 'BLG')))
     video('serie3.webm', sv)
+    # vivoclip.webm 60 s: en vivo, T1 vs MKOI desde 5:30, con dos clips de otro juego en el medio (con y sin siglas legibles)
+    vc = []
+    for t in range(60):
+        if 20 <= t < 48: gt = 260 + (t - 20); vc.append(cuadro(gt, oro(gt), oro(gt) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, siglas=('IG', 'LYON') if t < 38 else ('', '')))
+        else: vc.append(cuadro(330 + t, oro(330 + t), oro(330 + t) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, siglas=('T1', 'MKOI')))
+    video('vivoclip.webm', vc)
     # previa.webm 20 s: la previa de una transmisión (el desk, sin el juego en pantalla)
     video('previa.webm', [cuadro(0, 2.5, 2.5, 0, 0, {'blue': 'A', 'red': 'B'}, con_hud=False) for t in range(20)])
     print('Videos listos en', GEN)

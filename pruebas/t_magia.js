@@ -107,18 +107,19 @@ module.exports = async function () {
   await q.evaluate(() => { window.RP_DEBUG = true; document.getElementById('v').play(); });
   for (const f of ['engine.js', 'ext-overlay.js']) await q.addScriptTag({content: fs.readFileSync(path.join(RAIZ, f), 'utf8')});
   const eq = () => q.evaluate(() => { const sh = document.getElementById('rp-overlay-host').shadowRoot, c = document.getElementById('rp-overlay-paneles').shadowRoot.getElementById('cardsx'), AS = window.__rpAS || {};
-    return {oculto: sh.getElementById('w').classList.contains('oculto'), body: sh.getElementById('body').textContent, cards: c ? c.textContent.trim() : '', id: AS.id ? AS.id.codes.join('-') : '', ct: document.getElementById('v').currentTime}; });
-  let sinc = false, visto = false, limpio = null, suelta = null;
+    return {oculto: sh.getElementById('w').classList.contains('oculto'), body: sh.getElementById('body').textContent, cards: c ? c.textContent.trim() : '', id: AS.id ? AS.id.codes.join('-') : '', estado: (AS.diag && AS.diag.estado) || '', ct: document.getElementById('v').currentTime}; });
+  let sinc = false, visto = false, limpio = null, suelta = null, siguio = '';
   for (let i = 0; i < 58; i++) {
     await q.waitForTimeout(1000); const e = await eq();
-    if (e.id && e.ct < 15) sinc = true;
+    if (e.ct < 15 && /ya jugado/.test(e.estado)) sinc = true;
+    if (e.id) siguio = e.ct.toFixed(0) + ' s ' + e.id;
     if (!e.oculto) visto = true;
     if (e.ct > 15 && e.oculto && limpio == null) limpio = !e.cards;
     if (e.ct > 15 && !e.id && suelta == null) suelta = e.ct;
     if (suelta != null && e.ct > suelta + 3) break;
   }
   const fin = await eq();
-  ok = chequear('clip en la previa: reconoce el partido del clip', sinc) && ok;
+  ok = chequear('clip en la previa: lo reconoce como un juego ya jugado y no lo sigue (en vivo solo se sigue el juego en curso)', sinc && !siguio, siguio ? 'siguió ' + siguio : sinc ? 'ya jugado' : 'no lo reconoció') && ok;
   ok = chequear('en vivo, el clip de un partido que no se está jugando no aparece en pantalla', !visto) && ok;
   ok = chequear('al volver el desk, no queda nada del clip a la vista', limpio === true && fin.oculto && !fin.cards, limpio == null ? 'no se ocultó' : limpio ? 'oculto, sin paneles' : 'quedaron paneles del clip') && ok;
   ok = chequear('sin reloj ~25 s, suelta el partido del clip', suelta != null && suelta <= 46, suelta != null ? 'a los ' + suelta.toFixed(0) + ' s' : 'sigue con ' + fin.id) && ok;

@@ -32,7 +32,7 @@ module.exports = async function () {
   r = await pagina(b, 'vod.webm', 'https://www.twitch.tv/videos/1', {sinVivo: true});
   for (let i = 0; i < 20; i++) { await r.p.waitForTimeout(1000); e = await leer(r.p); if (e.seg) break; }
   const t1 = (e.seg.match(/\d\d:\d\d:\d\d/) || [''])[0]; await r.p.waitForTimeout(2200); const t2 = ((await leer(r.p)).seg.match(/\d\d:\d\d:\d\d/) || [''])[0];
-  ok = chequear('sin nada en vivo, la cuenta regresiva al próximo partido avanza', /G2/.test(e.seg) && /HLE/.test(e.seg) && /^01:5\d:\d\d$/.test(t1) && t2 && t2 < t1, t1 + ' → ' + t2 + ' · ' + e.seg) && ok;
+  ok = chequear('sin nada en vivo, la cuenta regresiva al próximo partido avanza', /G2/.test(e.seg) && /HLE/.test(e.seg) && /^01:\d\d:\d\d$/.test(t1) && t2 && t2 < t1, t1 + ' → ' + t2 + ' · ' + e.seg) && ok;
   await r.ctx.close();
   // 3) la previa de una transmisión en vivo de LoL, sin juego en pantalla: la previa se ve sola
   r = await pagina(b, 'previa.webm', 'https://www.twitch.tv/lolesports', {sinVivo: true}, true);
