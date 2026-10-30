@@ -6,7 +6,8 @@ const T0 = Date.parse('2026-10-28T20:00:00Z');
 const BASE = 'https://userf8a2c4.github.io/riftpulse-overlay/';
 const pm = pre => [0, 1, 2, 3, 4].map(i => ({participantId: i + 1, summonerName: 'X ' + pre + i, championId: pre + i, role: ['top', 'jungle', 'mid', 'bottom', 'support'][i]}));
 const meta = (b, r, cb, cr) => ({blueTeamMetadata: {esportsTeamId: b, participantMetadata: pm(cb)}, redTeamMetadata: {esportsTeamId: r, participantMetadata: pm(cr)}});
-const KILLS = {g1: [5, 1], g2: [2, 3], g3: [8, 4], m1: [0, 0], k1: [1, 0]};
+// T1 vs KOI (de ayer) tiene las mismas kills que IG vs LYON J2: un señuelo que «cuadra» por kills y oro en el minuto del HUD
+const KILLS = {g1: [5, 1], g2: [2, 3], g3: [8, 4], m1: [0, 0], k1: [2, 3]};
 const AHORA = Date.now();
 const GAMES = {g1: {start: T0, meta: meta('tIG', 'tLY', 'A', 'B')}, g2: {start: T0 + 3600e3, meta: meta('tIG', 'tLY', 'C', 'D')}, g3: {start: T0 + 7200e3, meta: meta('tLY', 'tIG', 'E', 'F')},
   m1: {start: AHORA - 20 * 60e3, meta: meta('tT1', 'tMK', 'E', 'F')}, k1: {start: T0 - 86400e3, meta: meta('tT1', 'tKO', 'F', 'E')}};

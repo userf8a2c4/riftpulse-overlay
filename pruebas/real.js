@@ -20,25 +20,26 @@ const RAIZ = path.join(__dirname, '..'), VIDEO = process.argv[2];
   await p.evaluate(() => { window.RP_DEBUG = true; document.getElementById('v').play(); });
   for (const f of ['engine.js', 'ext-overlay.js']) await p.addScriptTag({content: fs.readFileSync(path.join(RAIZ, f), 'utf8')});
   const dur = await p.evaluate(() => document.getElementById('v').duration);
-  const n = {t: 0, reloj: 0, visible: 0, cards: 0, ctlOk: 0, ctlMal: 0, cambios: 0}, partidos = {}, series = {}; let ultId = '', ultCtl = '';
+  const n = {t: 0, reloj: 0, visible: 0, cards: 0, pausa: 0, ctlOk: 0, ctlMal: 0, cambios: 0}, partidos = {}, series = {}; let ultId = '', ultCtl = '';
   for (;;) {
     await p.waitForTimeout(1000);
     const e = await p.evaluate(() => {
       const sh = document.getElementById('rp-overlay-host').shadowRoot, w = sh.getElementById('w'), AS = window.__rpAS || {}, d = AS.diag || {}, v = document.getElementById('v');
       const cs = getComputedStyle(w), vis = cs.display !== 'none' && cs.visibility !== 'hidden' && +cs.opacity > 0.1 && !w.classList.contains('oculto');
-      const cx = sh.getElementById('cardsx');
+      const sh2 = document.getElementById('rp-overlay-paneles').shadowRoot, cx = sh2.getElementById('cardsx'), pz = sh2.getElementById('pausa');
       return {ct: v.currentTime, ended: v.ended, reloj: d.reloj, zona: d.zona, visto: AS.visto ? Date.now() - AS.visto : null, id: AS.id ? AS.id.codes.join('-') + ' J' + AS.id.juego : '', estado: d.estado || '',
         siglas: (d.siglas || []).map(s => (s[0] || {}).code + ':' + ((s[0] || {}).s || 0).toFixed(2)).join(' '), mk: d.marcador ? JSON.stringify({k: d.marcador.kills, o: d.marcador.gold}) : '', serie: d.serie || '', control: d.control || '', gtMostrado: (window.RiftEngine && RiftEngine.state && RiftEngine.state.game) ? Math.round(RiftEngine.state.game.gt) : null,
+        pausa: AS.pausa ? AS.pausa.gt : null, panelPausa: pz ? pz.innerText.replace(/\s+/g, ' ').slice(0, 40) : '', cartel: d.cartel || '',
         vis, chico: w.classList.contains('chico'), cards: cx ? cx.innerText.replace(/\s+/g, ' ').slice(0, 40) : '', body: sh.getElementById('body').innerText.replace(/\s+/g, ' ').slice(0, 50)};
     });
-    n.t++; if (e.visto != null && e.visto < 1500) n.reloj++; if (e.vis) n.visible++; if (e.cards) n.cards++; if (e.id) partidos[e.id] = (partidos[e.id] || 0) + 1; if (e.serie) series[e.serie] = (series[e.serie] || 0) + 1;
+    n.t++; if (e.visto != null && e.visto < 1500) n.reloj++; if (e.vis) n.visible++; if (e.cards) n.cards++; if (e.panelPausa) n.pausa++; if (e.id) partidos[e.id] = (partidos[e.id] || 0) + 1; if (e.serie) series[e.serie] = (series[e.serie] || 0) + 1;
     // controles (cada ~10 s el overlay compara las kills del HUD con las del feed en el minuto que muestra) y cambios de partido
     if (e.control && e.control !== ultCtl) { ultCtl = e.control; if (/✓/.test(e.control)) n.ctlOk++; else if (/✗/.test(e.control)) n.ctlMal++; }
     if (e.id && ultId && e.id !== ultId) n.cambios++; if (e.id) ultId = e.id;
-    console.log([Math.round(e.ct), 'reloj=' + e.reloj, 'z=' + e.zona, 'hace=' + (e.visto == null ? '-' : Math.round(e.visto / 1000)), e.id || '·', e.serie ? 'serie=' + e.serie : '', e.siglas, e.mk, e.vis ? (e.chico ? 'PASTILLA' : 'VISIBLE') : 'oculto', e.cards ? 'paneles: ' + e.cards : '', '| ' + e.body].join(' '));
+    console.log([Math.round(e.ct), 'reloj=' + e.reloj, 'z=' + e.zona, 'hace=' + (e.visto == null ? '-' : Math.round(e.visto / 1000)), e.id || '·', e.serie ? 'serie=' + e.serie : '', e.siglas, e.mk, e.vis ? (e.chico ? 'PASTILLA' : 'VISIBLE') : 'oculto', e.cards ? 'paneles: ' + e.cards : '', e.pausa != null ? 'PAUSA=' + Math.floor(e.pausa / 60) + ':' + String(Math.floor(e.pausa % 60)).padStart(2, '0') + (e.panelPausa ? ' [' + e.panelPausa + ']' : '') : '', e.cartel ? 'cartel=' + e.cartel : '', '| ' + e.body].join(' '));
     if (process.env.RP_IMG && n.t % 45 === 0) { const jpg = await p.screenshot({type: 'jpeg', quality: 35, clip: {x: 100, y: 60, width: 1280, height: 720}}); console.log('IMG s' + String(n.t).padStart(3, '0') + '.jpg ' + jpg.toString('base64')); }
     if (e.ended || e.ct >= dur - 0.5) break;
   }
-  console.log('RESUMEN segundos=' + n.t + ' reloj_leido=' + n.reloj + ' visible=' + n.visible + ' con_paneles=' + n.cards + ' partidos=' + JSON.stringify(partidos) + ' serie_en_pantalla=' + JSON.stringify(series) + ' controles_ok=' + n.ctlOk + ' controles_mal=' + n.ctlMal + ' cambios_de_partido=' + n.cambios);
+  console.log('RESUMEN segundos=' + n.t + ' reloj_leido=' + n.reloj + ' visible=' + n.visible + ' con_paneles=' + n.cards + ' en_pausa=' + n.pausa + ' partidos=' + JSON.stringify(partidos) + ' serie_en_pantalla=' + JSON.stringify(series) + ' controles_ok=' + n.ctlOk + ' controles_mal=' + n.ctlMal + ' cambios_de_partido=' + n.cambios);
   await b.close();
 })();
