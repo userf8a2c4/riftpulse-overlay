@@ -16,7 +16,7 @@
 <br>
 
 [![Acierto](https://img.shields.io/badge/acierto-75%25%20al%20min%2015-22D3EE?style=flat-square)](https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html)
-[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-en%20revisi%C3%B3n-F5B700?style=flat-square)](https://userf8a2c4.github.io/riftpulse-overlay/instalar.html)
+[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-instalar-22D3EE?style=flat-square&logo=googlechrome)](https://chromewebstore.google.com/detail/bkdmpcokjfgpnmkfnccgkakdincidoba)
 [![Versión](https://img.shields.io/badge/versi%C3%B3n-0.9%20beta-9AA3B2?style=flat-square)](#-instalar)
 [![Sin apuestas](https://img.shields.io/badge/pron%C3%B3stico-sin%20apuestas-FF4655?style=flat-square)](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Cumplimiento-y-datos)
 [![Licencia](https://img.shields.io/badge/licencia-AGPL--3.0-3D8BFF?style=flat-square)](LICENSE)
@@ -34,7 +34,7 @@
 </div>
 
 > [!NOTE]
-> **La extensión está en revisión en la Chrome Web Store.** Cuando Google la apruebe se va a instalar con un clic desde la tienda. Mientras tanto se instala a mano en 3 pasos ([ver Instalar](#-instalar)), y es la misma extensión.
+> **La extensión está en la [Chrome Web Store](https://chromewebstore.google.com/detail/bkdmpcokjfgpnmkfnccgkakdincidoba):** se instala con un clic y se actualiza sola. También se puede instalar a mano ([ver Instalar](#-instalar)); es la misma extensión.
 
 <div align="center">
 
@@ -132,7 +132,7 @@ Muestra <b>por qué</b> va ganando cada equipo, qué movería el próximo dragó
 3. **Cargar descomprimida** → esa carpeta.
 4. En **Detalles**, activá **Permitir scripts de usuario**: así se actualiza sola. ¡Listo!
 
-<sub>La guía con imágenes está en la <a href="https://userf8a2c4.github.io/riftpulse-overlay/instalar.html">página Instalar</a>. Pronto, con un clic desde la Chrome Web Store.</sub>
+<sub>La guía con imágenes está en la <a href="https://userf8a2c4.github.io/riftpulse-overlay/instalar.html">página Instalar</a>. O con un clic desde la <a href="https://chromewebstore.google.com/detail/bkdmpcokjfgpnmkfnccgkakdincidoba">Chrome Web Store</a>.</sub>
 
 </td>
 <td width="50%" valign="top">

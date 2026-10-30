@@ -165,7 +165,7 @@
     function fit() { vp.style.transform = 'scale(' + (st.clientWidth / 1280) + ')'; }
     fit(); window.addEventListener('resize', fit); })();
   // la ficha de RiftPulse en la Chrome Web Store (un clic para instalar); vacía, los botones llevan a la página de instalación
-  var TIENDA = '';
+  var TIENDA = 'https://chromewebstore.google.com/detail/bkdmpcokjfgpnmkfnccgkakdincidoba';
   if (TIENDA) document.querySelectorAll('.a-tienda').forEach(function (a) { a.href = TIENDA; });
   var OVERLAY_URL = location.origin + location.pathname.replace(/[^/]*$/, '') + 'overlay.html?view=auto';
   document.getElementById('copy').addEventListener('click', function () {

@@ -225,6 +225,9 @@
   };
   // ---- el resto de la app, el sitio, el overlay y OBS (generado desde el código; {} = un valor que cambia: un equipo, un número, un campeón) ----
   var D2 = {
+    "Lo más fácil:": "Easiest:",
+    "instalala con un clic desde la Chrome Web Store →": "install it in one click from the Chrome Web Store →",
+    "(se actualiza sola). Si preferís hacerlo a mano, son estos 4 pasos.": "(it updates itself). If you'd rather do it by hand, here are the 4 steps.",
     "el próximo en": "next in",
     "● también en vivo": "● also live",
     "no leo las siglas de los equipos · no muestro un partido sin confirmarlo": "can't read the team tags · not showing a match without confirming it",

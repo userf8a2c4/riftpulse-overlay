@@ -40,7 +40,7 @@ No es un número inventado: es un modelo entrenado con más de 2.200 juegos prof
 <p align="center"><img src="img/nick/1-overlay.png" width="720" alt="La extensión sobre el video"></p>
 <p align="center"><img src="img/nick/2-panel.png" width="360" alt="El video con el panel lateral"> <img src="img/nick/3-ahora.png" width="360" alt="La app en Ahora"></p>
 
-**Si tu chat lo usa, todos miran el mismo número que vos.** 👉 **[Instalar la extensión](https://userf8a2c4.github.io/riftpulse-overlay/instalar.html#extension)** (3 pasos, 1 minuto) o **[abrir la app](https://userf8a2c4.github.io/riftpulse-overlay/app.html)** sin instalar nada.
+**Si tu chat lo usa, todos miran el mismo número que vos.** 👉 **[Instalar la extensión desde la Chrome Web Store](https://chromewebstore.google.com/detail/bkdmpcokjfgpnmkfnccgkakdincidoba)** (un clic) o **[abrir la app](https://userf8a2c4.github.io/riftpulse-overlay/app.html)** sin instalar nada.
 
 ## Probarlo te lleva un minuto
 
