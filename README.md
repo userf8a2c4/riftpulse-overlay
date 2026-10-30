@@ -11,12 +11,16 @@ Quién va ganando cada partida del Mundial de League of Legends, en vivo y en po
 ![Acierto](https://img.shields.io/badge/acierto-75%25%20al%20min%2015-22D3EE)
 ![Prueba](https://img.shields.io/badge/medido%20en-juegos%20que%20no%20vio-0EA5C6)
 ![Extensión](https://img.shields.io/badge/extensi%C3%B3n-Chrome%20%C2%B7%20Edge%20%C2%B7%20Brave-3D8BFF)
+![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-en%20revisi%C3%B3n-F5B700)
 ![OBS](https://img.shields.io/badge/OBS-Browser%20Source-302E87)
 ![Sin apuestas](https://img.shields.io/badge/pron%C3%B3stico-sin%20apuestas-FF4655)
 
 **[Instalar](https://userf8a2c4.github.io/riftpulse-overlay/instalar.html)** · **[App](https://userf8a2c4.github.io/riftpulse-overlay/app.html)** · **[Para streamers](https://userf8a2c4.github.io/riftpulse-overlay/)** · **[Cómo funciona](https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html)** · **[Wiki](https://github.com/userf8a2c4/riftpulse-overlay/wiki)**
 
 </div>
+
+> [!NOTE]
+> **La extensión está en revisión en la Chrome Web Store.** Cuando Google la apruebe se va a instalar con un clic desde la tienda. Mientras tanto se instala a mano en 3 pasos ([ver abajo](#instalar)), con la misma extensión.
 
 <p align="center"><img src="docs/chrome-web-store/1-overlay.png" alt="La extensión de RiftPulse sobre el video de un partido" width="860"></p>
 
@@ -51,7 +55,7 @@ Quién va ganando cada partida del Mundial de League of Legends, en vivo y en po
 2. Abrí `chrome://extensions` y activá el **Modo de desarrollador**.
 3. **Cargar descomprimida** → carpeta **RiftPulse**.
 
-La guía con imágenes está en la [página Instalar](https://userf8a2c4.github.io/riftpulse-overlay/instalar.html). La versión de la Chrome Web Store, de instalación en un clic, está en revisión.
+La guía con imágenes está en la [página Instalar](https://userf8a2c4.github.io/riftpulse-overlay/instalar.html). Cuando Google apruebe la versión de la Chrome Web Store (versión 0.9 beta, en revisión), este enlace va a llevar a la tienda.
 
 **OBS:** en la [página para streamers](https://userf8a2c4.github.io/riftpulse-overlay/), tocá **📋 Copiar URL del overlay**. En OBS: **＋ Fuentes → Navegador** → pegá la URL → **1920 × 1080**.
 
