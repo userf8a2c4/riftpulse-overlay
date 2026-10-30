@@ -87,7 +87,9 @@ module.exports = async function () {
   const e2 = await ci.newPage(); await e2.goto(BASE + 'index.html'); await e2.waitForTimeout(1500);
   ok = chequear('idiomas: la elección se recuerda en la portada', await e2.evaluate(() => document.documentElement.lang === 'en' && /I want to watch Worlds/.test(document.body.textContent))) && ok;
   // en inglés no queda nada en español: todas las vistas de la app y las páginas del sitio
-  const restos = pg => pg.evaluate(() => { const ES = /[áéíóúñ¿¡]|\b(el|la|los|las|del|de|en|con|que|para|por|sin|una?|juegos?|partidos?|equipos?|hoy|ayer|victorias|acierta|serie|minuto|oro|torres|dragones|ganador|cargando|todavía|cada|más|vivo)\b/, r = [];
+  // dos lecturas seguidas: lo que sigue en español en las dos (no el instante en que la app redibuja y todavía no tradujo)
+  const restos = async pg => { const a = await restos1(pg); if (!a.length) return a; await pg.waitForTimeout(600); const b = await restos1(pg); return a.filter(x => b.includes(x)); };
+  const restos1 = pg => pg.evaluate(() => { const ES = /[áéíóúñ¿¡]|\b(el|la|los|las|del|de|en|con|que|para|por|sin|una?|juegos?|partidos?|equipos?|hoy|ayer|victorias|acierta|serie|minuto|oro|torres|dragones|ganador|cargando|todavía|cada|más|vivo)\b/, r = [];
     const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n;
     while ((n = w.nextNode())) { const pe = n.parentElement; if (!pe || /SCRIPT|STYLE/.test(pe.nodeName) || pe.closest('[hidden]')) continue; const t = n.nodeValue.trim(); if (t && ES.test(t) && !/^https?:/.test(t)) r.push(t.slice(0, 60)); }
     return r; });

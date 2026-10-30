@@ -61,7 +61,15 @@ module.exports = async function () {
     if (e.id) iv = e.id;
     if (e.id && e.gt != null && e.hud != null && e.ct >= 18) { fin = e; if (e.ct >= 26) break; }
   }
+  // el botón de idioma del overlay: pasa al inglés al instante, sin recargar Twitch
+  const idi = await r2.p.evaluate(async () => { const sh = document.getElementById('rp-overlay-host').shadowRoot, c = sh.getElementById('langc'), antes = c.textContent;
+    c.click(); await new Promise(r => setTimeout(r, 1500));
+    const ES = /[áéíóúñ¿¡]|\b(el|la|los|las|del|de|en|con|que|para|por|sin|una?|juegos?|partidos?|acierta|minuto|oro|torres|dragones|cargando|más|vivo|ventaja)\b/, resto = [];
+    [sh, document.getElementById('rp-overlay-paneles').shadowRoot].forEach(r => { const w = document.createTreeWalker(r, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) { const pe = n.parentElement; if (pe && /STYLE|SCRIPT/.test(pe.nodeName)) continue; const t = n.nodeValue.trim(); if (t && ES.test(t)) resto.push(t.slice(0, 40)); } });
+    return {antes, despues: c.textContent, chip: sh.getElementById('autoc').textContent, resto}; });
   await r2.ctx.close(); await b.close();
+  ok = chequear('el overlay tiene su botón de idioma y cambia al inglés al instante', idi.antes === 'EN' && idi.despues === 'ES' && idi.chip === 'auto sync', idi.chip) && ok;
+  ok = chequear('en inglés no queda texto en español en el overlay', !idi.resto.length, idi.resto.length ? idi.resto.slice(0, 6).join(' | ') : 'todo en inglés') && ok;
   ok = chequear('en vivo reconoce el juego en curso', /T1-MKOI/.test(iv), iv || 'sin reconocer') && ok;
   ok = chequear('en vivo, tras una pausa de 10 min: el minuto es el del HUD y no queda «Juego en pausa»', fin && Math.abs(fin.gt - fin.hud) <= 6 && fin.feed !== 'pausa' && !/pausa/i.test(fin.texto),
     fin ? 'min ' + fin.gt.toFixed(0) + ' (HUD ' + fin.hud.toFixed(0) + ') · ' + fin.feed : 'sin datos') && ok;

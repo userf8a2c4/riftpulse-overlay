@@ -161,6 +161,8 @@
   };
   // ---- el resto de la app, el sitio, el overlay y OBS (generado desde el código; {} = un valor que cambia: un equipo, un número, un campeón) ----
   var D2 = {
+    "minuto": "minute",
+    "va": "now",
     "{} la gana": "{} wins it",
     "{} · ya está": "{} · already up",
     "Próx. {} · {}": "Next {} · {}",
@@ -977,7 +979,10 @@
   var ESP = /[áéíóúñ¿¡]|\b(el|la|los|las|de|del|que|con|para|por|un|una|y|sin|más)\b/;  // en minúscula: LOS o DE como siglas de equipo no cuentan
   // claves con los números cambiados por {n}
   var norm = function (s) { var nums = []; var k = s.replace(/\d+(?:[.,:]\d+)*/g, function (m) { nums.push(m); return '{n}'; }); return {k: k, nums: nums}; };
-  function t(s) {
+  // en inglés los decimales van con punto: «1,6k» → «1.6k», «0,250» → «0.250» (los miles, «2,073», quedan igual)
+  var punto = function (x) { return typeof x === 'string' ? x.replace(/(\d),(\d{1,2})(?!\d)/g, '$1.$2').replace(/\b0,(\d{3})\b/g, '0.$1') : x; };
+  function t(s) { return LANG === 'en' && s ? punto(t0(s)) : s; }
+  function t0(s) {
     if (LANG !== 'en' || !s) return s;
     var m = /^(\s*)([\s\S]*?)(\s*)$/.exec(s), core = m[2].replace(/\s+/g, ' '); if (!core) return s;  // los saltos de línea del HTML no cuentan
     if (D[core]) return m[1] + D[core] + m[3];

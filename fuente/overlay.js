@@ -209,7 +209,7 @@
   var LOGO = '<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="rplg" x1="8" y1="40" x2="56" y2="26" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="'+RPC.a+'"/><stop offset=".5" stop-color="'+RPC.ahi+'"/><stop offset="1" stop-color="'+RPC.b+'"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="15" fill="#14171d" stroke="#2a2f3a" stroke-width="3"/><path d="M10 35 H21 L25 35 L30 17 L36 49 L40 35 H54" fill="none" stroke="url(#rplg)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   sh.innerHTML = '<style>' + CSS + TOK + '</style><div class="w" id="w"><div class="mom" id="mom"></div><div class="toast" id="toast"></div><div class="diag" id="diag"></div><div id="body" style="display:inline-flex"></div>' +
-    '<div class="ctl" id="ctl"><div class="tl" id="tl"></div><span class="chip" id="autoc" title="Lee el reloj y el marcador del video y se sincroniza solo con el minuto que ves">sincronía automática</span><span class="ast" id="ast"></span><button class="ic" id="diagb" title="Qué está leyendo del video (por si no sincroniza)">?</button>' +
+    '<div class="ctl" id="ctl"><div class="tl" id="tl"></div><span class="chip" id="autoc" title="Lee el reloj y el marcador del video y se sincroniza solo con el minuto que ves">sincronía automática</span><span class="ast" id="ast"></span><button class="ic" id="diagb" title="Qué está leyendo del video (por si no sincroniza)">?</button><span class="chip" id="langc" title="Idioma / Language"></span>' +
     '<span class="chip" data-ext="obj" title="El próximo objetivo (dragón, Barón…) y cuánto puede mover la probabilidad">objetivo</span><span class="chip" data-ext="pg" title="Cómo fue cambiando la probabilidad en el juego">trayectoria</span><span class="chip" data-ext="oro" title="Panel: la diferencia de oro minuto a minuto">oro</span><span class="chip" data-ext="dano" title="Panel: el daño de cada jugador">daño</span><span class="chip" data-ext="imp" title="Panel: las jugadas que más movieron la probabilidad">impacto</span><span class="chip" data-ext="duelos" title="Panel: cómo va cada jugador contra su rival de línea">duelos</span><span class="chip" data-ext="mini" title="Solo los porcentajes, lo más chico posible">mínimo</span>' +
     '<button class="ic" id="posbtn" title="Volver a su lugar (debajo del marcador o arriba de las estadísticas)">↑↓</button><span class="man"><button class="ic" data-d="-5" title="Atrasar el overlay 5 segundos">−</button><button class="ic" data-d="5" title="Adelantar el overlay 5 segundos">+</button>' +
     '<span class="syncg" title="Escribí el minuto del juego que ves en el stream y tocá ⟲ (o Enter) para clavar el overlay a ese momento">minuto <input id="scm" placeholder="mm:ss" maxlength="5"><button class="ic" id="syncb" title="Sincronizar al minuto que escribiste">⟲</button> va <span class="gt" id="gtnow">—</span></span></span><button class="ic" id="ocub" title="Ocultar RiftPulse (Alt+R lo vuelve a mostrar)">✕</button></div></div>';
@@ -224,6 +224,18 @@
     if (RPI18N.lang() === 'en' && !IDIOMA_ON) { IDIOMA_ON = true; RPI18N.observar(sh); RPI18N.observar(sh2); }
   }
   idioma();
+  // el selector ES | EN también en los controles del overlay: muestra el idioma al que se cambia
+  var langc = sh.getElementById('langc');
+  function pintarLang() { if (langc) langc.textContent = window.RPI18N && RPI18N.lang() === 'en' ? 'ES' : 'EN'; }
+  pintarLang();
+  if (langc) {
+    langc.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+    langc.addEventListener('click', function (e) {
+      e.stopPropagation(); if (!window.RPI18N) return;
+      var l = RPI18N.lang() === 'en' ? 'es' : 'en'; RPI18N.set(l);
+      if (l === 'en') { idioma(); pintarLang(); } else location.reload();  // volver al español: se recarga para rehacer todos los textos
+    });
+  }
   var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom'), dmgEl = sh2.getElementById('dmg'), cardsX = sh2.getElementById('cardsx'), pausaEl = sh2.getElementById('pausa');
 
   function syncChips() { ctl.querySelectorAll('.chip[data-ext]').forEach(function (c) { c.classList.toggle('on', EXT.indexOf(c.getAttribute('data-ext')) >= 0); }); }
