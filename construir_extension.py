@@ -195,7 +195,9 @@ if os.path.isdir(web):
     json.dump(man, open(os.path.join(tienda, 'manifest.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
     open(os.path.join(tienda, 'background.js'), 'w', encoding='utf-8').write(TIENDA_BG)
     os.remove(os.path.join(tienda, 'INSTALAR.html'))
-    shutil.make_archive(os.path.join(web, 'riftpulse-extension-tienda'), 'zip', tmp, 'extension')
+    # la tienda exige manifest.json en la raíz del ZIP (sin carpeta)
+    with zipfile.ZipFile(os.path.join(web, 'riftpulse-extension-tienda.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
+        for f in sorted(os.listdir(tienda)): z.write(os.path.join(tienda, f), f)
     shutil.rmtree(tmp)
     print('Publicado en la carpeta web:', web)
 
