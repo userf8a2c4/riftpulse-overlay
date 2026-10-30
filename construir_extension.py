@@ -11,6 +11,8 @@ También publica la app y el overlay en la carpeta del repo web (../riftpulse-ov
 import json
 import os
 import shutil
+import tempfile
+import zipfile
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 WEB = 'https://userf8a2c4.github.io/riftpulse-overlay/'
@@ -129,7 +131,7 @@ const CLAVES = ['rp_origen', 'rp_pantalla', 'rp_cmd'];
 function enviar(data) { try { app.contentWindow.postMessage({rp: 'store', shell: CASCARON, data}, '*'); } catch (e) {} }
 window.addEventListener('message', e => {
   if (e.source !== app.contentWindow || !e.data || !e.data.rp) return;
-  if (e.data.rp === 'ready') { lista = true; carga.style.display = 'none'; chrome.storage.local.get(CLAVES, enviar); }
+  if (e.data.rp === 'ready') { lista = true; carga.style.display = 'none'; app.style.visibility = ''; chrome.storage.local.get(CLAVES, enviar); }
   if (e.data.rp === 'set' && e.data.data) chrome.storage.local.set(e.data.data);
   if (e.data.rp === 'reinstalar') chrome.runtime.sendMessage({type: 'rp-reinstalar'}, () => chrome.storage.local.get(CLAVES, enviar));
 });
@@ -185,12 +187,10 @@ if os.path.isdir(web):
     # la extensión en un ZIP, para instalarla sin git (enlace directo desde la web)
     # los archivos van sueltos en la raíz del ZIP: «Extraer todo» (Windows) o el doble clic (Mac) dejan UNA carpeta,
     # riftpulse-extension, que es justo la que se elige en «Cargar descomprimida» (sin carpetas dentro de carpetas)
-    import zipfile
     with zipfile.ZipFile(os.path.join(web, 'riftpulse-extension.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
         for f in sorted(os.listdir(ext)): z.write(os.path.join(ext, f), f)
     # versión para la Chrome Web Store: la tienda no acepta código que se baje de la web, así que el overlay va
     # dentro del paquete (se actualiza con cada versión de la tienda). El panel sigue abriendo la app desde la web.
-    import json, tempfile
     tmp = tempfile.mkdtemp(); tienda = os.path.join(tmp, 'extension')
     shutil.copytree(ext, tienda)
     man = json.load(open(os.path.join(ext, 'manifest.json'), encoding='utf-8'))
