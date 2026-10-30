@@ -2,7 +2,7 @@
 
 # RiftPulse
 
-**Tu segunda pantalla del Mundial.** Para ver el **Mundial de League of Legends 2026 (Worlds)**: predicción en vivo del ganador con un modelo entrenado y **honesto sobre sus aciertos**, la historia de cada juego, simulación del torneo y ayuda para el Pick'Em oficial. Todo en los **colores de cada equipo**.
+**Tu segunda pantalla del Mundial.** Para ver el **Mundial de League of Legends 2026 (Worlds)**: predicción en vivo del ganador con un modelo entrenado y **honesto sobre sus aciertos**, la historia de cada juego, simulación del torneo y ayuda para el Pick'Em oficial. Con el azul y el rojo de cada lado, como el HUD de la transmisión. **El Mundial, jugada a jugada.**
 
 Es un solo archivo HTML, sin instalación ni servidor. Proyecto de código abierto, **sin funciones de apuestas**.
 
@@ -26,7 +26,7 @@ Es un solo archivo HTML, sin instalación ni servidor. Proyecto de código abier
 - **Fase suiza visual** (pestaña «Mundial»): una columna por ronda, cada récord en su caja con sus partidos y los caminos del que gana y del que pierde, hasta el 3-0 o el 0-3.
 - **Cuadro de eliminatorias en vivo** (pestaña «Mundial»): cuartos, semis y final con el marcador de cada serie, la que se está jugando y la probabilidad de cada equipo de ganarla o de llegar a cada llave.
 - **Copa:** favoritos al título y el camino de cada equipo por fases, con 20,000 simulaciones del torneo.
-- **Tarjetas para compartir:** el pronóstico de una serie, el resumen de un juego y **mi Pick'Em**, en imágenes de 1200 × 675 con los colores de los equipos.
+- **Tarjetas para compartir:** el pronóstico de una serie, el resumen de un juego y **mi Pick'Em**, en imágenes de 1200 × 675 con el azul y el rojo de cada lado.
 - **Pick'Em y Bola de Cristal:** sugerencias del sistema para el Pick'Em oficial (Sistema Suizo, eliminatorias) y para la Bola de Cristal (campeón más elegido, mejor % de victorias, mejor KDA), con enlace para registrarlos en lolesports.
 - **Historial:** resumen de cada juego con el veredicto del sistema, comparación de equipos, jugadores, fotos y objetivos.
 - **Centro de mando (pestaña «Mando»):** para streamers y analistas. Lo que está al aire (probabilidad, serie, próximo objetivo y trayectoria con los giros), un guion de frases para comentar con botón para copiarlas, la lectura del juego (giros clave, qué necesita el que va abajo, jugador clave), el control del overlay sobre el stream (piezas, posición, ocultar y sincronía al minuto que se ve), un post listo para X con la imagen del resumen al terminar, y las URL de cada pieza para OBS. Sin partido en vivo se puede probar con un partido real ya jugado.
