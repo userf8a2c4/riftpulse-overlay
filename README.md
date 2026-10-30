@@ -45,6 +45,48 @@
 
 <img src="docs/img/divisor.svg" width="100%" alt="">
 
+## 🔗 Enlaces
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+**🌐 Páginas (GitHub Pages)**
+
+| | |
+|---|---|
+| Inicio para streamers | https://userf8a2c4.github.io/riftpulse-overlay/ |
+| Instalar | https://userf8a2c4.github.io/riftpulse-overlay/instalar.html |
+| App | https://userf8a2c4.github.io/riftpulse-overlay/app.html |
+| Cómo funciona | https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html |
+| Mesa de análisis | https://userf8a2c4.github.io/riftpulse-overlay/analista.html |
+| Control de producción | https://userf8a2c4.github.io/riftpulse-overlay/control.html |
+| Overlay para OBS | https://userf8a2c4.github.io/riftpulse-overlay/overlay.html?view=auto |
+| Demo del overlay | https://userf8a2c4.github.io/riftpulse-overlay/overlay.html?demo&view=auto&director=show |
+
+</td>
+<td width="50%" valign="top">
+
+**📚 Wiki**
+
+| | |
+|---|---|
+| Inicio | https://github.com/userf8a2c4/riftpulse-overlay/wiki |
+| Extensión para espectadores | https://github.com/userf8a2c4/riftpulse-overlay/wiki/Extensión-para-espectadores |
+| Para el espectador | https://github.com/userf8a2c4/riftpulse-overlay/wiki/Para-el-espectador |
+| Instalación en OBS | https://github.com/userf8a2c4/riftpulse-overlay/wiki/Instalación-en-OBS |
+| Director automático | https://github.com/userf8a2c4/riftpulse-overlay/wiki/Director-automático |
+| Paquete de gráficos | https://github.com/userf8a2c4/riftpulse-overlay/wiki/Paquete-de-gráficos |
+| Mesa de análisis | https://github.com/userf8a2c4/riftpulse-overlay/wiki/Mesa-de-análisis |
+| Control de producción | https://github.com/userf8a2c4/riftpulse-overlay/wiki/Control-de-producción |
+| Cómo funciona el modelo | https://github.com/userf8a2c4/riftpulse-overlay/wiki/Cómo-funciona-el-modelo |
+| Precisión y pruebas | https://github.com/userf8a2c4/riftpulse-overlay/wiki/Precisión-y-pruebas |
+| Preguntas frecuentes | https://github.com/userf8a2c4/riftpulse-overlay/wiki/Preguntas-frecuentes |
+
+</td>
+</tr>
+</table>
+
 ## 🎮 Tres formas de vivir el Mundial
 
 <table>
