@@ -49,7 +49,7 @@ Es un solo archivo HTML, sin instalación ni servidor. Proyecto de código abier
 </p>
 
 ### Sincronía con el stream
-**Automática:** el overlay de la extensión lee del video el reloj del juego, los equipos y el marcador (oro y kills), reconoce qué partido y qué juego se está viendo y se clava a ese minuto. Funciona igual en vivo o con una repetición a cualquier hora, y sigue sola la pausa, la velocidad y los saltos del video. Se prende o apaga con el botón **sincronía automática** de los controles del overlay. **Alt+R** oculta y muestra el overlay. La lectura (OCR) va empaquetada en la extensión y se hace en tu computadora.
+**Automática:** el overlay de la extensión lee del video el reloj del juego, los equipos, el marcador (oro y kills) y las victorias de cada equipo en la serie, reconoce qué partido y qué juego se está viendo y se clava a ese minuto. Funciona igual en vivo o con una repetición a cualquier hora, y sigue sola la pausa, la velocidad y los saltos del video. Se prende o apaga con el botón **sincronía automática** de los controles del overlay. **Alt+R** oculta y muestra el overlay. La lectura (OCR) va empaquetada en la extensión y se hace en tu computadora.
 
 La página ajusta sola el retraso frente a la transmisión. Si ves un desfase, usá los botones **±** del menú ⏱ en la cabecera.
 
