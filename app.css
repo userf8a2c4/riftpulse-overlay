@@ -591,3 +591,6 @@ details.det summary::before{content:'▸ ';}details.det[open] summary::before{co
 :focus-visible{outline:2px solid var(--signal,#22D3EE);outline-offset:2px;border-radius:4px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 @media (pointer:coarse){.hbtn,.mx-btn,.mx-cp,.player button,.sp-pk button,.ini-go,.tab{min-height:40px}.mx-cp{min-width:40px}.ext-aviso .x{min-width:40px;min-height:40px}}
+/* fotos de jugadores: enlace a su perfil en op.gg */
+.pl-av-a{display:inline-flex;flex:none;border-radius:50%;transition:transform .15s,box-shadow .15s}.pl-av-a:hover{transform:scale(1.08);box-shadow:0 0 0 2px var(--signal)}
+a.idet-pl{color:inherit;text-decoration:none;border-radius:10px;transition:background .15s}a.idet-pl:hover{background:rgba(255,255,255,.06)}a.idet-pl:hover img{box-shadow:0 0 0 2px var(--signal)}

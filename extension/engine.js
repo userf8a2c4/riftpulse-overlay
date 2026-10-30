@@ -580,10 +580,10 @@
         e.match.teams.every(function (t) { return t.code === a || t.code === b; }) && e.match.teams[0].code !== e.match.teams[1].code;
     }).sort(function (x, y) { return x.startTime < y.startTime ? 1 : -1; }).map(function (e) {
       var ta = e.match.teams.find(function (t) { return t.code === a; }), tb = e.match.teams.find(function (t) { return t.code === b; });
-      return {date: e.startTime.slice(0, 10), league: e.league ? e.league.name : '', ga: (ta.result || {}).gameWins || 0, gb: (tb.result || {}).gameWins || 0};
+      return {date: e.startTime.slice(0, 10), league: e.league ? e.league.name : '', block: e.blockName || '', ga: (ta.result || {}).gameWins || 0, gb: (tb.result || {}).gameWins || 0};
     });
     var seenD = {}; list = list.filter(function (x) { var k = x.date + x.ga + x.gb; return seenD[k] ? false : (seenD[k] = true); });
-    var res = {at: Date.now(), a: a, b: b, wa: list.filter(function (x) { return x.ga > x.gb; }).length, wb: list.filter(function (x) { return x.gb > x.ga; }).length, last: list.slice(0, 5)};
+    var res = {at: Date.now(), a: a, b: b, wa: list.filter(function (x) { return x.ga > x.gb; }).length, wb: list.filter(function (x) { return x.gb > x.ga; }).length, last: list.slice(0, 8)};
     H2H[key] = res;
     try { localStorage.setItem('rp_h2h_' + key, JSON.stringify(res)); } catch (e) {}
     emit();
@@ -592,7 +592,7 @@
     var h = H2H[[a, b].sort().join('|')];
     if (!h || h.loading) return null;
     if (h.a === a) return h;  // orientarlo a (azul, rojo)
-    return {a: a, b: b, wa: h.wb, wb: h.wa, last: h.last.map(function (x) { return {date: x.date, league: x.league, ga: x.gb, gb: x.ga}; })};
+    return {a: a, b: b, wa: h.wb, wb: h.wa, last: h.last.map(function (x) { return {date: x.date, league: x.league, block: x.block, ga: x.gb, gb: x.ga}; })};
   }
 
   // Duelo por línea y jugador clave (feed de detalles: oro, CS, K/D/A, % del daño, participación en kills).
@@ -1150,6 +1150,8 @@
   RiftEngine.loadBracket = loadBracket;     // el overlay lo pide solo (se refresca cada minuto)
   Object.defineProperty(RiftEngine, 'bracket', {get: function () { return BR.data; }});
   RiftEngine.loadMatches = async function () { await loadSchedule(); return matchList(); };
+  // los enfrentamientos más recientes entre dos equipos en cualquier liga o torneo desde 2025: {a, b, wa, wb, last: [{date, league, block, ga, gb}]}
+  RiftEngine.enfrentamientos = async function (a, b) { await loadH2H(a, b); return h2hFor(a, b); };
   // predicciones del stream: opciones para elegir qué partidos mostrar (un día o una fase completa) y los partidos de esa opción
   var dayKey = function (iso) { var d = new Date(iso); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
   RiftEngine.predDays = function (ms) {
