@@ -32,6 +32,8 @@ Con `overlay.html?view=auto` en OBS, el control muestra:
 
 ## Predicciones del stream
 
+> **También desde el panel:** en la extensión, **Mando → Predicciones del staff** agrega integrantes y picks, marca los aciertos solos y **copia la URL para OBS** con todo adentro (no hace falta el dock).
+
 <p align="center"><img src="https://raw.githubusercontent.com/userf8a2c4/riftpulse-overlay/main/docs/img/predicciones.png" width="760" alt="Predicciones del stream"><br><sub>Datos de ejemplo.</sub></p>
 
 La gráfica de picks del equipo del stream, como la de las transmisiones oficiales, pero con aciertos automáticos.

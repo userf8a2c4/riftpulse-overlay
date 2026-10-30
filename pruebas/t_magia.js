@@ -41,19 +41,41 @@ module.exports = async function () {
   for (const f of ['engine.js', 'ext-overlay.js']) await q.addScriptTag({content: fs.readFileSync(path.join(RAIZ, f), 'utf8')});
   const eq = () => q.evaluate(() => { const sh = document.getElementById('rp-overlay-host').shadowRoot, c = document.getElementById('rp-overlay-paneles').shadowRoot.getElementById('cardsx'), AS = window.__rpAS || {};
     return {oculto: sh.getElementById('w').classList.contains('oculto'), body: sh.getElementById('body').textContent, cards: c ? c.textContent.trim() : '', id: AS.id ? AS.id.codes.join('-') : '', ct: document.getElementById('v').currentTime}; });
-  let sinc = false, limpio = null, suelta = null;
+  let sinc = false, visto = false, limpio = null, suelta = null;
   for (let i = 0; i < 58; i++) {
     await q.waitForTimeout(1000); const e = await eq();
-    if (/IG/.test(e.body) && !e.oculto && e.ct < 15) sinc = true;
+    if (e.id && e.ct < 15) sinc = true;
+    if (!e.oculto) visto = true;
     if (e.ct > 15 && e.oculto && limpio == null) limpio = !e.cards;
     if (e.ct > 15 && !e.id && suelta == null) suelta = e.ct;
     if (suelta != null && e.ct > suelta + 3) break;
   }
   const fin = await eq();
-  ok = chequear('clip en la previa: se sincroniza con el partido del clip', sinc) && ok;
+  ok = chequear('clip en la previa: reconoce el partido del clip', sinc) && ok;
+  ok = chequear('en vivo, el clip de un partido que no se está jugando no aparece en pantalla', !visto) && ok;
   ok = chequear('al volver el desk, no queda nada del clip a la vista', limpio === true && fin.oculto && !fin.cards, limpio == null ? 'no se ocultó' : limpio ? 'oculto, sin paneles' : 'quedaron paneles del clip') && ok;
   ok = chequear('sin reloj ~25 s, suelta el partido del clip', suelta != null && suelta <= 46, suelta != null ? 'a los ' + suelta.toFixed(0) + ' s' : 'sigue con ' + fin.id) && ok;
   await c1.close();
+  // fin del juego con el HUD todavía en pantalla (mejores momentos): el resultado unos segundos y después nada
+  const c3 = await b.newContext({viewport: {width: 1500, height: 900}}); await montar(c3, {video: 'final.webm'});
+  const f = await c3.newPage(); f.on('pageerror', e => console.log('    error de página:', e.message));
+  await f.goto('https://www.twitch.tv/videos/1');
+  await f.evaluate(() => { const v = document.getElementById('v'); return new Promise(r => { v.addEventListener('loadeddata', r, {once: true}); v.load(); }); });
+  await f.evaluate(() => { window.RP_DEBUG = true; document.getElementById('v').play(); });
+  for (const x of ['engine.js', 'ext-overlay.js']) await f.addScriptTag({content: fs.readFileSync(path.join(RAIZ, x), 'utf8')});
+  const ef = () => f.evaluate(() => { const sh = document.getElementById('rp-overlay-host').shadowRoot; return {oculto: sh.getElementById('w').classList.contains('oculto'), body: sh.getElementById('body').textContent, ct: document.getElementById('v').currentTime}; });
+  let antesF = false, pild = '', finales = [];
+  for (let i = 0; i < 40; i++) {
+    await f.waitForTimeout(1000); const e = await ef();
+    if (!e.oculto && e.ct < 19 && /%/.test(e.body)) antesF = true;
+    if (!e.oculto && /gana el juego|Terminó el juego/.test(e.body)) pild = e.body;
+    if (e.ct >= 30) finales.push(e.oculto);
+    if (e.ct >= 38) break;
+  }
+  ok = chequear('fin del juego: antes del final se ve la barra', antesF) && ok;
+  ok = chequear('fin del juego: muestra unos segundos quién ganó', !!pild, pild.replace(/\s+/g, ' ').slice(0, 40)) && ok;
+  ok = chequear('fin del juego: después desaparece aunque el HUD siga en pantalla', finales.length > 0 && finales.every(Boolean), finales.join(',')) && ok;
+  await c3.close();
   // modo sin spoilers en la app (mirando el VOD de IG vs LYON)
   const c2 = await b.newContext({viewport: {width: 1200, height: 900}}); await montar(c2);
   const a = await c2.newPage(); a.on('pageerror', () => {}); await a.goto(BASE + 'app.html'); await a.waitForTimeout(2500);

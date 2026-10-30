@@ -36,6 +36,8 @@ En la barra del overlay, pasá el mouse y tocá **?**. Aparece el **diagnóstico
 ## La barra lee la sala
 - **Solo con el juego en pantalla.** Sin el marcador del juego a la vista (repetición, desk, publicidad, entrevista, multivista), el overlay **desaparece entero** en unos segundos y vuelve solo cuando reaparece el juego. Si movés el mouse mientras está oculto, un aviso chico dice que está esperando el juego.
 - **Integrado a la transmisión:** la barra va pegada debajo del marcador de arriba, y los paneles, de a uno, en la columna izquierda a media altura. Nunca tapan el marcador, los timers, la barra de estadísticas, las cámaras ni el minimapa.
+- **Cuando termina el juego** se ve unos segundos quién ganó y después desaparece, aunque sigan los mejores momentos con el HUD. En una transmisión en vivo solo acompaña al juego que se está jugando: un clip, una repetición o los mejores momentos de otro juego no la hacen aparecer.
+- **Transparente:** la barra y los paneles dejan ver el mapa; al pasar el mouse se vuelven opacos para usar los controles.
 - **Siempre el partido correcto:** en una transmisión en vivo se prefiere el juego que se está jugando. Si pasan un clip de otro partido (por ejemplo, en la previa), el overlay lo suelta a los 25 s sin reloj y vuelve al vivo.
 - **En el draft** muestra solo «Draft · IG vs LYON».
 - **Colores del video:** la barra toma el color de la sigla de cada equipo en el marcador de la transmisión.
@@ -62,7 +64,10 @@ Los paneles aparecen **en su momento** (ver *Paneles automáticos*) y se cierran
 | **Duelos por línea** | Cada jugador contra su rival directo, con la diferencia de oro |
 | **Daño de los 10** | El porcentaje del daño a campeones de cada jugador en su equipo |
 
-Además, en la barra: **próximo objetivo**, **trayectoria** y el **reparto de daño** que aparece solo después de cada pelea.
+Además, en la barra: **próximo objetivo** y **trayectoria**.
+
+### Pelea en equipo
+Solo después de una **pelea en equipo 5v5** (al menos 3 kills y 4 jugadores de cada equipo con una kill, una muerte o una asistencia; los 1v1, 2v2 y pick-offs no cuentan) aparece unos segundos un panel con lo que pasó en ella: el marcador de la pelea, quién la ganó, el oro, el objetivo que se llevó después, cómo cambió la probabilidad y, por jugador, su K/D/A en la pelea y cuánto más (o menos) daño que su promedio hizo. El feed público no trae la cantidad de daño ni su tipo: el ícono ⚔/✦/◐ es el tipo de daño de su campeón.
 
 ### Paneles automáticos
 Sin tocar nada, el overlay suma solo el panel que aporta: el impacto del objetivo el minuto previo, el resumen al terminar y, en nivel Show, el oro y los duelos. Se elige el nivel en **Mando → Paneles automáticos** (Mínimo, Estándar o Show) y **⏭ Saltar panel** quita el que está.

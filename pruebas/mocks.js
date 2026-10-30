@@ -10,10 +10,14 @@ const KILLS = {g1: [5, 1], g2: [2, 3], g3: [8, 4], m1: [0, 0], k1: [1, 0]};
 const AHORA = Date.now();
 const GAMES = {g1: {start: T0, meta: meta('tIG', 'tLY', 'A', 'B')}, g2: {start: T0 + 3600e3, meta: meta('tIG', 'tLY', 'C', 'D')}, g3: {start: T0 + 7200e3, meta: meta('tLY', 'tIG', 'E', 'F')},
   m1: {start: AHORA - 20 * 60e3, meta: meta('tT1', 'tMK', 'E', 'F')}, k1: {start: T0 - 86400e3, meta: meta('tT1', 'tKO', 'F', 'E')}};
+// el juego 1 de IG vs LYON termina a los 25:00 (después el feed repite el último cuadro, ya «finished»)
+const DUR = {g1: 1500};
 const frame = (t, id) => {
+  const gs0 = GAMES[id], fin = DUR[id] != null && (t - gs0.start) / 1000 >= DUR[id];
+  if (fin) t = gs0.start + DUR[id] * 1000;
   const gs = GAMES[id], gt = (t - gs.start) / 1000, f = Math.min(1, Math.max(0, (gt - 200) / 818)), k = KILLS[id];
   const tm = i => ({totalGold: Math.round(2500 + gt * 26.5 + (i ? 60 : 0)), totalKills: Math.round(k[i] * f), towers: 0, inhibitors: 0, barons: 0, dragons: [], participants: []});
-  return {rfc460Timestamp: new Date(t).toISOString(), gameState: 'in_game', blueTeam: tm(0), redTeam: tm(1)};
+  return {rfc460Timestamp: new Date(t).toISOString(), gameState: fin ? 'finished' : 'in_game', blueTeam: tm(0), redTeam: tm(1)};
 };
 // detalles por jugador (oro, nivel, KDA, daño): números fijos que crecen con el minuto
 const DSH = [0.24, 0.16, 0.3, 0.22, 0.08];

@@ -86,7 +86,7 @@
   var G = null;   // juego actual
   function newGame(id) {
     return {id: id, meta: null, start: null, waiting: false, loading: true, last: null, lastTs: 0, paused: 0, gt: 0,
-      samples: [], events: [], wp: null, ended: false, det: null, picos: [],
+      samples: [], events: [], wp: null, ended: false, det: null, picos: [], rhist: [], ohist: [], pf: null, fight: null,
       pre: null, draft: null,
       t: {dragon: {at: 300, elder: false}, baron: {at: 1200}, baronBuff: null, elderBuff: null, inhibs: []}};  // el Barón aparece al min 20
   }
@@ -128,7 +128,12 @@
     if (dk >= 3) {
       var bk = cur.blueTeam.totalKills - prev.blueTeam.totalKills, rk = cur.redTeam.totalKills - prev.redTeam.totalKills;
       ev(gt, bk >= rk ? 'blue' : 'red', 'Pelea: ' + code('blue') + ' ' + bk + ' – ' + rk + ' ' + code('red'), 'fight');
-      G.fight = {gt: gt, win: bk >= rk ? 'blue' : 'red', players: G.players ? JSON.parse(JSON.stringify(G.players)) : null};
+    }
+    // posible pelea en equipo: se juntan las kills que caen con menos de 30 s entre sí; se evalúa al terminar (cerrarPelea)
+    if (dk > 0) {
+      var kb = cur.blueTeam.totalKills - prev.blueTeam.totalKills, kr = cur.redTeam.totalKills - prev.redTeam.totalKills;
+      if (!G.pf || gt - G.pf.ult > 30) G.pf = {ini: Math.max(0, (G.gt || gt) - 2), ult: gt, kb: 0, kr: 0};
+      G.pf.kb += kb; G.pf.kr += kr; G.pf.ult = gt;
     }
   }
 
@@ -167,11 +172,16 @@
     if (prev) detect(prev, f, gt);
     G.last = f; G.lastTs = ts; G.gt = gt;
     G.wp = winProb(f, gt);
+    G.ohist.push({gt: gt, b: f.blueTeam.totalGold, r: f.redTeam.totalGold, p: G.wp.p}); if (G.ohist.length > 200) G.ohist = G.ohist.filter(function (x) { return gt - x.gt <= 180; });
     var s = G.samples[G.samples.length - 1];
     if (!s || gt - s.gt >= 10) G.samples.push({gt: gt, diff: f.blueTeam.totalGold - f.redTeam.totalGold, p: G.wp.p,
       kb: f.blueTeam.totalKills, kr: f.redTeam.totalKills, tb: f.blueTeam.towers, tr: f.redTeam.towers,
       db: f.blueTeam.dragons.length, dr: f.redTeam.dragons.length, bb: f.blueTeam.barons, br: f.redTeam.barons, ib: f.blueTeam.inhibitors, ir: f.redTeam.inhibitors});
-    if (f.gameState === 'finished') { if (!G.ended && DEMO) DEMO.next = setTimeout(demoNext, 30000); G.ended = true; }
+    if (f.gameState === 'finished') {
+      if (!G.ended && DEMO) DEMO.next = setTimeout(demoNext, 30000);
+      if (!G.ended && !REPLAY && !FOLLOW) { FIN[G.id] = code(ganadorDe(f)); aplicarFin(M); }  // el punto, sin esperar a lolesports
+      G.ended = true;
+    }
     emit();
   }
 
@@ -196,11 +206,27 @@
     // preferir Worlds; si no, el primero
     return events.find(function (e) { return e.league && e.league.slug === 'worlds'; }) || events[0] || null;
   }
+  // lolesports tarda minutos en sumar el punto: mientras tanto se suma el ganador que ya se vio en el feed (como la app)
+  var FIN = {};
+  function ganadorDe(f) { var sc = function (x) { return x.inhibitors * 3 + x.towers; }, b = f.blueTeam, r = f.redTeam; return sc(b) !== sc(r) ? (sc(b) > sc(r) ? 'blue' : 'red') : (b.totalGold >= r.totalGold ? 'blue' : 'red'); }
+  function aplicarFin(m) {
+    if (!m || !m.games || !m.teams) return;
+    m.games.forEach(function (gm) {
+      var w = FIN[gm.id]; if (!w) return;
+      if (gm.state === 'completed') { delete FIN[gm.id]; return; }
+      gm.state = 'completed';
+      var hechos = m.games.filter(function (x) { return x.state === 'completed'; }).length, suma = 0;
+      m.teams.forEach(function (t) { suma += (t.result || {}).gameWins || 0; });
+      var t = m.teams.filter(function (x) { return x.code === w; })[0];
+      if (t && suma < hechos) { var r = {}; for (var k in (t.result || {})) r[k] = t.result[k]; r.gameWins = (r.gameWins || 0) + 1; t.result = r; }
+    });
+  }
   async function loadEvent(id, gen) {
     var d = await api('getEventDetails', {id: id});
     if (gen != null && gen !== RUNGEN) return null;  // mientras esperaba se pasó a otro juego (repetición o video): no pisarlo
     var e = d.event;
     M = {id: id, league: e.league, strategy: e.match.strategy, teams: e.match.teams, games: e.match.games};
+    aplicarFin(M);
     if (M.teams.length === 2) loadH2H(M.teams[0].code, M.teams[1].code).catch(function () {});
     return M.games.find(function (x) { return x.state === 'inProgress'; });
   }
@@ -262,6 +288,41 @@
     if (G.picos.length > 12) G.picos = G.picos.slice(-12);
     var byShare = function (a, b) { return b.share - a.share; };
     G.players = {blue: G.roster.blue.slice().sort(byShare), red: G.roster.red.slice().sort(byShare)};
+    G.rhist.push({gt: G.gt, r: G.roster}); G.rhist = G.rhist.filter(function (x) { return G.gt - x.gt <= 180 && x.gt <= G.gt; });
+    cerrarPelea();
+  }
+  // ---------- pelea en equipo (5v5) ----------
+  // Cuenta solo si participaron (kill, muerte o asistencia) al menos 4 jugadores de cada equipo y hubo 3 kills o más.
+  // Todo sale del feed: el K/D/A de cada jugador en la pelea, el oro, el objetivo que siguió y cuánto cambió su parte
+  // del daño de su equipo. El feed no trae la cantidad de daño ni su tipo: el tipo es el del campeón (y así se rotula).
+  function tipoDano(champId) {
+    var c = CAMPS && CAMPS[champId], i = c && c.info; if (!i) return null;
+    var f = i.attack / ((i.attack + i.magic) || 1);
+    return f >= 0.62 ? 'físico' : f <= 0.38 ? 'mágico' : 'mixto';
+  }
+  function armarPelea(antes, despues, x) {
+    if (!antes || !despues || x.kb + x.kr < 3) return null;
+    var lado = function (side) {
+      return despues[side].map(function (p, i) {
+        var a = antes[side][i] || p, k = p.k - a.k, d = p.d - a.d, as = p.a - a.a;
+        return {name: p.name, champ: p.champ, champId: p.champId, k: k, d: d, a: as, part: k + d + as > 0, dsh: Math.round((p.share - a.share) * 1000) / 10, tipo: tipoDano(p.champId)};
+      });
+    };
+    var B = lado('blue'), R = lado('red'), nb = B.filter(function (p) { return p.part; }).length, nr = R.filter(function (p) { return p.part; }).length;
+    if (nb < 4 || nr < 4) return null;
+    return {gt: x.fin, ini: x.ini, fin: x.ult, kb: x.kb, kr: x.kr, win: x.kb === x.kr ? null : x.kb > x.kr ? 'blue' : 'red', oro: x.oro, obj: x.obj, p0: x.p0, p1: x.p1, blue: B, red: R};
+  }
+  function cerrarPelea() {
+    var pf = G && G.pf; if (!pf || G.gt - pf.ult < 12) return;
+    G.pf = null;
+    var antes = null; G.rhist.forEach(function (h) { if (h.gt <= pf.ini) antes = h; });
+    var o0 = null; G.ohist.forEach(function (h) { if (h.gt <= pf.ini) o0 = h; });
+    var o1 = G.ohist[G.ohist.length - 1];
+    var obj = G.events.filter(function (e) { return e.gt >= pf.ini && e.gt <= G.gt && ['dragon', 'elder', 'baron', 'inhib', 'tower'].indexOf(e.kind) >= 0; })[0] || null;
+    var p = armarPelea(antes && antes.r, G.roster, {kb: pf.kb, kr: pf.kr, ini: pf.ini, ult: pf.ult, fin: G.gt,
+      oro: o0 && o1 ? {blue: o1.b - o0.b, red: o1.r - o0.r} : null, obj: obj ? {side: obj.side, txt: obj.txt} : null,
+      p0: o0 ? o0.p : null, p1: G.wp ? G.wp.p : null});
+    if (p) G.fight = p;
   }
 
   // ---------- suscripción / snapshot ----------
@@ -406,14 +467,11 @@
       txt: rgb2hex(contraste(c, GRAFITO) >= 4.5 ? c : mezcla(c, [255, 255, 255], 0.35))};
   }
   function baseDe(code, lado) { var h = COLC[code] || TEAMCOL[code]; return hex2rgb(h) || hex2rgb(LADO[lado]); }
-  // colores para un partido: azul (izquierda) y rojo (derecha). Si los dos se parecen, el segundo pasa al color de su lado.
+  // colores para un partido: siempre los del lado, como el HUD de la transmisión. El de la izquierda (lado azul) es azul y el
+  // de la derecha (lado rojo) es rojo, sin importar los colores de marca de los equipos (TES es rojo de marca, pero del lado
+  // azul va en azul). Así nunca se contradice lo que muestra el video.
   function colores(codeA, codeB) {
-    var a = baseDe(codeA, 'blue'), b = baseDe(codeB, 'red');
-    var ha = hsl(legible(a)), hb = hsl(legible(b)), dh = Math.min(Math.abs(ha[0] - hb[0]), 360 - Math.abs(ha[0] - hb[0]));
-    var gris = function (h) { return h[1] < 0.18; };
-    var parecidos = (gris(ha) && gris(hb)) || (!gris(ha) && !gris(hb) && dh < 40) || contraste(legible(a), legible(b)) < 1.25 && dh < 60;
-    if (parecidos) { var alt = hex2rgb(LADO.red), hAlt = hsl(alt), d2 = Math.min(Math.abs(ha[0] - hAlt[0]), 360 - Math.abs(ha[0] - hAlt[0])); b = d2 < 40 ? hex2rgb(LADO.blue) : alt; }
-    return {a: variantes(a), b: variantes(b), codes: [codeA, codeB], ajustado: !!parecidos};
+    return {a: variantes(hex2rgb(LADO.blue)), b: variantes(hex2rgb(LADO.red)), codes: [codeA, codeB], ajustado: false};
   }
   // un color leído del logo o del HUD del video, para una sigla
   function aprenderColor(code, hex) {
@@ -616,7 +674,7 @@
         reasons: G.wp ? G.wp.parts : [], events: G.events.slice(-8), timers: G.t,
         stats: G.last ? {blue: tstat(G.last.blueTeam), red: tstat(G.last.redTeam)} : null,
         samples: G.samples ? G.samples.slice() : [], impact: impactNext(),
-        fight: G.fight && G.fight.players ? {gt: G.fight.gt, win: G.fight.win, blue: G.fight.players.blue, red: G.fight.players.red} : null,
+        fight: G.fight || null,
         swings: keyMoments(3), comeback: comebackPaths(), draft: draftInfo(), lanes: L, keyPlayer: keyPlayer(L), recap: recap(), jugadores: jugadores(),
         allEvents: G.events.slice()} : null,
       series: seriesNow(), h2h: M ? h2hFor(bt.code, rt.code) : null, maps: seriesMaps(),
@@ -928,6 +986,10 @@
       else out.push('RiftPulse da <b>'+lp+'%</b> a <b>'+esc(lc)+'</b> ahora mismo ('+mmss(g.gt)+').');
       var top=(g.reasons||[]).filter(function(x){ return (x.z>=0)===lead && Math.abs(x.z)>=0.15; })[0];  // los factores con poco peso son ruido: no se dicen
       if (top) out.push('Su mayor factor: <b>'+esc(top.txt)+'</b>.');
+      // la última pelea en equipo (5v5), si fue hace menos de 2 minutos
+      var F=g.fight;
+      if (F && F.kb!=null && g.gt-F.gt<=120){ var st=F.blue.concat(F.red).filter(function(p){ return p.k+p.a>=3; }).sort(function(a,b){ return (b.k*2+b.a)-(a.k*2+a.a); })[0];
+        out.push('Pelea en equipo (min '+mmss(F.ini)+'): <b>'+esc(m.blue.code)+' '+F.kb+' – '+F.kr+' '+esc(m.red.code)+'</b>'+(F.obj?', y después <b>'+esc(F.obj.txt)+'</b>':'')+(st?'; la figura: <b>'+esc(st.name)+'</b> ('+st.k+'/'+st.d+'/'+st.a+')':'')+'.'); }
       // momentum
       var past=null, sm=g.samples||[];
       for (var i=0;i<sm.length;i++){ if (g.gt-sm[i].gt>=60) past=sm[i]; }
@@ -1123,6 +1185,7 @@
     return D;
   };
   RiftEngine.aprenderColor = aprenderColor;
+  RiftEngine.armarPelea = armarPelea;   // para las pruebas
   RiftEngine.causaTxt = causaTxt;
   // ---------- la historia del juego: frases a partir de lo que pasó (giros, objetivos, oro) ----------
   var kc = function (g) { return (Math.abs(g) / 1000).toFixed(1).replace('.', ',') + 'k'; };

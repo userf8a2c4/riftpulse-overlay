@@ -356,7 +356,7 @@
     if(RSEL==='kills'){
       var f=g.fight;
       d='<h3>Kills · <span class="b">'+esc(m.blue.code)+' '+(st.blue.kills||0)+'</span> – <span class="r">'+(st.red.kills||0)+' '+esc(m.red.code)+'</span></h3>'+
-        (f&&f.gt!=null?'<div class="kv"><span>Última pelea: min <b>'+mmss(f.gt)+'</b> · la ganó <b class="'+sc(f.win)+'">'+esc(f.win==='blue'?m.blue.code:m.red.code)+'</b></span></div>':'')+
+        (f&&f.gt!=null?'<div class="kv"><span>Última pelea en equipo: min <b>'+mmss(f.ini!=null?f.ini:f.gt)+'</b> · '+(f.win?'la ganó <b class="'+sc(f.win)+'">'+esc(f.win==='blue'?m.blue.code:m.red.code)+'</b>':'pareja')+(f.kb!=null?' ('+f.kb+'–'+f.kr+')':'')+'</span></div>':'')+
         (kl.length?kl.slice().reverse().map(function(k){ return '<div class="ln"><span class="t">'+mmss(k.gt)+'</span><span><b class="'+sc(k.side)+'">'+esc(k.side==='blue'?m.blue.code:m.red.code)+'</b> '+(k.n>1?'consigue '+k.n+' kills':'consigue una kill')+'</span></div>'; }).join(''):'<div class="note">Todavía no hubo kills.</div>')+
         '<div class="note">El feed oficial da las kills cada ~10 s, sin la posición en el mapa.</div>';
     } else if(RSEL==='dragon'){

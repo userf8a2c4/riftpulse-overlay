@@ -38,6 +38,15 @@ module.exports = async function () {
     T = 2e12; const D = RiftEngine.crearDirector('estandar'); D.forzar('oro', 15);
     T += 10e3; const a = D.decidir({match: {}, game: null}); T += 1e3; D.saltar(); const b = D.decidir({match: {}, game: null});
     out.mano = {durante: a && a.pieza, despues: b && b.pieza};
+    // pelea en equipo: solo cuenta si participaron 4+ jugadores de cada equipo (no un 2v2)
+    const jug = (k, d, a, sh) => ({name: 'J', champ: 'X', champId: 'X', k, d, a, share: sh});
+    const eq = (v) => v.map(x => jug(x[0], x[1], x[2], x[3]));
+    const antes = {blue: eq([[0,0,0,.2],[0,0,0,.2],[0,0,0,.2],[0,0,0,.2],[0,0,0,.2]]), red: eq([[0,0,0,.2],[0,0,0,.2],[0,0,0,.2],[0,0,0,.2],[0,0,0,.2]])};
+    const t5 = {blue: eq([[1,0,1,.22],[0,0,2,.18],[1,0,1,.25],[1,1,0,.2],[0,0,2,.15]]), red: eq([[0,1,0,.2],[0,1,0,.2],[1,1,0,.22],[0,0,1,.2],[0,0,1,.18]])};
+    const t2 = {blue: eq([[2,0,0,.25],[1,0,1,.2],[0,0,0,.2],[0,0,0,.2],[0,0,0,.15]]), red: eq([[0,1,0,.2],[0,1,0,.2],[0,1,0,.2],[0,0,0,.2],[0,0,0,.2]])};
+    const x = {kb: 3, kr: 1, ini: 600, ult: 620, fin: 632, oro: {blue: 1500, red: 400}, obj: null, p0: .5, p1: .6};
+    const p5 = RiftEngine.armarPelea(antes, t5, x), p2 = RiftEngine.armarPelea(antes, t2, Object.assign({}, x, {kb: 3, kr: 0}));
+    out.pelea = {cinco: p5 && {win: p5.win, kda: p5.blue[0].k + '/' + p5.blue[0].d + '/' + p5.blue[0].a, dsh: p5.blue[2].dsh}, dos: p2};
     Date.now = real; return out;
   });
   const E = R.estandar.tramos, piezas = t => t.map(x => x.pieza), GE = R.estandar.giros;
@@ -54,6 +63,8 @@ module.exports = async function () {
   ok = chequear('siempre un respiro de 6 s entre piezas', sinRespiro === 0, sinRespiro + ' sin respiro') && ok;
   ok = chequear('mínimo: solo las alertas de giro, sin piezas grandes', R.minimo.tramos.length === 0 && R.minimo.giros.length > 0, R.minimo.giros.length + ' alertas') && ok;
   ok = chequear('show: además el oro y los duelos', piezas(R.show.tramos).includes('oro') && piezas(R.show.tramos).includes('duelos'), R.show.tramos.length + ' piezas') && ok;
+  ok = chequear('pelea en equipo 5v5: se arma con el K/D/A de la pelea y quién la ganó', R.pelea.cinco && R.pelea.cinco.win === 'blue' && R.pelea.cinco.kda === '1/0/1' && R.pelea.cinco.dsh === 5, JSON.stringify(R.pelea.cinco)) && ok;
+  ok = chequear('una pelea chica (2v2) no cuenta como pelea en equipo', R.pelea.dos === null, JSON.stringify(R.pelea.dos)) && ok;
   ok = chequear('una pieza pedida a mano se queda y «saltar» la quita', R.mano.durante === 'oro' && !R.mano.despues, JSON.stringify(R.mano)) && ok;
 
   // ---- 2) la pieza view=auto en OBS, con el control en el mismo navegador ----

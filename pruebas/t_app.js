@@ -38,6 +38,30 @@ module.exports = async function () {
   if (await p.evaluate(() => probSerie('T1', 'MKOI', 3) != null)) { const f1 = await bajar(() => sharePron('T1', 'MKOI', 3, 'TM')); ok = chequear('tarjeta: pronóstico de la serie', !!f1 && /T1-vs-MKOI/.test(f1), f1 || 'sin descarga') && ok; }
   const hayRows = await p.evaluate(() => !!(C && C.rows));
   if (hayRows) { const f2 = await bajar(() => sharePickem()); ok = chequear("tarjeta: mi Pick'Em", f2 === 'riftpulse-pickem.png', f2 || 'sin descarga') && ok; }
+  // predicciones del staff en Mando: integrantes, picks, aciertos solos y la URL para OBS con todo
+  const sp = await p.evaluate(async () => {
+    setVista('mando'); await new Promise(r => setTimeout(r, 1500)); spLoad(); await new Promise(r => setTimeout(r, 1500));
+    const dia = RiftEngine.predDays(SP_MS).find(d => /^\d/.test(d.key) && RiftEngine.predMatches(SP_MS, d.key).some(x => x.id === 'MLI'));
+    SP.day = dia ? dia.key : 'auto';
+    document.getElementById('spName').value = 'Ana'; spAdd(); document.getElementById('spName').value = 'Beto'; spAdd();
+    const btn = (who, t) => document.querySelector('[data-sp-m="MLI"][data-sp-who="' + who + '"][data-sp-t="' + t + '"]');
+    if (btn(1, 'IG')) btn(1, 'IG').click(); if (btn(2, 'LYON')) btn(2, 'LYON').click();
+    return {ok: !!document.querySelector('[data-sp-who="1"][data-sp-t="IG"].ok'), no: !!document.querySelector('[data-sp-who="2"][data-sp-t="LYON"].no'), mem: document.getElementById('spMem').innerText.replace(/\s+/g, ' '), url: spUrl()};
+  });
+  ok = chequear('predicciones del staff: el pick acertado y el fallado se marcan solos', sp.ok && sp.no, sp.mem) && ok;
+  const ob = await p.context().newPage(); await ob.goto(sp.url.replace('https://userf8a2c4.github.io/riftpulse-overlay/', BASE)); await ob.waitForTimeout(3500);
+  const obT = await ob.evaluate(() => document.body.innerText.replace(/\s+/g, ' '));
+  ok = chequear('predicciones del staff: la URL para OBS muestra a los integrantes y sus aciertos', /ana/i.test(obT) && /beto/i.test(obT) && /aciertos/i.test(obT), obT.slice(0, 90)) && ok;
+  await ob.close();
+  // marcador de la serie al terminar un juego: suma el punto al instante y no lo cuenta dos veces cuando lolesports lo suma
+  const mc = await p.evaluate(() => {
+    const m = () => ({id: 'X', games: [{id: 'xa', state: 'inProgress'}], teams: [{code: 'A', result: {gameWins: 0}}, {code: 'B', result: {gameWins: 0}}]});
+    const a = m(); FIN.xa = 'B'; aplicarFin(a); const ya = a.teams.map(t => t.result.gameWins).join('-');
+    const b2 = m(); b2.games[0].state = 'completed'; b2.teams[1].result.gameWins = 1; aplicarFin(b2);
+    return {ya, luego: b2.teams.map(t => t.result.gameWins).join('-'), queda: !!FIN.xa};
+  });
+  ok = chequear('marcador: al terminar el juego suma el punto al instante', mc.ya === '0-1', mc.ya) && ok;
+  ok = chequear('marcador: cuando lolesports lo suma, no lo cuenta dos veces', mc.luego === '0-1' && !mc.queda, JSON.stringify(mc)) && ok;
   ok = chequear('sin errores de JavaScript', !errores.length, errores.slice(0, 3).join(' | ')) && ok;
   // celular
   const c2 = await b.newContext({viewport: {width: 390, height: 844}}); await montar(c2);

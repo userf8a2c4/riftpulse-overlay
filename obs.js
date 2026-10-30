@@ -462,7 +462,9 @@
   }
 
   // Predicciones del stream: integrantes y picks vienen de control.html (mismo navegador de OBS); los resultados, del calendario.
-  var PRED = (function () { try { return JSON.parse(localStorage.getItem('rp_pred') || 'null'); } catch (e) { return null; } })();
+  // las predicciones pueden venir en la URL (&p=…, desde Mando del panel) o de control.html (mismo navegador de OBS)
+  var PRED_URL = (function () { try { var q = new URLSearchParams(location.search).get('p'); if (!q) return null; var o = JSON.parse(decodeURIComponent(escape(atob(q)))); o.picks = o.picks || {}; o.members = o.members || []; return o; } catch (e) { return null; } })();
+  var PRED = PRED_URL || (function () { try { return JSON.parse(localStorage.getItem('rp_pred') || 'null'); } catch (e) { return null; } })();
   var predSig = '', predShown = false;
   function renderPred() {
     R.loadMatches();
@@ -534,6 +536,10 @@
       return tarjeta('Impacto · ' + (im.at <= g.gt ? '' : 'próx. ') + im.obj, '<div class="rp-ir"><span>Si lo toma <b class="b">' + esc(m.blue.code) + '</b></span><span class="big b">' + pts(im.blue) + '</span></div>' +
         '<div class="rp-ir"><span>Si lo toma <b class="r">' + esc(m.red.code) + '</b></span><span class="big r">' + pts(im.red) + '</span></div>' +
         '<div class="rp-in">Cuánto mueve la probabilidad de ganar este juego, según el modelo de RiftPulse.</div>', im.at <= g.gt ? 'ya está' : 'en ' + mmss(im.at - g.gt)); }
+    if (p === 'pelea' && g.fight && g.fight.kb != null) {  // pelea en equipo (5v5): lo que hizo cada uno en ella
+      var F = g.fight, fc = function (side) { return '<div class="' + sc(side) + '">' + F[side].map(function (x) { return '<div class="rp-dr"' + (x.part ? '' : ' style="opacity:.45"') + '><span class="nm">' + esc(x.name) + (x.d ? ' ☠' : '') + '</span><span class="pc">' + x.k + '/' + x.d + '/' + x.a + '</span></div>'; }).join('') + '</div>'; };
+      return tarjeta('Pelea en equipo · min ' + mmss(F.ini != null ? F.ini : F.gt), '<div class="rp-fh ' + sc(F.win || 'blue') + '">' + esc(m.blue.code) + ' ' + F.kb + ' – ' + F.kr + ' ' + esc(m.red.code) + (F.obj ? ' · después: ' + esc(F.obj.txt) : '') + '</div>' +
+        '<div class="rp-dc">' + fc('blue') + fc('red') + '</div><div class="rp-in">Kills / muertes / asistencias de cada jugador en la pelea.</div>'); }
     if (p === 'pelea') { var L = g.lanes, ev = (g.events || []).filter(function (e) { return e.kind === 'fight'; }).slice(-1)[0]; if (!L || !L.length) return '';
       var col = function (side) { return '<div class="' + sc(side) + '">' + L.map(function (l) { var x = l[side]; return '<div class="rp-dr"><span class="nm">' + esc(x.name) + '</span><span class="br"><i style="width:' + Math.round((x.share || 0) * 100 / 0.4) + '%"></i></span><span class="pc">' + Math.round((x.share || 0) * 100) + '%</span></div>'; }).join('') + '</div>'; };
       var fw = ev && ev.side;
@@ -628,7 +634,7 @@
       if (o.testAlert) showCallout('<span class="zap">⚡</span><span class="cc b">Alerta de prueba</span>');
     }
     if (o.auto) cfg.auto = o.auto;
-    if (o.pred) PRED = o.pred;
+    if (o.pred && !PRED_URL) PRED = o.pred;
     if (o.showRecap && VIEW === 'recap') { recapUntil = Date.now() + 20000; setTimeout(function () { if (R.state) render(R.state); }, 20100); }
     if (o.hideRecap && VIEW === 'recap') recapUntil = 0;   // producción lo cortó: no vuelve en este juego
     if (o.hideAll != null) cfg.hideAll = o.hideAll;
