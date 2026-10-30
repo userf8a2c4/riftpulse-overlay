@@ -22,7 +22,7 @@ RAIZ = os.path.dirname(AQUI)  # la raíz del repositorio: el motor, la app (app.
 WEB = 'https://userf8a2c4.github.io/riftpulse-overlay/'
 # beta: cada ZIP nuevo para la tienda sube el último número (0.9.1, 0.9.2…); la 1.0.0, cuando esté terminada.
 # La versión manual lleva el mismo número, así se sabe qué tiene instalado cada uno.
-VERSION, VERSION_NOMBRE = '0.9.4', '0.9 beta'
+VERSION, VERSION_NOMBRE = '0.9.5', '0.9 beta'
 ext = os.path.join(AQUI, 'extension')
 os.makedirs(ext, exist_ok=True)
 

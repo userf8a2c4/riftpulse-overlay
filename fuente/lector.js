@@ -68,15 +68,33 @@
   }
   // ---------- recorte del video ----------
   var CV = null;
+  // Copiar un cuadro del video a la memoria es lo más caro de leer el HUD (y, hecho muchas veces, puede trabar el video).
+  // En cada lectura se copia UNA vez la franja de arriba (reloj, siglas, oro, kills, serie y cartel), a resolución nativa,
+  // y las zonas se recortan de esa copia durante 250 ms: los mismos píxeles, así que la precisión no cambia
+  var FRANJA = 0.16, BANDA = null, BANDA_AT = 0, BANDA_V = null, BANDA_W = 0, BANDA_H = 0;
+  function origen(v, z) {
+    var vw = v.videoWidth || v.naturalWidth || v.width, vh = v.videoHeight || v.naturalHeight || v.height;
+    if (!(v instanceof HTMLVideoElement) || z[3] > FRANJA) return {src: v, w: vw, h: vh};
+    var bh = Math.ceil(FRANJA * vh);
+    if (BANDA_V !== v || BANDA_W !== vw || BANDA_H !== bh || Date.now() - BANDA_AT > 250) {
+      if (!BANDA) BANDA = document.createElement('canvas');
+      if (BANDA.width !== vw || BANDA.height !== bh) { BANDA.width = vw; BANDA.height = bh; }
+      var bx = BANDA.getContext('2d', {willReadFrequently: true});
+      bx.drawImage(v, 0, 0, vw, bh, 0, 0, vw, bh);
+      bx.getImageData(0, 0, 1, 1);  // falla acá si el video está protegido (como antes)
+      BANDA_V = v; BANDA_W = vw; BANDA_H = bh; BANDA_AT = Date.now();
+    }
+    return {src: BANDA, w: vw, h: vh};
+  }
   // z = [x0, y0, x1, y1] relativo al cuadro; modo 'blanco' (texto claro) o 'color' (siglas en azul/rojo)
   function recorte(v, z, modo) {
-    var vw = v.videoWidth || v.naturalWidth || v.width, vh = v.videoHeight || v.naturalHeight || v.height, sx = z[0] * vw, sy = z[1] * vh, sw = (z[2] - z[0]) * vw, shh = (z[3] - z[1]) * vh;
+    var o = origen(v, z), vw = o.w, vh = o.h, sx = z[0] * vw, sy = z[1] * vh, sw = (z[2] - z[0]) * vw, shh = (z[3] - z[1]) * vh;
     var k = Math.max(1, Math.min(8, 60 / shh)), w = Math.max(4, Math.round(sw * k)), h = Math.max(4, Math.round(shh * k));
     if (!CV) CV = document.createElement('canvas');
     CV.width = w; CV.height = h;
     var x = CV.getContext('2d', {willReadFrequently: true});
     x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
-    x.drawImage(v, sx, sy, sw, shh, 0, 0, w, h);
+    x.drawImage(o.src, sx, sy, sw, shh, 0, 0, w, h);
     var d = x.getImageData(0, 0, w, h).data, m = img(w, h);  // falla si el video está protegido
     for (var i = 0, j = 0; j < m.a.length; i += 4, j++) {
       var mx = Math.max(d[i], d[i + 1], d[i + 2]), mn = Math.min(d[i], d[i + 1], d[i + 2]);
@@ -196,7 +214,7 @@
     if (!LIENZO_SERIE) { LIENZO_SERIE = document.createElement('canvas'); LIENZO_SERIE.width = COLS; LIENZO_SERIE.height = FILAS; }
     var x = LIENZO_SERIE.getContext('2d', {willReadFrequently: true});
     function lado(z, azul, haciaDentro) {
-      x.drawImage(src, z[0] * W, z[1] * H, (z[2] - z[0]) * W, (z[3] - z[1]) * H, 0, 0, COLS, FILAS);
+      x.drawImage(origen(src, z).src, z[0] * W, z[1] * H, (z[2] - z[0]) * W, (z[3] - z[1]) * H, 0, 0, COLS, FILAS);
       var d = x.getImageData(0, 0, COLS, FILAS).data;
       var deColor = function (c, y) { var i = (y * COLS + c) * 4, r = d[i], g = d[i + 1], b = d[i + 2]; return azul ? b > 100 && b - r > 45 : r > 100 && r - Math.max(g, b) > 45; };
       var tramos = function (c) {  // los tramos de color de una columna: [inicio, largo]

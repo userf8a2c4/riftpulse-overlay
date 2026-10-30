@@ -70,17 +70,20 @@
     try { return (await r.json()).data; } catch (e) { NET.errs++; throw e; }
   }
   var FEEDC = new Map();
+  var FEEDR = {}, FEEDRN = 0;
   async function feed(kind, id, t) {
     var u = new URL(FEED + kind + '/' + id);
     if (t) u.searchParams.set('startingTime', iso10(t));
     var key = kind + '|' + id + '|' + (t ? iso10(t) : '');
     if (FEEDC.has(key)) return FEEDC.get(key);
+    var c2 = FEEDR[key]; if (c2 && Date.now() - c2.at < 2000) return c2.d;  // un tramo reciente se pide como mucho cada 2 s
     var r;
     try { r = await fetchRetry(u); } catch (e) { return null; }
     if (!r || r.status === 204) return null;
     var d; try { d = await r.json(); } catch (e) { NET.errs++; return null; }
-    // cachea los tramos de más de 2 min (ya no cambian)
-    if (t && Date.now() - t > 120000 && FEEDC.size < 800) FEEDC.set(key, d);
+    // cachea los tramos de más de 30 s (ya están completos y no cambian); los recientes, 2 s
+    if (t && Date.now() - t > 30000 && FEEDC.size < 800) FEEDC.set(key, d);
+    else { FEEDR[key] = {d: d, at: Date.now()}; if (++FEEDRN % 200 === 0) for (var k in FEEDR) if (Date.now() - FEEDR[k].at > 10000) delete FEEDR[k]; }
     return d;
   }
 
@@ -263,11 +266,16 @@
   async function tickWindow() {
     if (!G || G.loading) { if (G && G.waiting) { await startGame(G.id); } return; }
     if (!G.start) return;
+    // con la pestaña oculta (otra pestaña al frente) el motor espera: un paso cada 10 s (la página de OBS siempre está a la vista)
+    if (typeof document !== 'undefined' && document.hidden && Date.now() - (G.ocultoAt || 0) < 10000) return;
+    G.ocultoAt = Date.now();
     var t = dataTime(), g0 = G;
     var w = await feed('window', G.id, t);
     if (G !== g0 || G.loading) return;
     var f = w && lastBefore(w.frames, t);
     if (f) processFrame(f);
+    if (Date.now() - (G.detAt || 0) < 3000) return;  // las estadísticas de los jugadores, como mucho cada 3 s
+    G.detAt = Date.now();
     try { var dd = await feed('details', G.id, t); if (G === g0) { var df = dd && lastBefore(dd.frames, t); if (df) { updatePlayers(df); emit(); } } } catch (e) {}
   }
   function shortName(s) { s = String(s || ''); var i = s.indexOf(' '); return i > 0 ? s.slice(i + 1) : s; }

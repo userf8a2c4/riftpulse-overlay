@@ -40,8 +40,12 @@
   // integrado con la transmisión: la barra, pegada debajo del marcador de arriba (una fila más del HUD); los paneles, de a uno,
   // en la columna izquierda a media altura (entre los timers de arriba a la izquierda y la barra de estadísticas de abajo).
   // Nunca encima del marcador, la barra de abajo, las cámaras, el minimapa ni el centro del mapa.
+  var lugar = '';
   function place() {
     var v = mainVideo(), r = v ? v.getBoundingClientRect() : null;
+    var clave = r ? [r.left, r.top, r.width, r.height, innerHeight, POS, XY ? XY.rx + ',' + XY.ry : ''].join('|') : 'sin';
+    if (clave === lugar) return;  // nada se movió: no se tocan los estilos
+    lugar = clave;
     if (XY && r) { host.style.left = Math.round(r.left + XY.rx * r.width) + 'px'; host.style.top = Math.round(r.top + XY.ry * r.height) + 'px'; host.style.bottom = 'auto'; host.style.transform = 'none'; }
     else {
       host.style.transform = 'translateX(-50%)';
@@ -73,7 +77,7 @@
   :host{all:initial}*{box-sizing:border-box;font-family:Saira Condensed,system-ui,"Segoe UI",Roboto,sans-serif}\
   .w{position:relative;display:inline-flex;align-items:stretch;height:48px;border-radius:5px;overflow:visible;\
      background:linear-gradient(180deg,rgba(var(--g1-rgb),.94),rgba(var(--g0-rgb),.96));border:1px solid rgba(var(--line-rgb),0.132);\
-     box-shadow:0 14px 34px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.07);backdrop-filter:blur(8px);color:var(--text);cursor:grab}\
+     box-shadow:0 14px 34px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.07);color:var(--text);cursor:grab}\
   .w::after{content:"";position:absolute;left:-1px;top:-1px;width:70px;height:2px;background:linear-gradient(90deg,var(--signal),rgba(var(--signal-rgb),0));border-radius:5px 0 0 0;pointer-events:none}\
   .w.drag{cursor:grabbing}\
   .seg{display:flex;flex-direction:column;justify-content:center;padding:0 13px;border-right:1px solid rgba(var(--line-rgb),0.077);white-space:nowrap}\
@@ -190,10 +194,10 @@
   .frow .tp{color:var(--muted);font-size:10px}\
   .fl{margin-top:6px;font-size:10px;color:var(--muted);text-align:center;line-height:1.3}\
   .w.oculto{display:none}\
-  .w{background:rgba(var(--g1-rgb),.4);backdrop-filter:blur(10px) saturate(1.2);-webkit-backdrop-filter:blur(10px) saturate(1.2);box-shadow:0 6px 18px rgba(0,0,0,.28);transition:background .2s}\
+  .w{background:rgba(var(--g1-rgb),.55);box-shadow:0 6px 18px rgba(0,0,0,.28);transition:background .2s}\
   .w:hover{background:rgba(var(--g1-rgb),.86)}\
   .w,.col{text-shadow:0 1px 2px rgba(0,0,0,.75),0 0 8px rgba(0,0,0,.35)}\
-  .col .cd,.col .dmg{background:rgba(var(--g1-rgb),.28);border-color:rgba(var(--line-rgb),.08);backdrop-filter:blur(10px) saturate(1.2);-webkit-backdrop-filter:blur(10px) saturate(1.2);box-shadow:0 6px 18px rgba(0,0,0,.28)}\
+  .col .cd,.col .dmg{background:rgba(var(--g1-rgb),.45);border-color:rgba(var(--line-rgb),.08);box-shadow:0 6px 18px rgba(0,0,0,.28)}\
   .hint{display:none;align-items:center;gap:8px;height:28px;padding:0 12px 0 8px;border-radius:999px;background:rgba(var(--g1-rgb),.9);border:1px solid rgba(var(--line-rgb),.13);font:600 12px var(--ff);color:var(--muted);white-space:nowrap;cursor:pointer}\
   .w.tenue{opacity:.14;transition:opacity .6s}.w{transition:opacity .6s,background .2s}\
   .hint.show{display:inline-flex}.hint .logo{width:16px;height:16px}.hint b{color:var(--text);font-weight:700}.hint a{color:var(--signal);text-decoration:none;font-weight:700}\
@@ -408,22 +412,22 @@
     // con el auto-sync activo nunca se muestra otro partido: mientras reconoce el del video, lo dice
     var leyendo = typeof AS !== 'undefined' && AS.on && Date.now() - AS.visto < 20000;
     if (leyendo && (!AS.id || AS.trasSalto || !s.match || s.match.id !== AS.id.matchId)) {
-      body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div><div class="wait">' + (AS.id && !AS.trasSalto ? 'Cargando ' + esc(AS.id.codes.join(' vs ')) + ' · juego ' + AS.id.juego + '…' : 'Sincronizando con el video…') + '</div>';
+      bodySig = ''; body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div><div class="wait">' + (AS.id && !AS.trasSalto ? 'Cargando ' + esc(AS.id.codes.join(' vs ')) + ' · juego ' + AS.id.juego + '…' : 'Sincronizando con el video…') + '</div>';
       return;
     }
     if (s.game && s.game.carga != null && s.match) {  // entrando a mitad de juego: se pone al día con lo que ya pasó
-      body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div><div class="wait">Poniéndome al día · ' + esc(s.match.blue.code) + ' vs ' + esc(s.match.red.code) + ' · ' + Math.round(s.game.carga * 100) + ' %</div>';
+      bodySig = ''; body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div><div class="wait">Poniéndome al día · ' + esc(s.match.blue.code) + ' vs ' + esc(s.match.red.code) + ' · ' + Math.round(s.game.carga * 100) + ' %</div>';
       return;
     }
     if (s.match && s.game && s.game.ended) {
       var gw = s.game.recap && s.game.recap.code;
-      body.innerHTML = '<div class="mini">' + LOGO + (gw ? '<span class="' + (gw === s.match.blue.code ? 'b' : 'r') + '">' + esc(gw) + '</span><span class="k">gana el juego</span>' : '<span class="k">Terminó el juego</span>') + '</div>';
+      bodySig = ''; body.innerHTML = '<div class="mini">' + LOGO + (gw ? '<span class="' + (gw === s.match.blue.code ? 'b' : 'r') + '">' + esc(gw) + '</span><span class="k">gana el juego</span>' : '<span class="k">Terminó el juego</span>') + '</div>';
       return;
     }
     if (!s.match) {
-      if (s.next) { body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div>' +
+      if (s.next) { bodySig = ''; body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div>' +
         '<div class="seg next"><span class="sl">Próximo partido</span><span class="vs"><span class="b">' + esc(s.next.blue) + '</span> vs <span class="r">' + esc(s.next.red) + '</span></span></div>'; }
-      else body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div><div class="wait">buscando partido del Mundial…</div>';
+      else { bodySig = ''; body.innerHTML = '<div class="seg brand">' + LOGO + '<span class="bn">RiftPulse</span></div><div class="wait">buscando partido del Mundial…</div>'; }
       return;
     }
     var m = s.match, g = s.game;
@@ -432,7 +436,7 @@
     if (!g || g.pBlue == null) {
       html += '<div class="mini"><span class="k">' + ((g && g.waiting) ? 'Cargando el juego' : 'Selección de campeones') + '</span><span class="b">' + esc(m.blue.code) + '</span><span class="k">vs</span><span class="r">' + esc(m.red.code) + '</span></div>';
       if (s.next) html += '<div class="seg next"><span class="sl">Próximo</span><span class="vs"><span class="b">' + esc(s.next.blue) + '</span> vs <span class="r">' + esc(s.next.red) + '</span></span></div>';
-      body.innerHTML = html; return;
+      if (html !== bodySig) { bodySig = html; body.innerHTML = html; } return;
     }
 
     var pb = Math.round(g.pBlue * 100), pr = 100 - pb, lb = pb >= pr ? ' lead' : '', lr = pr > pb ? ' lead' : '';
@@ -440,7 +444,7 @@
     var corre = typeof AS !== 'undefined' && AS.on && AS.id && !AS.pausa && Date.now() - AS.visto < 5000;
     var fdo = s.feed && ['retrasado', 'caido', 'pausa'].indexOf(s.feed.estado) >= 0 && !(corre && s.feed.estado === 'pausa') ? '<div class="seg fdo"><span class="sl">' + esc(s.feed.txt) + '</span></div>' : '';
     if (EXT.indexOf('mini') >= 0) {  // modo mínimo: solo el porcentaje
-      body.innerHTML = '<div class="seg prob"><span class="tc b">' + esc(m.blue.code) + '</span><div class="bar" style="width:150px"><div class="pb' + lb + '" style="width:' + Math.min(85, Math.max(pb, 15)) + '%">' + pb + '%</div><div class="pr' + lr + '" style="width:' + Math.min(85, Math.max(pr, 15)) + '%">' + pr + '%</div></div><span class="tc r">' + esc(m.red.code) + '</span></div>' + fdo;
+      bodySig = ''; body.innerHTML = '<div class="seg prob"><span class="tc b">' + esc(m.blue.code) + '</span><div class="bar" style="width:150px"><div class="pb' + lb + '" style="width:' + Math.min(85, Math.max(pb, 15)) + '%">' + pb + '%</div><div class="pr' + lr + '" style="width:' + Math.min(85, Math.max(pr, 15)) + '%">' + pr + '%</div></div><span class="tc r">' + esc(m.red.code) + '</span></div>' + fdo;
       hist.push({t: Date.now(), p: g.pBlue}); checkMomentum(s); showFight(s); return;
     }
     var hist0 = R.historia ? R.historia(s).map(function (x) { return x.text; }).join('\n') : '';
@@ -459,8 +463,7 @@
     html += fdo;  // el estado de los datos (retrasados, caídos), solo si hace falta
     html += segProximo();
 
-    body.innerHTML = html;
-    if (window.RPUI) RPUI.numeros(body);
+    if (html !== bodySig) { bodySig = html; body.innerHTML = html; if (window.RPUI) RPUI.numeros(body); tickPrevia(); }
     pintarTL(s);
     hist.push({t: Date.now(), p: g.pBlue}); checkMomentum(s); showFight(s);
   }
@@ -562,7 +565,7 @@
     var d = PRV.d, vivo = !esVod();
     if (!d || (vivo && !(AS.id && AS.id.live)) || (AS.id && d.matchId === AS.id.matchId) || (!d.vivo && Date.parse(d.start) - Date.now() > 24 * 3600e3)) return '';
     return '<div class="seg prox" title="La previa del próximo partido en vivo"><span class="sl">' + (d.vivo ? (vivo ? '● también en vivo' : '● en vivo ahora') : (vivo ? 'el próximo en' : 'en vivo en')) + '</span><span class="sv">' +
-      (d.vivo ? '' : '<b data-start="' + esc(d.start) + '">' + relojTxt(d.start) + '</b> · ') + '<span class="b">' + esc(d.codes[0]) + '</span> vs <span class="r">' + esc(d.codes[1]) + '</span></span></div>';
+      (d.vivo ? '' : '<b data-start="' + esc(d.start) + '"></b> · ') + '<span class="b">' + esc(d.codes[0]) + '</span> vs <span class="r">' + esc(d.codes[1]) + '</span></span></div>';
   }
   body.addEventListener('click', function (e) { if (!e.target.closest('.prox')) return; e.stopPropagation(); PRV.abierta = PRV.abierta > Date.now() ? 0 : Date.now() + 600000; render(LAST || {}); });
   // la tarjeta: cuenta regresiva, qué está en juego, pronóstico, datos clave, cómo llegan y versus histórico
@@ -584,7 +587,7 @@
     else if (v) h += '<div class="prv-h"><span class="sl">Versus histórico</span> Primer cruce entre ellos desde 2025.</div>';
     return h + '</div>';
   }
-  var cardsSig = '';
+  var cardsSig = '', bodySig = '';
   function tarjetas(s) {
     var h = '';
     if (s && s.game && s.game.pBlue != null) {
