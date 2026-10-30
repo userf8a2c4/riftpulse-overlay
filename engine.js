@@ -943,14 +943,14 @@
       var idOf = function (side) { return gi.meta[side + 'TeamMetadata'].esportsTeamId; };
       var codeOf = function (side) { var tm = ev.match.teams.filter(function (y) { return y.id === idOf(side); })[0]; return tm ? tm.code : null; };
       var cb = codeOf('blue'), cr = codeOf('red');
-      var sc = parece(0, cb) + parece(1, cr);  // en el HUD de la transmisión el equipo azul va a la izquierda
+      var tg = parece(0, cb) + parece(1, cr), sc = tg;  // en el HUD de la transmisión el equipo azul va a la izquierda
       var kd = o.kills ? Math.abs(f.blueTeam.totalKills - o.kills[0]) + Math.abs(f.redTeam.totalKills - o.kills[1]) : null;
       if (kd != null) sc += kd;
       if (o.gold) sc += 2 * (Math.abs(f.blueTeam.totalGold / 1000 - o.gold[0]) + Math.abs(f.redTeam.totalGold / 1000 - o.gold[1]));
       if (gm.state === 'inProgress') sc -= 0.5;
       if (o.juego && k + 1 !== o.juego) sc += 4;  // las victorias de la serie que se ven en el HUD dicen qué juego es
       var champs = function (side) { return ((gi.meta[side + 'TeamMetadata'] || {}).participantMetadata || []).map(function (p) { return p.championId; }); };
-      return {matchId: x.c.id, juego: k + 1, gameId: gm.id, codes: [cb, cr], score: sc, kd: kd, ok: cuadra(f), live: gm.state === 'inProgress', champs: {blue: champs('blue'), red: champs('red')}};
+      return {matchId: x.c.id, juego: k + 1, gameId: gm.id, codes: [cb, cr], score: sc, tg: tg, kd: kd, ok: cuadra(f), live: gm.state === 'inProgress', champs: {blue: champs('blue'), red: champs('red')}};
     };
     // 1) cada juego, en el minuto del HUD tal cual
     var all = [], dudosos = [];
@@ -971,8 +971,11 @@
       }
     }
     // 2) si ninguno cuadra con lo que se ve, puede haber habido una pausa antes de este minuto (el HUD no la cuenta y el
-    //    feed sí): en los partidos que mejor cuadran por siglas, se miden sus pausas y se vuelve a mirar
-    if (!all.some(function (a) { return a.ok; }) && dudosos.length) {
+    //    feed sí): en los partidos que mejor cuadran por siglas, se miden sus pausas y se vuelve a mirar. También cuando lo
+    //    que cuadra es otro partido que las siglas o la serie en pantalla desmienten (kills y oro parecidos por casualidad)
+    var okB = all.filter(function (a) { return a.ok; }).sort(function (a, b) { return a.score - b.score; })[0];
+    var desmentido = okB && dudosos.some(function (x) { return (o.juego && okB.juego !== o.juego && x.k + 1 === o.juego) || -x.c.tagScore + 0.5 < okB.tg; });
+    if ((!okB || desmentido) && dudosos.length) {
       var segunda = await Promise.all(dudosos.map(async function (x) {
         var ps = await pausasDe(x.gm.id, x.gi.start).catch(function () { return []; }); if (!ps.length) return null;
         var t2 = feedDe(x.gi.start, ps, o.gt), w2 = await feed('window', x.gm.id, t2), f2 = w2 && lastBefore(w2.frames, t2);

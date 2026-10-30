@@ -707,7 +707,11 @@
   // el cartel «GAME PAUSE» de la transmisión (arriba a la izquierda, junto al logo del torneo)
   var CARTEL = [0.1, 0.02, 0.3, 0.125];
   function cartelPausa(v) {
-    try { var r = L.siglas(L.recorte(v, CARTEL, 'blanco'), ['GAMEPAUSE', 'PAUSE', 'GAME', 'REPLAY', 'LIVE']); return !!(r[0] && /PAUSE$/.test(r[0].code) && r[0].s > 0.4); } catch (e) { return false; }
+    try {
+      var r = L.siglas(L.recorte(v, CARTEL, 'blanco'), ['GAMEPAUSE', 'PAUSE', 'GAME', 'REPLAY', 'LIVE']);
+      AS.diag.cartel = r[0] ? r[0].code + ' ' + r[0].s.toFixed(2) : '—';
+      return !!(r[0] && /PAUSE$/.test(r[0].code) && r[0].s > 0.4);
+    } catch (e) { return false; }
   }
   async function codigos() {
     if (AS.codes && Date.now() - AS.codesAt < 600000) return AS.codes;
@@ -813,7 +817,7 @@
         // sin el reloj a la vista (repetición larga, tomas de los jugadores, el desk) el minuto igual sale de la posición del
         // video: se sigue el mismo juego (oculto en pantalla, el panel sigue) y al volver el HUD se confirma o se corrige solo.
         // Lo único que se suelta es un clip de un partido que no se juega ahora, en una transmisión en vivo
-        if (AS.id && !AS.pausa && AS.off != null && AS.n % 2 === 0) { AS.cartel = cartelPausa(v) ? (AS.cartel || 0) + 1 : 0; if (AS.cartel >= 2) AS.pausa = {gt: Math.max(0, AS.off + ct), at: Date.now()}; }
+        if (AS.id && AS.off != null && AS.n % 2 === 0) { var cp = cartelPausa(v); if (!AS.pausa) { AS.cartel = cp ? (AS.cartel || 0) + 1 : 0; if (AS.cartel >= 2) AS.pausa = {gt: Math.max(0, AS.off + ct), at: Date.now()}; } }
         if (AS.pausa) { asEstado('juego en pausa · ' + AS.id.codes.join(' vs ') + ' · ' + mmss(AS.pausa.gt), true); seguir(v); return; }
         if (AS.id && !esVod() && !AS.id.live && AS.visto && Date.now() - AS.visto > 25000) { soltar(); asEstado('buscando el reloj del juego…'); return; }
         asEstado(AS.id ? 'sincronizado · ' + AS.id.codes.join(' vs ') + ' · ' + mmss(AS.off + ct) + ' (reloj tapado)' : 'buscando el reloj del juego…', !!AS.id);
