@@ -1,0 +1,120 @@
+/* RiftPulse — sistema de diseño compartido (app, mesa de análisis, control, páginas).
+   Lenguaje de transmisión: azul noche, acento dorado, azul/rojo por lado, titulares condensados,
+   esquinas casi rectas con cortes en diagonal, líneas finas y trazos de luz. Se carga al final para
+   reemplazar los estilos base de cada página sin tocar su estructura. */
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root{
+  /* superficies */
+  --bg:#050a17;
+  --surface-1:#0d1830;--surface-2:#122041;--surface-3:#08112a;
+  --panel:#0d1830;--panel2:#122041;
+  --line:rgba(150,180,230,.17);--line2:rgba(150,180,230,.1);--line-2:rgba(150,180,230,.1);--line-strong:rgba(150,180,230,.28);
+  /* texto */
+  --text:#eef3fb;--muted:#8fa0c2;--text-dim:#6a7a9c;
+  /* lados y acentos */
+  --blue:#4aa3ff;--blue2:#2f7fe0;--blue-2:#2f7fe0;--blue-glow:rgba(74,163,255,.35);
+  --red:#ff4d5e;--red-2:#c93a52;--red-soft:#ff8a95;--red-glow:rgba(255,77,94,.35);
+  --gold:#f2c14e;--gold-2:#cfb47d;--gold-soft:#efdfba;--ok:#3ddc97;
+  /* tipografía */
+  --ff:'Inter',system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--ff-body:var(--ff);
+  --ffd:'Oswald','Chakra Petch',sans-serif;--ff-display:var(--ffd);
+  --ffh:'Anton','Oswald',sans-serif;
+  /* forma y elevación */
+  --rp-r:6px;
+  --rp-card:linear-gradient(180deg,rgba(20,36,72,.78),rgba(8,16,38,.9));
+  --rp-sh:0 18px 48px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.06);
+  --sh-1:var(--rp-sh);--sh-2:0 24px 64px rgba(0,0,0,.55)
+}
+
+/* ---------- fondo: azul noche con brillos y trazos de luz diagonales ---------- */
+html,body{background-color:var(--bg)}
+body{
+  color:var(--text);font-family:var(--ff);-webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(1100px 520px at -5% -12%,rgba(74,163,255,.18),transparent 62%),
+    radial-gradient(900px 460px at 108% -10%,rgba(242,193,78,.10),transparent 60%),
+    radial-gradient(800px 600px at 50% 120%,rgba(255,77,94,.07),transparent 60%),
+    linear-gradient(180deg,#0a1530 0%,#060c1d 45%,#050a17 100%) fixed;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    linear-gradient(115deg,transparent 0 62%,rgba(120,170,255,.05) 62% 63.2%,transparent 63.2% 66%,rgba(120,170,255,.035) 66% 66.6%,transparent 66.6%),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.014) 0 1px,transparent 1px 72px);
+}
+body>*{position:relative;z-index:1}
+::selection{background:rgba(242,193,78,.35);color:#fff}
+*{scrollbar-width:thin;scrollbar-color:rgba(150,180,230,.25) transparent}
+
+/* ---------- titulares ---------- */
+h1{font-family:var(--ffh);font-weight:400;letter-spacing:1px;text-transform:uppercase;line-height:1}
+.brand-t{font-family:var(--ffd);font-weight:700;letter-spacing:2.5px;text-transform:uppercase}
+
+/* ---------- tarjetas ---------- */
+.card,.grp{
+  position:relative;background:var(--rp-card);border:1px solid var(--line);border-radius:var(--rp-r);
+  box-shadow:var(--rp-sh);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.card::after,.grp::after{ /* filo dorado arriba a la izquierda */
+  content:"";position:absolute;left:-1px;top:-1px;width:96px;height:2px;border-radius:var(--rp-r) 0 0 0;
+  background:linear-gradient(90deg,var(--gold),rgba(242,193,78,0));pointer-events:none;
+}
+.card h2,.grp h2,h2{
+  font-family:var(--ffd);font-weight:600;font-size:13px;letter-spacing:2.4px;text-transform:uppercase;color:#c8d3ea;
+}
+.card h2::before,h2::before{
+  width:8px !important;height:8px !important;border-radius:1px !important;flex:none;
+  background:linear-gradient(135deg,var(--gold),#d9a530) !important;box-shadow:0 0 10px rgba(242,193,78,.45) !important;
+  transform:rotate(45deg);
+}
+.card-help,.pm{color:var(--muted)}
+
+/* ---------- pestañas ---------- */
+nav.tabs{background:rgba(5,10,23,.65);border:1px solid var(--line);border-radius:var(--rp-r)}
+nav.tabs button{font-family:var(--ffd);font-weight:500;letter-spacing:1.8px;border-radius:3px}
+nav.tabs button.on{
+  background:linear-gradient(180deg,var(--gold-soft),var(--gold-2)) !important;color:#0b1220 !important;
+  box-shadow:0 4px 16px rgba(242,193,78,.25) !important;clip-path:polygon(0 0,100% 0,100% 70%,92% 100%,0 100%);
+}
+
+/* ---------- botones ---------- */
+.btn,.mx-btn,.seg button{font-family:var(--ffd) !important;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;border-radius:4px}
+.btn.primary,.mx-btn.on,.seg button.on{
+  background:linear-gradient(180deg,#5cb0ff,var(--blue2)) !important;color:#04101f !important;border-color:var(--blue) !important;
+  box-shadow:0 6px 22px rgba(74,163,255,.3) !important;
+}
+.btn.alert,.mx-btn.gold{background:linear-gradient(180deg,var(--gold-soft),var(--gold-2)) !important;color:#0b1220 !important;border-color:var(--gold) !important}
+.btn:not(.primary):not(.alert),.mx-btn:not(.on):not(.gold){background:rgba(13,24,48,.8)}
+
+/* ---------- etiquetas de estado ---------- */
+.badge,.live,.mx-badge{font-family:var(--ffd);letter-spacing:1.4px;text-transform:uppercase;border-radius:3px}
+.badge.live,.live:not(.off),.mx-badge.live{background:rgba(255,77,94,.14);color:#ff7a86;border:1px solid rgba(255,77,94,.45)}
+
+/* ---------- barras de probabilidad (mesa, app, centro de mando) ---------- */
+.pbar,.mx-bar,.probbar{border-radius:3px !important;font-family:var(--ffd) !important;letter-spacing:.6px}
+.pbar .pb,.mx-bar .pb,.probbar .pb{background:linear-gradient(180deg,#5cb0ff,var(--blue2)) !important}
+.pbar .pr,.mx-bar .pr,.probbar .pr{background:linear-gradient(180deg,#ff6676,var(--red-2)) !important}
+
+/* ---------- números grandes ---------- */
+.bigp .n,.sr .v,.mx-teams,.sc .tc,.fav-p,.idet-odv{font-family:var(--ffd) !important;font-weight:700}
+
+/* ---------- campos ---------- */
+input,select,textarea{font-family:var(--ff)}
+.in,.mx-sync input,select.in{background:rgba(5,10,23,.7) !important;border-color:var(--line) !important;border-radius:4px !important}
+
+/* ---------- pie ---------- */
+footer{border-top-color:var(--line) !important}
+
+/* ---------- jerarquía: encabezados y héroes ---------- */
+.top h1{font-size:30px !important}
+.sc .tc,.mx-teams,.nm-vsbig,.fav-t,.idet-code{font-family:var(--ffh) !important;font-weight:400 !important;letter-spacing:1.2px}
+.bigp .n{font-size:58px !important;letter-spacing:.5px}
+#tinte{opacity:.35}
+.matchbar .mt{font-family:var(--ffh);font-weight:400;letter-spacing:1px;text-transform:uppercase}
+
+/* ---------- app: las tarjetas de Inicio crecen con su contenido en vez de aplastarlo ---------- */
+.inicio .mid{height:auto;min-height:270px}
+.inicio .foot{height:auto;min-height:158px}
+.inicio .card>*{flex-shrink:0}
+.ini-go{font-family:var(--ffd);letter-spacing:1.2px;text-transform:uppercase;border-radius:4px}

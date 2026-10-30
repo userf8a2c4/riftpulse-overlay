@@ -1,0 +1,14 @@
+{
+  "desc": {
+    "message": "Probabilidad en vivo del Mundial de LoL sobre el video de Twitch, sincronizada sola con el minuto que ves."
+  },
+  "abrir": {
+    "message": "Abrir RiftPulse"
+  },
+  "cargando": {
+    "message": "Cargando RiftPulse…"
+  },
+  "sinRed": {
+    "message": "No pude cargar RiftPulse desde la web.<br>Revisá la conexión y volvé a abrir el panel."
+  }
+}

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RiftPulse</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0C0E12">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="rp-design.css">
+<script src="rp-i18n.js"></script>
+</head>
+<body>
+<div id="tinte"><div class="city"></div><div class="grad"></div></div>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><img class="logo" src="logo.svg" alt="RiftPulse"><div><div class="brand-t">RiftPulse</div><div class="brand-s">Tu segunda pantalla del Mundial</div><div class="brand-p" id="precHdr">El Mundial, jugada a jugada</div><a class="brand-p" href="https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html" target="_blank" rel="noopener" style="color:var(--link);text-decoration:none">¿Cómo funciona? →</a></div></div>
+    <nav class="tabs" aria-label="Secciones"><button id="tabAhora">Ahora</button><button id="tabCopa">Mundial</button><button id="tabHist">Historial</button><button id="tabMando" title="Centro de mando para streamers y analistas">Mando</button></nav>
+    <div class="hstat">
+      <span data-rp-lang></span>
+      <select id="sel" title="Partido en vivo" hidden></select>
+      <span class="badge" id="estado">—</span>
+      <span class="clock" id="reloj" title="Minuto del juego">—</span>
+      <a class="hbtn" id="instBtn" href="https://userf8a2c4.github.io/riftpulse-overlay/instalar.html" target="_blank" rel="noopener" title="Poné RiftPulse sobre el video del partido" style="text-decoration:none">🧩 Sobre el video</a>
+      <button class="hbtn" id="novBtn" data-act="novato" aria-pressed="false" title="Explica los términos del juego">📘 Para entender</button>
+      <details class="sync spx" id="spx"><summary title="Ocultar resultados que todavía no viste"><span id="spLbl">🙈 Spoilers</span></summary>
+        <div class="syncpop">
+          <div class="pm">Ocultá los resultados que todavía no viste. Se tapan los marcadores en Ahora, el Mundial, el Historial y Mando; tocá uno para verlo.</div>
+          <div class="sp-op"><button data-act="spApp" data-arg="hoy">Ocultar los de hoy</button><button data-act="spApp" data-arg="ayer">Desde ayer</button><button data-act="spApp" data-arg="todo">Todo el Mundial</button><button data-act="spApp" data-arg="">Mostrar todo</button></div>
+        </div>
+      </details>
+      <details class="sync"><summary title="Sincronía con el stream">⏱ <b id="ret">60</b> s <span id="retinfo">(auto)</span></summary>
+        <div class="syncpop">
+          <div class="pm">Retraso frente al stream. Se calcula solo; si ves una kill antes acá que en el video, subilo; si va atrasada, bajalo.</div>
+          <div class="row"><button data-d="-10">−10</button><button data-d="-1">−1</button><button data-d="1">+1</button><button data-d="10">+10</button></div>
+          <button id="sync" title="Tocalo justo cuando veas en el stream la primera kill de una pelea">⟲ Sincronizar con una kill</button>
+        </div>
+      </details>
+    </div>
+  </header>
+  <div id="extAvisos"></div>
+  <div class="matchbar"><div class="mt" id="titulo">Mundial 2026</div><div class="ms" id="subtitulo">Buscando partido en vivo…</div></div>
+  <div class="status" id="status" role="status" aria-live="polite"></div>
+
+  <div id="vistaAhora">
+  <div class="ahora">
+    <section class="card hero" id="iniVivo"></section>
+    <section class="card" id="ahHist" hidden></section>
+    <section class="card" id="ahFav"></section>
+    <section class="card ah-full" id="ahPron"></section>
+  </div>
+  <div id="vistaPartido">
+  <div class="player off" id="player">
+    <button id="pBack" class="ib" title="Atrás 30 s (flecha izquierda: 10 s)">−30</button>
+    <button id="pPlay" title="Reproducir o pausar (barra espaciadora)" aria-label="Reproducir o pausar">⏸</button>
+    <button id="pFwd" class="ib" title="Adelante 30 s (flecha derecha: 10 s)">+30</button>
+    <span class="pt" id="pCur">0:00</span>
+    <div class="track" id="track"><div class="trk"></div><div class="fill" id="pFill"></div><div id="pMarks"></div><div class="knob" id="pKnob"></div><div class="tip" id="pTip"></div></div>
+    <span class="pt" id="pEnd">0:00</span>
+    <select id="pVel" title="Velocidad"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option></select>
+    <button id="pLive" class="plive on">EN VIVO</button>
+  </div>
+  <div id="repbar">
+    <details class="reppick" id="repDet"><summary>📼 Ver una repetición</summary><div class="reppop" id="repPop"><div class="pm">Cargando…</div></div></details>
+    <span class="pm">Elegí un juego ya disputado para verlo aquí mismo, con su historia y su gráfico.</span>
+  </div>
+  <div class="pgrid plegado">
+    <section class="card a-score"><h2>Marcador</h2><p class="card-help">Cómo va este juego. Cada barra compara a los dos equipos.</p><div id="marcador"><div class="empty">Sin partido en vivo</div></div></section>
+    <section class="card a-pred"><h2>¿Quién va a ganar?</h2><p class="card-help">Probabilidad de ganar este juego según el modelo, y por qué.</p><div id="prob"><div class="empty">—</div></div></section>
+    <section class="card a-chart"><h2>Cómo va el juego</h2><p class="card-help">Ventaja de oro (área) y probabilidad de ganar (la línea), minuto a minuto.</p><div id="graf"><div class="empty">—</div></div></section>
+    <section class="card a-lanes"><h2>Jugadores: duelo por línea</h2><p class="card-help">Cada fila enfrenta a los jugadores del mismo rol. Al centro, quién lleva ventaja de oro y súbditos (CS).</p><div id="lineas"><div class="empty">—</div></div></section>
+    <section class="card a-obj"><h2>Próximos objetivos</h2><p class="card-help">Cuándo aparecen los objetivos grandes del mapa.</p><div id="timers" class="timers"></div></section>
+    <section class="card a-ev"><h2>Momentos del juego</h2><ul class="evs" id="eventos"></ul></section>
+    <section class="card a-draft"><h2>Draft y composición</h2><p class="card-help">Los campeones elegidos y el plan de juego que sugieren.</p><div id="draft"><div class="empty">Aparece cuando cargan los campeones (al iniciar el juego).</div></div></section>
+    <ul class="ag" id="agenda" hidden></ul>
+  </div>
+  <div class="ah-det"><button class="mx-btn" id="ahDet" aria-expanded="false">▾ Todos los detalles del juego</button><span class="pm">Marcador, por qué, duelos, objetivos, momentos y draft.</span></div>
+  </div>
+  <div id="vistaInicio">
+    <div class="inicio">
+      <section class="card hero" id="iniDetalle" hidden></section>
+      <section class="card mid" id="iniCopa"></section>
+      <section class="card mid" id="iniBet"></section>
+      <section class="card mid" id="iniAgenda"></section>
+      <section class="card foot" id="iniRes"></section>
+      <section class="card foot" id="iniFiab"></section>
+      <section class="card foot" id="iniDatos"></section>
+    </div>
+  </div>
+  </div>
+  <div id="vistaMando" hidden>
+    <div class="mx">
+      <section class="card mx-wide" id="mxSetup" hidden></section>
+      <section class="card mx-wide" id="mxAir"><div class="empty">Cargando…</div></section>
+      <section class="card mx-fix" id="mxOv"></section>
+      <section class="card mx-fix" id="mxTalk"></section>
+      <section class="card mx-fix2" id="mxRead"></section>
+      <section class="card mx-fix2" id="mxSoc"></section>
+      <section class="card mx-wide" id="mxObs"></section>
+      <section class="card mx-wide" id="mxPred">
+        <div class="mx-h"><h2>Predicciones del staff</h2><button class="mx-btn" id="spUrl">📋 Copiar URL para OBS</button></div>
+        <p class="card-help" style="margin-top:-4px">Los picks de los integrantes del stream. Al terminar cada partido se marcan solos como acierto o fallo y suman al marcador.</p>
+        <div class="sp-top"><input class="sp-in" id="spTitle" maxlength="40" placeholder="Título (ej.: Predicciones del staff)"><select class="sp-in" id="spDay"></select></div>
+        <div class="sp-mem" id="spMem"></div>
+        <div class="sp-add"><input class="sp-in" id="spName" maxlength="18" placeholder="Nombre del integrante"><button class="mx-btn" id="spAdd">+ Agregar</button></div>
+        <div id="spMatches"></div>
+        <div class="pm" id="spMsg" style="margin-top:6px"></div>
+      </section>
+    </div>
+  </div>
+  <div id="vistaPickem" hidden>
+    <div class="mx-row" style="margin-top:12px"><button class="mx-btn" onclick="setVista('copa')">← Volver a Mundial</button></div>
+    <section class="card" style="margin-top:8px"><h2>Pick'Em y Bola de Cristal</h2><p class="card-help">Sugerencias del sistema para el Pick'Em oficial del Mundial. Tus picks se registran en lolesports; acá te ayudamos a decidir.</p><div id="pickemView"><div class="empty">Calculando…</div></div></section>
+  </div>
+  <div id="vistaHist" hidden>
+    <div class="hgrid">
+      <section class="card"><h2>Partidos del Mundial 2026</h2><div id="histLista"><div class="empty">—</div></div></section>
+      <section class="card"><h2 id="histTitulo">Resumen del juego</h2><div id="histJuego"><div class="empty">Elegí un partido y después un juego.</div></div></section>
+    </div>
+  </div>
+  <div id="vistaCopa" hidden>
+    <div class="mx-row" style="margin-top:12px"><button class="mx-btn gold" onclick="setVista('pickem')">🎯 Pick'Em y Bola de Cristal</button></div>
+    <section class="card" style="margin-top:12px"><div class="fs-head"><h2>Fases del Mundial · en vivo</h2><div class="seg fs-tabs" id="fsTabs"><button data-fase="pi">Play-In</button><button data-fase="sw">Fase suiza</button><button data-fase="ko">Eliminatorias</button></div></div><div id="cuadro"><div class="empty">Cargando…</div></div></section>
+    <section class="card" style="margin-top:12px"><h2>Favoritos al título</h2><p class="card-help">Probabilidad de que cada equipo gane el Mundial 2026, según 20.000 simulaciones del torneo con su formato oficial.</p><div id="copaTop"><div class="empty">Calculando…</div></div></section>
+    <section class="card" style="margin-top:12px"><h2>Camino de cada equipo</h2><p class="card-help">Probabilidad de llegar a cada fase del torneo. Cuanto más intenso el color, más probable.</p><div id="copa"><div class="empty">Calculando…</div></div></section>
+    <section class="card" style="margin-top:12px" id="fiabCard"><h2>Fiabilidad del sistema</h2><p class="card-help">Qué tan seguido acierta el sistema, medido con partidos que no había visto.</p><div id="fiab"><div class="empty">Calculando…</div></div></section>
+    <div class="grid" style="margin-top:12px">
+      <section class="card"><h2>Sugerencia para el Pick'Em del Sistema Suizo</h2><div id="pickem"><div class="empty">—</div></div></section>
+      <section class="card"><h2>Cómo se calcula</h2><div class="pm" style="font-size:13px;line-height:1.5">
+        <p style="margin:0 0 6px"><b>Fuerza de cada equipo:</b> un Elo con todos los partidos de 2025 y 2026 de LCK, LPL, LEC, LCS, CBLOL, LCP, First Stand, MSI, Copa Mundial de Esports y Worlds. Cada región tiene un ajuste que solo se mueve con partidos internacionales.</p>
+        <p style="margin:0 0 6px"><b>Torneo:</b> se juega 20,000 veces con el formato oficial: Play-In de doble eliminación al mejor de 5, Sistema Suizo (al mejor de 1, y al mejor de 3 cuando se define si un equipo avanza o queda fuera), cuartos con sorteo de los 3-0 contra 3-2, y eliminatorias al mejor de 5.</p>
+        <p style="margin:0"><b>En vivo:</b> los resultados reales y la serie en curso se suman solos cada 2 minutos.</p></div></section>
+    </div>
+  </div>
+  <footer class="legal">
+    <p><b>RiftPulse</b> no está avalado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en League of Legends. League of Legends y Riot Games son marcas o marcas registradas de Riot Games, Inc. League of Legends © Riot Games, Inc.</p>
+    <p>Datos de esports vía el feed público no oficial de lolesports y rosters (pueden cambiar sin aviso); datos de campeones e ítems por Data Dragon (oficial de Riot) e íconos de objetivos por CommunityDragon. Las probabilidades son estimaciones de un modelo propio, no una certeza; proyecto sin fines de apuestas. Hecho por VectisDev. · <a href="https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html" target="_blank" rel="noopener">Cómo funciona</a></p>
+  </footer>
+</div>
+
+<script src="engine.js"></script>
+<script src="rp-ui.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

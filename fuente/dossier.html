@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RiftPulse — Dossier</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Chakra+Petch:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0e16;--s1:#121a2a;--s2:#182135;--s3:#0d1320;--line:#263352;--line2:#1b2439;
+    --text:#e8edf7;--muted:#8b97b0;--blue:#4aa3ff;--blue2:#2f7fe0;--red:#ff5a5f;--gold:#f2c14e;--ok:#3ddc97;
+    --ff:'Inter',system-ui,Segoe UI,Roboto,sans-serif;--ffd:'Chakra Petch',var(--ff)}
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 560px at 12% -10%,#17233d 0%,rgba(23,35,61,0) 60%),radial-gradient(900px 440px at 96% -8%,#2a1620 0%,rgba(42,22,32,0) 55%),var(--bg);
+    color:var(--text);font:400 15px/1.55 var(--ff);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:860px;margin:0 auto;padding:40px 24px 60px}
+  header{display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:28px}
+  .logo{width:52px;height:52px;flex:none}
+  h1{font-family:var(--ffd);font-size:30px;font-weight:700;letter-spacing:.5px;margin:0}
+  .tag{color:var(--muted);font-size:14px;margin-top:2px}
+  h2{font-family:var(--ffd);font-size:13px;text-transform:uppercase;letter-spacing:1.1px;color:var(--blue);margin:30px 0 10px;display:flex;align-items:center;gap:8px}
+  h2::before{content:'';width:3px;height:14px;border-radius:2px;background:linear-gradient(180deg,var(--blue),var(--blue2));box-shadow:0 0 8px rgba(74,163,255,.4)}
+  p{margin:0 0 10px}.muted{color:var(--muted)}
+  .lead{font-size:16px;color:#cdd7ea}
+  ul{margin:4px 0 10px;padding-left:20px}li{margin:4px 0}
+  .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:14px 0}
+  .kpi{background:var(--s3);border:1px solid var(--line2);border-radius:12px;padding:14px 10px;text-align:center}
+  .kpi .v{font-family:var(--ffd);font-size:26px;font-weight:700;color:var(--ok);font-variant-numeric:tabular-nums;line-height:1}
+  .kpi .l{font-size:11px;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.5px}
+  .card{background:linear-gradient(180deg,#141d30,#0f1623);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:14px 0;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .tag2{display:inline-block;font-size:12px;font-weight:700;color:var(--ok);background:rgba(61,220,151,.1);border:1px solid rgba(61,220,151,.4);border-radius:99px;padding:2px 10px;margin-bottom:8px}
+  .ask{background:linear-gradient(180deg,rgba(74,163,255,.1),rgba(74,163,255,.03));border:1px solid rgba(74,163,255,.4)}
+  footer{border-top:1px solid var(--line);margin-top:34px;padding-top:16px;color:var(--muted);font-size:12px;line-height:1.6}
+  b.ok{color:var(--ok)}b.blue{color:var(--blue)}
+  @media (max-width:640px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}h1{font-size:24px}}
+  @media print{body{background:#fff;color:#111}.card,.kpi{background:#fff;border-color:#ccc;box-shadow:none}.logo{box-shadow:none}h2{color:#1a5fb4}.kpi .v{color:#0a7a4f}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img class="logo" src="logo.svg" alt="RiftPulse">
+    <div><h1>RiftPulse</h1><div class="tag">Compañero de predicción y análisis para League of Legends Esports</div></div>
+  </header>
+
+  <p class="lead">RiftPulse es una herramienta de <b class="blue">pronóstico y análisis</b> del Mundial de League of Legends: estima en tiempo real la probabilidad de victoria de cada equipo, explica por qué, y muestra su propia tasa de acierto de forma transparente. Vive como aplicación web y como un overlay personal que acompaña al espectador mientras ve la transmisión.</p>
+
+  <h2>Qué es</h2>
+  <ul>
+    <li><b>Aplicación web:</b> predicción en vivo, simulación del torneo (20.000 corridas del formato oficial), historial con análisis post-partido y sugerencias para el Pick'Em oficial.</li>
+    <li><b>Overlay de espectador:</b> un widget discreto que el usuario ve <b>sobre su propia pantalla</b> de twitch.tv o lolesports.com, sincronizado con el retraso de la transmisión. Es personal; no reemite ni modifica el stream.</li>
+  </ul>
+
+  <h2>Cómo funciona el modelo</h2>
+  <div class="two">
+    <div class="card"><div class="tag2">Fuerza de los equipos</div><p class="muted" style="margin:0">Un sistema <b>Elo</b> alimentado con todos los partidos de 2025–26 de las ligas principales e internacionales (LCK, LPL, LEC, LCS, CBLOL, LCP, First Stand, MSI, EWC y Worlds), con ajuste por región.</p></div>
+    <div class="card"><div class="tag2">Estado del juego</div><p class="muted" style="margin:0">Una <b>regresión logística por minuto</b> sobre el estado real de la partida: oro, kills, torres, dragones, almas, Barón, inhibidores y la curva del draft. Entrenada con <b>2.247 juegos profesionales</b>.</p></div>
+  </div>
+
+  <h2>Precisión medida (verificada)</h2>
+  <p class="muted">Prueba sobre <b>589 juegos que el modelo no vio</b> (agosto–octubre 2026, ligas regionales e internacionales). Cada predicción se hizo sin conocer el resultado. Referencia: una moneda acierta el 50% y da un error Brier de 0,250.</p>
+  <div class="grid">
+    <div class="kpi"><div class="v">62%</div><div class="l">Antes del juego</div></div>
+    <div class="kpi"><div class="v">68%</div><div class="l">Minuto 10</div></div>
+    <div class="kpi"><div class="v">75%</div><div class="l">Minuto 15</div></div>
+    <div class="kpi"><div class="v">79%</div><div class="l">Minuto 20</div></div>
+    <div class="kpi"><div class="v">84%</div><div class="l">Minuto 25</div></div>
+  </div>
+  <p class="muted" style="font-size:13px">Error Brier al minuto 15: <b class="ok">0,173</b> (menor es mejor). La app muestra esta tabla y su calibración de forma abierta, y la tasa de Worlds 2026 se actualiza sola con cada resultado.</p>
+
+  <h2>Cumplimiento</h2>
+  <ul>
+    <li><b>Sin apuestas.</b> Es pronóstico y análisis; no ofrece ni integra funcionalidad de casa de apuestas.</li>
+    <li><b>Atribución y marcas.</b> Usa Data Dragon (oficial de Riot) e íconos de CommunityDragon, con el aviso de no-afiliación a Riot Games.</li>
+    <li><b>Datos de esports.</b> Hoy usa el feed público no oficial de lolesports (limitación conocida). El objetivo es migrar a una <b>vía oficial</b> de datos.</li>
+  </ul>
+
+  <h2>La petición</h2>
+  <div class="card ask">
+    <p style="margin:0 0 8px"><b>1. Acceso a datos oficiales.</b> Integrar la fuente oficial de datos de esports (GRID, socio de datos exclusivo de Riot, o el portal de datos para la comunidad cuando esté disponible) para fiabilidad y legitimidad de punta a punta.</p>
+    <p style="margin:0"><b>2. Patrocinio.</b> Mantener la herramienta <b>gratuita para la comunidad</b>, sostenida por patrocinio —sin cobrar al usuario ni poner los datos tras un muro de pago—, con una versión B2B opcional (overlay y modelo) para casters y eventos.</p>
+  </div>
+
+  <footer>
+    <p>RiftPulse no está avalado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en League of Legends. League of Legends y Riot Games son marcas o marcas registradas de Riot Games, Inc. League of Legends © Riot Games, Inc.</p>
+    <p>Hecho por <b>VectisDev</b> · Mundial 2026</p>
+  </footer>
+</div>
+</body>
+</html>
