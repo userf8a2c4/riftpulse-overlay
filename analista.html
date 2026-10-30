@@ -178,10 +178,10 @@
     <span class="live off" id="live" style="margin-left:0">SIN PARTIDO</span>
   </div>
 
-  <div id="content"><div class="card"><div class="empty">Buscando un partido del Mundial en vivo…</div></div></div>
+  <div id="content"><div class="card"><div class="empty">Buscando un partido del Mundial en vivo… <a href="analista.html?demo" style="color:var(--link)">Ver una demo con un partido ya jugado</a></div></div></div>
 
   <footer>
-    <span class="pill" id="precPill">—</span> · Herramienta de pronóstico y análisis, sin fines de apuestas. No está avalada por RiotGames. Hecho por VectisDev. · <a href="como-funciona.html" target="_blank" rel="noopener" style="color:var(--link)">Cómo funciona</a>
+    <span class="pill" id="precPill">—</span> · Herramienta de pronóstico y análisis, sin fines de apuestas. No está avalada por Riot Games. Hecho por VectisDev. · <a href="como-funciona.html" target="_blank" rel="noopener" style="color:var(--link)">Cómo funciona</a>
   </footer>
 </div>
 
@@ -449,14 +449,14 @@
     var f=s.feed||{}, fdEl=document.getElementById('fdst');
     fdEl.innerHTML='Datos: <b class="'+(f.estado==='caido'?'down':f.estado==='retrasado'||f.estado==='pausa'?'warn':'')+'">'+esc(f.txt||'—')+'</b><br>Retraso aplicado: <b>'+(s.follow||s.demo?'—':R.delay+' s')+'</b>';
     if (!s.match){ liveEl.textContent='SIN PARTIDO'; liveEl.className='live off';
-      content.innerHTML='<div class="card"><div class="empty">Buscando un partido del Mundial en vivo…</div></div>'; return; }
+      content.innerHTML='<div class="card"><div class="empty">No hay un partido del Mundial en vivo ahora. <a href="analista.html?demo" style="color:var(--link)">Ver una demo con un partido ya jugado</a></div></div>'; return; }
     var m=s.match, g=s.game;
     if (window.RPUI){ RPUI.colores(m.blue.code, m.red.code); if (m.blue.img) RPUI.colorDeLogo(m.blue.code, m.blue.img); if (m.red.img) RPUI.colorDeLogo(m.red.code, m.red.img); }
 
     if (!g || g.pBlue==null){
       liveEl.textContent = (g&&g.waiting)?'EN JUEGO (cargando)':'PREVIA'; liveEl.className='live';
       content.innerHTML='<div class="card"><div class="sc"><span class="tc b">'+esc(m.blue.code)+'</span><span class="vs">vs</span><span class="tc r">'+esc(m.red.code)+'</span></div>'+
-        '<div class="empty">'+((g&&g.waiting)?'Esperando datos del juego…':'La partida está por empezar. En cuanto haya feed, aparece el pronóstico en vivo.')+'</div></div>';
+        '<div class="empty">'+((g&&g.waiting)?'Esperando datos del juego…':'La partida está por empezar. Apenas lleguen los datos, aparece el pronóstico en vivo.')+'</div></div>';
       return;
     }
 

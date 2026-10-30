@@ -3,171 +3,248 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RiftPulse para streamers</title>
+<title>RiftPulse · El Mundial, jugada a jugada</title>
+<meta name="description" content="La probabilidad de victoria en vivo del Mundial de League of Legends: sobre el video de Twitch, como app o en tu stream de OBS. Gratis y sin apuestas.">
 <link rel="icon" type="image/svg+xml" href="logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="rp-design.css">
 <style>
-  :root{--s1:var(--g1);--s3:var(--g1)}
   *{box-sizing:border-box}
   body{margin:0;background:radial-gradient(1200px 560px at 12% -10%,var(--g1) 0,rgba(var(--g1-rgb),0) 60%),radial-gradient(900px 440px at 96% -8%,var(--g1) 0,rgba(var(--g1-rgb),0) 55%),var(--bg);
     color:var(--text);font:400 16px/1.55 var(--ff);-webkit-font-smoothing:antialiased}
-  .wrap{max-width:900px;margin:0 auto;padding:40px 24px 60px}
-  header{display:flex;align-items:center;gap:14px;margin-bottom:8px}
-  header img{width:52px;height:52px}
-  h1{font-family:var(--ffd);font-size:30px;font-weight:700;letter-spacing:.5px;margin:0}
-  .sub{color:var(--muted);font-size:15px;margin-top:2px}
-  .lead{font-size:17px;color:var(--text);margin:18px 0 22px}
-  .lead b{color:var(--text)}
-  /* vista previa */
-  .preview{position:relative;aspect-ratio:16/9;border-radius:16px;overflow:hidden;border:1px solid var(--line);
-    background:linear-gradient(135deg,#17251b,var(--g1) 55%,#281820);box-shadow:0 14px 40px rgba(0,0,0,.5)}
-  .preview .tagfake{position:absolute;top:14px;left:16px;font-family:var(--ffd);font-size:13px;color:rgba(255,255,255,.35);letter-spacing:1px}
-  .preview iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent}
-  .pvnote{color:var(--muted);font-size:12.5px;margin:8px 2px 0;text-align:center}
-  /* botones */
-  .cta{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0 8px}
-  .btn{font-family:var(--ffd);font-weight:700;font-size:15px;letter-spacing:.3px;border-radius:12px;padding:14px 22px;cursor:pointer;border:1px solid var(--line);
-    background:var(--s1);color:var(--text);display:flex;align-items:center;gap:10px;transition:border-color .15s,transform .05s}
-  a.btn{text-decoration:none;color:inherit;display:inline-block}
-  .btn:hover{border-color:var(--blue)}.btn:active{transform:translateY(1px)}
-  .btn.primary{background:linear-gradient(180deg,var(--blue),var(--blue2));border-color:var(--blue);color:var(--team-a-ink);box-shadow:0 6px 20px rgba(var(--team-a-rgb),.3)}
-  .url{font-family:ui-monospace,Consolas,monospace;font-size:13px;color:var(--link);background:var(--s3);border:1px solid var(--line2);border-radius:10px;padding:10px 14px;margin-top:10px;word-break:break-all}
-  .ok{color:var(--ok);font-weight:700}
-  h2{font-family:var(--ffd);font-size:13px;text-transform:uppercase;letter-spacing:1.1px;color:var(--blue);margin:34px 0 12px;display:flex;align-items:center;gap:8px}
-  h2::before{content:'';width:3px;height:14px;border-radius:2px;background:linear-gradient(180deg,var(--blue),var(--blue2));box-shadow:0 0 8px rgba(var(--team-a-rgb),.4)}
-  ol{margin:0;padding-left:22px}ol li{margin:8px 0}
-  .feat{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
-  .card{background:linear-gradient(180deg,var(--g1),var(--g1));border:1px solid var(--line);border-radius:14px;padding:16px 18px}
-  .card b{font-family:var(--ffd)}
-  code{background:var(--s3);border:1px solid var(--line2);border-radius:6px;padding:1px 6px;font-size:13px;color:var(--link)}
-  footer{border-top:1px solid var(--line);margin-top:36px;padding-top:16px;color:var(--muted);font-size:12px;line-height:1.6}
-  @media(max-width:620px){.feat{grid-template-columns:1fr}h1{font-size:24px}}
+  a{color:var(--link)}
+  .wrap{max-width:940px;margin:0 auto;padding:22px 20px 60px}
+  /* encabezado */
+  .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .top img{width:36px;height:36px}.top .bt{font:800 20px var(--ffd);letter-spacing:.4px;margin-right:auto}
+  .top nav{display:flex;gap:4px;flex-wrap:wrap}
+  .top nav a{color:var(--muted);text-decoration:none;font-weight:600;font-size:14px;padding:8px 10px;border-radius:8px}
+  .top nav a:hover{color:var(--text);background:var(--g1)}
+  /* portada */
+  .hero{text-align:center;margin:38px 0 26px}
+  .hero h1{font:800 clamp(34px,6vw,52px)/1.05 var(--ffd);letter-spacing:.4px;margin:0}
+  .hero p{color:var(--muted);font-size:18px;max-width:640px;margin:12px auto 0}
+  .caminos{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:26px 0 30px}
+  .camino{display:flex;flex-direction:column;gap:6px;text-decoration:none;color:inherit;background:var(--g1);border:1px solid var(--line);border-radius:16px;padding:20px 22px;transition:border-color .15s,transform .15s}
+  .camino:hover{border-color:var(--signal);transform:translateY(-2px)}
+  .camino .ic{font-size:26px}.camino b{font:800 22px var(--ffd);letter-spacing:.3px}.camino span{color:var(--muted);font-size:15px}
+  .camino .va{margin-top:auto;padding-top:8px;color:var(--signal);font-weight:700}
+  /* demo: se dibuja a 1280×720 y se escala al ancho disponible */
+  .stage{position:relative;aspect-ratio:16/9;border-radius:16px;overflow:hidden;border:1px solid var(--line);
+    background:radial-gradient(60% 70% at 22% 30%,rgba(46,120,92,.45),transparent 70%),radial-gradient(50% 60% at 78% 65%,rgba(var(--team-a-rgb),.35),transparent 70%),linear-gradient(160deg,#0f1a1d,var(--g0) 55%,#120d18);box-shadow:0 14px 40px rgba(0,0,0,.5)}
+  .stage .vp{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0}
+  .stage iframe{position:absolute;inset:0;width:1280px;height:720px;border:0;background:transparent}
+  .stage .tag{position:absolute;top:12px;left:14px;font:600 13px var(--ffd);color:rgba(255,255,255,.4);letter-spacing:1px;z-index:1}
+  .nota{color:var(--muted);font-size:13.5px;margin:8px 2px 0;text-align:center}
+  /* secciones */
+  h2{font:800 26px var(--ffd);letter-spacing:.3px;margin:48px 0 6px;scroll-margin-top:16px}
+  .sub{color:var(--muted);margin:0 0 18px}
+  h3{font:700 18px var(--ffd);letter-spacing:.3px;margin:0 0 4px}
+  .paso{display:grid;grid-template-columns:34px 1fr;gap:12px;background:var(--g1);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:10px 0}
+  .paso .n{width:30px;height:30px;border-radius:50%;background:var(--signal);color:var(--signal-ink);font:800 16px var(--ffd);display:grid;place-items:center}
+  .paso p{margin:2px 0 0;color:var(--muted)}
+  /* generador de URL */
+  .gen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+  .gen label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:600}
+  .gen select,.gen input{height:42px;border-radius:10px;border:1px solid var(--line-strong);background:var(--g2);color:var(--text);font:500 15px var(--ff);padding:0 10px;width:100%}
+  .gen .ancho{grid-column:span 2}
+  .url{font:500 13px var(--ffm);color:var(--link);background:var(--g2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:12px;word-break:break-all}
+  .acc{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  .btn{font:700 15px var(--ffd);letter-spacing:.3px;border-radius:12px;padding:12px 18px;cursor:pointer;border:1px solid var(--line-strong);background:var(--g2);color:var(--text);text-decoration:none;display:inline-flex;align-items:center;gap:8px;min-height:44px}
+  .btn:hover{border-color:var(--signal)}
+  .btn.pri{background:var(--signal);border-color:var(--signal);color:var(--signal-ink)}
+  .msg{min-height:20px;font-size:14px;color:var(--ok);margin-top:8px}
+  code{font:500 13px var(--ffm);background:var(--g2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--link)}
+  .feat{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .card{background:var(--g1);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .card p{margin:4px 0 0;color:var(--muted);font-size:14.5px}
+  details{margin-top:14px;background:var(--g1);border:1px solid var(--line);border-radius:14px;padding:14px 18px}
+  details summary{cursor:pointer;font-weight:700}
+  details li{margin:6px 0;color:var(--muted)}
+  footer{border-top:1px solid var(--line);margin-top:44px;padding-top:16px;color:var(--muted);font-size:13px;line-height:1.6}
+  :focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+  @media(max-width:720px){.caminos,.feat{grid-template-columns:1fr}.gen{grid-template-columns:1fr 1fr}.hero{margin-top:26px}}
 </style>
-<link rel="stylesheet" href="rp-design.css">
-<script src="engine.js"></script>
-<script src="rp-ui.js"></script>
 </head>
 <body>
 <div class="wrap">
-  <header><img src="logo.svg" alt="RiftPulse"><div><h1>RiftPulse para streamers</h1><div class="sub">Overlay de predicción en vivo para tu co-stream del Mundial</div></div></header>
+  <header class="top">
+    <img src="logo.svg" alt=""><span class="bt">RiftPulse</span>
+    <nav aria-label="Secciones"><a href="app.html">App</a><a href="instalar.html">Instalar</a><a href="como-funciona.html">Cómo funciona</a><a href="https://github.com/userf8a2c4/riftpulse-overlay/wiki">Wiki</a></nav>
+  </header>
 
-  <a href="instalar.html" style="display:flex;gap:10px;align-items:center;text-decoration:none;color:inherit;background:rgba(var(--signal-rgb),.08);border:1px solid rgba(var(--signal-rgb),.4);border-radius:12px;padding:10px 14px;margin:14px 0 4px"><span style="font-size:20px">🖥</span><span><b>¿Querés ver el Mundial con RiftPulse?</b> Instalalo sobre el video o como app, en un minuto →</span></a>
-  <p class="lead">Un <b>overlay gratuito</b> para OBS que muestra, sobre tu transmisión, la <b>probabilidad de victoria en vivo</b> de cada equipo, en <b>sus colores</b>, con la <b>precisión del modelo a la vista</b>. Se instala pegando <b>una sola URL</b> y <b>RiftPulse decide qué mostrar</b> en cada momento: el impacto antes del dragón o el Barón, el daño tras una pelea, la alerta en un giro, qué necesita el que va abajo, el resumen al terminar y la serie entre juegos. Cero configuración.</p>
+  <section class="hero">
+    <h1>El Mundial, jugada a jugada</h1>
+    <p>La probabilidad de que gane cada equipo, en vivo y sincronizada con lo que ves. Gratis, sin cuentas y sin apuestas.</p>
+  </section>
 
-  <div class="preview"><div class="tagfake">TU GAMEPLAY / CO-STREAM</div><iframe src="overlay.html?demo&view=auto&director=show" title="Demo del overlay con el director automático" scrolling="no"></iframe></div>
-  <div class="pvnote">Demo con un <b>partido real del Mundial ya jugado</b>, acelerado, con el director automático: las piezas entran y salen solas. En OBS se ve igual pero con el partido en vivo, sobre tu transmisión y con fondo transparente.</div>
-  <div class="cta" style="margin-top:10px">
-    <a class="btn" href="analista.html?demo" target="_blank" rel="noopener">🎙 Ver la mesa de análisis (demo)</a>
-    <a class="btn" href="overlay.html?demo&view=bar" target="_blank" rel="noopener">▶ Overlay a pantalla completa (demo)</a>
-    <a class="btn" href="como-funciona.html">🧠 Cómo funciona</a>
+  <div class="caminos">
+    <a class="camino" href="instalar.html">
+      <span class="ic" aria-hidden="true">🖥</span><b>Quiero ver el Mundial</b>
+      <span>Encima del video de Twitch, o como app en el celu y la compu.</span><span class="va">Instalar →</span></a>
+    <a class="camino" href="#stream">
+      <span class="ic" aria-hidden="true">🎥</span><b>Hago stream</b>
+      <span>El overlay para tu co-stream en OBS: una URL y decide solo qué mostrar.</span><span class="va">Ponerlo en OBS ↓</span></a>
   </div>
 
-  <div class="cta">
-    <button class="btn primary" id="copy">📋 Copiar URL del overlay</button>
-    <button class="btn" id="scene">⬇ Descargar escena de OBS</button>
-    <button class="btn" id="copyCtl">🎚 Copiar URL del control (dock)</button>
-  </div>
-  <div class="url" id="url">…</div>
-  <div class="pvnote" id="msg" style="min-height:18px"></div>
+  <div class="stage"><span class="tag">TU STREAM</span><div class="vp" id="vp"><iframe src="overlay.html?demo&view=auto&director=show" title="Demo del overlay con un partido real ya jugado" scrolling="no"></iframe></div></div>
+  <p class="nota">Demo con un <b>partido real del Mundial</b>, acelerado: las piezas entran y salen solas. En OBS va con fondo transparente, sobre tu transmisión.</p>
 
-  <h2>Escenas listas (presets)</h2>
-  <div class="presets" id="presets"></div>
-  <div class="pvnote" style="text-align:left">A cualquier URL se le puede agregar: <code>&delay=42</code> (tu retraso en segundos), <code>&accent=ff8800</code> (tu color), <code>&logo=https://…</code> (tu logo), <code>&safe=1</code> (márgenes amplios) y <code>&brand=0</code> (sin marca). Todos los parámetros, en la <a href="https://github.com/userf8a2c4/riftpulse-overlay/wiki/Paquete-de-gráficos" style="color:var(--link)">wiki</a>.</div>
+  <h2 id="stream">Ponelo en tu stream</h2>
+  <p class="sub">Cuatro pasos, una sola vez.</p>
 
-  <h2>Añadirlo en 3 pasos</h2>
-  <ol>
-    <li>Copia la URL de arriba.</li>
-    <li>En OBS: <b>+ (Fuentes) → Navegador / Browser Source</b> → pega la URL, pon <code>1920 × 1080</code>.</li>
-    <li>Acepta. Aparece el overlay con fondo transparente. Colócalo donde quieras.</li>
-  </ol>
-  <p class="pvnote" style="text-align:left">¿Prefieres aún más rápido? Usa <b>⬇ Descargar escena de OBS</b> y en OBS haz <b>Colección de escenas → Importar</b> (OBS 28+): trae la escena «RiftPulse» con el director ya puesto y, ocultas, las predicciones del stream y el cuadro del Mundial para prenderlas con un clic. Para manejarlo en vivo, sumá el control como dock: <b>Docks → Docks de navegador personalizados</b> y pegá la URL de <b>🎚 Copiar URL del control</b>.</p>
+  <div class="paso"><span class="n">1</span><div>
+    <h3>Elegí qué querés mostrar</h3>
+    <p>Si no sabés, dejalo así: el director automático muestra en cada momento lo que aporta.</p>
+    <div class="gen">
+      <label class="ancho">Pieza<select id="gVista">
+        <option value="auto">Director automático (recomendado)</option>
+        <option value="bar">Solo la barra de probabilidad</option>
+        <option value="alert">Alerta cuando el juego da vuelta</option>
+        <option value="serie">Serie (entre mapas)</option>
+        <option value="recap">Resumen al terminar el juego</option>
+        <option value="big">Tarjeta grande</option>
+        <option value="duelos">Duelos por línea</option>
+        <option value="remontada">Qué necesita el que va abajo</option>
+        <option value="objectives">Objetivos</option>
+        <option value="keys">Claves del momento</option>
+        <option value="cuadro">Cuadro de eliminatorias</option>
+        <option value="predicciones">Predicciones de tu staff</option>
+      </select></label>
+      <label>Barra<select id="gPos"><option value="bottom">Abajo</option><option value="top">Arriba</option></select></label>
+      <label>Tamaño<select id="gEsc"><option value="">Normal</option><option value="1.2">Grande</option><option value="0.85">Chico</option></select></label>
+      <label class="ancho" title="Cuántos segundos va atrasado tu stream frente a la transmisión oficial">Retraso de tu stream (segundos)<input id="gRet" type="number" min="0" max="600" step="1" placeholder="0 · si no sabés, dejalo vacío"></label>
+    </div>
+    <div class="url" id="url">…</div>
+    <div class="acc">
+      <button class="btn pri" id="copiar">📋 Copiar URL</button>
+      <a class="btn" id="probar" href="#" target="_blank" rel="noopener">▶ Probarla con un partido ya jugado</a>
+    </div>
+    <div class="msg" id="msg" role="status" aria-live="polite"></div>
+  </div></div>
 
-  <h2>Qué muestra</h2>
-  <div class="feat">
-    <div class="card"><b>Probabilidad en vivo</b><div class="pvnote" style="text-align:left;margin-top:4px">La barra azul/rojo se mueve con el oro, torres, dragones, almas, Barón e inhibidores.</div></div>
-    <div class="card"><b>Pronóstico previo</b><div class="pvnote" style="text-align:left;margin-top:4px">Antes de cada partida: a quién favorece el modelo y por qué.</div></div>
-    <div class="card"><b>Momentum</b><div class="pvnote" style="text-align:left;margin-top:4px">Un aviso cuando la probabilidad da un giro grande (p. ej. tras el Barón).</div></div>
-    <div class="card"><b>Precisión a la vista</b><div class="pvnote" style="text-align:left;margin-top:4px">La marca lleva el acierto real del modelo: <span class="ok">75% al minuto 15</span> (589 juegos de prueba).</div></div>
-  </div>
+  <div class="paso"><span class="n">2</span><div>
+    <h3>Agregala en OBS</h3>
+    <p>En <b>Fuentes</b> tocá <b>+ → Navegador</b>, pegá la URL y poné <code>1920</code> × <code>1080</code>. Aceptá.</p>
+  </div></div>
+
+  <div class="paso"><span class="n">3</span><div>
+    <h3>Comprobá que funciona</h3>
+    <p>Si en ese momento no hay partido, vas a ver unos segundos <b>«RiftPulse listo · próximo: …»</b> y después nada: el overlay aparece solo cuando empieza el partido.</p>
+  </div></div>
+
+  <div class="paso"><span class="n">4</span><div>
+    <h3>¿Tu stream va atrasado?</h3>
+    <p>Si la barra se adelanta a lo que ve tu chat, poné tu retraso en el paso 1 y volvé a copiar la URL. En vivo también lo ajustás desde el <b>control</b> (abajo), sin tocar OBS.</p>
+  </div></div>
+
+  <details>
+    <summary>Más rápido: importar la escena entera</summary>
+    <p style="color:var(--muted)">Trae la escena «RiftPulse» con el director ya puesto y, ocultas, las predicciones de tu staff y el cuadro del Mundial, para prenderlas con un clic. En OBS: <b>Colección de escenas → Importar</b> (OBS 28 o más nuevo).</p>
+    <button class="btn" id="escena">⬇ Descargar la escena de OBS</button>
+  </details>
 
   <h2>Para equipos de transmisión</h2>
   <div class="feat">
-    <div class="card"><b>🎛 Mesa de análisis</b><div class="pvnote" style="text-align:left;margin-top:4px">Segunda pantalla para casters: probabilidad, el porqué, momentum y <b>puntos listos para comentar</b>. <a href="analista.html" style="color:var(--link)">Abrir Mesa →</a></div></div>
-    <div class="card"><b>🎬 Paquete de gráficos</b><div class="pvnote" style="text-align:left;margin-top:4px">Varias piezas para OBS, cada una es su propia URL (Browser Source). Cópialas abajo.</div></div>
-    <div class="card"><b>🎚 Control de producción</b><div class="pvnote" style="text-align:left;margin-top:4px">Enciende/apaga módulos y dispara alertas en vivo. <a href="control.html" style="color:var(--link)">Abrir control →</a> · añádelo en OBS como Dock de navegador.</div></div>
-    <div class="card"><b>📊 Mismo motor</b><div class="pvnote" style="text-align:left;margin-top:4px">Todo sale del mismo modelo, con su acierto medido a la vista (<a href="como-funciona.html" style="color:var(--link)">cómo funciona</a>). El mismo número en cada gráfico.</div></div>
+    <div class="card"><h3>🎚 Control de producción</h3><p>Un panel <b>dentro de OBS</b> para prender y apagar piezas, ajustar el retraso y disparar alertas en vivo. En OBS: <b>Ver → Docks → Docks de navegador personalizados</b> y pegá su URL.</p>
+      <div class="acc"><button class="btn" id="copiarCtl">📋 Copiar URL del control</button></div></div>
+    <div class="card"><h3>🎙 Mesa de análisis</h3><p>Una segunda pantalla para casters: la probabilidad, el porqué y frases listas para comentar.</p>
+      <div class="acc"><a class="btn" href="analista.html?demo" target="_blank" rel="noopener">Ver la mesa (demo)</a></div></div>
   </div>
-  <p class="pvnote" style="text-align:left;margin-top:10px">Vistas del paquete (clic para copiar su URL):</p>
-  <div id="packurls" class="cta" style="gap:8px"></div>
 
-  <h2>Ajustes (opcional, por URL)</h2>
-  <p class="pvnote" style="text-align:left">Añade parámetros a la URL: <code>&director=minimo</code>, <code>estandar</code> o <code>show</code> (cuánto muestra solo), <code>&tema=equipos</code>, <code>canal</code> (con <code>&accent=</code>, tus colores) o <code>minimal</code>, <code>&stage=tr</code> (la pieza grande arriba a la derecha), <code>&pos=top</code> (la barra arriba), <code>&scale=1.2</code> (más grande) y <code>&modules=prob,timers</code> (qué lleva la barra). Sin parámetros, ya funciona.</p>
+  <h2>Qué muestra</h2>
+  <div class="feat">
+    <div class="card"><h3>Probabilidad en vivo</h3><p>Se mueve con el oro, las torres, los dragones, el Barón y los inhibidores, en los colores de cada equipo.</p></div>
+    <div class="card"><h3>Antes del juego</h3><p>A quién favorece el modelo cuando arranca la partida, según la fuerza de cada equipo y el lado del mapa.</p></div>
+    <div class="card"><h3>Los giros</h3><p>Un aviso cuando la probabilidad da vuelta, con lo que la movió (un Barón, una pelea).</p></div>
+    <div class="card"><h3>Su acierto, a la vista</h3><p>La marca dice cuánto acierta el modelo a ese minuto: <b style="color:var(--ok)">75 % al minuto 15</b>, medido en 589 juegos que no había visto. <a href="como-funciona.html">Cómo funciona</a>.</p></div>
+  </div>
+
+  <details>
+    <summary>Ajustes avanzados (se agregan al final de la URL)</summary>
+    <ul>
+      <li><code>&amp;accent=ff8800</code> tu color · <code>&amp;logo=https://…</code> tu logo · <code>&amp;brand=0</code> sin la marca de RiftPulse</li>
+      <li><code>&amp;director=minimo</code>, <code>estandar</code> o <code>show</code>: cuánto muestra el director solo</li>
+      <li><code>&amp;tema=canal</code> (con tu color) o <code>minimal</code> · <code>&amp;safe=1</code> márgenes amplios · <code>&amp;stage=tr</code> la pieza grande arriba a la derecha</li>
+      <li><code>&amp;modules=prob,timers</code> qué lleva la barra · <code>&amp;listo=0</code> sin el aviso «RiftPulse listo» al abrir</li>
+    </ul>
+    <p style="color:var(--muted);margin-bottom:0">Todos los parámetros, en la <a href="https://github.com/userf8a2c4/riftpulse-overlay/wiki/Paquete-de-gráficos">wiki</a>.</p>
+  </details>
 
   <footer>
-    <p>RiftPulse no está avalado por Riot Games y no refleja sus opiniones. League of Legends y Riot Games son marcas de Riot Games, Inc. © Riot Games, Inc. Es una herramienta de pronóstico y análisis, sin fines de apuestas.</p>
-    <p>Hecho por <b>VectisDev</b></p>
+    <p>RiftPulse es pronóstico y análisis, sin apuestas. No está avalado por Riot Games y no refleja sus opiniones. League of Legends y Riot Games son marcas de Riot Games, Inc.</p>
+    <p>Hecho por <b>VectisDev</b> · <a href="https://github.com/userf8a2c4/riftpulse-overlay">Código abierto</a></p>
   </footer>
 </div>
 
 <script>
-  var BASE_URL = location.origin + location.pathname.replace(/[^/]*$/, ''), OVERLAY_URL = BASE_URL + 'overlay.html', AUTO_URL = OVERLAY_URL + '?view=auto', CTRL_URL = BASE_URL + 'control.html';
-  document.getElementById('url').textContent = AUTO_URL;
-  function msg(t){ var m=document.getElementById('msg'); m.textContent=t; m.className='pvnote ok'; setTimeout(function(){m.textContent='';},3000); }
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var BASE = location.origin + location.pathname.replace(/[^/]*$/, '');
 
-  document.getElementById('copy').addEventListener('click', function(){
-    navigator.clipboard.writeText(AUTO_URL).then(function(){ msg('¡URL copiada! Pégala en un Browser Source de OBS.'); },
-      function(){ msg('Copia manual: ' + AUTO_URL); });
+  // la demo se dibuja a 1280×720 y se escala al ancho disponible (igual en el celu y en la compu)
+  var st = $('.stage'), vp = $('#vp');
+  function encajar() { vp.style.transform = 'scale(' + (st.clientWidth / 1280) + ')'; }
+  encajar(); window.addEventListener('resize', encajar);
+
+  // copiar al portapapeles; si el navegador no deja, con el método clásico
+  function copiar(texto) {
+    var clasico = function () {
+      var t = document.createElement('textarea'); t.value = texto; t.setAttribute('readonly', ''); t.style.cssText = 'position:fixed;top:0;opacity:0';
+      document.body.appendChild(t); t.select(); var ok = false; try { ok = document.execCommand('copy'); } catch (e) {} t.remove();
+      if (!ok) throw new Error('sin portapapeles');
+    };
+    return navigator.clipboard ? navigator.clipboard.writeText(texto).catch(clasico) : Promise.resolve().then(clasico);
+  }
+  function aviso(t, mal) { var m = $('#msg'); m.textContent = t; m.style.color = mal ? 'var(--muted)' : ''; }
+
+  // generador: una sola URL con lo que se eligió
+  var BARRA = {auto: 1, bar: 1};
+  function armar(demo) {
+    var v = $('#gVista').value, p = [];
+    p.push('view=' + v);
+    if (v === 'bar') p.push('modules=prob,timers,brand');
+    if (BARRA[v] && $('#gPos').value === 'top') p.push('pos=top');
+    if ($('#gEsc').value) p.push('scale=' + $('#gEsc').value);
+    var r = parseInt($('#gRet').value, 10); if (r > 0) p.push('delay=' + Math.min(600, r));
+    if (demo) p.push('demo');
+    return BASE + 'overlay.html?' + p.join('&');
+  }
+  function pintar() {
+    $('#gPos').disabled = !BARRA[$('#gVista').value];
+    $('#url').textContent = armar(false); $('#probar').href = armar(true); aviso('');
+  }
+  ['#gVista', '#gPos', '#gEsc', '#gRet'].forEach(function (s) { $(s).addEventListener('input', pintar); $(s).addEventListener('change', pintar); });
+  pintar();
+  $('#copiar').addEventListener('click', function () {
+    var u = armar(false);
+    copiar(u).then(function () { aviso('✓ Copiada. En OBS: Fuentes → + → Navegador → pegala.'); }, function () { aviso('Copiala a mano: ' + u, true); });
   });
-  document.getElementById('copyCtl').addEventListener('click', function(){
-    navigator.clipboard.writeText(CTRL_URL).then(function(){ msg('URL del control copiada: pégala en OBS → Docks → Docks de navegador personalizados.'); },
-      function(){ msg('Copia manual: ' + CTRL_URL); });
+  $('#copiarCtl').addEventListener('click', function () {
+    var u = BASE + 'control.html';
+    copiar(u).then(function () { aviso('✓ URL del control copiada. En OBS: Ver → Docks → Docks de navegador personalizados.'); }, function () { aviso('Copiala a mano: ' + u, true); });
   });
 
-  function buildScene(base){
-    // Colección de escenas para OBS 28+: la escena «RiftPulse» con el director (visible) y dos piezas ocultas para prender a mano.
-    var piezas = [['RiftPulse · Director', 'overlay.html?view=auto', true], ['RiftPulse · Predicciones del stream', 'overlay.html?view=predicciones', false], ['RiftPulse · Cuadro del Mundial', 'overlay.html?view=cuadro', false]];
-    var item = function (p, i) { return { name: p[0], source_uuid: '', visible: p[2], locked: false, id: i + 1, pos: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, align: 5, bounds_type: 0, bounds: { x: 0, y: 0 }, rot: 0 }; };
+  // escena de OBS 28+: la escena «RiftPulse» con el director (visible) y dos piezas ocultas para prender a mano.
+  // Cada pieza se ajusta a la pantalla, así funciona igual en lienzos de 1080p y de 720p.
+  function escena(base) {
+    var piezas = [['RiftPulse · Director', 'overlay.html?view=auto', true], ['RiftPulse · Predicciones del staff', 'overlay.html?view=predicciones', false], ['RiftPulse · Cuadro del Mundial', 'overlay.html?view=cuadro', false]];
+    var item = function (p, i) { return {name: p[0], source_uuid: '', visible: p[2], locked: false, id: i + 1, pos: {x: 0, y: 0}, scale: {x: 1, y: 1}, align: 5, bounds_type: 2, bounds_align: 0, bounds: {x: 1920, y: 1080}, rot: 0}; };
     return {
-      current_scene: "RiftPulse", current_program_scene: "RiftPulse",
-      scene_order: [{ name: "RiftPulse" }], name: "RiftPulse",
-      sources: [{ prev_ver: 503447557, name: "RiftPulse", id: "scene", versioned_id: "scene", settings: { custom_size: false, id_counter: piezas.length, items: piezas.map(item) } }]
-        .concat(piezas.map(function (p) { return { prev_ver: 503447557, name: p[0], id: "browser_source", versioned_id: "browser_source",
-          settings: { url: base + p[1], width: 1920, height: 1080, reroute_audio: false, css: "", shutdown: false, restart_when_active: false } }; }))
+      current_scene: 'RiftPulse', current_program_scene: 'RiftPulse', scene_order: [{name: 'RiftPulse'}], name: 'RiftPulse',
+      sources: [{prev_ver: 503447557, name: 'RiftPulse', id: 'scene', versioned_id: 'scene', settings: {custom_size: false, id_counter: piezas.length, items: piezas.map(item)}}]
+        .concat(piezas.map(function (p) { return {prev_ver: 503447557, name: p[0], id: 'browser_source', versioned_id: 'browser_source',
+          settings: {url: base + p[1], width: 1920, height: 1080, reroute_audio: false, css: '', shutdown: false, restart_when_active: false}}; }))
     };
   }
-  document.getElementById('scene').addEventListener('click', function(){
-    var blob = new Blob([JSON.stringify(buildScene(BASE_URL), null, 2)], { type: 'application/json' });
+  window.RP_ESCENA = escena;  // la misma escena que trae el repo (riftpulse.obs-scene.json)
+  $('#escena').addEventListener('click', function () {
+    var blob = new Blob([JSON.stringify(escena(BASE), null, 2)], {type: 'application/json'});
     var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'RiftPulse.json';
     document.body.appendChild(a); a.click(); a.remove();
-    msg('Escena descargada. En OBS: Colección de escenas → Importar → elige RiftPulse.json');
+    aviso('✓ Escena descargada. En OBS: Colección de escenas → Importar → elegí RiftPulse.json');
   });
-
-  // botones del paquete de gráficos
-  var VISTAS = [['auto','Director automático'],['bar','Lower-third'],['big','Tarjeta grande'],['alert','Alerta de momentum'],['objectives','Objetivos'],['keys','Claves del momento'],['serie','Serie'],['duelos','Duelos por línea'],['remontada','Para remontar'],['recap','Resumen del juego'],['cuadro','Cuadro de eliminatorias'],['predicciones','Predicciones del stream']];
-  var pack = document.getElementById('packurls');
-  VISTAS.forEach(function(v){
-    var b = document.createElement('button'); b.className='btn'; b.textContent = v[1];
-    b.addEventListener('click', function(){ var u = OVERLAY_URL + '?view=' + v[0];
-      navigator.clipboard.writeText(u).then(function(){ msg('Copiada la vista "'+v[1]+'": '+u); }, function(){ msg(u); }); });
-    pack.appendChild(b);
-  });
-</script>
-<style>.presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}.presets .ps{background:rgba(var(--g1-rgb),.8);border:1px solid rgba(var(--line-rgb),0.094);border-radius:6px;padding:12px 14px}.presets .ps b{display:block;margin-bottom:3px}.presets .ps span{display:block;color:var(--muted);font-size:13px;margin-bottom:8px}.presets .ps button{font:600 13px Inter Tight,sans-serif;padding:6px 12px;border-radius:4px;cursor:pointer;background:linear-gradient(180deg,var(--team-a),var(--team-a-2));border:0;color:var(--team-a-ink)}</style>
-<script>
-(function(){
-  var base = location.origin + location.pathname.replace(/[^/]*$/, '');
-  var P = [['Director automático (recomendado)', 'Una sola URL: la barra siempre y, en cada momento, la pieza que aporta.', 'overlay.html?view=auto'],
-    ['Solo barra (lower-third)', 'Probabilidad, timers y marca, abajo.', 'overlay.html?view=bar&modules=prob,timers,brand&pos=bottom'],
-    ['Alertas de giro', 'Escena aparte: aparece sola cuando el juego da vuelta.', 'overlay.html?view=alert'],
-    ['Entre mapas: la serie', 'Probabilidad de la serie y qué pasa si gana cada uno.', 'overlay.html?view=serie'],
-    ['Cierre de juego', 'Resumen al terminar (o desde el control).', 'overlay.html?view=recap'],
-    ['Predicciones del stream', 'Los picks de tu equipo, cargados desde el control.', 'overlay.html?view=predicciones'],
-    ['Cuadro del Mundial', 'Eliminatorias en vivo.', 'overlay.html?view=cuadro']];
-  var box = document.getElementById('presets'); if (!box) return;
-  box.innerHTML = P.map(function(p, i){ return '<div class="ps"><b>' + p[0] + '</b><span>' + p[1] + '</span><button data-i="' + i + '">📋 Copiar URL</button></div>'; }).join('');
-  box.addEventListener('click', function(e){ var b = e.target.closest('button[data-i]'); if (!b) return; var u = base + P[+b.dataset.i][2];
-    navigator.clipboard.writeText(u).then(function(){ b.textContent = '✓ Copiada'; setTimeout(function(){ b.textContent = '📋 Copiar URL'; }, 1500); }, function(){ prompt('Copiá la URL:', u); }); });
 })();
 </script>
 </body>

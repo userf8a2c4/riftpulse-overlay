@@ -15,15 +15,16 @@ En la página, **⬇ Descargar escena de OBS** → en OBS **Colección de escena
 Para manejarlo en vivo, sumá el [control](Control-de-producción) como dock: en la página, **🎚 Copiar URL del control (dock)** y en OBS **Docks → Docks de navegador personalizados**.
 
 ## Si algo no se ve
-- **No aparece:** ¿hay un partido de Worlds en vivo ahora? Entre partidas queda a la espera.
-- **Se ve una caja/fondo:** asegúrate de que sea un *Navegador/Browser Source* (no una imagen). El overlay es transparente por diseño.
+- **No aparece:** ¿hay un partido del Mundial en vivo ahora? Entre partidas queda a la espera (al abrirla muestra unos segundos «RiftPulse listo»).
+- **Se ve una caja/fondo:** fijate que sea una fuente de *Navegador* (no una imagen). El overlay es transparente por diseño.
 - **Rendimiento:** una sola fuente basta; no dupliques el overlay en varias escenas si no hace falta.
 
 ## Ajustes por URL (opcional)
-Añade parámetros al final de la URL:
-- `?pos=top` — arriba en vez de abajo.
-- `?scale=1.2` — más grande.
-- `?modules=prob,timers` — elige qué mostrar.
-- `?director=show` — que muestre más piezas (o `minimo`, menos).
-- `?tema=canal&accent=ff8800` — la barra en el color de tu canal; `?tema=minimal`, plana.
-- `?view=big` — otra pieza del [paquete de gráficos](Paquete-de-gráficos).
+Lo más fácil: el **generador de la [página](https://userf8a2c4.github.io/riftpulse-overlay/#stream)** arma la URL con la pieza, la posición, el tamaño y tu retraso. A mano, se agregan al final de la URL **con `&`** (la URL ya trae un `?`):
+- `&pos=top` — arriba en vez de abajo.
+- `&scale=1.2` — más grande.
+- `&modules=prob,timers` — qué muestra la barra.
+- `&director=show` — que muestre más piezas (o `minimo`, menos).
+- `&tema=canal&accent=ff8800` — la barra en el color de tu canal; `&tema=minimal`, plana.
+- `&delay=42` — tu retraso frente a la transmisión oficial, en segundos.
+- Para otra pieza del [paquete de gráficos](Paquete-de-gráficos), cambiá `view=auto` por la vista (por ejemplo `view=big`).

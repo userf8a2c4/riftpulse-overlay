@@ -75,7 +75,7 @@
   <header class="top">
     <img src="logo.svg" alt="">
     <div class="brand-t">RiftPulse</div>
-    <nav><a href="app.html">App</a><a href="como-funciona.html">Cómo funciona</a><a href="./">Para streamers</a></nav>
+    <nav><a href="./">Inicio</a><a href="app.html">App</a><a href="como-funciona.html">Cómo funciona</a><a href="./#stream">Para streamers</a></nav>
   </header>
 
   <div class="hero">
@@ -134,8 +134,8 @@
   <!-- 3) stream -->
   <section class="card" id="stream" role="tabpanel" hidden>
     <h2>Para tu stream</h2>
-    <p class="lead">El overlay se agrega a OBS pegando <b>una sola URL</b> como fuente de navegador, o importando la escena lista. Todo lo explica la página para streamers.</p>
-    <div class="acc" style="justify-content:flex-start"><a class="ib pri" href="./">Ir a RiftPulse para streamers</a><a class="ib" href="analista.html?demo" target="_blank" rel="noopener">Ver la mesa de análisis</a></div>
+    <p class="lead">El overlay se agrega a OBS pegando <b>una sola URL</b> como fuente de navegador. La página la arma con tu retraso y te guía en 4 pasos.</p>
+    <div class="acc" style="justify-content:flex-start"><a class="ib pri" href="./#stream">Ponerlo en OBS</a><a class="ib" href="analista.html?demo" target="_blank" rel="noopener">Ver la mesa de análisis</a></div>
   </section>
 
   <footer>RiftPulse es pronóstico y análisis, sin apuestas. No está avalado por Riot Games. League of Legends y Riot Games son marcas de Riot Games, Inc.</footer>
@@ -183,6 +183,8 @@
 
   // instalar como app (cuando el navegador lo permite)
   var pedido = null;
+  // el navegador ofrece instalar la app solo si esta página también tiene el service worker de la app
+  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function () {});
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); pedido = e; $('#pwa').hidden = false; });
   $('#pwa').addEventListener('click', function () { if (pedido) { pedido.prompt(); pedido = null; $('#pwa').hidden = true; } });
 })();

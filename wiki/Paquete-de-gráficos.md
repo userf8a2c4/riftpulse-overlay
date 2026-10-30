@@ -32,22 +32,25 @@ Todo usa el estilo **[«Colores de cada equipo»](Estilo-y-colores-de-equipo)**:
 
 ## Parámetros de la URL
 
+El primero va con `?` y los demás con `&`, por ejemplo `overlay.html?view=bar&pos=top&delay=42`.
+
 | Parámetro | Qué hace |
 |---|---|
 | `?view=` | `auto` · `bar` (por defecto) · `big` · `alert` · `objectives` · `keys` · `serie` · `duelos` · `remontada` · `recap` · `cuadro` · `predicciones` |
-| `?director=` | con `view=auto`: `minimo` (la barra y las alertas de giro), `estandar` (por defecto) o `show` (además el oro, los duelos y la historia de vez en cuando) |
-| `?tema=` | `equipos` (por defecto: los colores de cada equipo), `canal` (la barra en el color del canal, con `&accent=`) o `minimal` (plano, sin marca ni sombras) |
-| `?stage=` | con `view=auto`: dónde va la pieza grande, `tl` (arriba a la izquierda, por defecto) o `tr` (arriba a la derecha) |
-| `?pos=` | `bottom` (por defecto) o `top` (vista `bar`) |
-| `?scale=` | tamaño, p. ej. `1.2` (de 0.6 a 2.4) |
-| `?modules=` | qué muestra la barra: `prob,pregame,momentum,timers,brand` |
-| `?demo` | reproduce un **partido real del Mundial ya jugado**, acelerado (×8; `?demo=4` para ×4). Siempre lleva la insignia **DEMO**: no se confunde con el vivo |
-| `?delay=` | tu retraso frente al feed, en segundos (p. ej. `42`). Queda guardado. Ver [Al aire sin sorpresas](Al-aire-sin-sorpresas) |
-| `?accent=` | color de señal sin `#` (p. ej. `ff8800`). Por defecto, el cian eléctrico de RiftPulse. Con `&tema=canal`, también pinta la barra |
-| `?logo=` | URL `https://` de tu logo, en lugar del de RiftPulse |
-| `?brand=0` | sin marca ni precisión en la barra |
-| `?safe=1` | márgenes amplios para no chocar con los elementos de Twitch o Kick |
-| `?stale=` | segundos sin datos nuevos para avisar «Datos retrasados» (por defecto `25`) |
+| `&director=` | con `view=auto`: `minimo` (la barra y las alertas de giro), `estandar` (por defecto) o `show` (además el oro, los duelos y la historia de vez en cuando) |
+| `&tema=` | `equipos` (por defecto: los colores de cada equipo), `canal` (la barra en el color del canal, con `&accent=`) o `minimal` (plano, sin marca ni sombras) |
+| `&stage=` | con `view=auto`: dónde va la pieza grande, `tl` (arriba a la izquierda, por defecto) o `tr` (arriba a la derecha) |
+| `&pos=` | `bottom` (por defecto) o `top` (vista `bar`) |
+| `&scale=` | tamaño, p. ej. `1.2` (de 0.6 a 2.4) |
+| `&modules=` | qué muestra la barra: `prob,pregame,momentum,timers,brand` |
+| `&demo` | reproduce un **partido real del Mundial ya jugado**, acelerado (×8; `&demo=4` para ×4). Siempre lleva la insignia **DEMO**: no se confunde con el vivo |
+| `&delay=` | tu retraso frente al feed, en segundos (p. ej. `42`). Queda guardado. Ver [Al aire sin sorpresas](Al-aire-sin-sorpresas) |
+| `&accent=` | color de señal sin `#` (p. ej. `ff8800`). Por defecto, el cian eléctrico de RiftPulse. Con `&tema=canal`, también pinta la barra |
+| `&logo=` | URL `https://` de tu logo, en lugar del de RiftPulse |
+| `&brand=0` | sin marca ni precisión en la barra |
+| `&safe=1` | márgenes amplios para no chocar con los elementos de Twitch o Kick |
+| `&stale=` | segundos sin datos nuevos para avisar «Datos retrasados» (por defecto `25`) |
+| `&listo=0` | sin la pastilla «RiftPulse listo · próximo: …» que se ve unos segundos al abrir la fuente en OBS sin partido |
 
 ### Escenas listas (presets)
 | Para | URL |
@@ -63,7 +66,7 @@ Todo usa el estilo **[«Colores de cada equipo»](Estilo-y-colores-de-equipo)**:
 Todas se copian con un clic desde la [página](https://userf8a2c4.github.io/riftpulse-overlay/) y desde **Mando** en el panel de la extensión.
 
 ### Escena de OBS lista
-En la [página](https://userf8a2c4.github.io/riftpulse-overlay/), **⬇ Descargar escena de OBS** baja una colección de escenas (OBS 28+, **Colección de escenas → Importar**) con el director ya puesto y, ocultas, las predicciones del stream y el cuadro del Mundial para prenderlas con un clic. El [control](Control-de-producción) se suma como dock: **Docks → Docks de navegador personalizados**.
+En la [página](https://userf8a2c4.github.io/riftpulse-overlay/), **⬇ Descargar la escena de OBS** (en «Más rápido: importar la escena entera») baja una colección de escenas (OBS 28+, **Colección de escenas → Importar**) con el director ya puesto y, ocultas, las predicciones del stream y el cuadro del Mundial para prenderlas con un clic. El [control](Control-de-producción) se suma como dock: **Docks → Docks de navegador personalizados**.
 
 ### Alertas automáticas
 - **Alerta de giro:** cuando la probabilidad se mueve **12 puntos o más en ~40 s**. Muestra el equipo, los puntos y la causa (Barón, dragón, inhibidor). En el director sale aunque haya una pieza grande en pantalla.

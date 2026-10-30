@@ -70,17 +70,23 @@
   .dlog li:first-child{border-top:0}
   .dlog .h{font:500 12px var(--ffm);color:var(--muted);flex:none}
   .dlog .m{font-size:12px;color:var(--muted);margin-left:auto}
+  .fuera{margin:12px 0;padding:14px 16px;border-radius:12px;background:rgba(var(--signal-rgb),.08);border:1px solid rgba(var(--signal-rgb),.45);font-size:14px;line-height:1.5}
+  .fuera .btn{margin-top:10px}
 </style>
 <link rel="stylesheet" href="rp-design.css">
 </head>
 <body>
-  <div class="top"><img src="logo.svg" alt="RiftPulse"><div><h1>Control de producción</h1><div class="sub">controla el overlay en vivo</div></div></div>
+  <div class="top"><img src="logo.svg" alt="RiftPulse"><div><h1>Control de producción</h1><div class="sub">manejá el overlay en vivo, sin tocar OBS</div></div></div>
+  <div class="fuera" id="fueraObs" role="status" hidden>
+    <b>Este panel va dentro de OBS.</b> Copiá esta dirección y en OBS agregala en <b>Ver → Docks → Docks de navegador personalizados</b>. Así maneja el overlay que tenés como fuente de navegador.
+    <button class="btn" id="copiarYo">📋 Copiar esta dirección</button>
+  </div>
 
   <div class="grp"><h2>Estado</h2>
     <div class="row"><span>Datos del partido</span><b id="stFeed">—</b></div>
     <div class="row"><span>Piezas abiertas en OBS</span><b id="stPiezas">buscando…</b></div>
     <div class="row"><span>Última orden</span><b id="stOrden">—</b></div>
-    <button class="btn" id="panic" style="background:linear-gradient(180deg,var(--team-b),var(--team-b-2));color:#fff;border-color:var(--team-b);font-size:15px;padding:12px">🚨 Ocultar todo</button>
+    <button class="btn" id="panic" style="background:linear-gradient(180deg,#D92B3A,#B3202D);color:#fff;border-color:#D92B3A;font-size:15px;padding:12px">🚨 Ocultar todo</button>
   </div>
 
   <div class="grp" id="dirG"><h2>Director automático</h2>
@@ -89,20 +95,20 @@
     <div class="dz"><button id="dirSaltar"><kbd>0</kbd>Saltar la pieza</button><button id="dirRetener"><kbd>R</kbd>Retener 30 s</button></div>
     <div class="dz" id="dirPiezas"></div>
     <ul class="dlog" id="dirLog"></ul>
-    <div class="note">En OBS alcanza con <b>una sola Browser Source</b>: <b>overlay.html?view=auto</b>. Muestra siempre la barra y, en cada momento, la pieza que aporta: el impacto antes del dragón o el Barón, el daño tras una pelea, la alerta en un giro, qué necesita el que va abajo, el resumen al terminar y la serie entre juegos. Nunca dos piezas grandes a la vez. Atajos con este panel enfocado: <b>1–9</b> piden una pieza, <b>0</b> la quita, <b>R</b> la retiene y <b>H</b> oculta todo.</div>
+    <div class="note">En OBS alcanza con <b>una sola fuente de navegador</b>: <b>overlay.html?view=auto</b>. Muestra siempre la barra y, en cada momento, la pieza que aporta: el impacto antes del dragón o el Barón, el daño tras una pelea, la alerta en un giro, qué necesita el que va abajo, el resumen al terminar y la serie entre juegos. Nunca dos piezas grandes a la vez. Atajos con este panel enfocado: <b>1–9</b> piden una pieza, <b>0</b> la quita, <b>R</b> la retiene y <b>H</b> oculta todo.</div>
   </div>
 
   <div class="grp"><h2>Retraso frente al stream</h2>
     <div class="row"><span>Retraso aplicado</span><b id="dlyV">—</b></div>
     <div class="seg" id="dlyB" style="flex-wrap:wrap"><button data-d="-10">−10</button><button data-d="-5">−5</button><button data-d="-1">−1</button><button data-d="1">+1</button><button data-d="5">+5</button><button data-d="10">+10</button></div>
-    <div class="note">Cada co-stream tiene su retraso. Ajustalo hasta que una kill aparezca en el overlay al mismo tiempo que en el video. También se puede fijar en la URL: <b>?delay=42</b>. Queda guardado.</div>
+    <div class="note">Cada co-stream tiene su retraso. Ajustalo hasta que una kill aparezca en el overlay al mismo tiempo que en el video. También se puede fijar al final de la URL del overlay: <b>&amp;delay=42</b>. Queda guardado.</div>
   </div>
 
   <div class="grp"><h2>Módulos</h2>
     <div class="row"><span>Probabilidad</span><label class="sw"><input type="checkbox" data-m="prob" checked disabled><span class="sl"></span></label></div>
     <div class="row"><span>Pronóstico (previa)</span><label class="sw"><input type="checkbox" data-m="pregame" checked><span class="sl"></span></label></div>
-    <div class="row"><span>Momentum (alertas)</span><label class="sw"><input type="checkbox" data-m="momentum" checked><span class="sl"></span></label></div>
-    <div class="row"><span>Timers de objetivos</span><label class="sw"><input type="checkbox" data-m="timers" checked><span class="sl"></span></label></div>
+    <div class="row"><span>Giros (alertas)</span><label class="sw"><input type="checkbox" data-m="momentum" checked><span class="sl"></span></label></div>
+    <div class="row"><span>Tiempos de los objetivos</span><label class="sw"><input type="checkbox" data-m="timers" checked><span class="sl"></span></label></div>
     <div class="row"><span>Marca + precisión</span><label class="sw"><input type="checkbox" data-m="brand" checked><span class="sl"></span></label></div>
   </div>
 
@@ -111,8 +117,8 @@
   </div>
 
   <div class="grp"><h2>Piezas automáticas</h2>
-    <div class="row"><span>Para remontar <small style="color:var(--muted)">(vista remontada)</small></span><label class="sw"><input type="checkbox" data-a="remontada" checked><span class="sl"></span></label></div>
-    <div class="row"><span>Resumen al terminar <small style="color:var(--muted)">(vista recap)</small></span><label class="sw"><input type="checkbox" data-a="recap" checked><span class="sl"></span></label></div>
+    <div class="row"><span>Para remontar</span><label class="sw"><input type="checkbox" data-a="remontada" checked><span class="sl"></span></label></div>
+    <div class="row"><span>Resumen al terminar</span><label class="sw"><input type="checkbox" data-a="recap" checked><span class="sl"></span></label></div>
   </div>
 
   <div class="grp"><h2>Acciones</h2>
@@ -129,11 +135,11 @@
     <div style="margin-top:10px"><select class="in" id="pDay"></select></div>
     <div id="pMatches"><div class="note">Cargando partidos…</div></div>
     <button class="btn hide" id="pShow">Ocultar predicciones en pantalla</button>
-    <div class="note">En OBS, añade <b>overlay.html?view=predicciones</b> como <b>Browser Source</b>. Cuando un partido termina, cada pick se marca solo como acierto o fallo y se suma al marcador de aciertos.</div>
+    <div class="note">En OBS, agregá <b>overlay.html?view=predicciones</b> como <b>fuente de navegador</b>. Cuando un partido termina, cada pick se marca solo como acierto o fallo y se suma al marcador de aciertos.</div>
   </div>
 
   <div class="note" id="msg"></div>
-  <div class="note">Para que controle el overlay en OBS: añade esta página como <b>Dock de navegador personalizado</b> (Ver → Docks → Docks de navegador personalizados) y el overlay como <b>Browser Source</b>. Comparten el mismo navegador y se sincronizan solos.</div>
+  <div class="note">Para que controle el overlay en OBS: agregá esta página como <b>dock de navegador personalizado</b> (Ver → Docks → Docks de navegador personalizados) y el overlay como <b>fuente de navegador</b>. Comparten el mismo navegador y se sincronizan solos.</div>
 
 <script src="engine.js"></script>
 <script src="rp-ui.js"></script>
@@ -174,7 +180,14 @@
   if (bc) bc.addEventListener('message', function(e){ if (e.data && e.data.pong) { PZ[e.data.pong] = Date.now(); } });
   setInterval(function(){ if (bc) bc.postMessage({ ping: 1 });
     var vivas = Object.keys(PZ).filter(function(k){ return Date.now() - PZ[k] < 12000; });
-    document.getElementById('stPiezas').textContent = vivas.length ? vivas.join(', ') : 'ninguna (¿misma URL de origen?)'; }, 4000);
+    document.getElementById('stPiezas').textContent = vivas.length ? vivas.join(', ') : 'ninguna abierta todavía';
+    // abierto en el navegador común y sin piezas que respondan: se explica dónde va
+    document.getElementById('fueraObs').hidden = !!window.obsstudio || vivas.length > 0 || Date.now() - INICIO < 8000; }, 4000);
+  var INICIO = Date.now();
+  document.getElementById('copiarYo').addEventListener('click', function () {
+    var b = this, u = location.href.split('#')[0];
+    (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function () { b.textContent = '✓ Copiada'; }, function () { b.textContent = u; });
+  });
   RiftEngine.onUpdate(function(s){ var f = s.feed || {}, el = document.getElementById('stFeed');
     el.textContent = f.txt || '—'; el.style.color = f.estado === 'ok' ? 'var(--ok)' : f.estado === 'caido' ? '#ff4d5a' : RPC.s; });
   RiftEngine.start();

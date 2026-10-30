@@ -28,19 +28,20 @@
               "y": 0
             },
             "scale": {
-              "x": 1.0,
-              "y": 1.0
+              "x": 1,
+              "y": 1
             },
             "align": 5,
-            "bounds_type": 0,
+            "bounds_type": 2,
+            "bounds_align": 0,
             "bounds": {
-              "x": 0.0,
-              "y": 0.0
+              "x": 1920,
+              "y": 1080
             },
-            "rot": 0.0
+            "rot": 0
           },
           {
-            "name": "RiftPulse · Predicciones del stream",
+            "name": "RiftPulse · Predicciones del staff",
             "source_uuid": "",
             "visible": false,
             "locked": false,
@@ -50,16 +51,17 @@
               "y": 0
             },
             "scale": {
-              "x": 1.0,
-              "y": 1.0
+              "x": 1,
+              "y": 1
             },
             "align": 5,
-            "bounds_type": 0,
+            "bounds_type": 2,
+            "bounds_align": 0,
             "bounds": {
-              "x": 0.0,
-              "y": 0.0
+              "x": 1920,
+              "y": 1080
             },
-            "rot": 0.0
+            "rot": 0
           },
           {
             "name": "RiftPulse · Cuadro del Mundial",
@@ -72,16 +74,17 @@
               "y": 0
             },
             "scale": {
-              "x": 1.0,
-              "y": 1.0
+              "x": 1,
+              "y": 1
             },
             "align": 5,
-            "bounds_type": 0,
+            "bounds_type": 2,
+            "bounds_align": 0,
             "bounds": {
-              "x": 0.0,
-              "y": 0.0
+              "x": 1920,
+              "y": 1080
             },
-            "rot": 0.0
+            "rot": 0
           }
         ]
       }
@@ -103,7 +106,7 @@
     },
     {
       "prev_ver": 503447557,
-      "name": "RiftPulse · Predicciones del stream",
+      "name": "RiftPulse · Predicciones del staff",
       "id": "browser_source",
       "versioned_id": "browser_source",
       "settings": {

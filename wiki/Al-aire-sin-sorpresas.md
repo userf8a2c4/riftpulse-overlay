@@ -18,7 +18,7 @@ Cuando el feed vuelve, la insignia se va sola. El **control de producción** y l
 
 ## Delay (retraso frente al stream)
 Cada co-stream tiene su retraso. Si una kill aparece en el overlay antes que en el video, subí el retraso; si aparece después, bajalo.
-- En la URL: `?delay=42` (segundos).
+- En la URL del overlay, al final: `&delay=42` (segundos). El generador de la página lo agrega solo.
 - En el **control de producción**: botones −10, −5, −1, +1, +5 y +10, con el valor actual a la vista.
 - Queda guardado: OBS lo recuerda la próxima vez.
 - La **mesa de análisis** muestra el «retraso aplicado», para saber con qué momento del juego está hablando el desk.

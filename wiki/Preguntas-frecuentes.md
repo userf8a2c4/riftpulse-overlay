@@ -19,7 +19,7 @@ No para el overlay: es una URL en un Browser Source de OBS. La extensión de esp
 ¿Hay un partido de Worlds en vivo en este momento? Fuera de partido, el overlay queda a la espera.
 
 **¿Puedo cambiar tamaño/posición o qué muestra?**
-Sí, por parámetros en la URL (`?pos=`, `?scale=`, `?modules=`, `?view=`). Ver [Instalación en OBS](Instalación-en-OBS).
+Sí: el generador de la página arma la URL, o se agregan parámetros al final (`&pos=`, `&scale=`, `&modules=`, `&delay=`). Ver [Instalación en OBS](Instalación-en-OBS).
 
 **¿Funciona fuera de Worlds?**
 Hoy está enfocado en el Mundial; autodetecta el partido de la liga `worlds`.

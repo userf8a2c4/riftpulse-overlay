@@ -652,5 +652,26 @@
   });
 
   R.onUpdate(render);
-  R.auto();
+  var arranque = R.auto();
+
+  // ---------- «listo»: al agregar la fuente en OBS fuera de horario no queda una pantalla vacía que parezca rota ----------
+  // Unos segundos se ve una pastilla con el próximo partido y se va sola. Solo dentro de OBS (o con &listo=1); &listo=0 la apaga.
+  function pastilla(html, ms) {
+    var el = document.createElement('div');
+    el.style.cssText = 'position:fixed;left:50%;bottom:6%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:10px 18px;border-radius:999px;' +
+      'background:rgba(20,23,29,.92);border:1px solid rgba(34,211,238,.5);box-shadow:0 10px 30px rgba(0,0,0,.5);font:600 ' + Math.round(20 * SCALE) + 'px var(--ff),system-ui,sans-serif;color:#F2F4F7;transition:opacity .6s;z-index:99';
+    el.innerHTML = LOGO + '<span>' + html + '</span>';
+    var lg = el.querySelector('svg,img'); if (lg) { lg.style.width = lg.style.height = Math.round(26 * SCALE) + 'px'; }
+    document.body.appendChild(el);
+    setTimeout(function () { el.style.opacity = '0'; setTimeout(function () { el.remove(); }, 700); }, ms);
+  }
+  var verListo = Q.get('listo') === '1' || (Q.get('listo') !== '0' && !!window.obsstudio && !Q.has('demo'));
+  if (verListo) setTimeout(function () {
+    var st = R.state || {};
+    if (st.match) return;  // con partido, el overlay ya se ve
+    var nx = st.next, hora = nx && nx.at ? new Date(nx.at).toLocaleString('es', {weekday: 'short', hour: '2-digit', minute: '2-digit'}) : '';
+    pastilla('<b>RiftPulse listo</b> · ' + (nx ? 'próximo: ' + esc(nx.blue) + ' vs ' + esc(nx.red) + (hora ? ' · ' + esc(hora) : '') : 'aparece solo cuando empiece el partido'), 9000);
+  }, 4000);
+  // la demo necesita los datos de lolesports: si no llegan, se dice en vez de dejar la pieza en blanco
+  if (Q.has('demo')) Promise.resolve(arranque).then(function (ok) { if (ok === false) pastilla('La demo necesita conexión con lolesports: probá de nuevo en un rato', 12000); }, function () {});
 })();
