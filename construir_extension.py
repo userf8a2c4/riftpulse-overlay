@@ -6,8 +6,9 @@
   no permite scripts de usuario, se usa la copia local de esta carpeta.
 - La lectura del video (reloj, marcador y siglas) la hace lector.js, sin librerías externas.
 
-También publica la app y el overlay en la carpeta del repo web (../riftpulse-overlay) si está al lado.
+También publica la app (app.html, app.css y app.js) y el overlay en la carpeta del repo web (../riftpulse-overlay) si está al lado.
 """
+import hashlib
 import json
 import os
 import shutil
@@ -182,7 +183,13 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
 # ---------- publicar la app y el overlay en el repo web (GitHub Pages) ----------
 web = os.path.join(os.path.dirname(AQUI), 'riftpulse-overlay')
 if os.path.isdir(web):
-    shutil.copy(os.path.join(AQUI, 'index.html'), os.path.join(web, 'app.html'))
+    # la app: el HTML lleva la huella de su CSS y su JS en la dirección, así nunca se mezcla un HTML nuevo con un JS viejo en caché
+    app = open(os.path.join(AQUI, 'index.html'), encoding='utf-8').read()
+    for f in ('app.css', 'app.js'):
+        datos = open(os.path.join(AQUI, f), 'rb').read()
+        shutil.copy(os.path.join(AQUI, f), os.path.join(web, f))
+        app = app.replace('"%s"' % f, '"%s?v=%s"' % (f, hashlib.sha256(datos).hexdigest()[:10]))
+    open(os.path.join(web, 'app.html'), 'w', encoding='utf-8').write(app)
     open(os.path.join(web, 'ext-overlay.js'), 'w', encoding='utf-8').write(OVERLAY)
     # la extensión en un ZIP, para instalarla sin git (enlace directo desde la web)
     # los archivos van sueltos en la raíz del ZIP: «Extraer todo» (Windows) o el doble clic (Mac) dejan UNA carpeta,

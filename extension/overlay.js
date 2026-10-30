@@ -208,7 +208,7 @@
         var x0 = c.a + cortes[k], x1 = c.a + cortes[k + 1], xa = -1, xb = -1;
         for (var xx = x0; xx < x1; xx++) { var hay = false; for (var yy = c.t; yy < c.u; yy++) if (ink[yy * w + xx]) { hay = true; break; } if (hay) { if (xa < 0) xa = xx; xb = xx + 1; } }
         if (xa < 0) continue;
-        var r = clasificar(sub(gn, xa, c.t, xb, c.u), letras); out += r.c; DET.push(r);
+        var hallado = clasificar(sub(gn, xa, c.t, xb, c.u), letras); out += hallado.c; DET.push(hallado);
       }
     });
     return out;
@@ -426,11 +426,6 @@
   .dg-r{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:2px 0;border-bottom:1px solid rgba(var(--line-rgb),0.055)}.dg-r span{color:var(--muted);flex:none}.dg-r b{color:var(--text);font-weight:500;text-align:right;font-family:Inter Tight,system-ui,sans-serif}\
   .dg-i{display:block;max-width:100%;height:34px;margin:4px 0;border:1px solid rgba(var(--line-rgb),0.11);image-rendering:pixelated}.dg-n{font-size:11px;color:var(--muted);margin-top:6px}\
   .syncg .gt{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:700}\
-  .bv{position:absolute;left:50%;top:calc(100% + 10px);transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;white-space:nowrap;\
-    background:rgba(var(--g1-rgb),.97);border:1px solid rgba(var(--signal-rgb),.55);box-shadow:0 14px 40px rgba(0,0,0,.55);font:600 13px var(--ff);color:var(--text);pointer-events:auto}\
-  .bv b{font:800 15px var(--ffd);letter-spacing:.4px;margin-right:4px}\
-  .bv button{height:32px;padding:0 12px;border-radius:8px;border:1px solid rgba(var(--line-rgb),.22);background:var(--g2);color:var(--text);font:600 13px var(--ff);cursor:pointer}\
-  .bv button:hover{border-color:var(--signal)}.bv button.x{background:none;border:0;color:var(--muted);padding:0 4px}\
   .cd .hs{margin:0;padding-left:18px;font-size:13px;line-height:1.5}.cd .hs li{padding:2px 0}\
   .col{display:flex;flex-direction:column;align-items:flex-start;gap:8px;overflow:hidden;color:var(--text);font-family:var(--ff)}\
   .col .cd,.col .dmg{width:300px;max-width:300px}.col .cd[style]{width:340px!important;max-width:340px}.col .dmg{max-width:340px;width:340px}\
@@ -456,42 +451,21 @@
   .hint.show{display:inline-flex}.hint .logo{width:16px;height:16px}.hint b{color:var(--text);font-weight:700}.hint a{color:var(--signal);text-decoration:none;font-weight:700}\
   .ctl::before{content:"";position:absolute;left:0;right:0;top:-10px;height:10px}\
   .ctl.auto .man{display:none}.man{display:inline-flex;align-items:center;gap:4px}\
-  #otrob{display:none}.ctl.auto #otrob.on2{display:inline-block;color:var(--signal-soft);background:none}\
-  .elegir{position:absolute;left:50%;transform:translateX(-50%);top:calc(100% + 10px);display:none;flex-direction:column;gap:4px;min-width:260px;padding:10px;border-radius:12px;z-index:7;\
-    background:rgba(var(--g1-rgb),.98);border:1px solid rgba(var(--signal-rgb),.55);box-shadow:0 14px 40px rgba(0,0,0,.55);font:600 13px var(--ff);color:var(--text);cursor:default;text-shadow:none}\
-  .elegir.show{display:flex}.elegir .t{font:800 14px var(--ffd);letter-spacing:.4px;margin-bottom:2px}.elegir .s{font-weight:400;font-size:11.5px;color:var(--muted)}\
-  .elegir button{display:flex;justify-content:space-between;gap:12px;align-items:center;height:34px;padding:0 12px;border-radius:8px;border:1px solid rgba(var(--line-rgb),.18);background:var(--g2);color:var(--text);font:600 13px var(--ff);cursor:pointer;text-align:left}\
-  .elegir button:hover{border-color:var(--signal)}.elegir button.ya{border-color:rgba(var(--signal-rgb),.6)}.elegir button small{color:var(--muted);font-weight:400}\
-  .elegir .no{background:none;border:0;color:var(--muted);height:26px;justify-content:center}\
-  .w.solo-elegir{display:inline-flex!important}.w.solo-elegir #body,.w.solo-elegir .ctl{display:none!important}\
   ';
 
   var LOGO = '<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="rplg" x1="8" y1="40" x2="56" y2="26" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="'+RPC.a+'"/><stop offset=".5" stop-color="'+RPC.ahi+'"/><stop offset="1" stop-color="'+RPC.b+'"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="15" fill="#14171d" stroke="#2a2f3a" stroke-width="3"/><path d="M10 35 H21 L25 35 L30 17 L36 49 L40 35 H54" fill="none" stroke="url(#rplg)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   sh.innerHTML = '<style>' + CSS + TOK + '</style><div class="w" id="w"><div class="mom" id="mom"></div><div class="toast" id="toast"></div><div class="diag" id="diag"></div><div id="body" style="display:inline-flex"></div>' +
-    '<div class="ctl" id="ctl"><div class="tl" id="tl"></div><span class="chip" id="autoc" title="Lee el reloj y el marcador del video y se sincroniza solo con el minuto que ves">sincronía automática</span><span class="ast" id="ast"></span><button class="ic" id="diagb" title="Qué está leyendo del video (por si no sincroniza)">?</button><span class="chip" id="otrob" title="Elegir a mano el partido que estás viendo">¿otro partido?</span>' +
+    '<div class="ctl" id="ctl"><div class="tl" id="tl"></div><span class="chip" id="autoc" title="Lee el reloj y el marcador del video y se sincroniza solo con el minuto que ves">sincronía automática</span><span class="ast" id="ast"></span><button class="ic" id="diagb" title="Qué está leyendo del video (por si no sincroniza)">?</button>' +
     '<span class="chip" data-ext="obj" title="El próximo objetivo (dragón, Barón…) y cuánto puede mover la probabilidad">objetivo</span><span class="chip" data-ext="pg" title="Cómo fue cambiando la probabilidad en el juego">trayectoria</span><span class="chip" data-ext="oro" title="Panel: la diferencia de oro minuto a minuto">oro</span><span class="chip" data-ext="dano" title="Panel: el daño de cada jugador">daño</span><span class="chip" data-ext="imp" title="Panel: las jugadas que más movieron la probabilidad">impacto</span><span class="chip" data-ext="duelos" title="Panel: cómo va cada jugador contra su rival de línea">duelos</span><span class="chip" data-ext="mini" title="Solo los porcentajes, lo más chico posible">mínimo</span>' +
     '<button class="ic" id="posbtn" title="Volver a su lugar (debajo del marcador o arriba de las estadísticas)">↑↓</button><span class="man"><button class="ic" data-d="-5" title="Atrasar el overlay 5 segundos">−</button><button class="ic" data-d="5" title="Adelantar el overlay 5 segundos">+</button>' +
-    '<span class="syncg" title="Escribí el minuto del juego que ves en el stream y tocá ⟲ (o Enter) para clavar el overlay a ese momento">minuto <input id="scm" placeholder="mm:ss" maxlength="5"><button class="ic" id="syncb" title="Sincronizar al minuto que escribiste">⟲</button> va <span class="gt" id="gtnow">—</span></span></span><button class="ic" id="ocub" title="Ocultar RiftPulse (Alt+R lo vuelve a mostrar)">✕</button></div><div class="elegir" id="elegir"></div></div>';
+    '<span class="syncg" title="Escribí el minuto del juego que ves en el stream y tocá ⟲ (o Enter) para clavar el overlay a ese momento">minuto <input id="scm" placeholder="mm:ss" maxlength="5"><button class="ic" id="syncb" title="Sincronizar al minuto que escribiste">⟲</button> va <span class="gt" id="gtnow">—</span></span></span><button class="ic" id="ocub" title="Ocultar RiftPulse (Alt+R lo vuelve a mostrar)">✕</button></div></div>';
   sh2.innerHTML = '<style>' + CSS + TOK + '</style><div class="col" id="cards"><div class="dmg" id="dmg"></div><div id="cardsx" style="display:contents"></div></div>';
   var hintEl = document.createElement('div'); hintEl.className = 'hint'; sh.appendChild(hintEl);
-  var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom'), dmgEl = sh2.getElementById('dmg'), cardsEl = sh2.getElementById('cards'), cardsX = sh2.getElementById('cardsx');
+  var wEl = sh.getElementById('w'), body = sh.getElementById('body'), ctl = sh.getElementById('ctl'), momEl = sh.getElementById('mom'), dmgEl = sh2.getElementById('dmg'), cardsX = sh2.getElementById('cardsx');
 
   function syncChips() { ctl.querySelectorAll('.chip[data-ext]').forEach(function (c) { c.classList.toggle('on', EXT.indexOf(c.getAttribute('data-ext')) >= 0); }); }
   syncChips();
-  // bienvenida (solo la primera vez): qué quiere ver el espectador, en un clic
-  if (!ls('rp_bienv')) {
-    var bv = document.createElement('div'); bv.className = 'bv';
-    bv.innerHTML = '<b>¿Qué querés ver?</b><button data-bv="minimo">Solo la barra</button><button data-bv="estandar">Barra y objetivos</button><button data-bv="show">Todo</button><button class="x" data-bv="" title="Cerrar">✕</button>';
-    bv.addEventListener('mousedown', function (e) { e.stopPropagation(); });
-    bv.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-bv]'); if (!b) return; e.stopPropagation();
-      var n = b.getAttribute('data-bv'), ext = {minimo: [], estandar: ['obj'], show: ['obj', 'pg']}[n];
-      if (ext) { EXT = ext.slice(); ls('rp_ext7', JSON.stringify(EXT)); syncChips(); ls('rp_dir', n); if (DIR) DIR.nivel = n; }
-      ls('rp_bienv', '1'); bv.remove(); if (LAST) render(LAST);
-    });
-    wEl.appendChild(bv);
-  }
   var LAST = null;
   ctl.querySelectorAll('.chip[data-ext]').forEach(function (c) { c.addEventListener('mousedown', function (e) { e.stopPropagation(); }); c.addEventListener('click', function (e) { e.stopPropagation(); var k = c.getAttribute('data-ext'), i = EXT.indexOf(k); if (i >= 0) EXT.splice(i, 1); else EXT.push(k); ls('rp_ext7', JSON.stringify(EXT)); syncChips(); if (LAST) render(LAST); }); });
   sh.getElementById('posbtn').addEventListener('click', function (e) { e.stopPropagation(); POS = POS === 'top' ? 'bottom' : 'top'; XY = null; ls('rp_xy8', 'null'); ls('rp_pos7', POS); place(); });
@@ -600,12 +574,12 @@
     var st = (AS.diag && AS.diag.estado) || '';
     if (/no se puede leer/.test(st)) return 'este video está protegido y no se puede leer';
     if (LAST && LAST.feed && LAST.feed.estado === 'caido') return 'sin conexión con lolesports · reintento solo';
-    if (AS.id) return 'vuelve con el juego' + (AS.cands && AS.cands.length > 1 ? ' · <b>¿no es ' + esc(AS.id.codes.join(' vs ')) + '?</b>' : '');
+    if (AS.id) return 'vuelve con el juego';
     if (/no reconozco/.test(st)) return 'todavía no reconozco este partido';
     return 'aparece cuando el juego está en pantalla';
   }
   function pintarHint() {
-    var oc = wEl.classList.contains('oculto') && !wEl.classList.contains('solo-elegir'), ver = oc && Date.now() - MOUSE < 3000 && relevante();
+    var oc = wEl.classList.contains('oculto'), ver = oc && Date.now() - MOUSE < 3000 && relevante();
     hintEl.classList.toggle('show', ver);
     if (!ver) return;
     var lol = enLolesports();
@@ -615,7 +589,7 @@
   if (/lolesports\.com$/.test(location.hostname)) MOUSE = Date.now() + 8000;  // en lolesports, el aviso se ve solo al entrar
   setInterval(pintarHint, 600);
   hintEl.addEventListener('mousedown', function (e) { e.stopPropagation(); });
-  hintEl.addEventListener('click', function (e) { if (e.target.closest('a')) return; e.stopPropagation(); if (AS.cands && AS.cands.length > 1) { abrirElegir(); return; } MOSTRAR = Date.now() + 20000; if (LAST) render(LAST); });  // ver los controles un rato
+  hintEl.addEventListener('click', function (e) { if (e.target.closest('a')) return; e.stopPropagation(); MOSTRAR = Date.now() + 20000; if (LAST) render(LAST); });  // ver los controles un rato
   function render(s) {
     var oc = oculto(s);
     wEl.classList.toggle('oculto', oc); pintarHint();
@@ -857,7 +831,9 @@
     tagI: [0.29, 0.0, 0.375, 0.055], tagD: [0.625, 0.0, 0.715, 0.055],
     oroI: [0.418, 0.016, 0.462, 0.049], oroD: [0.542, 0.016, 0.579, 0.049],
     killI: [0.468, 0.01, 0.497, 0.065], killD: [0.503, 0.01, 0.533, 0.065],
-    camI: [0.372, 0.393], camD: [0.607, 0.628], camY: [0.761, 0.81, 0.859, 0.907, 0.953], camH: 0.042
+    camI: [0.372, 0.393], camD: [0.607, 0.628], camY: [0.761, 0.81, 0.859, 0.907, 0.953], camH: 0.042,
+    // las victorias de cada equipo en la serie: los rectángulos apilados junto a cada logo (se llenan con el color del lado)
+    serieI: [0.2715, 0.016, 0.276, 0.06], serieD: [0.724, 0.016, 0.7285, 0.06]
   };
   // si el reloj no está en su lugar, se busca solo en la franja del marcador (arriba al centro), nunca en otras zonas
   var RELOJES = [HUD.reloj, [0.466, 0.04, 0.534, 0.125], [0.466, 0.0, 0.534, 0.065], [0.466, 0.085, 0.534, 0.155]];
@@ -896,6 +872,34 @@
     if (oI == null || oD == null || oI < 2.4 || oD < 2.4 || Math.max(oI, oD) / Math.min(oI, oD) > 1.45) return null;
     return [oI, oD];
   }
+  // victorias en la serie según el HUD, [izquierda, derecha]: cuántos tramos llenos del color del lado hay en cada columna.
+  // Solo cuenta lo que se ve lleno: sin ningún rectángulo lleno no afirma nada (devuelve null), así un HUD distinto no confunde.
+  var SERIE_CV = null;
+  function victoriasHUD(v) {
+    try {
+      if (!SERIE_CV) { SERIE_CV = document.createElement('canvas'); SERIE_CV.width = 4; SERIE_CV.height = 48; }
+      var x = SERIE_CV.getContext('2d', {willReadFrequently: true}), W = v.videoWidth, H = v.videoHeight;
+      var cuenta = function (z, azul) {
+        x.drawImage(v, z[0] * W, z[1] * H, (z[2] - z[0]) * W, (z[3] - z[1]) * H, 0, 0, 4, 48);
+        var d = x.getImageData(0, 0, 4, 48).data, tramos = 0, largo = 0, llenas = 0;
+        for (var y = 0; y <= 48; y++) {
+          var lleno = false;
+          if (y < 48) {
+            var r = 0, g = 0, b = 0;
+            for (var c = 0; c < 4; c++) { var i = (y * 4 + c) * 4; r += d[i]; g += d[i + 1]; b += d[i + 2]; }
+            r /= 4; g /= 4; b /= 4;
+            lleno = azul ? b > 110 && b - r > 50 : r > 110 && r - Math.max(g, b) > 50;
+          }
+          if (lleno) { largo++; llenas++; }
+          else { if (largo >= 6) tramos++; largo = 0; }
+        }
+        return llenas > 44 ? -1 : tramos;  // todo lleno de punta a punta: es la barra del lado, no los rectángulos
+      };
+      var a = cuenta(HUD.serieI, true), b2 = cuenta(HUD.serieD, false);
+      if (a < 0 || b2 < 0 || a + b2 === 0 || a > 3 || b2 > 3) return null;
+      return [a, b2];
+    } catch (e) { return null; }
+  }
   var autoc = sh.getElementById('autoc'), astEl = sh.getElementById('ast'), diagEl = sh.getElementById('diag');
   function asEstado(t, ok) { astEl.textContent = t; astEl.classList.toggle('ok', !!ok); AS.diag.estado = t; }
   function asChip() { autoc.classList.toggle('on', AS.on); ctl.classList.toggle('auto', AS.on); if (!AS.on) asEstado(''); }
@@ -917,7 +921,7 @@
     try { if (chrome.storage && chrome.storage.local) chrome.storage.local.set({rp_pantalla: d}); else chrome.runtime.sendMessage({type: 'rp-pantalla', data: d}, function () { void chrome.runtime.lastError; }); } catch (e) {}
   }
   function soltar() {
-    AS.id = null; AS.manual = null; AS.cands = null; pintarOtro(); AS.off = null; AS.lect = []; AS.contra = []; AS.trasSalto = false; AS.playing = null; AS.pend = null;
+    AS.id = null; AS.off = null; AS.lect = []; AS.contra = []; AS.trasSalto = false; AS.playing = null; AS.pend = null;
     R.follow(null); publicar();
   }
   // atar el motor al video: minuto = desfase + posición del video
@@ -999,15 +1003,15 @@
     if (!oroPosible(oI, gt) || !oroPosible(oD, gt)) { oI = oD = null; }
     if (kI > 80 || kD > 80) kI = kD = NaN;
     var mapa = function (s) { var m = {}; s.forEach(function (x) { m[x.code] = x.s; }); return m; };
-    var o = {gt: gt, vivo: !esVod(), tags: [sig(sI), sig(sD)], sig: sI.length && sD.length ? [mapa(sI), mapa(sD)] : null, kills: isFinite(kI) && isFinite(kD) ? [kI, kD] : null, gold: oI != null && oD != null ? [oI, oD] : null};
+    var vs = victoriasHUD(v); AS.diag.serie = vs ? vs.join('–') : 'no se ve';
+    var o = {gt: gt, vivo: !esVod(), juego: vs ? vs[0] + vs[1] + 1 : null, tags: [sig(sI), sig(sD)], sig: sI.length && sD.length ? [mapa(sI), mapa(sD)] : null, kills: isFinite(kI) && isFinite(kD) ? [kI, kD] : null, gold: oI != null && oD != null ? [oI, oD] : null};
     AS.diag.siglas = [sI.slice(0, 3), sD.slice(0, 3)]; AS.diag.marcador = o;
     var id = await R.identify(o);
     if (id && id.alts && id.alts.length) {  // empate (por ejemplo, juegos de la misma serie al principio): mirar los campeones
       var cerca = [id].concat(id.alts.filter(function (a) { return a.score - id.score < 1.5; }));
+      if (o.juego) { var mismo = cerca.filter(function (a) { return a.juego === o.juego; }); if (mismo.length) cerca = mismo; }  // la serie en pantalla manda
       if (cerca.length > 1) { var c = await porCampeones(v, cerca).catch(function () { return null; }); if (c && c.caras > 0.2) id = c; AS.diag.campeones = cerca.map(function (x) { return x.codes.join('-') + ' J' + x.juego + ': ' + (x.caras == null ? '—' : x.caras.toFixed(2)); }); }
     }
-    AS.cands = id ? [id].concat((id.alts || []).filter(function (a, i, l) { return a.gameId !== id.gameId && l.findIndex(function (b) { return b.gameId === a.gameId; }) === i; })).slice(0, 5) : null;
-    pintarOtro();
     AS.diag.partido = id ? id.codes.join(' vs ') + ' · J' + id.juego + ' (dif. ' + id.score.toFixed(1) + ', ' + id.revisados + ' juegos revisados)' : 'ninguno';
     return id;
   }
@@ -1080,6 +1084,7 @@
           var nuevo = !AS.id || AS.id.gameId !== id.gameId;
           AS.id = id; AS.playing = null; AS.malas = 0; AS.pend = null;
           if (nuevo) aviso('Sincronizado · <span class="ca">' + esc(id.codes[0]) + '</span> vs <span class="cb">' + esc(id.codes[1]) + '</span> · juego ' + id.juego + ' · ' + mmss(gt));
+          AS.serie = victoriasHUD(v);
           colorHUD(v, id.codes);
         }
         else { asEstado('no reconozco el partido (mirá el diagnóstico)'); return; }
@@ -1093,7 +1098,14 @@
   // control de confirmación: las kills del HUD contra las del feed oficial en ese minuto. Solo se cambia de juego
   // si no coinciden 3 controles seguidos y otro juego gana por amplio margen dos veces seguidas.
   async function verificar(v, gt) {
-    if (AS.manual && AS.id && AS.manual === AS.id.gameId) return;  // lo eligió el espectador: no se cambia solo
+    // la serie en pantalla (victorias de cada equipo) dice qué juego es: si no coincide, se reconoce de nuevo, sin esperar
+    var vs = victoriasHUD(v);
+    if (vs) AS.serie = vs;
+    if (vs && AS.id.juego !== vs[0] + vs[1] + 1) {
+      var ij = await identificar(v, gt);
+      if (ij && ij.juego === vs[0] + vs[1] + 1 && ij.gameId !== AS.id.gameId) { AS.id = ij; AS.playing = null; AS.malas = 0; AS.pend = null; aviso('Sincronizado · <span class="ca">' + esc(ij.codes[0]) + '</span> vs <span class="cb">' + esc(ij.codes[1]) + '</span> · juego ' + ij.juego + ' · ' + mmss(gt)); }
+      return;
+    }
     // en una transmisión en vivo siguiendo un juego que no es el que se juega ahora (un clip): si el del vivo cuadra, se pasa a ese
     if (!esVod() && !AS.id.live) {
       var iv = await identificar(v, gt);
@@ -1124,6 +1136,7 @@
       (d.img ? '<img class="dg-i" src="' + d.img + '" alt="">' : '') +
       '<div class="dg-r"><span>Siglas izq.</span><b>' + sg(d.siglas && d.siglas[0]) + '</b></div>' +
       '<div class="dg-r"><span>Siglas der.</span><b>' + sg(d.siglas && d.siglas[1]) + '</b></div>' +
+      '<div class="dg-r"><span>Serie en pantalla</span><b>' + esc(d.serie || '—') + '</b></div>' +
       '<div class="dg-r"><span>Kills · oro</span><b>' + (mk.kills ? mk.kills.join('–') : '—') + ' · ' + (mk.gold ? mk.gold.join('k – ') + 'k' : '—') + '</b></div>' +
       '<div class="dg-r"><span>Partido</span><b>' + esc(d.partido || '—') + '</b></div>' +
       (d.confirmando ? '<div class="dg-r"><span>Confirmando</span><b>' + esc(d.confirmando) + '</b></div>' : '') +
@@ -1134,29 +1147,6 @@
       '<div class="dg-n">¿No sincroniza? Sacá una captura de este cuadro y dejala en github.com/userf8a2c4/riftpulse-overlay/issues</div>';
   }
   setInterval(function () { asTick(); }, 1500);
-  // ---------- «¿otro partido?»: si reconoció mal, el espectador elige entre los que mejor cuadran con lo que se ve ----------
-  var elegirEl = sh.getElementById('elegir'), otroEl = sh.getElementById('otrob');
-  function pintarOtro() { otroEl.classList.toggle('on2', !!(AS.cands && AS.cands.length > 1 && AS.id)); }
-  function abrirElegir() {
-    var cs = AS.cands || [];
-    if (!cs.length) return;
-    elegirEl.innerHTML = '<div class="t">¿Qué partido estás viendo?</div><div class="s">Los que mejor cuadran con el minuto y el marcador del video</div>' +
-      cs.map(function (c, i) { return '<button data-i="' + i + '"' + (AS.id && AS.id.gameId === c.gameId ? ' class="ya"' : '') + '><span><span class="ca">' + esc(c.codes[0]) + '</span> vs <span class="cb">' + esc(c.codes[1]) + '</span> · juego ' + c.juego + '</span><small>' + (c.live ? 'en vivo' : 'ya jugado') + '</small></button>'; }).join('') +
-      '<button class="no" data-i="-1">Cerrar</button>';
-    elegirEl.classList.add('show'); wEl.classList.add('solo-elegir');
-  }
-  function cerrarElegir() { elegirEl.classList.remove('show'); wEl.classList.remove('solo-elegir'); }
-  elegirEl.addEventListener('mousedown', function (e) { e.stopPropagation(); });
-  elegirEl.addEventListener('click', function (e) {
-    e.stopPropagation(); var b = e.target.closest('[data-i]'); if (!b) return;
-    var c = (AS.cands || [])[+b.getAttribute('data-i')]; cerrarElegir();
-    if (!c) return;
-    AS.id = c; AS.manual = c.gameId; AS.playing = null; AS.malas = 0; AS.pend = null; MOSTRAR = Date.now() + 4000;
-    aviso('Listo · <span class="ca">' + esc(c.codes[0]) + '</span> vs <span class="cb">' + esc(c.codes[1]) + '</span> · juego ' + c.juego);
-    var v = video(); if (v) seguir(v); publicar(); pintarOtro(); if (LAST) render(LAST);
-  });
-  otroEl.addEventListener('mousedown', function (e) { e.stopPropagation(); });
-  otroEl.addEventListener('click', function (e) { e.stopPropagation(); abrirElegir(); });
   var OCULTO_USR = false;
   function ocultarUsr(si) { OCULTO_USR = si; host.style.display = si ? 'none' : ''; host2.style.display = si ? 'none' : ''; }
   sh.getElementById('ocub').addEventListener('mousedown', function (e) { e.stopPropagation(); });

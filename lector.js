@@ -144,7 +144,7 @@
         var x0 = c.a + cortes[k], x1 = c.a + cortes[k + 1], xa = -1, xb = -1;
         for (var xx = x0; xx < x1; xx++) { var hay = false; for (var yy = c.t; yy < c.u; yy++) if (ink[yy * w + xx]) { hay = true; break; } if (hay) { if (xa < 0) xa = xx; xb = xx + 1; } }
         if (xa < 0) continue;
-        var r = clasificar(sub(gn, xa, c.t, xb, c.u), letras); out += r.c; DET.push(r);
+        var hallado = clasificar(sub(gn, xa, c.t, xb, c.u), letras); out += hallado.c; DET.push(hallado);
       }
     });
     return out;

@@ -32,15 +32,16 @@ Es un solo archivo HTML, sin instalación ni servidor. Proyecto de código abier
 - **Centro de mando (pestaña «Mando»):** para streamers y analistas. Lo que está al aire (probabilidad, serie, próximo objetivo y trayectoria con los giros), un guion de frases para comentar con botón para copiarlas, la lectura del juego (giros clave, qué necesita el que va abajo, jugador clave), el control del overlay sobre el stream (piezas, posición, ocultar y sincronía al minuto que se ve), un post listo para X con la imagen del resumen al terminar, y las URL de cada pieza para OBS. Sin partido en vivo se puede probar con un partido real ya jugado.
 <p align="center"><img src="docs/img/mando.png" alt="Pestaña Mando"><br><sub>Pestaña <b>Mando</b> (datos de ejemplo).</sub></p>
 
-- **Overlay sobre el stream:** con la extensión, una barra horizontal se acopla al HUD de la transmisión en Twitch o lolesports: probabilidad, impacto del próximo objetivo, trayectoria y acierto. **Lee la sala:** avisa «Sincronizado» al reconocer el juego, se contrae cuando no hay juego en pantalla, toma los colores de la sigla del marcador y suma solo el panel que aporta. Al pasar el mouse muestra la **línea de tiempo** del juego: en un VOD, tocar un momento salta el video a ese instante.
+- **Overlay sobre el stream:** con la extensión, una barra horizontal se acopla al HUD de la transmisión en Twitch: probabilidad, impacto del próximo objetivo, trayectoria y acierto. **Lee la sala:** avisa «Sincronizado» al reconocer el juego, se contrae cuando no hay juego en pantalla, toma los colores de la sigla del marcador y suma solo el panel que aporta. Al pasar el mouse muestra la **línea de tiempo** del juego: en un VOD, tocar un momento salta el video a ese instante.
 - **Momentos para editores** (en Mando): los momentos clave del juego con el segundo exacto del VOD y los capítulos de YouTube listos para pegar.
 - Iconos de objetivos (dragones por elemento, barón, torres, inhibidores), fotos de jugadores y nombres de campeones e ítems.
 
 ## Cómo usarlo
 
-1. **Doble clic en `index.html`** (se abre en el navegador). No necesita internet para la interfaz, pero sí para traer los datos del Mundial.
+1. **Doble clic en `index.html`** (se abre en el navegador; sus estilos y su código están en `app.css` y `app.js`). No necesita internet para la interfaz, pero sí para traer los datos del Mundial.
 2. Para que el navegador le dé permisos propios (algunos lo piden), **doble clic en `abrir.bat`**: abre la página en `http://localhost:8765`.
-3. **Panel lateral:** instale la extensión de la carpeta `extension/` (ver `extension/INSTALAR.txt`) para tener la app fija a la derecha mientras ve el stream.
+3. **Panel lateral y overlay:** instalá la extensión de la carpeta `extension/` (los 4 pasos están en `extension/INSTALAR.html`) para tener la app fija a la derecha y el overlay sobre el video.
+4. **Publicar:** `python3 construir_extension.py` arma la extensión y copia la app y el overlay al repo web (`../riftpulse-overlay`).
 
 <p align="center">
 <img src="docs/img/overlay-en-stream.jpg" alt="Overlay de la extensión sobre el stream con el reparto de daño tras una pelea">
@@ -48,11 +49,11 @@ Es un solo archivo HTML, sin instalación ni servidor. Proyecto de código abier
 </p>
 
 ### Sincronía con el stream
-**Automática:** el overlay de la extensión lee del video el reloj del juego, los equipos y el marcador (oro y kills), reconoce qué partido y qué juego se está viendo y se clava a ese minuto. Funciona igual en vivo o con una repetición a cualquier hora, y sigue sola la pausa, la velocidad y los saltos del video. Se prende o apaga con el botón **auto-sync** de los controles del overlay. La lectura (OCR) va empaquetada en la extensión y se hace en tu computadora.
+**Automática:** el overlay de la extensión lee del video el reloj del juego, los equipos y el marcador (oro y kills), reconoce qué partido y qué juego se está viendo y se clava a ese minuto. Funciona igual en vivo o con una repetición a cualquier hora, y sigue sola la pausa, la velocidad y los saltos del video. Se prende o apaga con el botón **sincronía automática** de los controles del overlay. **Alt+R** oculta y muestra el overlay. La lectura (OCR) va empaquetada en la extensión y se hace en tu computadora.
 
-La página ajusta sola el retraso frente a la transmisión. Si ve un desfase, use los botones **±** del menú ⏱ en la cabecera.
+La página ajusta sola el retraso frente a la transmisión. Si ves un desfase, usá los botones **±** del menú ⏱ en la cabecera.
 
-En el overlay, pase el ratón sobre la barra: escriba en **«ves»** el minuto del juego que muestra el stream y pulse **⟲** (o Enter). El overlay se clava a ese instante y **«va»** muestra el minuto en que va, para comparar. Los botones **−/+** lo mueven de 5 en 5 segundos.
+Con la sincronía automática apagada, pasá el mouse sobre la barra: escribí en **«minuto»** el minuto del juego que muestra el stream y tocá **⟲** (o Enter). El overlay se clava a ese instante y **«va»** muestra el minuto en que va, para comparar. Los botones **−/+** lo mueven de 5 en 5 segundos.
 
 <p align="center"><img src="docs/img/sincronia.png" width="640" alt="La línea de tiempo y los controles de sincronía del overlay"><br><sub>La línea de tiempo con la banda de confianza y los controles de sincronía (video de prueba generado).</sub></p>
 
