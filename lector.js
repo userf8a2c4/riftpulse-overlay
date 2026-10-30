@@ -184,5 +184,43 @@
     for (var i = 0; i < m.a.length; i++) { var v = Math.max(0, Math.min(255, m.a[i])); d.data[i * 4] = d.data[i * 4 + 1] = d.data[i * 4 + 2] = v; d.data[i * 4 + 3] = 255; }
     x.putImageData(d, 0, 0); return c.toDataURL('image/png');
   }
-  window.RiftLector = {recorte: recorte, numeros: numeros, detalle: function () { return DET.slice(); }, siglas: siglas, png: png, _img: img};
+  // ---------- victorias en la serie: los rectángulos apilados junto a cada logo del HUD ----------
+  // Pegada a la barra de color de cada lado hay una columna de rectángulos (2 al mejor de 3, 3 al mejor de 5) que se llenan
+  // con el color del lado por cada juego ganado. Primero se ubica la barra (la columna con el tramo de color más largo) y
+  // después se miran las columnas donde van los rectángulos, unos píxeles hacia adentro: así no importa si el video está un
+  // poco corrido o escalado. Devuelve {i: victorias izq., d: victorias der.} o null si no se ve el marcador.
+  var SERIE = {i: [0.262, 0.006, 0.282, 0.072], d: [0.718, 0.006, 0.738, 0.072]}, LIENZO_SERIE = null, FILAS = 64, COLS = 30;
+  function serie(src) {
+    var W = src.videoWidth || src.naturalWidth || src.width, H = src.videoHeight || src.naturalHeight || src.height;
+    if (!W || !H) return null;
+    if (!LIENZO_SERIE) { LIENZO_SERIE = document.createElement('canvas'); LIENZO_SERIE.width = COLS; LIENZO_SERIE.height = FILAS; }
+    var x = LIENZO_SERIE.getContext('2d', {willReadFrequently: true});
+    function lado(z, azul, haciaDentro) {
+      x.drawImage(src, z[0] * W, z[1] * H, (z[2] - z[0]) * W, (z[3] - z[1]) * H, 0, 0, COLS, FILAS);
+      var d = x.getImageData(0, 0, COLS, FILAS).data;
+      var deColor = function (c, y) { var i = (y * COLS + c) * 4, r = d[i], g = d[i + 1], b = d[i + 2]; return azul ? b > 100 && b - r > 45 : r > 100 && r - Math.max(g, b) > 45; };
+      var tramos = function (c) {  // los tramos de color de una columna: [inicio, largo]
+        var out = [], ini = -1;
+        for (var y = 0; y <= FILAS; y++) { var si = y < FILAS && deColor(c, y); if (si && ini < 0) ini = y; if (!si && ini >= 0) { out.push([ini, y - ini]); ini = -1; } }
+        return out;
+      };
+      // la barra del lado: el tramo más largo (al menos la mitad de la zona)
+      var barra = -1, largo = FILAS * 0.45;
+      for (var c = 0; c < COLS; c++) tramos(c).forEach(function (t) { if (t[1] > largo) { largo = t[1]; barra = c; } });
+      if (barra < 0) return null;
+      // los rectángulos: de 3 a 7 columnas hacia adentro; cada tramo de color de 6 filas o más (y más corto que la barra) es una victoria
+      var votos = {};
+      for (var k = 3; k <= 7; k++) {
+        var cc = barra + haciaDentro * k; if (cc < 0 || cc >= COLS) continue;
+        var n = tramos(cc).filter(function (t) { return t[1] >= 6 && t[1] < largo * 0.8; }).length;
+        votos[n] = (votos[n] || 0) + 1;
+      }
+      var mejor = 0, vn = 0; for (var q in votos) if (votos[q] > vn || (votos[q] === vn && +q > mejor)) { vn = votos[q]; mejor = +q; }
+      return mejor;
+    }
+    var a = lado(SERIE.i, true, 1), b = lado(SERIE.d, false, -1);
+    if (a == null || b == null || a > 3 || b > 3) return null;
+    return {i: a, d: b};
+  }
+  window.RiftLector = {recorte: recorte, numeros: numeros, detalle: function () { return DET.slice(); }, siglas: siglas, serie: serie, png: png, _img: img};
 })();

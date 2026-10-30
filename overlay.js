@@ -190,10 +190,10 @@
   .frow .tp{color:var(--muted);font-size:10px}\
   .fl{margin-top:6px;font-size:10px;color:var(--muted);text-align:center;line-height:1.3}\
   .w.oculto{display:none}\
-  .w{background:rgba(var(--g1-rgb),.58);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 8px 22px rgba(0,0,0,.35);transition:background .2s}\
-  .w:hover{background:rgba(var(--g1-rgb),.95)}\
-  .w,.col{text-shadow:0 1px 2px rgba(0,0,0,.65)}\
-  .col .cd,.col .dmg{background:rgba(var(--g1-rgb),.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 8px 22px rgba(0,0,0,.35)}\
+  .w{background:rgba(var(--g1-rgb),.4);backdrop-filter:blur(10px) saturate(1.2);-webkit-backdrop-filter:blur(10px) saturate(1.2);box-shadow:0 6px 18px rgba(0,0,0,.28);transition:background .2s}\
+  .w:hover{background:rgba(var(--g1-rgb),.86)}\
+  .w,.col{text-shadow:0 1px 2px rgba(0,0,0,.75),0 0 8px rgba(0,0,0,.35)}\
+  .col .cd,.col .dmg{background:rgba(var(--g1-rgb),.5);backdrop-filter:blur(10px) saturate(1.2);-webkit-backdrop-filter:blur(10px) saturate(1.2);box-shadow:0 6px 18px rgba(0,0,0,.28)}\
   .hint{display:none;align-items:center;gap:8px;height:28px;padding:0 12px 0 8px;border-radius:999px;background:rgba(var(--g1-rgb),.9);border:1px solid rgba(var(--line-rgb),.13);font:600 12px var(--ff);color:var(--muted);white-space:nowrap;cursor:pointer}\
   .hint.show{display:inline-flex}.hint .logo{width:16px;height:16px}.hint b{color:var(--text);font-weight:700}.hint a{color:var(--signal);text-decoration:none;font-weight:700}\
   .ctl::before{content:"";position:absolute;left:0;right:0;top:-10px;height:10px}\
@@ -281,7 +281,8 @@
       '<div class="fcols"><div>' + f.blue.map(function (p) { return fila(p, 'b'); }).join('') + '</div><div>' + f.red.map(function (p) { return fila(p, 'r'); }).join('') + '</div></div>' +
       '<div class="fl">K/D/A en la pelea · barra: cuánto más (o menos) daño que su promedio hizo en la pelea<br>⚔ físico · ✦ mágico · ◐ mixto, según su campeón</div>';
     dmgEl.classList.add('show');
-    clearTimeout(fightTimer); fightTimer = setTimeout(function () { dmgEl.classList.remove('show'); }, 11000);
+    // entra cuando la pelea terminó (unos 10 s sin kills) y queda 30 s, para leerla con calma; después se va sola
+    clearTimeout(fightTimer); fightTimer = setTimeout(function () { dmgEl.classList.remove('show'); }, 30000);
   }
   // el overlay se ve solo cuando el juego está en pantalla (el HUD con su reloj, leído al menos dos veces seguidas).
   // Repetición, desk, publicidad, entrevista o multivista: no queda nada a la vista. Al mover el mouse aparece un aviso chico.
@@ -297,6 +298,7 @@
   function oculto(s) {
     if (typeof AS === 'undefined' || !AS.on || !L || Date.now() <= MOSTRAR) return false;
     if (!(AS.buenas >= 2 && Date.now() - AS.visto <= 5000)) return true;
+    if (AS.replay && Date.now() - AS.replay < 45000) return true;  // una repetición en la transmisión
     // en una transmisión en vivo solo se acompaña al juego que se está jugando (no a clips, repeticiones ni mejores momentos)
     if (!esVod() && (!AS.id || !AS.id.live)) return true;  // en vivo: aparece recién al reconocer el juego en curso
     if (terminado(s) && Date.now() - FIN.at > 6000) return true;
@@ -321,6 +323,7 @@
     var st = (AS.diag && AS.diag.estado) || '';
     if (/no se puede leer/.test(st)) return 'este video está protegido y no se puede leer';
     if (LAST && LAST.feed && LAST.feed.estado === 'caido') return 'sin conexión con lolesports · reintento solo';
+    if (/repetición/.test(st)) return 'vuelve cuando termine la repetición';
     if (AS.id) return 'vuelve con el juego';
     if (/no reconozco/.test(st)) return 'todavía no reconozco este partido';
     return 'aparece cuando el juego está en pantalla';
@@ -578,9 +581,7 @@
     tagI: [0.29, 0.0, 0.375, 0.055], tagD: [0.625, 0.0, 0.715, 0.055],
     oroI: [0.418, 0.016, 0.462, 0.049], oroD: [0.542, 0.016, 0.579, 0.049],
     killI: [0.468, 0.01, 0.497, 0.065], killD: [0.503, 0.01, 0.533, 0.065],
-    camI: [0.372, 0.393], camD: [0.607, 0.628], camY: [0.761, 0.81, 0.859, 0.907, 0.953], camH: 0.042,
-    // las victorias de cada equipo en la serie: los rectángulos apilados junto a cada logo (se llenan con el color del lado)
-    serieI: [0.2715, 0.016, 0.276, 0.06], serieD: [0.724, 0.016, 0.7285, 0.06]
+    camI: [0.372, 0.393], camD: [0.607, 0.628], camY: [0.761, 0.81, 0.859, 0.907, 0.953], camH: 0.042
   };
   // si el reloj no está en su lugar, se busca solo en la franja del marcador (arriba al centro), nunca en otras zonas
   var RELOJES = [HUD.reloj, [0.466, 0.04, 0.534, 0.125], [0.466, 0.0, 0.534, 0.065], [0.466, 0.085, 0.534, 0.155]];
@@ -619,34 +620,8 @@
     if (oI == null || oD == null || oI < 2.4 || oD < 2.4 || Math.max(oI, oD) / Math.min(oI, oD) > 1.45) return null;
     return [oI, oD];
   }
-  // victorias en la serie según el HUD, [izquierda, derecha]: cuántos tramos llenos del color del lado hay en cada columna.
-  // Solo cuenta lo que se ve lleno: sin ningún rectángulo lleno no afirma nada (devuelve null), así un HUD distinto no confunde.
-  var SERIE_CV = null;
-  function victoriasHUD(v) {
-    try {
-      if (!SERIE_CV) { SERIE_CV = document.createElement('canvas'); SERIE_CV.width = 4; SERIE_CV.height = 48; }
-      var x = SERIE_CV.getContext('2d', {willReadFrequently: true}), W = v.videoWidth, H = v.videoHeight;
-      var cuenta = function (z, azul) {
-        x.drawImage(v, z[0] * W, z[1] * H, (z[2] - z[0]) * W, (z[3] - z[1]) * H, 0, 0, 4, 48);
-        var d = x.getImageData(0, 0, 4, 48).data, tramos = 0, largo = 0, llenas = 0;
-        for (var y = 0; y <= 48; y++) {
-          var lleno = false;
-          if (y < 48) {
-            var r = 0, g = 0, b = 0;
-            for (var c = 0; c < 4; c++) { var i = (y * 4 + c) * 4; r += d[i]; g += d[i + 1]; b += d[i + 2]; }
-            r /= 4; g /= 4; b /= 4;
-            lleno = azul ? b > 110 && b - r > 50 : r > 110 && r - Math.max(g, b) > 50;
-          }
-          if (lleno) { largo++; llenas++; }
-          else { if (largo >= 6) tramos++; largo = 0; }
-        }
-        return llenas > 44 ? -1 : tramos;  // todo lleno de punta a punta: es la barra del lado, no los rectángulos
-      };
-      var a = cuenta(HUD.serieI, true), b2 = cuenta(HUD.serieD, false);
-      if (a < 0 || b2 < 0 || a + b2 === 0 || a > 3 || b2 > 3) return null;
-      return [a, b2];
-    } catch (e) { return null; }
-  }
+  // victorias en la serie según el HUD, [izquierda, derecha] (las lee lector.js); null si el marcador no está en pantalla
+  function victoriasHUD(v) { var r = L.serie ? L.serie(v) : null; return r ? [r.i, r.d] : null; }
   var autoc = sh.getElementById('autoc'), astEl = sh.getElementById('ast'), diagEl = sh.getElementById('diag');
   function asEstado(t, ok) { astEl.textContent = t; astEl.classList.toggle('ok', !!ok); AS.diag.estado = t; }
   function asChip() { autoc.classList.toggle('on', AS.on); ctl.classList.toggle('auto', AS.on); if (!AS.on) asEstado(''); }
@@ -798,6 +773,13 @@
       var cerca = esperado != null ? vale.filter(function (x) { return Math.abs(x.gt - esperado) <= 2.5; })[0] : null;
       var gt, off;
       AS.zona = zi;
+      // repetición en la transmisión: el reloj del HUD va bastante atrás de lo esperado sin que nadie haya movido el video.
+      // Se oculta todo y no se cambia el ancla; cuando el reloj vuelve a coincidir, reaparece. (Si dura demasiado, era otra cosa.)
+      var atras = !cerca && esperado != null && !AS.trasSalto && vale.every(function (x) { return x.gt < esperado - 6; });
+      if (atras) {
+        if (!AS.replay) AS.replay = Date.now();
+        if (Date.now() - AS.replay < 45000) { AS.diag.replay = mmss(vale[0].gt); asEstado('repetición en pantalla · vuelve con el juego', !!AS.id); seguir(v); return; }
+      } else AS.replay = 0;
       if (cerca) {
         // coincide con el ancla (aunque sea con la segunda opción de un dígito): se afina sin saltos
         gt = cerca.gt; off = gt - ct; AS.contra = []; AS.trasSalto = false;
@@ -846,9 +828,11 @@
   // si no coinciden 3 controles seguidos y otro juego gana por amplio margen dos veces seguidas.
   async function verificar(v, gt) {
     // la serie en pantalla (victorias de cada equipo) dice qué juego es: si no coincide, se reconoce de nuevo, sin esperar
-    var vs = victoriasHUD(v);
+    var vs = victoriasHUD(v), otro = vs && AS.id.juego !== vs[0] + vs[1] + 1;
     if (vs) AS.serie = vs;
-    if (vs && AS.id.juego !== vs[0] + vs[1] + 1) {
+    AS.serieOtro = otro ? (AS.serieOtro || 0) + 1 : 0;
+    if (otro && AS.serieOtro >= 2) {
+      AS.serieOtro = 0;
       var ij = await identificar(v, gt);
       if (ij && ij.juego === vs[0] + vs[1] + 1 && ij.gameId !== AS.id.gameId) { AS.id = ij; AS.playing = null; AS.malas = 0; AS.pend = null; aviso('Sincronizado · <span class="ca">' + esc(ij.codes[0]) + '</span> vs <span class="cb">' + esc(ij.codes[1]) + '</span> · juego ' + ij.juego + ' · ' + mmss(gt)); }
       return;
