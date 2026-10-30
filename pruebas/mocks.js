@@ -51,6 +51,8 @@ const HDR = {'access-control-allow-origin': '*', 'access-control-allow-headers':
 async function montar(ctx, o) {
   o = o || {}; const st = {modo: 'ok', cong: 0, video: o.video || 'vod.webm', detalles: o.detalles !== false};
   P = o.pausaVivo ? PAUSA_VIVO : PAUSA;
+  // el navegador de las pruebas, en español (RiftPulse arranca en el idioma del navegador)
+  await ctx.addInitScript(() => { try { Object.defineProperty(navigator, 'language', {get: () => 'es-AR'}); } catch (e) {} });
   await ctx.route(/lolesports\.com/, r => {
     if (st.modo === 'caido') return r.fulfill({status: 500, body: 'x'});
     const u = new URL(r.request().url()); let data = {};

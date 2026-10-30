@@ -12,7 +12,9 @@
   var KEY = '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z';
   var API = 'https://esports-api.lolesports.com/persisted/gw/';
   var FEED = 'https://feed.lolesports.com/livestats/v1/';
-  var HL = 'es-MX';
+  // idioma elegido en ES | EN (rp-i18n.js): los datos de lolesports y las fechas vienen en ese idioma
+  var EN = (function () { try { return localStorage.getItem('rp_lang') === 'en'; } catch (e) { return false; } })();
+  var HL = EN ? 'en-US' : 'es-MX', LOC = EN ? 'en-US' : 'es';
   var WORLDS = '98767975604431411';
   var DRAG = {
     ocean: ['Océano'], mountain: ['Montaña'], infernal: ['Infernal'], cloud: ['Nube'],
@@ -1058,9 +1060,9 @@
       c.fillStyle='#0C0E12'; c.fillRect(0,0,W,H);
       var gl=c.createRadialGradient(r.win==='blue'?100:W-100,0,10,r.win==='blue'?100:W-100,0,720); gl.addColorStop(0,'rgba('+Wn.rgb+',.30)'); gl.addColorStop(1,'rgba(0,0,0,0)'); c.fillStyle=gl; c.fillRect(0,0,W,H);
       c.fillStyle='#22D3EE'; c.fillRect(60,66,90,4);
-      c.fillStyle='#9AA3B2'; c.font=F(700,22); c.fillText(('Fin del juego'+(m.gameNo?' '+m.gameNo:'')+' · '+(m.league||'')).toUpperCase(),60,96);
-      c.fillStyle=Wn.txt; c.font=F(800,84); c.fillText(r.code+' gana',56,176);
-      c.fillStyle='#C7CDD8'; c.font=F(500,24,'"Inter Tight", sans-serif'); c.fillText('vs '+r.lose+' · '+mmss(r.dur)+(r.comeback?' · ¡remontada desde el '+pct(r.low.p)+'!':''),60,216);
+      c.fillStyle='#9AA3B2'; c.font=F(700,22); c.fillText(((EN?'End of game':'Fin del juego')+(m.gameNo?' '+m.gameNo:'')+' · '+(m.league||'')).toUpperCase(),60,96);
+      c.fillStyle=Wn.txt; c.font=F(800,84); c.fillText(r.code+(EN?' wins':' gana'),56,176);
+      c.fillStyle='#C7CDD8'; c.font=F(500,24,'"Inter Tight", sans-serif'); c.fillText('vs '+r.lose+' · '+mmss(r.dur)+(r.comeback?(EN?' · comeback from '+pct(r.low.p)+'!':' · ¡remontada desde el '+pct(r.low.p)+'!'):''),60,216);
       // la probabilidad del ganador en todo el juego, con los giros marcados
       var X0=60, Y0=246, CW=W-120, CH=200, sm=g.samples, t0=sm[0].gt, span=Math.max(1,sm[sm.length-1].gt-t0);
       c.fillStyle='#14171D'; c.fillRect(X0,Y0,CW,CH);
@@ -1075,7 +1077,7 @@
       c.fillStyle='#22D3EE'; c.fillRect(60,H-62,34,3);
       c.fillStyle='#6E7686'; c.font=F(500,16,'"Inter Tight", sans-serif'); c.fillText('Pronóstico de un modelo propio, sin apuestas. No avalado por Riot Games. #Worlds2026',60,H-30);
       c.textAlign='right'; c.fillStyle='#F2F4F7'; c.font=F(800,24); c.fillText('RIFTPULSE',W-60,H-30);
-      if (s.precision){ c.fillStyle='#22D3EE'; c.font=F(700,18); c.fillText(Math.round(s.precision.acc15*100)+'% DE ACIERTO AL MIN 15',W-60,H-60); }
+      if (s.precision){ c.fillStyle='#22D3EE'; c.font=F(700,18); c.fillText(Math.round(s.precision.acc15*100)+(EN?'% ACCURACY AT MIN 15':'% DE ACIERTO AL MIN 15'),W-60,H-60); }
       c.textAlign='left';
       return cv.toDataURL('image/png');
     }
@@ -1210,7 +1212,7 @@
     });
     Object.keys(days).sort().forEach(function (k) {
       var d = new Date(days[k].at);
-      out.push({key: k, label: d.toLocaleDateString('es', {weekday: 'short', day: 'numeric', month: 'short'}) + ' · ' + days[k].b + ' · ' + days[k].n + (days[k].n === 1 ? ' partido' : ' partidos')});
+      out.push({key: k, label: d.toLocaleDateString(LOC, {weekday: 'short', day: 'numeric', month: 'short'}) + ' · ' + days[k].b + ' · ' + days[k].n + (EN ? (days[k].n === 1 ? ' match' : ' matches') : (days[k].n === 1 ? ' partido' : ' partidos'))});
     });
     return out;
   };

@@ -81,6 +81,15 @@ module.exports = async function () {
   ok = chequear('idiomas: en inglés, las pestañas dicen Now · Worlds · History · Control room', tabsEn.join('·') === 'Now·Worlds·History·Control room', tabsEn.join(' · ')) && ok;
   const e2 = await ci.newPage(); await e2.goto(BASE + 'index.html'); await e2.waitForTimeout(1500);
   ok = chequear('idiomas: la elección se recuerda en la portada', await e2.evaluate(() => document.documentElement.lang === 'en' && /I want to watch Worlds/.test(document.body.textContent))) && ok;
+  // en inglés no queda nada en español: todas las vistas de la app y las páginas del sitio
+  const restos = pg => pg.evaluate(() => { const ES = /[áéíóúñ¿¡]|\b(el|la|los|las|del|de|en|con|que|para|por|sin|una?|juegos?|partidos?|equipos?|hoy|ayer|victorias|acierta|serie|minuto|oro|torres|dragones|ganador|cargando|todavía|cada|más|vivo)\b/, r = [];
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n;
+    while ((n = w.nextNode())) { const pe = n.parentElement; if (!pe || /SCRIPT|STYLE/.test(pe.nodeName) || pe.closest('[hidden]')) continue; const t = n.nodeValue.trim(); if (t && ES.test(t) && !/^https?:/.test(t)) r.push(t.slice(0, 60)); }
+    return r; });
+  const enES = [];
+  for (const v of ['ahora', 'copa', 'pickem', 'hist', 'mando']) { await e1.evaluate(v => setVista(v), v); await e1.waitForTimeout(1500); (await restos(e1)).forEach(x => enES.push(v + ': ' + x)); }
+  for (const f of ['index.html', 'instalar.html', 'como-funciona.html', 'control.html', 'analista.html']) { const q2 = await ci.newPage(); await q2.goto(BASE + f); await q2.waitForTimeout(2500); (await restos(q2)).forEach(x => enES.push(f + ': ' + x)); await q2.close(); }
+  ok = chequear('idiomas: en inglés no queda texto en español (app y sitio)', enES.length === 0, enES.length ? enES.length + ' · ' + enES.slice(0, 4).join(' | ') : 'todo en inglés') && ok;
   await ci.close();
   await b.close(); return ok;
 };

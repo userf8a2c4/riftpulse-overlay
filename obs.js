@@ -14,6 +14,7 @@
    Nota: el pronóstico previo (Elo) y "lo predijimos" requieren portar el Elo al motor;
    aquí todo es el modelo EN VIVO. */
 (function () {
+  var LOC = (function () { try { return localStorage.getItem('rp_lang') === 'en' ? 'en-US' : 'es'; } catch (e) { return 'es'; } })();  // fechas en el idioma elegido
   'use strict';
   if (!window.RiftEngine) { console.warn('[RiftPulse] falta engine.js'); return; }
   var R = window.RiftEngine, Q = new URLSearchParams(location.search);
@@ -489,7 +490,7 @@
     all.forEach(function (x) { var w = winner(x), pk = P.picks[x.id] || {}; if (!w) return; for (var m in pk) { tot[m] = (tot[m] || 0) + 1; if (pk[m] === w) hits[m] = (hits[m] || 0) + 1; } });
     var best = Math.max.apply(null, P.members.map(function (m) { return hits[m.id] || 0; }));
     var blocks = ms.map(function (x) { return x.block; }).filter(function (b, i, a) { return b && a.indexOf(b) === i; });
-    var days = ms.map(function (x) { return new Date(x.start).toLocaleDateString('es', {day: '2-digit', month: '2-digit'}) + ' ' + new Date(x.start).toLocaleDateString('es', {weekday: 'long'}); }).filter(function (d, i, a) { return a.indexOf(d) === i; });
+    var days = ms.map(function (x) { return new Date(x.start).toLocaleDateString(LOC, {day: '2-digit', month: '2-digit'}) + ' ' + new Date(x.start).toLocaleDateString(LOC, {weekday: 'long'}); }).filter(function (d, i, a) { return a.indexOf(d) === i; });
     var bo = ms.every(function (x) { return x.bo === ms[0].bo; }) ? ms[0].bo : null;
     var d = function (k) { return ' style="animation-delay:' + (k * 45) + 'ms"'; };
     var h = '<div class="hd"><div class="tt">' + esc(P.title || 'Predicciones del stream') + '</div>' +
@@ -669,7 +670,7 @@
   if (verListo) setTimeout(function () {
     var st = R.state || {};
     if (st.match) return;  // con partido, el overlay ya se ve
-    var nx = st.next, hora = nx && nx.at ? new Date(nx.at).toLocaleString('es', {weekday: 'short', hour: '2-digit', minute: '2-digit'}) : '';
+    var nx = st.next, hora = nx && nx.at ? new Date(nx.at).toLocaleString(LOC, {weekday: 'short', hour: '2-digit', minute: '2-digit'}) : '';
     pastilla('<b>RiftPulse listo</b> · ' + (nx ? 'próximo: ' + esc(nx.blue) + ' vs ' + esc(nx.red) + (hora ? ' · ' + esc(hora) : '') : 'aparece solo cuando empiece el partido'), 9000);
   }, 4000);
   // la demo necesita los datos de lolesports: si no llegan, se dice en vez de dejar la pieza en blanco

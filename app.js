@@ -3,9 +3,9 @@
 const KEY = '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z'; // clave pública que usa lolesports.com
 const API = 'https://esports-api.lolesports.com/persisted/gw/';
 const FEED = 'https://feed.lolesports.com/livestats/v1/';
-const HL = 'es-MX';
-// idioma de las fechas y los números: el del selector ES | EN (rp-i18n.js)
+// idioma de las fechas, los números y los datos de lolesports: el del selector ES | EN (rp-i18n.js)
 const LOC = window.RPI18N ? RPI18N.locale() : 'es';
+const HL = LOC === 'en-US' ? 'en-US' : 'es-MX';
 const WORLDS = '98767975604431411';
 const ROLES = ['top', 'jungle', 'mid', 'bottom', 'support'];
 const ROL_ES = {top: 'Top', jungle: 'Jungla', mid: 'Mid', bottom: 'ADC', support: 'Soporte'};
@@ -174,10 +174,11 @@ async function loadRosters(ids) {
   try { store('rosters', JSON.stringify(ROSTER)); } catch (e) {}
   return any;
 }
-// el perfil del jugador en op.gg (la búsqueda por su nombre: ahí aparece con su insignia de pro)
-const opgg = name => 'https://www.op.gg/search?q=' + encodeURIComponent(String(name || '').replace(/^\S+\s/, ''));
-// la foto del jugador, que al tocarla abre su perfil en op.gg
-const fotoPro = (src, name, cls) => `<a class="pl-av-a" href="${opgg(name)}" target="_blank" rel="noopener" title="Ver a ${esc(String(name || '').replace(/^\S+\s/, ''))} en op.gg"><img class="${cls || 'pl-av'}" src="${esc(src)}" alt="" loading="lazy"></a>`;
+// el perfil del profesional en Leaguepedia (la wiki de los pros: equipo, rol, historial y estadísticas). La búsqueda con
+// «go» abre la página exacta si existe; si el nombre lo comparten varios jugadores, muestra la lista para elegir
+const perfilPro = name => 'https://lol.fandom.com/wiki/Special:Search?go=Go&search=' + encodeURIComponent(String(name || '').replace(/^\S+\s/, ''));
+// la foto del jugador, que al tocarla abre su perfil
+const fotoPro = (src, name, cls) => `<a class="pl-av-a" href="${perfilPro(name)}" target="_blank" rel="noopener" title="Ver el perfil de ${esc(String(name || '').replace(/^\S+\s/, ''))}"><img class="${cls || 'pl-av'}" src="${esc(src)}" alt="" loading="lazy"></a>`;
 // Foto del jugador: el feed trae "C9 Blaber"; el roster trae "Blaber".
 function playerPhoto(teamId, summonerName) {
   const r = ROSTER[teamId]; if (!r) return null;
@@ -514,7 +515,7 @@ async function tickSchedule() {
   try {
     const d = await api('getSchedule', {leagueId: WORLDS});
     schedule = d.schedule.events.filter(e => e.type === 'match' && e.startTime >= '2026-01-01');
-    store('agenda1', JSON.stringify({at: Date.now(), ev: schedule}));
+    store('agenda1' + HL, JSON.stringify({at: Date.now(), ev: schedule}));
     renderAgenda();
     if (C.loaded) { for (const e of schedule) if (e.state === 'completed') eloMatch(e); simCopa(); }
     if (!$('#vistaHist').hidden) renderHistList();
@@ -2071,7 +2072,7 @@ function renderTeamPanel(code) {
   let roster;
   if (id === null) roster = '<div class="pm">Roster no disponible.</div>';
   else if (!R) roster = '<div class="pm">Cargando roster…</div>';
-  else { const ps = Object.values(R).filter(p => p && (p.img || p.name)); roster = ps.length ? `<div class="idet-roster">${ps.map(p => `<a class="idet-pl" href="${opgg(p.name)}" target="_blank" rel="noopener" title="Ver a ${esc(p.name || '')} en op.gg">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy">` : '<div class="idet-pl-ph"></div>'}<div class="pm">${esc(p.name || '')}</div></a>`).join('')}</div><div class="pm" style="margin-top:6px">Tocá un jugador para ver su perfil en op.gg.</div>` : '<div class="pm">Roster no disponible.</div>'; }
+  else { const ps = Object.values(R).filter(p => p && (p.img || p.name)); roster = ps.length ? `<div class="idet-roster">${ps.map(p => `<a class="idet-pl" href="${perfilPro(p.name)}" target="_blank" rel="noopener" title="Ver el perfil de ${esc(p.name || '')}">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy">` : '<div class="idet-pl-ph"></div>'}<div class="pm">${esc(p.name || '')}</div></a>`).join('')}</div><div class="pm" style="margin-top:6px">Tocá un jugador para ver su perfil (Leaguepedia).</div>` : '<div class="pm">Roster no disponible.</div>'; }
   const tc = teamChamps(code);
   const champs = tc.n ? `<section><h3>Campeones en Worlds</h3><div class="idet-champs">${Object.entries(tc.champs).sort((a, b) => b[1].picks - a[1].picks).slice(0, 6).map(([c, o]) => `<span class="pk-chip"><img src="${champImg(c)}" alt="">${esc(cname(c))} <span class="pm">${o.picks}${o.picks ? ` · ${pct(o.wins / o.picks)}` : ''}</span></span>`).join('')}</div><div class="pm" style="margin-top:5px">De ${tc.n} juegos de sus jugadores.</div></section>` : '';
   return `<div class="idet-head">${C.img && C.img[code] ? `<img class="idet-logo" src="${esc(C.img[code])}" alt="">` : ''}<div><div class="idet-code">${esc(code)}</div><div class="pm">${esc(C.reg[code] || '')}${elo != null ? ` · fuerza ${elo}` : ''}${rank ? ` · #${rank} en fuerza` : ''}</div></div>${close}</div>
@@ -2682,7 +2683,10 @@ function mxSpark(g) {
   const band = 'M' + pts.map(p => X(p.gt).toFixed(1) + ' ' + Y(Math.min(1, p.p + bw(p))).toFixed(1)).join(' L') + ' L' + pts.slice().reverse().map(p => X(p.gt).toFixed(1) + ' ' + Y(Math.max(0, p.p - bw(p))).toFixed(1)).join(' L') + ' Z';
   return `<svg class="mx-spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Probabilidad en todo el juego, con su banda de confianza">${marks}<path d="${band}" style="fill:var(--text)" opacity=".07"/><line x1="0" y1="${H / 2}" x2="${W}" y2="${H / 2}" style="stroke:var(--line-strong)" stroke-dasharray="4 4"/><path d="${d}" fill="none" stroke="url(#mxg)" stroke-width="2.5" vector-effect="non-scaling-stroke"/><defs><linearGradient id="mxg" x1="0" y1="0" x2="0" y2="${H}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${RPC.a}"/><stop offset="1" stop-color="${RPC.b}"/></linearGradient></defs></svg>`;
 }
-function mxPost(s) {
+// el texto para redes sale en el idioma elegido (se copia, así que se traduce línea por línea acá y no en la página)
+const enIdioma = t => t.split('\n').map(x => window.RPI18N ? RPI18N.t(x) : x).join('\n');
+function mxPost(s) { return enIdioma(mxPost0(s)); }
+function mxPost0(s) {
   const m = s.match, g = s.game;
   if (g.recap) return RiftEngine.recapLines(s).map(t => t.replace(/<[^>]+>/g, '')).join('\n') + '\n\nSegún RiftPulse · #Worlds2026';
   const lead = g.pBlue >= 0.5, lc = lead ? m.blue.code : m.red.code, oc = lead ? m.red.code : m.blue.code, lp = lead ? g.pBlue : 1 - g.pBlue;
@@ -2991,7 +2995,7 @@ async function pinGame(matchId, gameId, quedarse) {
   renderDelay();
   render();
   // primero se pinta lo que quedó guardado de la visita anterior (al instante); el calendario fresco llega después
-  try { const c = JSON.parse(store('agenda1') || 'null'); if (c && Date.now() - c.at < 12 * 3600e3 && !schedule.length) schedule = c.ev; } catch (e) {}
+  try { const c = JSON.parse(store('agenda1' + HL) || 'null'); if (c && Date.now() - c.at < 12 * 3600e3 && !schedule.length) schedule = c.ev; } catch (e) {}
   const v0 = q.get('vista') || store('vista'); // ?vista=partido abre directo en esa pestaña
   applyCity();  // fondo de ciudad aérea (se genera una vez)
   pintarSpx(); pintarNovato();

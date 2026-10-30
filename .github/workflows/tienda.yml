@@ -1,0 +1,50 @@
+# Publica la extensión en la Chrome Web Store (se lanza a mano): sube riftpulse-extension-tienda.zip y la manda a revisión.
+# Necesita, una sola vez, estos secretos del repositorio (Settings → Secrets and variables → Actions):
+#   CWS_EXTENSION_ID   el id de la extensión (lo que va después de /detail/.../ en la página de la tienda)
+#   CWS_CLIENT_ID      y CWS_CLIENT_SECRET: un cliente OAuth «App de escritorio» de Google Cloud con la Chrome Web Store API activada
+#   CWS_REFRESH_TOKEN  el token de actualización de la cuenta que publica (scope https://www.googleapis.com/auth/chromewebstore)
+name: Publicar en la Chrome Web Store
+
+on:
+  workflow_dispatch:
+    inputs:
+      publicar:
+        description: 'Además de subirla, mandarla a revisión para publicarla'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  tienda:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Subir y publicar
+        env:
+          ID: ${{ secrets.CWS_EXTENSION_ID }}
+          CLIENTE: ${{ secrets.CWS_CLIENT_ID }}
+          SECRETO: ${{ secrets.CWS_CLIENT_SECRET }}
+          REFRESCO: ${{ secrets.CWS_REFRESH_TOKEN }}
+          PUBLICAR: ${{ inputs.publicar }}
+        run: |
+          set -euo pipefail
+          for v in ID CLIENTE SECRETO REFRESCO; do
+            if [ -z "${!v}" ]; then echo "::error::Falta el secreto de la Chrome Web Store ($v). Ver el comentario al principio de tienda.yml."; exit 1; fi
+          done
+          echo "Versión: $(unzip -p riftpulse-extension-tienda.zip manifest.json | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')"
+          TOKEN=$(curl -sS -X POST https://oauth2.googleapis.com/token \
+            -d client_id="$CLIENTE" -d client_secret="$SECRETO" -d refresh_token="$REFRESCO" -d grant_type=refresh_token \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("access_token") or sys.exit("No se obtuvo el token: " + json.dumps(d)))')
+          echo "Subiendo el paquete…"
+          R=$(curl -sS -X PUT -H "Authorization: Bearer $TOKEN" -H "x-goog-api-version: 2" \
+            -T riftpulse-extension-tienda.zip "https://www.googleapis.com/upload/chromewebstore/v1.1/items/$ID")
+          echo "$R"
+          echo "$R" | python3 -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get("uploadState") in ("SUCCESS","IN_PROGRESS") else "La subida falló")'
+          if [ "$PUBLICAR" = "true" ]; then
+            echo "Mandando a revisión…"
+            curl -sS -X POST -H "Authorization: Bearer $TOKEN" -H "x-goog-api-version: 2" -H "Content-Length: 0" \
+              "https://www.googleapis.com/chromewebstore/v1.1/items/$ID/publish"
+          fi
