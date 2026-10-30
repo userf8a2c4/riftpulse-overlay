@@ -1382,7 +1382,7 @@
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
   // v7: los paneles ya no quedan fijos (los muestra el director en su momento) y la barra vuelve a su lugar junto al marcador
   var EXT = (function () {
-    try { var e = JSON.parse(ls('rp_ext7') || 'null'); if (e) return e; } catch (e1) {}
+    try { var e = JSON.parse(ls('rp_ext7') || 'null'); if (e) return e.filter(function (k) { return k !== 'dano'; }); } catch (e1) {}
     var v6 = []; try { v6 = JSON.parse(ls('rp_ext6') || '["obj"]') || []; } catch (e2) {}
     return v6.filter(function (k) { return k === 'obj' || k === 'pg' || k === 'mini'; });
   })();
@@ -1564,7 +1564,7 @@
   .w{background:rgba(var(--g1-rgb),.4);backdrop-filter:blur(10px) saturate(1.2);-webkit-backdrop-filter:blur(10px) saturate(1.2);box-shadow:0 6px 18px rgba(0,0,0,.28);transition:background .2s}\
   .w:hover{background:rgba(var(--g1-rgb),.86)}\
   .w,.col{text-shadow:0 1px 2px rgba(0,0,0,.75),0 0 8px rgba(0,0,0,.35)}\
-  .col .cd,.col .dmg{background:rgba(var(--g1-rgb),.5);backdrop-filter:blur(10px) saturate(1.2);-webkit-backdrop-filter:blur(10px) saturate(1.2);box-shadow:0 6px 18px rgba(0,0,0,.28)}\
+  .col .cd,.col .dmg{background:rgba(var(--g1-rgb),.28);border-color:rgba(var(--line-rgb),.08);backdrop-filter:blur(10px) saturate(1.2);-webkit-backdrop-filter:blur(10px) saturate(1.2);box-shadow:0 6px 18px rgba(0,0,0,.28)}\
   .hint{display:none;align-items:center;gap:8px;height:28px;padding:0 12px 0 8px;border-radius:999px;background:rgba(var(--g1-rgb),.9);border:1px solid rgba(var(--line-rgb),.13);font:600 12px var(--ff);color:var(--muted);white-space:nowrap;cursor:pointer}\
   .w.tenue{opacity:.14;transition:opacity .6s}.w{transition:opacity .6s,background .2s}\
   .hint.show{display:inline-flex}.hint .logo{width:16px;height:16px}.hint b{color:var(--text);font-weight:700}.hint a{color:var(--signal);text-decoration:none;font-weight:700}\
@@ -1588,7 +1588,7 @@
 
   sh.innerHTML = '<style>' + CSS + TOK + '</style><div class="w" id="w"><div class="mom" id="mom"></div><div class="toast" id="toast"></div><div class="diag" id="diag"></div><div id="body" style="display:inline-flex"></div>' +
     '<div class="ctl" id="ctl"><div class="tl" id="tl"></div><span class="chip" id="autoc" title="Lee el reloj y el marcador del video y se sincroniza solo con el minuto que ves">sincronía automática</span><span class="ast" id="ast"></span><button class="ic" id="diagb" title="Qué está leyendo del video (por si no sincroniza)">?</button><span class="chip" id="langc" title="Idioma / Language"></span>' +
-    '<span class="chip" data-ext="obj" title="El próximo objetivo (dragón, Barón…) y cuánto puede mover la probabilidad">objetivo</span><span class="chip" data-ext="pg" title="Cómo fue cambiando la probabilidad en el juego">trayectoria</span><span class="chip" data-ext="oro" title="Panel: la diferencia de oro minuto a minuto">oro</span><span class="chip" data-ext="dano" title="Panel: el daño de cada jugador">daño</span><span class="chip" data-ext="imp" title="Panel: las jugadas que más movieron la probabilidad">impacto</span><span class="chip" data-ext="duelos" title="Panel: cómo va cada jugador contra su rival de línea">duelos</span><span class="chip" data-ext="mini" title="Solo los porcentajes, lo más chico posible">mínimo</span>' +
+    '<span class="chip" data-ext="obj" title="El próximo objetivo (dragón, Barón…) y cuánto puede mover la probabilidad">objetivo</span><span class="chip" data-ext="pg" title="Cómo fue cambiando la probabilidad en el juego">trayectoria</span><span class="chip" data-ext="oro" title="Panel: la diferencia de oro minuto a minuto">oro</span><span class="chip" data-ext="imp" title="Panel: las jugadas que más movieron la probabilidad">impacto</span><span class="chip" data-ext="duelos" title="Panel: cómo va cada jugador contra su rival de línea">duelos</span><span class="chip" data-ext="mini" title="Solo los porcentajes, lo más chico posible">mínimo</span>' +
     '<button class="ic" id="posbtn" title="Volver a su lugar (debajo del marcador o arriba de las estadísticas)">↑↓</button><span class="man"><button class="ic" data-d="-5" title="Atrasar el overlay 5 segundos">−</button><button class="ic" data-d="5" title="Adelantar el overlay 5 segundos">+</button>' +
     '<span class="syncg" title="Escribí el minuto del juego que ves en el stream y tocá ⟲ (o Enter) para clavar el overlay a ese momento">minuto <input id="scm" placeholder="mm:ss" maxlength="5"><button class="ic" id="syncb" title="Sincronizar al minuto que escribiste">⟲</button> va <span class="gt" id="gtnow">—</span></span></span><button class="ic" id="ocub" title="Ocultar RiftPulse (Alt+R lo vuelve a mostrar)">✕</button></div></div>';
   sh2.innerHTML = '<style>' + CSS + TOK + '</style><div class="col" id="cards"><div id="previa" style="display:contents"></div><div id="pausa" style="display:contents"></div><div class="dmg" id="dmg"></div><div id="cardsx" style="display:contents"></div></div>';
@@ -1855,13 +1855,7 @@
       '<line x1="0" y1="' + H / 2 + '" x2="' + W + '" y2="' + H / 2 + '" stroke="#2a2f3a" stroke-dasharray="3 3"/><path d="' + area + '" fill="url(#og)"/><path d="' + line + '" fill="none" stroke="#f2f4f7" stroke-width="1.6" vector-effect="non-scaling-stroke"/>' + marcas + '</svg>' +
       '<div class="lg"><span>' + mmss(t0) + '</span><span style="margin-left:auto">D dragón · B Barón · I inhib.</span><span>' + mmss(g.gt) + '</span></div></div>';
   }
-  function grafDano(s) {
-    var L = s.game.lanes; if (!L || !L.length) return '';
-    var all = []; L.forEach(function (l) { all.push(l.blue, l.red); });
-    var mx = Math.max(0.01, Math.max.apply(null, all.map(function (p) { return p.share || 0; })));
-    var col = function (side, cls) { return '<div class="dcol ' + cls + '">' + L.map(function (l) { var p = l[side]; return '<div class="drow"><span class="dn">' + esc(p.name) + '</span><div class="dbar"><div style="width:' + Math.round((p.share || 0) / mx * 100) + '%"></div></div><span class="dp">' + Math.round((p.share || 0) * 100) + '%</span></div>'; }).join('') + '</div>'; };
-    return '<div class="cd" style="width:420px"><div class="ch"><span>Daño a campeones · todo el juego</span><span class="mut" style="letter-spacing:.5px;text-transform:none">% de su equipo</span></div><div class="dcols">' + col('blue', 'b') + col('red', 'r') + '</div></div>';
-  }
+
   function grafImpacto(s) {
     var g = s.game, m = s.match, im = g.impact, c = g.comeback; if (!im && !c) return '';
     var h = '<div class="cd"><div class="ch"><span>Impacto' + (im ? (im.at <= g.gt ? ' · ' : ' · próx. ') + esc(im.obj) : '') + '</span>' + (im ? '<span class="mut">' + (im.at <= g.gt ? 'ya está' : 'en ' + mmss(im.at - g.gt)) + '</span>' : '') + '</div>';
@@ -1968,7 +1962,6 @@
       if (EXT.indexOf('oro') >= 0) h += grafOro(s);
       if (EXT.indexOf('imp') >= 0) h += grafImpacto(s);
       if (EXT.indexOf('duelos') >= 0) h += grafDuelos(s);
-      if (EXT.indexOf('dano') >= 0) h += grafDano(s);
       var d = DIR && DIR.decidir(s);  // lo automático no repite un panel que ya está puesto a mano
       if (d) {
         if (d.pieza === 'objetivo' && EXT.indexOf('imp') < 0) h += grafImpacto(s);
@@ -2035,7 +2028,7 @@
   function applyCmd(c, inicial) {
     if (!c) return;
     var viejo = inicial && c.v !== 7;  // una orden guardada antes de v7 no vuelve a fijar los paneles ni la posición vieja
-    if (c.ext && !viejo) { EXT = c.ext.slice(); ls('rp_ext7', JSON.stringify(EXT)); syncChips(); }
+    if (c.ext && !viejo) { EXT = c.ext.filter(function (k) { return k !== 'dano'; }); ls('rp_ext7', JSON.stringify(EXT)); syncChips(); }
     if (c.pos && !viejo) { POS = c.pos; XY = null; ls('rp_xy8', 'null'); ls('rp_pos7', POS); place(); }
     if (c.dmg != null) { DMG = !!c.dmg; ls('rp_dmg6', DMG ? '1' : '0'); if (!DMG) dmgEl.classList.remove('show'); }
     if (c.hidden != null) ocultarUsr(!!c.hidden);
@@ -2138,7 +2131,7 @@
   // lo que se ve en pantalla, para el centro de mando del panel
   function publicar() {
     var v = video() || {};
-    var d = AS.id ? {matchId: AS.id.matchId, juego: AS.id.juego, gameId: AS.id.gameId, codes: AS.id.codes, gt: AS.off != null ? AS.off + v.currentTime : null, off: AS.off != null ? AS.off : null, playing: !v.paused, vod: esVod(), at: Date.now()} : null;
+    var d = AS.id ? {matchId: AS.id.matchId, juego: AS.id.juego, gameId: AS.id.gameId, codes: AS.id.codes, gt: AS.off != null ? AS.off + v.currentTime : null, off: AS.off != null ? AS.off : null, playing: !v.paused, vod: esVod(), live: !!AS.id.live, at: Date.now()} : null;
     try { if (chrome.storage && chrome.storage.local) chrome.storage.local.set({rp_pantalla: d}); else chrome.runtime.sendMessage({type: 'rp-pantalla', data: d}, function () { void chrome.runtime.lastError; }); } catch (e) {}
   }
   function soltar() {

@@ -323,7 +323,7 @@
     return {gt: x.fin, ini: x.ini, fin: x.ult, kb: x.kb, kr: x.kr, win: x.kb === x.kr ? null : x.kb > x.kr ? 'blue' : 'red', oro: x.oro, obj: x.obj, p0: x.p0, p1: x.p1, blue: B, red: R};
   }
   function cerrarPelea() {
-    var pf = G && G.pf; if (!pf || G.gt - pf.ult < 12) return;
+    var pf = G && G.pf; if (!pf || G.gt - pf.ult < 10) return;  // 10 s sin kills: la pelea terminó
     G.pf = null;
     var antes = null; G.rhist.forEach(function (h) { if (h.gt <= pf.ini) antes = h; });
     var o0 = null; G.ohist.forEach(function (h) { if (h.gt <= pf.ini) o0 = h; });

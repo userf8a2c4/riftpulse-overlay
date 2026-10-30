@@ -104,6 +104,27 @@ module.exports = async function () {
   for (const f of ['index.html', 'instalar.html', 'como-funciona.html', 'control.html', 'analista.html']) { const q2 = await ci.newPage(); await q2.goto(BASE + f); await q2.waitForTimeout(2500); (await restos(q2)).forEach(x => enES.push(f + ': ' + x)); await q2.close(); }
   ok = chequear('idiomas: en inglés no queda texto en español (app y sitio)', enES.length === 0, enES.length ? enES.length + ' · ' + enES.slice(0, 4).join(' | ') : 'todo en inglés') && ok;
   await ci.close();
+  // el panel lateral (dentro de la extensión) sigue lo que se ve en el video: un mensaje suelto con otros equipos no lo
+  // cambia (hacen falta dos seguidos) y, en una transmisión en vivo, lo que no es el juego en curso (un clip) se ignora
+  const cp = await b.newContext({viewport: {width: 1200, height: 900}}); await montar(cp);
+  await cp.route(BASE + 'host-prueba.html', r => r.fulfill({contentType: 'text/html', body: '<!doctype html><meta charset=utf-8><iframe id="f" src="app.html?ext=1" style="width:600px;height:850px"></iframe>'}));
+  const hp = await cp.newPage(); await hp.goto(BASE + 'host-prueba.html'); await hp.waitForTimeout(5000);
+  const fr = hp.frames().find(f => /app\.html\?ext=1/.test(f.url()));
+  const manda = d => hp.evaluate(d => document.getElementById('f').contentWindow.postMessage({rp: 'store', shell: 1, data: {rp_pantalla: Object.assign({gt: 300, playing: true, at: Date.now()}, d)}}, '*'), d);
+  const pin = () => fr.evaluate(() => (typeof PIN !== 'undefined' && PIN) ? PIN.gameId : null);
+  await manda({matchId: 'MLI', gameId: 'g1', juego: 1, codes: ['IG', 'LYON'], vod: true, live: false}); await hp.waitForTimeout(3000);
+  const p0 = await pin();
+  await manda({matchId: 'TK', gameId: 'k1', juego: 1, codes: ['T1', 'KOI'], vod: true, live: false}); await hp.waitForTimeout(2000);
+  const p1 = await pin();
+  await manda({matchId: 'TK', gameId: 'k1', juego: 1, codes: ['T1', 'KOI'], vod: true, live: false}); await hp.waitForTimeout(3000);
+  const p2 = await pin();
+  await manda({matchId: 'MLI', gameId: 'g2', juego: 2, codes: ['IG', 'LYON'], vod: false, live: false}); await hp.waitForTimeout(1500);
+  await manda({matchId: 'MLI', gameId: 'g2', juego: 2, codes: ['IG', 'LYON'], vod: false, live: false}); await hp.waitForTimeout(2500);
+  const p3 = await pin();
+  await cp.close();
+  ok = chequear('panel lateral: sigue el juego del video', p0 === 'g1', p0 || 'nada') && ok;
+  ok = chequear('panel lateral: un mensaje suelto con otros equipos no lo cambia; dos seguidos, sí', p1 === 'g1' && p2 === 'k1', p1 + ' → ' + p2) && ok;
+  ok = chequear('panel lateral: en una transmisión en vivo, un juego que no es el que se juega (un clip) se ignora', p3 === 'k1', p3) && ok;
   await b.close(); return ok;
 };
 if (require.main === module) module.exports().then(ok => process.exit(ok ? 0 : 1));

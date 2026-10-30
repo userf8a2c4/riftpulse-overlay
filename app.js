@@ -2653,7 +2653,7 @@ async function seguirApp(p) {
     SIGUE = {cargando: p.gameId};
     $('#pVel').value = '1';
     await pinGame(p.matchId, p.gameId, true);
-    SIGUE = {gameId: p.gameId};
+    SIGUE = {gameId: p.gameId, codes: (p.codes || []).slice().sort().join('-')};
   }
   if (!G || !G.start || !PIN || PIN.gameId !== p.gameId) return;
   const lejos = !SCRUB || Math.abs(scrubGt() - gt) > 2 || SCRUB.playing !== !!p.playing;
@@ -2664,6 +2664,12 @@ function seguirVideo() {
   const p = EXTST.pantalla, fresca = p && p.matchId && p.gameId && p.gt != null && Date.now() - p.at < 15000;
   if (!EXTST.seguir) { if (mxEmb) seguirApp(null).catch(() => {}); if (window.RiftEngine && MX.on && MX.s && MX.s.follow) RiftEngine.follow(null); return; }
   if (!fresca) return;
+  if (!p.vod && p.live === false) return;  // en una transmisión en vivo, solo el juego que se está jugando (no clips)
+  const eq = x => (x.codes || []).slice().sort().join('-'), act = SIGUE && SIGUE.codes;
+  if (act && eq(p) !== act) {  // otros equipos: tiene que llegar igual dos veces seguidas (un mensaje suelto no cambia nada)
+    if (!SIGUE.otro || SIGUE.otro !== p.gameId) { SIGUE.otro = p.gameId; return; }
+  }
+  if (SIGUE) SIGUE.otro = null;
   if (mxEmb) seguirApp(p).catch(() => {});
   if (window.RiftEngine && MX.on) RiftEngine.follow({matchId: p.matchId, juego: p.juego, gt: p.gt, playing: p.playing, speed: 1, at: p.at});
 }
@@ -2683,6 +2689,7 @@ function mxOv() {
   if (!MX.ov) { try { MX.ov = JSON.parse(store('mandoOv') || 'null'); } catch (e) {} MX.ov = Object.assign({ext: ['obj'], pos: 'top', hidden: false, dmg: true}, MX.ov || {}); }
   // v7: los paneles del overlay ya no quedan fijos (aparecen en su momento); se migra una sola vez
   if (MX.ov.v !== 7) { MX.ov.ext = (MX.ov.ext || []).filter(k => k === 'obj' || k === 'pg' || k === 'mini'); MX.ov.v = 7; }
+  MX.ov.ext = MX.ov.ext.filter(k => k !== 'dano');  // el daño se ve solo tras cada pelea 5v5, nunca fijo
   return MX.ov;
 }
 // manda la orden al overlay del stream (content script) por chrome.storage; sync/nudge son de un solo uso
@@ -2877,7 +2884,7 @@ function renderMxOv() {
       <button class="mx-btn${o.dmg ? ' on' : ''}" data-mx="dmg"${dis}>Pelea en equipo (5v5)</button></div>
     <div class="mx-sub">Paneles automáticos (aparecen solos cuando aportan)</div><div class="mx-row" style="margin-top:0">${['minimo', 'estandar', 'show'].map(k => `<button class="mx-btn${(o.director || 'estandar') === k ? ' on' : ''}" data-mx="dir" data-k="${k}"${dis}>${{minimo: 'Mínimo', estandar: 'Estándar', show: 'Show'}[k]}</button>`).join('')}<button class="mx-btn" data-mx="dirSaltar"${dis} title="Quita el panel automático que se está mostrando">⏭ Saltar panel</button></div>
     <div class="mx-note" style="margin-top:4px">Mínimo: la barra y los giros. Estándar: además el objetivo que viene y lo que pasó en cada pelea en equipo. Show: además el oro y los duelos de vez en cuando.</div>
-    <div class="mx-sub">Paneles fijos (opcional: si no, aparecen solos en su momento)</div><div class="mx-row" style="margin-top:0">${chip('oro', 'Gráfico de oro')}${chip('imp', 'Impacto y remontada')}${chip('duelos', 'Duelos por línea')}${chip('dano', 'Daño de los 10')}${chip('mini', 'Barra mínima (solo %)')}</div>
+    <div class="mx-sub">Paneles fijos (opcional: si no, aparecen solos en su momento)</div><div class="mx-row" style="margin-top:0">${chip('oro', 'Gráfico de oro')}${chip('imp', 'Impacto y remontada')}${chip('duelos', 'Duelos por línea')}${chip('mini', 'Barra mínima (solo %)')}</div>
     <div class="mx-sub">Posición y visibilidad</div><div class="mx-row" style="margin-top:0">
       <button class="mx-btn${o.pos === 'top' ? ' on' : ''}" data-mx="pos" data-k="top"${dis}>Arriba</button><button class="mx-btn${o.pos === 'bottom' ? ' on' : ''}" data-mx="pos" data-k="bottom"${dis}>Abajo</button>
       <button class="mx-btn" data-mx="hide"${dis}>${o.hidden ? '👁 Mostrar overlay' : '🙈 Ocultar overlay'}</button></div>

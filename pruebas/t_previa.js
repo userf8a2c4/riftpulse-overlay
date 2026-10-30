@@ -11,7 +11,7 @@ async function pagina(b, video, url, o, lol) {
     if (lol) { const a = document.createElement('a'); a.href = '/directory/category/league-of-legends'; a.textContent = 'League of Legends'; document.body.appendChild(a); }
     const v = document.getElementById('v'); return new Promise(r => { v.addEventListener('loadeddata', r, {once: true}); v.load(); });
   }, !!lol);
-  await p.evaluate(() => { window.RP_DEBUG = true; document.getElementById('v').play(); });
+  await p.evaluate(() => { window.RP_DEBUG = true; try { localStorage.setItem('rp_ext7', '["obj","dano"]'); } catch (e) {} document.getElementById('v').play(); });  // una configuración vieja con el panel fijo de daño
   for (const f of ['engine.js', 'ext-overlay.js']) await p.addScriptTag({content: fs.readFileSync(path.join(RAIZ, f), 'utf8')});
   return {ctx, p};
 }
@@ -24,6 +24,8 @@ module.exports = async function () {
   let e = null;
   for (let i = 0; i < 20; i++) { await r.p.waitForTimeout(1000); e = await leer(r.p); if (e.seg) break; }
   ok = chequear('mirando un VOD, la barra dice qué se juega en vivo ahora', /en vivo ahora/i.test(e.seg) && /T1/.test(e.seg) && /MKOI/.test(e.seg), e.seg || 'no aparece') && ok;
+  const dano = await r.p.evaluate(() => ({chip: !!document.getElementById('rp-overlay-host').shadowRoot.querySelector('[data-ext="dano"]'), panel: /todo el juego/i.test(document.getElementById('rp-overlay-paneles').shadowRoot.textContent || document.getElementById('rp-overlay-paneles').shadowRoot.innerHTML)}));
+  ok = chequear('el daño a campeones ya no es un panel fijo (solo tras cada pelea 5v5), aunque estuviera guardado', !dano.chip && !dano.panel, JSON.stringify(dano)) && ok;
   await r.p.evaluate(() => document.getElementById('rp-overlay-host').shadowRoot.querySelector('.prox').click());
   await r.p.waitForTimeout(800); e = await leer(r.p);
   ok = chequear('al tocarlo se abre la previa: qué está en juego, datos clave y versus histórico', /en vivo ahora/i.test(e.previa) && /T1/.test(e.previa) && /🏆/.test(e.previa) && /versus histórico/i.test(e.previa) && /Primer cruce|en series/i.test(e.previa), e.previa.slice(0, 160)) && ok;
