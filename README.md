@@ -47,7 +47,7 @@
 
 <div align="center">
 
-🌐 **Página:** https://userf8a2c4.github.io/riftpulse-overlay/ &nbsp;·&nbsp; 📚 **Wiki:** https://github.com/userf8a2c4/riftpulse-overlay/wiki
+🌐 **[Página](https://userf8a2c4.github.io/riftpulse-overlay/)** &nbsp;·&nbsp; 📚 **[Wiki](https://github.com/userf8a2c4/riftpulse-overlay/wiki)**
 
 </div>
 
