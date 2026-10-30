@@ -54,7 +54,9 @@ async function piezas(b, lang) {
   // 1) la barra y el gráfico de oro, a mitad de juego
   let o = await overlay(b, lang, 'correr.webm');
   await o.p.evaluate(() => document.getElementById('v').pause());
-  P.hud = await o.p.screenshot({clip: {x: 100 + 1280 * 0.27, y: 60, width: 1280 * 0.46, height: 720 * 0.15}});  // el marcador del video generado
+  await o.p.evaluate(() => { document.getElementById('rp-overlay-host').style.visibility = 'hidden'; document.getElementById('rp-overlay-paneles').style.visibility = 'hidden'; });
+  P.hud = await o.p.screenshot({clip: {x: 100 + 1280 * 0.27, y: 60, width: 1280 * 0.46, height: 720 * 0.15}});  // el marcador del video generado (sin RiftPulse encima)
+  await o.p.evaluate(() => { document.getElementById('rp-overlay-host').style.visibility = ''; document.getElementById('rp-overlay-paneles').style.visibility = ''; });
   P.barra = await pieza(o.p, '#rp-overlay-host');
   await o.p.evaluate(() => window.__rpRender(s => s));
   // el aviso «Sincronizado»
@@ -80,7 +82,7 @@ async function piezas(b, lang) {
   P.pausa = await pieza(o.p, '#rp-overlay-paneles');
   await o.ctx.close();
   // 3) la app del panel lateral
-  const c = await b.newContext({viewport: {width: 420, height: 900}, deviceScaleFactor: 2}); await montar(c);
+  const c = await b.newContext({viewport: {width: 420, height: 900}, deviceScaleFactor: 2, colorScheme: 'dark'}); await montar(c);
   await c.addInitScript(l => { try { localStorage.setItem('rp_lang', l); } catch (e) {} }, lang);
   const a = await c.newPage(); await a.goto(BASE + 'app.html'); await a.waitForTimeout(6000);
   P.app = await a.screenshot();

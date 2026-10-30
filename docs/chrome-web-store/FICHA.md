@@ -14,24 +14,47 @@ Después, cada versión nueva se sube igual (otro ZIP con la versión mayor) y l
 
 ## Textos de la ficha
 
+La ficha va en dos idiomas: **Español** (principal) y **English** (en la consola: *Ficha de Play Store → Agregar idioma → English*). Cada idioma lleva sus capturas y promocionales (carpetas `es/` y `en/`).
+
+### Español
 **Nombre:** RiftPulse — tu segunda pantalla del Mundial de LoL
 
 **Descripción breve (máx. 132):**
-Probabilidad en vivo del Mundial de LoL sobre el video de Twitch y lolesports, sincronizada sola con el minuto que ves.
-
-**Categoría:** Deportes (o Entretenimiento)  ·  **Idioma:** Español
+Quién va ganando el Mundial de LoL, en vivo sobre el video de Twitch. Se sincroniza solo con el minuto que ves.
 
 **Descripción:**
 RiftPulse pone sobre el video del Mundial de League of Legends la probabilidad de victoria de cada equipo, en vivo y en sus colores.
 
-• Se sincroniza solo: lee el reloj y el marcador del video y muestra el minuto exacto que estás viendo, en vivo, en un VOD o en cualquier co-stream con su retraso.
+• Se sincroniza solo: lee el reloj y el marcador del video y muestra el minuto exacto que estás viendo, en vivo, en un VOD o en cualquier co-stream. Pausás, adelantás o cambiás de partido y se acomoda.
+• Cada pelea, explicada: quién la ganó, qué hizo cada jugador y cuánto movió el juego.
+• ¿Pausa técnica? Mientras dura el «GAME PAUSE», un resumen de lo que va del juego, debajo del cartel.
 • Te cuenta el juego: cómo arrancó, el giro clave, qué cambió en el último minuto y qué mirar ahora (el próximo dragón o Barón y cuánto vale para cada equipo).
 • Honesto: muestra cuánto acierta el modelo en cada minuto (75 % al minuto 15, medido en 589 juegos que no vio).
-• Línea de tiempo: en un VOD, tocá un momento clave y el video salta a ese instante.
-• Sin spoilers: en un VOD tapa los resultados del partido que estás viendo y de los siguientes.
-• Panel lateral con todo el Mundial: tu pronóstico contra el de RiftPulse, mis equipos, la fase suiza, las eliminatorias y el Pick'Em.
+• Panel lateral con todo el Mundial: tu pronóstico contra el de RiftPulse, la fase suiza, las eliminatorias, el Pick'Em y el historial entre los equipos.
+• Sin spoilers en los VOD, en español o en inglés (botón ES | EN).
 
-Es pronóstico y análisis, sin apuestas. No está avalado por Riot Games. League of Legends y Riot Games son marcas de Riot Games, Inc.
+Gratis, sin cuentas y sin apuestas. No está avalado por Riot Games. League of Legends y Riot Games son marcas de Riot Games, Inc.
+
+### English
+**Name:** RiftPulse — your LoL Worlds second screen
+
+**Summary (max. 132):**
+Who's winning LoL Worlds, live on top of the Twitch video. Synced on its own to the minute you're watching.
+
+**Description:**
+RiftPulse puts each team's win probability on top of the League of Legends Worlds video, live and in their colors.
+
+• Syncs on its own: it reads the clock and scoreboard from the video and shows the exact minute you're watching, live, in a VOD or any co-stream. Pause, skip or switch matches and it keeps up.
+• Every fight, explained: who won it, what each player did and how much it moved the game.
+• Technical pause? While the «GAME PAUSE» lasts, a recap of the game so far, right below the banner.
+• It tells the story of the game: how it started, the key swing, what changed in the last minute and what to watch next (the next dragon or Baron and what it's worth to each team).
+• Honest: it shows how often the model is right at each minute (75% at minute 15, measured on 589 games it never saw).
+• A side panel with all of Worlds: your picks vs RiftPulse's, the Swiss Stage, the knockouts, Pick'Em and head-to-head history.
+• No spoilers in VODs, in English or Spanish (ES | EN button).
+
+Free, no accounts, no betting. Not endorsed by Riot Games. League of Legends and Riot Games are trademarks of Riot Games, Inc.
+
+**Categoría / Category:** Deportes / Sports  ·  **Idiomas / Languages:** Español, English
 
 ## Pestaña «Prácticas de privacidad»
 
@@ -47,18 +70,17 @@ Es pronóstico y análisis, sin apuestas. No está avalado por Riot Games. Leagu
 
 **Datos del usuario:** no recopila ni transmite datos personales, de cuenta, de navegación ni de ningún otro tipo. La lectura del video ocurre en tu computadora y no se envía ninguna imagen. Marcá todas las casillas de «no recopila» y las tres declaraciones de cumplimiento.
 
-## Capturas (1280 × 800)
-- `1-overlay.png`: el overlay sobre el video (video de prueba generado, no es una transmisión real).
-- `2-panel.png`: el video con el panel lateral abierto.
-- `3-ahora.png`: la app en «Ahora».
-- `4-mundial.png`: la fase suiza.
-- `5-mando.png`: Mando, con el guion y las predicciones del staff.
+## Capturas (1280 × 800) y promocionales
+En `es/` y `en/`, las mismas piezas en cada idioma:
+- `1-en-vivo.png`: la barra de probabilidad.
+- `2-sincronia.png`: lee el reloj y el marcador del video.
+- `3-pelea.png`: la pelea en equipo explicada.
+- `4-pausa.png`: el resumen durante una pausa.
+- `5-panel.png`: el panel lateral («Ahora» y el Mundial).
+- `promo-440x280.png` (mosaico pequeño) y `promo-1400x560.png` (marquesina).
+- `icon128.png`: ícono de la tienda (128 × 128), el mismo para los dos idiomas.
 
-Se regeneran con `node pruebas/captura-extension.js` (datos del simulador de las pruebas).
+Son la interfaz real funcionando con el simulador de las pruebas, sobre videos generados (ninguna imagen de una transmisión). Se regeneran con `node pruebas/ficha-tienda.js`.
 
-## Ícono y promocionales
-- `icon128.png`: ícono de la tienda (128 × 128).
-- `promo-440x280.png`: imagen promocional pequeña.
-- `promo-1400x560.png`: imagen promocional de marquesina.
-
-Las promocionales se regeneran con `node pruebas/promo.js`.
+## Publicar una versión nueva (lo hace el flujo «Publicar en la Chrome Web Store»)
+Con los secretos cargados una vez (ver el comentario al principio de `.github/workflows/tienda.yml`), cada versión nueva se sube y se manda a revisión desde *Actions → Publicar en la Chrome Web Store → Run workflow*, sin entrar a la consola.
