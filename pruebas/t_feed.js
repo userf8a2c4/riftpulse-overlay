@@ -32,8 +32,8 @@ module.exports = async function () {
   const fd = await a.evaluate(() => document.getElementById('fdst').innerText);
   ok = chequear('la mesa muestra el estado y el retraso aplicado', /Datos/.test(fd) && /35 s/.test(fd), fd.replace(/\n/g, ' · ')) && ok;
   // el control abierto fuera de OBS y sin piezas que respondan explica dónde va
-  const c2 = await b.newContext(); await montar(c2); const cs = await c2.newPage(); await cs.goto(BASE + 'control.html'); await cs.waitForTimeout(9500);
-  ok = chequear('el control fuera de OBS explica que va como dock', await cs.evaluate(() => !document.getElementById('fueraObs').hidden)) && ok;
+  const c2 = await b.newContext(); await montar(c2); const cf = await c2.newPage(); await cf.goto(BASE + 'control.html'); await cf.waitForTimeout(9500);
+  ok = chequear('el control fuera de OBS explica que va como dock', await cf.evaluate(() => !document.getElementById('fueraObs').hidden)) && ok;
   // la portada arma una sola URL con la pieza, la posición y el retraso
   const pt = await c2.newPage(); await pt.goto(BASE + 'index.html'); await pt.waitForTimeout(800);
   await pt.selectOption('#gVista', 'bar'); await pt.selectOption('#gPos', 'top'); await pt.fill('#gRet', '30');

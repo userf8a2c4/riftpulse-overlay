@@ -199,7 +199,7 @@
   var dataTime = function () { return REPLAY ? (REPLAY.base + (Date.now() - REPLAY.real) * REPLAY.vel) : (now() - delay * 1000); };
 
   // ---------- descubrir y seguir el partido en vivo ----------
-  var GEN = 0;
+  var GEN = 0, REPTOK = 0;  // GEN: la carga del juego en vivo; REPTOK: la repetición pedida más reciente
   async function findLive() {
     var d = await api('getLive');
     var events = (d.schedule.events || []).filter(function (e) { return e.type === 'match' && e.match; });
@@ -754,12 +754,12 @@
       if (!w0 || !w0.frames || !w0.frames.length) { emit(); return; }
       G = newGame(g.id); G.meta = w0.gameMetadata; G.start = Date.parse(w0.frames[0].rfc460Timestamp); G.waiting = false; G.loading = false; previa();
       processFrame(w0.frames[0]);
-      var startMs = G.start + Math.max(0.1, (min == null ? 8 : min)) * 60000, gen = GEN, ts = [];
+      var startMs = G.start + Math.max(0.1, (min == null ? 8 : min)) * 60000, tok = ++REPTOK, ts = [];
       for (var t = G.start + 30000; t < startMs; t += 30000) ts.push(t);
       // ponerse al día: los tramos de 30 s se piden de a 6 en paralelo y se procesan en orden (la píldora muestra el avance)
       for (var i = 0; i < ts.length; i += 6) {
         var lote = ts.slice(i, i + 6), ws = await Promise.all(lote.map(function (tt) { return feed('window', g.id, tt).catch(function () { return null; }); }));
-        if (gen !== GEN) return;  // mientras tanto se pidió otro juego
+        if (tok !== REPTOK) return;  // mientras tanto se pidió otra repetición
         ws.forEach(function (w, j) { var f = w && lastBefore(w.frames, lote[j]); if (f) processFrame(f); });
         G.carga = Math.min(1, (i + lote.length) / ts.length); emit();
       }

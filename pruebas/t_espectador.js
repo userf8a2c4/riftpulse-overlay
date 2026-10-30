@@ -37,9 +37,9 @@ module.exports = async function () {
   ok = chequear('para entender: «qué mirar» dice por qué importa el objetivo', await p.evaluate(() => /Por qué importa/.test(document.getElementById('ahHist').textContent))) && ok;
   // ---- app instalable ----
   const man = JSON.parse(fs.readFileSync(path.join(RAIZ, 'manifest.webmanifest'), 'utf8'));
-  ok = chequear('app instalable: manifiesto con nombre, inicio e íconos de 192 y 512', man.name && /app\.html/.test(man.start_url) && man.display === 'standalone' && man.icons.length === 2 && man.icons.every(i => fs.existsSync(path.join(RAIZ, i.src)))) && ok;
+  ok = chequear('app instalable: manifiesto con nombre, inicio, íconos de 192 y 512 y uno «maskable» aparte', man.name && /app\.html/.test(man.start_url) && man.display === 'standalone' && ['192x192', '512x512'].every(t => man.icons.some(i => i.sizes === t && /any/.test(i.purpose))) && man.icons.some(i => i.purpose === 'maskable') && man.icons.every(i => fs.existsSync(path.join(RAIZ, i.src)))) && ok;
   ok = chequear('app instalable: la app enlaza el manifiesto y registra el service worker', await p.evaluate(() => !!document.querySelector('link[rel="manifest"]') && window.__sw.includes('sw.js'))) && ok;
-  ok = chequear('app instalable: el service worker pide primero a la red', /fetch\(e\.request\)\.then/.test(fs.readFileSync(path.join(RAIZ, 'sw.js'), 'utf8'))) && ok;
+  ok = chequear('app instalable: el service worker pide primero a la red', /respondWith\(red\(e\.request/.test(fs.readFileSync(path.join(RAIZ, 'sw.js'), 'utf8'))) && ok;
   await ctx.close();
   // en el celular: «Ahora» compacto y sin desborde
   const c2 = await b.newContext({viewport: {width: 390, height: 844}}); await montar(c2);

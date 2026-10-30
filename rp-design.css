@@ -88,7 +88,7 @@ footer{border-top-color:var(--line) !important}
 .inicio .card>*{flex-shrink:0}
 
 /* ---------- legibilidad: ningún texto por debajo de 12 px ---------- */
-.pm,.note,.mx-note,.mx-sub,.badge,.mx-badge,.brand-s,.brand-p,.k,.cmp-l,.pk2,.u,.fs-day,.sub,.card-help,footer,small,.fs-m .sc small,.br-mh,.br-p,.dg-r,.lg{font-size:max(12px,1em) !important}
+.pm,.note,.mx-note,.mx-sub,.badge,.mx-badge,.brand-s,.brand-p,.k,.cmp-l,.pk2,.u,.fs-day,.sub,.card-help,footer,small,.fs-m .sc small,.br-mh,.br-p,.dg-r,.lg,.fav-sub,.k2,.pk-k,th{font-size:max(12px,1em) !important}
 .mx-obs .u,.pm,.note,.mx-note{font-size:12px !important}
 .badge,.mx-badge,.mx-sub,.fs-day,.br-mh{font-size:12px !important;letter-spacing:.8px}
 .ini-bar .pb,.ini-bar .pr,.pb,.pr{font-size:12px !important}
