@@ -1,0 +1,29 @@
+# Exactitud del reconocimiento con los datos reales del Mundial (se lanza a mano): la versión actual del motor y la anterior
+name: Exactitud del reconocimiento
+
+on:
+  workflow_dispatch:
+    inputs:
+      antes:
+        description: 'Commit del motor con el que comparar'
+        default: '5a79a8e^'
+
+permissions:
+  contents: read
+
+jobs:
+  exactitud:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm i --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
+      - run: git show "${{ inputs.antes }}:engine.js" > /tmp/engine_antes.js
+      - run: node pruebas/exactitud.js
+        env:
+          MOTORES: engine.js,/tmp/engine_antes.js
