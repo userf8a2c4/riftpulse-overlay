@@ -1075,7 +1075,10 @@
       // repetición en la transmisión: el reloj del HUD va bastante atrás de lo esperado sin que nadie haya movido el video.
       // Se oculta todo y no se cambia el ancla; cuando el reloj vuelve a coincidir, reaparece. (Si dura más de 3 min, era otra cosa.)
       var principal = vale.filter(function (x) { return !x.alt; })[0];  // la lectura tal cual (sin las segundas opciones de cada dígito)
-      var atras = !cerca && esperado != null && !AS.trasSalto && !!principal && principal.gt < esperado - 6;
+      // un juego nuevo también «vuelve atrás» (a 0:00): eso no es una repetición. Repetición = reloj más allá del minuto y medio,
+      // el juego que se sigue no terminó y la serie en pantalla es la misma
+      var nuevoJuego = (LAST && LAST.game && LAST.game.ended) || (principal && principal.gt < 90);
+      var atras = !cerca && esperado != null && !AS.trasSalto && !!principal && principal.gt < esperado - 6 && !nuevoJuego;
       if (atras) {
         if (!AS.replay) AS.replay = Date.now();
         if (Date.now() - AS.replay < 180000) { AS.diag.replay = mmss(vale[0].gt); asEstado('repetición en pantalla · vuelve con el juego', !!AS.id); seguir(v); return; }
