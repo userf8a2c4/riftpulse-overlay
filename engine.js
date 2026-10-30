@@ -1170,7 +1170,7 @@
       // 1) resumen al terminar el juego
       if (N() >= 1 && g.ended && g.recap && !D.visto['fin' + g.id]) return poner('resumen', 'fin' + g.id, 20, {txt: g.recap.code + ' gana'});
       // 3) pelea recién terminada: reparto de daño
-      if (N() >= 1 && g.fight && g.fight.gt != null && g.gt - g.fight.gt < 40 && !D.visto['pelea' + g.fight.gt]) return poner('pelea', 'pelea' + g.fight.gt, 9, {txt: 'pelea'});
+      if (N() >= 1 && g.fight && g.fight.gt != null && g.gt - g.fight.gt < 40 && !D.visto['pelea' + g.fight.gt]) return poner('pelea', 'pelea' + g.fight.gt, 30, {txt: 'pelea'});  // 30 s, como en el overlay del video
       // 4) objetivo por aparecer (60 s antes): cuánto vale para cada equipo
       var t = g.timers || {}, ob = t.dragon && t.dragon.at > g.gt ? {k: t.dragon.elder ? 'Ancestral' : 'Dragón', at: t.dragon.at} : null;
       if (t.baron && t.baron.at > g.gt && (!ob || t.baron.at < ob.at)) ob = {k: 'Barón', at: t.baron.at};

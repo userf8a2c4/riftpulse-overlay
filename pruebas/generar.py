@@ -8,6 +8,7 @@ retratos de campeones (colores planos). Así se prueba el lector sin usar imáge
   clip.webm  60 s: 15 s de un juego ya jugado (juego 1 desde 4:20), como un clip en la previa, y después el desk
   final.webm 40 s: el final del juego 1 (25:00) con el HUD todavía en pantalla, como en los mejores momentos
   correr.webm 40 s: juego 2 corriendo desde 16:58, con marcador 2–3
+  replay.webm 50 s: juego 1 desde 4:20; de 15 s a 27 s una repetición con el HUD (el reloj vuelve a 3:50); después sigue en 4:47
   serie.webm 40 s: juego 2 desde 1:40 con los mismos retratos que el juego 1: solo la serie en pantalla (1–0) dice que es el 2
 
 En los cuadros del juego 2, junto a cada sigla se ven las victorias en la serie (IG 1–0), como en el HUD de 2026.
@@ -56,11 +57,11 @@ BASE = fondo()
 
 def serie(dr, wa, wb, bo=3):
     """Las victorias de la serie: una columna de rectángulos junto a cada logo, que se llenan con el color del lado."""
-    n = bo // 2 + 1
-    for x0, bar, col, w in ((511, 513, (61, 139, 255), wa), (1380, 1402, (255, 70, 85), wb)):
+    n = bo // 2 + 1  # medidas de la transmisión de 2026 (en 1920×1080): barra en x≈516 y 1404, rectángulos al lado
+    for x0, bar, col, w in ((508, 514, (61, 139, 255), wa), (1383, 1402, (255, 70, 85), wb)):
         dr.rectangle((x0, 8, x0 + 29, 72), fill=(10, 12, 16))
-        dr.rectangle((bar, 8, bar + 5, 72), fill=col)  # la barra de color del lado
-        px = 522 if x0 == 511 else 1389
+        dr.rectangle((bar, 10, bar + 4, 62), fill=col)  # la barra de color del lado
+        px = 520 if x0 == 508 else 1391
         alto = (64 - 16 - 4 * (n - 1)) // n
         for i in range(n):
             y = 16 + i * (alto + 4)
@@ -109,5 +110,7 @@ if __name__ == '__main__':
     video('clip.webm', [cuadro(260 + t, oro(260 + t), oro(260 + t) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, con_hud=t < 15) for t in range(60)])
     video('final.webm', [cuadro(1480 + t, oro(1480 + t), oro(1480 + t) + 0.1, 5, 1, {'blue': 'A', 'red': 'B'}) for t in range(40)])
     video('correr.webm', [cuadro(1018 + t, 28.7, 29.7, 2, 3, {'blue': 'C', 'red': 'D'}, vict=(1, 0)) for t in range(40)])
+    rep = lambda t: 260 + t if not (15 <= t < 27) else 230 + (t - 15)
+    video('replay.webm', [cuadro(rep(t), oro(rep(t)), oro(rep(t)) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}) for t in range(50)])
     video('serie.webm', [cuadro(100 + t, oro(100 + t), oro(100 + t) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, vict=(1, 0)) for t in range(40)])
     print('Videos listos en', GEN)

@@ -50,6 +50,25 @@ module.exports = async function () {
   ok = chequear('en un stream que no es de LoL, ningún aviso de RiftPulse', !enOtro, enOtro || 'nada') && ok;
   ok = chequear('en un stream de LoL con el Mundial en vivo, el aviso dice qué espera', /RiftPulse/.test(enLol), enLol.replace(/\s+/g, ' ')) && ok;
   await c0.close();
+  // una repetición en la transmisión con el HUD a la vista (el reloj vuelve atrás sin que se mueva el video): todo se oculta y vuelve
+  const cr = await b.newContext({viewport: {width: 1500, height: 900}}); await montar(cr, {video: 'replay.webm'});
+  const rp = await cr.newPage(); rp.on('pageerror', e => console.log('    error de página:', e.message));
+  await rp.goto('https://www.twitch.tv/videos/1');
+  await rp.evaluate(() => { const v = document.getElementById('v'); return new Promise(r => { v.addEventListener('loadeddata', r, {once: true}); v.load(); }); });
+  await rp.evaluate(() => { window.RP_DEBUG = true; document.getElementById('v').play(); });
+  for (const f of ['engine.js', 'ext-overlay.js']) await rp.addScriptTag({content: fs.readFileSync(path.join(RAIZ, f), 'utf8')});
+  const er = () => rp.evaluate(() => ({oculto: document.getElementById('rp-overlay-host').shadowRoot.getElementById('w').classList.contains('oculto'), id: window.__rpAS && window.__rpAS.id ? window.__rpAS.id.gameId : '', ct: document.getElementById('v').currentTime}));
+  let antesR = false, ocultoR = null, vuelveR = null, idR = '';
+  for (let i = 0; i < 48; i++) {
+    await rp.waitForTimeout(1000); const e = await er();
+    if (e.ct < 14 && !e.oculto) { antesR = true; idR = e.id; }
+    if (e.ct >= 15 && e.ct < 27 && e.oculto && ocultoR == null) ocultoR = e.ct;
+    if (e.ct >= 27 && !e.oculto && vuelveR == null) vuelveR = {ct: e.ct, id: e.id};
+    if (vuelveR || e.ct > 44) break;
+  }
+  ok = chequear('repetición con el HUD: el overlay se oculta', antesR && ocultoR != null && ocultoR <= 20, ocultoR != null ? 'a los ' + ocultoR.toFixed(0) + ' s (la repetición empieza a los 15)' : 'no se ocultó') && ok;
+  ok = chequear('termina la repetición: vuelve solo, con el mismo juego', vuelveR && vuelveR.ct <= 32 && vuelveR.id === idR, vuelveR ? 'a los ' + vuelveR.ct.toFixed(0) + ' s (termina a los 27) · ' + vuelveR.id : 'no volvió') && ok;
+  await cr.close();
   // la serie en pantalla: el juego 2 con los mismos campeones que el juego 1; los rectángulos de victorias (IG 1–0) dicen cuál es
   const cs = await b.newContext({viewport: {width: 1500, height: 900}}); await montar(cs, {video: 'serie.webm'});
   const s2 = await cs.newPage(); s2.on('pageerror', e => console.log('    error de página:', e.message));
