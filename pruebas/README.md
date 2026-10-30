@@ -16,7 +16,7 @@ node pruebas/todas.js t_feed
 
 En GitHub corren solas con cada cambio en `main`, junto con el linter (`.eslintrc.json`, cero errores y cero avisos): [Pruebas](../.github/workflows/pruebas.yml).
 
-## Las 11 baterías
+## Las 12 baterías
 
 | Prueba | Qué comprueba |
 |---|---|

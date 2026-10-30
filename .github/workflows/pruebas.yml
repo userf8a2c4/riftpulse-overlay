@@ -1,4 +1,4 @@
-# Calidad en cada cambio: el linter (sin errores ni avisos) y las 11 baterías de pruebas de punta a punta
+# Calidad en cada cambio: el linter (sin errores ni avisos) y las 12 baterías de pruebas de punta a punta
 # (sincronía con el video, feed caído, extensión real, legibilidad, director, app…). Si algo se rompe, se ve acá.
 name: Pruebas
 
@@ -35,6 +35,10 @@ jobs:
           npm i --no-save eslint@8.57.0 playwright@1.48.2
           npx playwright install --with-deps chromium
       - name: Linter
-        run: npx eslint --no-eslintrc -c .eslintrc.json --max-warnings 0 engine.js obs.js rp-ui.js rp-i18n.js sw.js ext-overlay.js app.js pruebas/*.js modelo/*.js
+        run: npx eslint --no-eslintrc -c .eslintrc.json --max-warnings 0 engine.js obs.js rp-ui.js rp-i18n.js sw.js ext-overlay.js app.js fuente/*.js pruebas/*.js modelo/*.js
+      - name: Lo publicado está armado con el código de fuente/
+        run: |
+          python3 fuente/construir_extension.py
+          git diff --exit-code -- app.html ext-overlay.js || { echo "::error::app.html o ext-overlay.js no coinciden con fuente/: corré python3 fuente/construir_extension.py y subí el resultado"; exit 1; }
       - name: Pruebas
         run: xvfb-run -a node pruebas/todas.js

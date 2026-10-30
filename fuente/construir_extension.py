@@ -6,7 +6,9 @@
   no permite scripts de usuario, se usa la copia local de esta carpeta.
 - La lectura del video (reloj, marcador y siglas) la hace lector.js, sin librerías externas.
 
-También publica la app (app.html, app.css y app.js) y el overlay en la carpeta del repo web (../riftpulse-overlay) si está al lado.
+Publica en la raíz del repositorio (lo que sirve GitHub Pages): app.html (desde fuente/app.html, con la huella de su CSS
+y su JS), ext-overlay.js (piezas de interfaz + idiomas + lector + overlay) y los dos ZIP de la extensión.
+Uso, desde la raíz del repositorio:  python3 fuente/construir_extension.py
 """
 import hashlib
 import json
@@ -15,7 +17,8 @@ import shutil
 import tempfile
 import zipfile
 
-AQUI = os.path.dirname(os.path.abspath(__file__))
+AQUI = os.path.dirname(os.path.abspath(__file__))  # fuente/: el lector, el overlay, la app y el ícono
+RAIZ = os.path.dirname(AQUI)  # la raíz del repositorio: el motor, la app (app.js, app.css) y lo que se publica
 WEB = 'https://userf8a2c4.github.io/riftpulse-overlay/'
 # beta: cada ZIP nuevo para la tienda sube el último número (0.9.1, 0.9.2…); la 1.0.0, cuando esté terminada.
 # La versión manual lleva el mismo número, así se sabe qué tiene instalado cada uno.
@@ -29,11 +32,11 @@ def escribir(nombre, texto):
 
 
 # copia local del overlay (respaldo si no hay scripts de usuario) y recursos de marca
-for f in ('engine.js', 'logo.svg', 'icon128.png'):
-    shutil.copy(os.path.join(AQUI, f), os.path.join(ext, f))
+for f, de in (('engine.js', RAIZ), ('logo.svg', RAIZ), ('icon128.png', AQUI)):
+    shutil.copy(os.path.join(de, f), os.path.join(ext, f))
 # el overlay va junto con su lector en un solo archivo (así lo baja también la extensión ya instalada)
-RPUI = os.path.join(os.path.dirname(AQUI), 'riftpulse-overlay', 'rp-ui.js')  # piezas comunes de interfaz (colores de equipo, números animados)
-I18N = os.path.join(os.path.dirname(AQUI), 'riftpulse-overlay', 'rp-i18n.js')  # idiomas (ES | EN)
+RPUI = os.path.join(RAIZ, 'rp-ui.js')  # piezas comunes de interfaz (colores de equipo, números animados)
+I18N = os.path.join(RAIZ, 'rp-i18n.js')  # idiomas (ES | EN)
 OVERLAY = ''.join(open(f, encoding='utf-8').read() + '\n' for f in (RPUI, I18N) if os.path.exists(f)) + open(os.path.join(AQUI, 'lector.js'), encoding='utf-8').read() + '\n' + open(os.path.join(AQUI, 'overlay.js'), encoding='utf-8').read()
 escribir('overlay.js', OVERLAY)
 for viejo in ('rp-design.css', 'ocr.html', 'ocr.js'):  # de versiones anteriores, ya no se usan
@@ -194,40 +197,35 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
 """
 
 # ---------- publicar la app y el overlay en el repo web (GitHub Pages) ----------
-web = os.path.join(os.path.dirname(AQUI), 'riftpulse-overlay')
-if os.path.isdir(web):
-    # la app: el HTML lleva la huella de su CSS y su JS en la dirección, así nunca se mezcla un HTML nuevo con un JS viejo en caché
-    app = open(os.path.join(AQUI, 'index.html'), encoding='utf-8').read()
-    for f in ('app.css', 'app.js', 'rp-i18n.js'):
-        if f == 'rp-i18n.js': datos = open(os.path.join(web, f), 'rb').read()  # vive en el repo web
-        else:
-            datos = open(os.path.join(AQUI, f), 'rb').read()
-            shutil.copy(os.path.join(AQUI, f), os.path.join(web, f))
-        app = app.replace('"%s"' % f, '"%s?v=%s"' % (f, hashlib.sha256(datos).hexdigest()[:10]))
-    open(os.path.join(web, 'app.html'), 'w', encoding='utf-8').write(app)
-    open(os.path.join(web, 'ext-overlay.js'), 'w', encoding='utf-8').write(OVERLAY)
-    # la extensión en un ZIP, para instalarla sin git (enlace directo desde la web)
-    # los archivos van sueltos en la raíz del ZIP: «Extraer todo» (Windows) o el doble clic (Mac) dejan UNA carpeta,
-    # riftpulse-extension, que es justo la que se elige en «Cargar descomprimida» (sin carpetas dentro de carpetas)
-    with zipfile.ZipFile(os.path.join(web, 'riftpulse-extension.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
-        for raiz, _, fs in sorted(os.walk(ext)):  # con las subcarpetas (_locales)
-            for f in sorted(fs): z.write(os.path.join(raiz, f), os.path.relpath(os.path.join(raiz, f), ext))
-    # versión para la Chrome Web Store: la tienda no acepta código que se baje de la web, así que el overlay va
-    # dentro del paquete (se actualiza con cada versión de la tienda). El panel sigue abriendo la app desde la web.
-    tmp = tempfile.mkdtemp(); tienda = os.path.join(tmp, 'extension')
-    shutil.copytree(ext, tienda)
-    man = json.load(open(os.path.join(ext, 'manifest.json'), encoding='utf-8'))
-    man['permissions'] = ['sidePanel', 'storage']
-    man['host_permissions'] = [h for h in man['host_permissions'] if 'github.io' not in h]
-    man['content_scripts'] = [{'matches': ['*://*.twitch.tv/*', '*://*.lolesports.com/*'], 'js': ['engine.js', 'overlay.js'], 'run_at': 'document_idle'}]
-    json.dump(man, open(os.path.join(tienda, 'manifest.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
-    open(os.path.join(tienda, 'background.js'), 'w', encoding='utf-8').write(TIENDA_BG)
-    os.remove(os.path.join(tienda, 'INSTALAR.html'))
-    # la tienda exige manifest.json en la raíz del ZIP (sin carpeta)
-    with zipfile.ZipFile(os.path.join(web, 'riftpulse-extension-tienda.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
-        for raiz, _, fs in sorted(os.walk(tienda)):  # con las subcarpetas (_locales)
-            for f in sorted(fs): z.write(os.path.join(raiz, f), os.path.relpath(os.path.join(raiz, f), tienda))
-    shutil.rmtree(tmp)
-    print('Publicado en la carpeta web:', web)
+# la app: el HTML lleva la huella de su CSS y su JS en la dirección, así nunca se mezcla un HTML nuevo con un JS viejo en caché
+app = open(os.path.join(AQUI, 'app.html'), encoding='utf-8').read()
+for f in ('app.css', 'app.js', 'rp-i18n.js'):
+    datos = open(os.path.join(RAIZ, f), 'rb').read()
+    app = app.replace('"%s"' % f, '"%s?v=%s"' % (f, hashlib.sha256(datos).hexdigest()[:10]))
+open(os.path.join(RAIZ, 'app.html'), 'w', encoding='utf-8').write(app)
+open(os.path.join(RAIZ, 'ext-overlay.js'), 'w', encoding='utf-8').write(OVERLAY)
+# la extensión en un ZIP, para instalarla sin git (enlace directo desde la web)
+# los archivos van sueltos en la raíz del ZIP: «Extraer todo» (Windows) o el doble clic (Mac) dejan UNA carpeta,
+# riftpulse-extension, que es justo la que se elige en «Cargar descomprimida» (sin carpetas dentro de carpetas)
+with zipfile.ZipFile(os.path.join(RAIZ, 'riftpulse-extension.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
+    for raiz, _, fs in sorted(os.walk(ext)):  # con las subcarpetas (_locales)
+        for f in sorted(fs): z.write(os.path.join(raiz, f), os.path.relpath(os.path.join(raiz, f), ext))
+# versión para la Chrome Web Store: la tienda no acepta código que se baje de la web, así que el overlay va
+# dentro del paquete (se actualiza con cada versión de la tienda). El panel sigue abriendo la app desde la web.
+tmp = tempfile.mkdtemp(); tienda = os.path.join(tmp, 'extension')
+shutil.copytree(ext, tienda)
+man = json.load(open(os.path.join(ext, 'manifest.json'), encoding='utf-8'))
+man['permissions'] = ['sidePanel', 'storage']
+man['host_permissions'] = [h for h in man['host_permissions'] if 'github.io' not in h]
+man['content_scripts'] = [{'matches': ['*://*.twitch.tv/*', '*://*.lolesports.com/*'], 'js': ['engine.js', 'overlay.js'], 'run_at': 'document_idle'}]
+json.dump(man, open(os.path.join(tienda, 'manifest.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+open(os.path.join(tienda, 'background.js'), 'w', encoding='utf-8').write(TIENDA_BG)
+os.remove(os.path.join(tienda, 'INSTALAR.html'))
+# la tienda exige manifest.json en la raíz del ZIP (sin carpeta)
+with zipfile.ZipFile(os.path.join(RAIZ, 'riftpulse-extension-tienda.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
+    for raiz, _, fs in sorted(os.walk(tienda)):  # con las subcarpetas (_locales)
+        for f in sorted(fs): z.write(os.path.join(raiz, f), os.path.relpath(os.path.join(raiz, f), tienda))
+shutil.rmtree(tmp)
+print('Publicado en:', RAIZ)
 
 print('Extensión lista en:', ext)

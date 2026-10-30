@@ -11,3 +11,7 @@ desktop.ini
 
 # Archivos que generan las pruebas (videos, capturas)
 pruebas/.gen/
+
+# La extensión que arma fuente/construir_extension.py (lo que se publica son los ZIP de la raíz)
+fuente/extension/
+__pycache__/

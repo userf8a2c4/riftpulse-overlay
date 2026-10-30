@@ -2,13 +2,14 @@
 
 Todo lo que pide la tienda ya está listo; solo falta subirlo con tu cuenta.
 
-## Lo que hacés vos (una sola vez, ~20 minutos)
-1. Entrá a la [consola de desarrolladores de Chrome Web Store](https://chrome.google.com/webstore/devconsole) con tu cuenta de Google y pagá la inscripción única (5 USD).
-2. **Nuevo elemento** → subí `riftpulse-extension-tienda.zip` (está en la raíz de este repositorio y en la página: `https://userf8a2c4.github.io/riftpulse-overlay/riftpulse-extension-tienda.zip`).
-3. Copiá los textos de abajo en cada campo, subí las cinco capturas de esta carpeta y el ícono `extension/icon128.png`.
-4. **Enviar para revisión.** Suele tardar de 1 a 3 días.
+## Subir una versión nueva (2 minutos)
+RiftPulse ya está publicada. Cada versión nueva:
+1. Armala: `python3 fuente/construir_extension.py` (sube el número en `VERSION`, al principio de ese archivo). Queda `riftpulse-extension-tienda.zip` en la raíz, también en `https://userf8a2c4.github.io/riftpulse-overlay/riftpulse-extension-tienda.zip`.
+2. En la [consola de desarrolladores](https://chrome.google.com/webstore/devconsole), abrí RiftPulse → **Paquete** → **Subir paquete nuevo** → elegí ese ZIP.
+3. Si cambió algo de la ficha, actualizala con los textos y las imágenes de abajo (español e inglés).
+4. **Enviar para revisión.** Suele tardar de 1 a 3 días; después les llega sola a todos los que la instalaron.
 
-Después, cada versión nueva se sube igual (otro ZIP con la versión mayor) y les llega sola a todos los que la instalaron.
+O, con los secretos cargados, sin entrar a la consola: ver «Publicar una versión nueva» al final.
 
 > **Por qué es otro ZIP:** la tienda no acepta extensiones que bajen su código de la web, que es lo que hace la versión de instalación manual con «Permitir scripts de usuario». En la versión de la tienda, el overlay viaja dentro del paquete y el panel lateral sigue abriendo la app desde la web (eso sí está permitido: es una página, no código de la extensión). Quien ya tiene la versión manual puede seguir usándola.
 

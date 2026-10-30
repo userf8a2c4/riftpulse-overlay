@@ -170,12 +170,13 @@ Una regresión logística por minuto, entrenada con juegos profesionales 2025–
 | `index.html` | Página para streamers: la URL para OBS, la escena y el paquete de gráficos |
 | `instalar.html` | Instalar: la extensión en 3 pasos, la app o OBS |
 | `como-funciona.html` | Cómo calcula, con simulador y precisión |
-| `app.html`, `app.css`, `app.js` | La app para fans (también es el panel lateral de la extensión) |
+| `app.html`, `app.css`, `app.js` | La app para fans (también es el panel lateral de la extensión). `app.html` se genera desde `fuente/app.html` |
 | `overlay.html` + `obs.js` | El overlay de OBS y todas sus piezas (`?view=`) |
 | `analista.html`, `control.html` | La mesa de análisis y el control de producción |
 | `nick.html` | Presentación para casters |
 | `engine.js` | El motor: datos en vivo, modelo, director, historia del juego y peleas en equipo |
-| `ext-overlay.js` | El overlay de la extensión (la versión manual lo baja de acá) |
+| `ext-overlay.js` | El overlay de la extensión, ya armado (la versión manual lo baja de acá) |
+| `fuente/` | El código del overlay de la extensión (`overlay.js`, `lector.js`: lee el reloj, el marcador y la serie del video), la plantilla de la app y `construir_extension.py`, que arma la extensión, `app.html`, `ext-overlay.js` y los dos ZIP |
 | `riftpulse-extension.zip`, `riftpulse-extension-tienda.zip` | La extensión para instalar a mano y el paquete de la Chrome Web Store |
 | `rp-tokens.css`, `rp-design.css`, `rp-ui.js` | El sistema visual común |
 | `rp-i18n.js` | Idiomas: el selector ES \| EN y el diccionario español → inglés |
@@ -184,7 +185,8 @@ Una regresión logística por minuto, entrenada con juegos profesionales 2025–
 | `logo.svg` | La marca |
 | `docs/img/` | Imágenes y GIF de este README y de la wiki |
 | `docs/chrome-web-store/` | Ficha, capturas, ícono e imágenes promocionales de la tienda |
-| `docs/carta-para-nick.md` | Carta de presentación para casters |
+| `docs/carta-para-nick.md`, `docs/img/nick/` | Carta de presentación para casters y sus capturas |
+| `docs/dossier.html` | El dossier del proyecto |
 | `modelo/` | Recolección de juegos reales y reentrenamiento del modelo |
 | `pruebas/` | Pruebas automáticas, simulador del feed y generadores de imágenes ([detalle](pruebas/README.md)) |
 | `wiki/` | La fuente de la [wiki](https://github.com/userf8a2c4/riftpulse-overlay/wiki), que se publica sola |
@@ -199,7 +201,13 @@ Una regresión logística por minuto, entrenada con juegos profesionales 2025–
 
 Hace falta Node, Playwright con Chromium, y Python 3 con Pillow y ffmpeg. Las mismas pruebas y el linter corren solos en GitHub con cada cambio ([Pruebas](.github/workflows/pruebas.yml)). El detalle de cada prueba está en [`pruebas/README.md`](pruebas/README.md).
 
-Las 11 baterías de pruebas, con un simulador del feed y videos generados:
+Después de cambiar algo en `fuente/`, `app.js`, `app.css`, `engine.js`, `rp-ui.js` o `rp-i18n.js`, se arma todo lo que se publica (la extensión, `app.html`, `ext-overlay.js` y los ZIP):
+
+```bash
+python3 fuente/construir_extension.py
+```
+
+Las 12 baterías de pruebas, con un simulador del feed y videos generados:
 
 ```bash
 node pruebas/todas.js

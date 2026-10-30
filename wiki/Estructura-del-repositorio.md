@@ -11,7 +11,8 @@
 | `control.html` | [Control de producción](Control-de-producción) |
 | `nick.html` | Presentación para casters |
 | `engine.js` | Motor: datos en vivo, modelo, director automático, historia del juego y peleas en equipo |
-| `ext-overlay.js` | El overlay de la extensión (la versión manual lo baja de acá) |
+| `ext-overlay.js` | El overlay de la extensión ya armado (la versión manual lo baja de acá) |
+| `fuente/` | El código del overlay de la extensión (`overlay.js`; `lector.js` lee el reloj, el marcador y la serie del video), la plantilla de la app (`app.html`) y `construir_extension.py`, que arma la extensión, `app.html`, `ext-overlay.js` y los dos ZIP: `python3 fuente/construir_extension.py` |
 | `riftpulse-extension.zip`, `riftpulse-extension-tienda.zip` | La extensión para instalar a mano y el paquete de la Chrome Web Store |
 | `rp-tokens.css`, `rp-design.css`, `rp-ui.js` | El sistema visual común (ver [Estilo y colores de equipo](Estilo-y-colores-de-equipo)) |
 | `rp-i18n.js` | Idiomas: el selector ES \| EN y el diccionario español → inglés (también para el overlay de la extensión) |
@@ -21,7 +22,7 @@
 | `LICENSE` | Licencia AGPL-3.0 |
 | `docs/img/` | Imágenes del README y de esta wiki |
 | `docs/chrome-web-store/` | Ficha, capturas e imágenes promocionales de la Chrome Web Store |
-| `docs/carta-para-nick.md` | Carta de presentación para casters |
+| `docs/carta-para-nick.md`, `docs/img/nick/` | Carta de presentación para casters |
 | `modelo/` | Recolección de juegos reales y reentrenamiento del modelo |
 | `pruebas/` | Pruebas automáticas (`node pruebas/todas.js`), simulador del feed y generadores de imágenes |
 | `wiki/` | Fuente de esta wiki |
