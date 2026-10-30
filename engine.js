@@ -865,6 +865,15 @@
   }
   var tagSim = function (t, c) { t = String(t || '').toUpperCase(); c = String(c || ''); if (!t || !c) return 0; return 1 - lev(t, c) / Math.max(t.length, c.length); };
   var GINFO = {}, EVD = {};
+  // el detalle de un partido (sus juegos y el estado de cada uno). Mientras el partido no terminó vence a los 20 s: si no,
+  // con la pestaña abierta toda la serie, el juego 2 o el 3 seguirían figurando «sin empezar» y nunca se reconocerían
+  async function detalle(c) {
+    var x = EVD[c.id];
+    if (!x || (c.state !== 'completed' && Date.now() - x.at > 20000)) {
+      try { x = EVD[c.id] = {ev: (await api('getEventDetails', {id: c.id})).event, at: Date.now()}; } catch (e) { if (!x) return null; }
+    }
+    return x.ev;
+  }
   // ---------- pausas: el reloj del juego se detiene, el feed no ----------
   // En una pausa (técnica, de árbitro) el feed sigue mandando cuadros con el oro quieto, a veces sin marcarla como pausa.
   // El minuto que muestra el HUD no las cuenta, así que para ir de «minuto del HUD» a «instante del feed» hay que saltarlas.
@@ -928,8 +937,10 @@
       if (sig) return sig[lado] && code in sig[lado] ? Math.max(0, top[lado] - sig[lado][code]) * 4 : 0;
       return tags[lado] ? 3 * (1 - tagSim(tags[lado], code)) : 0;
     };
-    // todos los partidos del Mundial ya empezados (un VOD puede ser de cualquier día del torneo)
-    var recent = matchList().filter(function (x) { return x.state !== 'unstarted' && x.teams[0].code && x.teams[1].code; });
+    // todos los partidos del Mundial ya empezados (un VOD puede ser de cualquier día del torneo). También los que el
+    // calendario todavía da por empezar pero ya tendrían que estar jugándose (el calendario se actualiza cada minuto)
+    var ahora = Date.now();
+    var recent = matchList().filter(function (x) { return (x.state !== 'unstarted' || Date.parse(x.start) <= ahora + 600000) && x.teams[0].code && x.teams[1].code; });
     recent.forEach(function (x) {
       var a = x.teams[0].code, b = x.teams[1].code;
       x.tagScore = -Math.min(parece(0, a) + parece(1, b), parece(0, b) + parece(1, a));
@@ -957,21 +968,27 @@
       return {matchId: x.c.id, juego: k + 1, gameId: gm.id, codes: [cb, cr], score: sc, tg: tg, kd: kd, ok: cuadra(f), live: gm.state === 'inProgress', champs: {blue: champs('blue'), red: champs('red')}};
     };
     // 1) cada juego, en el minuto del HUD tal cual
-    var all = [], dudosos = [];
+    var all = [], dudosos = [], sinFeed = [];
     for (var i = 0; i < cands.length; i++) {
-      var c = cands[i], ev = EVD[c.id];
-      if (!ev) { try { ev = EVD[c.id] = (await api('getEventDetails', {id: c.id})).event; } catch (e) { continue; } }
-      var games = (ev.match.games || []);
+      var c = cands[i], ev = await detalle(c); if (!ev) continue;
+      var games = (ev.match.games || []), prox = games.filter(function (g) { return g.state === 'unstarted'; })[0];
       for (var k = 0; k < games.length; k++) {
         var gm = games[k];
-        if (gm.state !== 'completed' && gm.state !== 'inProgress') continue;
-        var gi = await gameInfo(gm.id); if (!gi || !gi.meta) continue;
+        // el juego que sigue en un partido que no terminó: lolesports a veces tarda en marcarlo «en curso»; si el feed ya
+        // tiene cuadros, se está jugando
+        var siguiente = gm === prox && c.state !== 'completed' && !games.some(function (g) { return g.state === 'inProgress'; });
+        // y el juego que dice la serie del HUD (1–1 → juego 3), aunque el detalle todavía no lo marque
+        if (gm.state !== 'completed' && gm.state !== 'inProgress' && !siguiente && o.juego !== k + 1) continue;
+        var gi = await gameInfo(gm.id);
+        if (!gi || !gi.meta) { if (gm.state !== 'completed' && i < 3) sinFeed.push({c: c, k: k, ev: ev}); continue; }
+        if (gm.state !== 'completed') gm = Object.assign({}, gm, {state: 'inProgress'});
         // el juego en curso no puede ir más adelantado en el video que en la realidad
         if (gm.state === 'inProgress' && o.gt > (Date.now() - gi.start) / 1000 + 30) continue;
         var t = gi.start + o.gt * 1000, w = await feed('window', gm.id, t), f = w && lastBefore(w.frames, t);
         var x = {c: c, ev: ev, k: k, gm: gm, gi: gi};
         if (f) all.push(puntuar(x, f));
-        if (gm.state === 'completed' && i < 3 && c.tagScore > -1.2 && !cuadra(f)) dudosos.push(x);
+        // en los que mejor cuadran por siglas, si no cuadran kills y oro puede haber habido una pausa antes (también en vivo)
+        if (i < 3 && c.tagScore > -1.2 && !cuadra(f)) dudosos.push(x);
       }
     }
     // 2) si ninguno cuadra con lo que se ve, puede haber habido una pausa antes de este minuto (el HUD no la cuenta y el
@@ -981,13 +998,18 @@
     var desmentido = okB && dudosos.some(function (x) { return (o.juego && okB.juego !== o.juego && x.k + 1 === o.juego) || -x.c.tagScore + 0.5 < okB.tg; });
     if ((!okB || desmentido) && dudosos.length) {
       var segunda = await Promise.all(dudosos.map(async function (x) {
-        var ps = await pausasDe(x.gm.id, x.gi.start).catch(function () { return []; }); if (!ps.length) return null;
+        var ps = await pausasDe(x.gm.id, x.gi.start, x.gm.state !== 'completed').catch(function () { return []; }); if (!ps || !ps.length) return null;
         var t2 = feedDe(x.gi.start, ps, o.gt), w2 = await feed('window', x.gm.id, t2), f2 = w2 && lastBefore(w2.frames, t2);
         return f2 ? puntuar(x, f2) : null;
       }));
       segunda.forEach(function (r) { if (!r) return; all = all.filter(function (a) { return a.gameId !== r.gameId; }); all.push(r); });
     }
-    if (!all.length) return null;
+    // las siglas y la serie del HUD apuntan a un juego que lolesports todavía no publica: se avisa y se reintenta
+    var espera = function () {
+      var p = sinFeed.filter(function (z) { return z.c.tagScore > -1.2 && (!o.juego || z.k + 1 === o.juego); })[0];
+      return p ? {pendiente: true, matchId: p.c.id, juego: p.k + 1, codes: [p.c.teams[0].code, p.c.teams[1].code]} : null;
+    };
+    if (!all.length) return espera();
     // en una transmisión en vivo, si hay un juego en curso que cuadra con el reloj, lo que se ve es ese juego: uno ya jugado
     // (un clip o una repetición de otro partido) solo gana si las siglas y el marcador lo distinguen con claridad
     if (o.vivo && all.some(function (a) { return a.live; })) all.forEach(function (a) { if (!a.live) a.score += 2.5; });
@@ -995,7 +1017,11 @@
     var best = all[0];
     // si ni el mejor coincide con las kills que se ven, el reloj se leyó mal (o el juego no está en el feed): mejor no mostrar
     // nada que mostrar otro partido
-    if (best.kd != null && best.kd > 3) return null;
+    var pe = espera();
+    if (best.kd != null && best.kd > 3) return pe;
+    // mejor esperar que mostrar otro juego: la serie del HUD dice que es otro juego del mismo partido, o las siglas son las
+    // de un partido cuyo juego todavía no tiene datos (al principio de un juego, 0–0 y el mismo oro cuadran con cualquiera)
+    if (pe && (pe.matchId === best.matchId ? !!o.juego && best.juego !== o.juego : best.tg > 1.5)) return pe;
     best.alts = all.slice(1, 6);  // los más parecidos, para desempatar (por ejemplo, con los campeones en pantalla)
     best.revisados = all.length;
     return best;

@@ -161,6 +161,7 @@
   };
   // ---- el resto de la app, el sitio, el overlay y OBS (generado desde el código; {} = un valor que cambia: un equipo, un número, un campeón) ----
   var D2 = {
+    "{} · juego {}: lolesports todavía no publica sus datos · reintento solo": "{} · game {}: lolesports isn't publishing its data yet · retrying",
     "minuto": "minute",
     "va": "now",
     "{} la gana": "{} wins it",

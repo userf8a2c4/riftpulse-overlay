@@ -16,7 +16,7 @@ node pruebas/todas.js t_feed
 
 En GitHub corren solas con cada cambio en `main`, junto con el linter (`.eslintrc.json`, cero errores y cero avisos): [Pruebas](../.github/workflows/pruebas.yml).
 
-## Las 12 baterías
+## Las 13 baterías
 
 | Prueba | Qué comprueba |
 |---|---|
@@ -31,6 +31,7 @@ En GitHub corren solas con cada cambio en `main`, junto con el linter (`.eslintr
 | `t_historia` | La historia del juego, qué cambió, qué mirar, niveles, visión e ítems (solo si el feed los trae) y la banda de confianza |
 | `t_app` | La app: «Ahora», Mis equipos, sin spoilers, la fase suiza, las tarjetas para compartir, las predicciones del staff y el marcador de la serie al instante |
 | `t_pausa` | Pausas del juego: con el reloj quieto o el cartel «GAME PAUSE» aparece el resumen de lo que va; al reanudarse vuelve todo en el minuto justo; si las pausas guardadas están mal, se miden de nuevo; en vivo, tras una pausa larga, no queda «Juego en pausa» pegado |
+| `t_serie` | Una serie en vivo que avanza con la pestaña abierta: reconoce el juego 2; cuando empieza el juego 3 y lolesports todavía no publica sus datos, lo dice y espera sin mostrar otro partido; apenas aparecen, se sincroniza sola |
 | `t_espectador` | «Tu pronóstico» contra RiftPulse, «Para entender», la app instalable y la bienvenida de la extensión |
 
 ## Herramientas

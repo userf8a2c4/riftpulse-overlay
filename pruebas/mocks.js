@@ -7,10 +7,15 @@ const BASE = 'https://userf8a2c4.github.io/riftpulse-overlay/';
 const pm = pre => [0, 1, 2, 3, 4].map(i => ({participantId: i + 1, summonerName: 'X ' + pre + i, championId: pre + i, role: ['top', 'jungle', 'mid', 'bottom', 'support'][i]}));
 const meta = (b, r, cb, cr) => ({blueTeamMetadata: {esportsTeamId: b, participantMetadata: pm(cb)}, redTeamMetadata: {esportsTeamId: r, participantMetadata: pm(cr)}});
 // T1 vs KOI (de ayer) tiene las mismas kills que IG vs LYON J2: un señuelo que «cuadra» por kills y oro en el minuto del HUD
-const KILLS = {g1: [5, 1], g2: [2, 3], g3: [8, 4], m1: [0, 0], k1: [2, 3]};
+const KILLS = {g1: [5, 1], g2: [2, 3], g3: [8, 4], m1: [0, 0], k1: [2, 3], v1: [6, 2], v2: [3, 4], v3: [0, 0]};
 const AHORA = Date.now();
 const GAMES = {g1: {start: T0, meta: meta('tIG', 'tLY', 'A', 'B')}, g2: {start: T0 + 3600e3, meta: meta('tIG', 'tLY', 'C', 'D')}, g3: {start: T0 + 7200e3, meta: meta('tLY', 'tIG', 'E', 'F')},
-  m1: {start: AHORA - 20 * 60e3, meta: meta('tT1', 'tMK', 'E', 'F')}, k1: {start: T0 - 86400e3, meta: meta('tT1', 'tKO', 'F', 'E')}};
+  m1: {start: AHORA - 20 * 60e3, meta: meta('tT1', 'tMK', 'E', 'F')}, k1: {start: T0 - 86400e3, meta: meta('tT1', 'tKO', 'F', 'E')},
+  // con {serieViva: true}: TES vs BLG en vivo, al mejor de 3 (el juego 2 en curso; con st.serie = 3, el 3)
+  v1: {start: AHORA - 90 * 60e3, meta: meta('tTE', 'tBL', 'A', 'B')}, v2: {start: AHORA - 35 * 60e3, meta: meta('tBL', 'tTE', 'C', 'D')}, v3: {start: AHORA - 2 * 60e3, meta: meta('tTE', 'tBL', 'A', 'B')}};
+// la serie en vivo según cómo va (st.serie: 2 = juego 2 en curso; 3 = el 2 terminado y el 3 en curso, con el feed publicado)
+const serieViva = st => ev('SV', 'inProgress', AHORA - 95 * 60e3, tm('tTE', 'TES', 1), tm('tBL', 'BLG', st.serie >= 3 ? 1 : 0),
+  [{id: 'v1', state: 'completed'}, {id: 'v2', state: st.serie >= 3 ? 'completed' : 'inProgress'}, {id: 'v3', state: st.serie >= 3 && st.detalleAlDia ? 'inProgress' : 'unstarted'}]);
 // el juego 1 de IG vs LYON termina a los 25:00 (después el feed repite el último cuadro, ya «finished»)
 const DUR = {g1: 1500};
 // el juego 2 tiene una pausa de 5 min (como KC vs CFO en el Mundial 2026): del segundo 600 al 900 del feed el juego no avanza
@@ -49,19 +54,20 @@ const HDR = {'access-control-allow-origin': '*', 'access-control-allow-headers':
 
 // estado: {modo: 'ok' | 'caido' | 'congelado', cong: ms}
 async function montar(ctx, o) {
-  o = o || {}; const st = {modo: 'ok', cong: 0, video: o.video || 'vod.webm', detalles: o.detalles !== false};
+  o = o || {}; const st = {modo: 'ok', cong: 0, video: o.video || 'vod.webm', detalles: o.detalles !== false, serie: 2, detalleAlDia: false};
+  const evs = () => o.serieViva ? Object.assign({SV: serieViva(st)}, EVS) : EVS;
   P = o.pausaVivo ? PAUSA_VIVO : PAUSA;
   // el navegador de las pruebas, en español (RiftPulse arranca en el idioma del navegador)
   await ctx.addInitScript(() => { try { Object.defineProperty(navigator, 'language', {get: () => 'es-AR'}); } catch (e) {} });
   await ctx.route(/lolesports\.com/, r => {
     if (st.modo === 'caido') return r.fulfill({status: 500, body: 'x'});
     const u = new URL(r.request().url()); let data = {};
-    if (/getSchedule/.test(u.pathname)) data = {schedule: {pages: {}, events: Object.values(EVS)}};
-    else if (/getEventDetails/.test(u.pathname)) { const e = EVS[u.searchParams.get('id')]; if (!e) return r.fulfill({status: 404, headers: HDR, body: '{}'}); data = {event: {league: {name: 'Worlds'}, match: e.match}}; }
+    if (/getSchedule/.test(u.pathname)) data = {schedule: {pages: {}, events: Object.values(evs())}};
+    else if (/getEventDetails/.test(u.pathname)) { const e = evs()[u.searchParams.get('id')]; if (!e) return r.fulfill({status: 404, headers: HDR, body: '{}'}); data = {event: {league: {name: 'Worlds'}, match: e.match}}; }
     else if (/getLive/.test(u.pathname)) data = {schedule: {events: [Object.assign({}, EVS.TM, {id: 'TM'})]}};
     else if (/\/window\//.test(u.pathname)) {
       const id = u.pathname.split('/').pop(), gs = GAMES[id], s = u.searchParams.get('startingTime');
-      if (!gs) return r.fulfill({status: 204, headers: HDR, body: ''});
+      if (!gs || (id === 'v3' && st.serie < 3)) return r.fulfill({status: 204, headers: HDR, body: ''});  // el juego 3 todavía sin feed
       let t = s ? Date.parse(s) : gs.start; if (st.modo === 'congelado' && s) t = Math.min(t, st.cong);
       return r.fulfill({contentType: 'application/json', headers: HDR, body: JSON.stringify({gameMetadata: gs.meta, frames: s ? [frame(t, id), frame(t + 5000, id), frame(t + 9000, id)] : [frame(gs.start, id)]})});
     } else if (/\/details\//.test(u.pathname)) {
