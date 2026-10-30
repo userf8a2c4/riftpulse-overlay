@@ -14,6 +14,7 @@
 | `ext-overlay.js` | El overlay de la extensión (la versión manual lo baja de acá) |
 | `riftpulse-extension.zip`, `riftpulse-extension-tienda.zip` | La extensión para instalar a mano y el paquete de la Chrome Web Store |
 | `rp-tokens.css`, `rp-design.css`, `rp-ui.js` | El sistema visual común (ver [Estilo y colores de equipo](Estilo-y-colores-de-equipo)) |
+| `rp-i18n.js` | Idiomas: el selector ES \| EN y el diccionario español → inglés (también para el overlay de la extensión) |
 | `manifest.webmanifest`, `sw.js`, `icon-*.png` | La app instalable (PWA) |
 | `riftpulse.obs-scene.json` | Colección de escenas de OBS con el director (OBS 28+) |
 | `logo.svg` | La marca |

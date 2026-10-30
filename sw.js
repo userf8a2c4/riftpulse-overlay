@@ -1,7 +1,7 @@
 // RiftPulse — service worker de la app instalable. Siempre pide primero a la red (así nunca muestra una versión vieja);
 // la copia guardada se usa solo si no hay conexión o la red tarda más de 4 s. Los datos del Mundial no pasan por acá.
-const CACHE = 'riftpulse-app-v3';
-const BASE = ['app.html', 'app.css', 'app.js', 'rp-tokens.css', 'rp-design.css', 'rp-ui.js', 'engine.js', 'logo.svg', 'icon-192.png', 'manifest.webmanifest'];
+const CACHE = 'riftpulse-app-v4';
+const BASE = ['app.html', 'app.css', 'app.js', 'rp-tokens.css', 'rp-design.css', 'rp-ui.js', 'rp-i18n.js', 'engine.js', 'logo.svg', 'icon-192.png', 'manifest.webmanifest'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(BASE)).catch(() => {})); self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 // la red, con un límite de espera (en una conexión mala no se queda colgada)

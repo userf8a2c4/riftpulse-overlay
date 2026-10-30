@@ -14,8 +14,10 @@ const GAMES = {g1: {start: T0, meta: meta('tIG', 'tLY', 'A', 'B')}, g2: {start: 
 const DUR = {g1: 1500};
 // el juego 2 tiene una pausa de 5 min (como KC vs CFO en el Mundial 2026): del segundo 600 al 900 del feed el juego no avanza
 // y el feed sigue mandando cuadros con el oro quieto, sin marcarla como pausa. El reloj del HUD no la cuenta
-const PAUSA = {g2: [600, 900]};
-const enJuego = (t, id) => { const gs = GAMES[id], p = PAUSA[id]; let s = (t - gs.start) / 1000; if (p) s = s < p[0] ? s : s < p[1] ? p[0] : s - (p[1] - p[0]); return gs.start + s * 1000; };
+// con {pausaVivo: true}, el juego en vivo (T1 vs MKOI) también tuvo una pausa de 10 min (del 300 al 900 del feed) que ya terminó
+const PAUSA = {g2: [600, 900]}, PAUSA_VIVO = Object.assign({m1: [300, 900]}, PAUSA);
+let P = PAUSA;
+const enJuego = (t, id) => { const gs = GAMES[id], p = P[id]; let s = (t - gs.start) / 1000; if (p) s = s < p[0] ? s : s < p[1] ? p[0] : s - (p[1] - p[0]); return gs.start + s * 1000; };
 const frame = (tf, id) => {
   let t = enJuego(tf, id); const gs0 = GAMES[id], fin = DUR[id] != null && (t - gs0.start) / 1000 >= DUR[id];
   if (fin) t = gs0.start + DUR[id] * 1000;
@@ -47,6 +49,7 @@ const HDR = {'access-control-allow-origin': '*', 'access-control-allow-headers':
 // estado: {modo: 'ok' | 'caido' | 'congelado', cong: ms}
 async function montar(ctx, o) {
   o = o || {}; const st = {modo: 'ok', cong: 0, video: o.video || 'vod.webm', detalles: o.detalles !== false};
+  P = o.pausaVivo ? PAUSA_VIVO : PAUSA;
   await ctx.route(/lolesports\.com/, r => {
     if (st.modo === 'caido') return r.fulfill({status: 500, body: 'x'});
     const u = new URL(r.request().url()); let data = {};

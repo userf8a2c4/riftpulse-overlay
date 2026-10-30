@@ -45,10 +45,11 @@ module.exports = async function () {
   for (let i = 0; i < 12 && !j2; i++) { await r2.p.waitForTimeout(1000); const s = await leer(r2.p); if (s.j) j2 = s; }
   ok = chequear('a mitad de juego distingue el juego 2 por el marcador', j2 && j2.m === 'MLI' && j2.j === 2, j2 ? j2.m + ' J' + j2.j : 'sin reconocer') && ok;
   // el juego 2 tuvo una pausa de 5 min antes (el feed siguió con el oro quieto): lo que se muestra es el minuto del HUD, no el del feed
+  // (los cuadros del feed llegan cada pocos segundos: el minuto del cuadro puede ir hasta 6 s detrás del reloj)
   await r2.p.waitForTimeout(6000);
   const st = await r2.p.evaluate(() => { const s = RiftEngine.state, v = document.getElementById('v'), A = window.__rpAS; return {gt: s.game && s.game.gt, hud: A.off + v.currentTime, k: s.game && s.game.stats ? [s.game.stats.blue.kills, s.game.stats.red.kills] : null}; });
   await r2.ctx.close();
-  ok = chequear('con una pausa antes: el minuto y las kills son los del HUD (2–3), no los del feed', st.gt != null && Math.abs(st.gt - st.hud) <= 2 && st.k && st.k.join('-') === '2-3', 'min ' + (st.gt || 0).toFixed(0) + ' (HUD ' + st.hud.toFixed(0) + ') · kills ' + (st.k || []).join('-')) && ok;
+  ok = chequear('con una pausa antes: el minuto y las kills son los del HUD (2–3), no los del feed', st.gt != null && Math.abs(st.gt - st.hud) <= 6 && st.k && st.k.join('-') === '2-3', 'min ' + (st.gt || 0).toFixed(0) + ' (HUD ' + st.hud.toFixed(0) + ') · kills ' + (st.k || []).join('-')) && ok;
   await b.close(); return ok;
 };
 if (require.main === module) module.exports().then(ok => process.exit(ok ? 0 : 1));

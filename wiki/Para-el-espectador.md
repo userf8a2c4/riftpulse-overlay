@@ -13,6 +13,9 @@ En **Ahora**, elegí quién gana cada serie **antes de que empiece**. El pronós
 ## Para entender
 En el encabezado de la app, **📘 Para entender** subraya los términos del juego (Barón, alma, inhibidor, Elo, Bo3, fase suiza, puntos de probabilidad…). Tocalos o pasá el mouse para ver qué significan. «Qué mirar ahora» suma por qué importa el próximo objetivo.
 
+## En inglés
+Arriba a la derecha, en la app y en todas las páginas, **ES | EN** cambia el idioma. La elección se recuerda y la sigue el overlay sobre el video.
+
 ## La app en el celular
 La app se puede **instalar** como una aplicación: en Android, Chrome → menú → **Instalar app**; en iPhone, Safari → **Compartir → Agregar a inicio**. Abre directo en **Ahora**, en formato compacto para usarla de segunda pantalla mientras mirás el partido en la tele o la compu.
 

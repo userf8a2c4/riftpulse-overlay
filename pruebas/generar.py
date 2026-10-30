@@ -10,6 +10,8 @@ retratos de campeones (colores planos). Así se prueba el lector sin usar imáge
   correr.webm 40 s: juego 2 corriendo desde 16:58, con marcador 2–3
   replay.webm 50 s: juego 1 desde 4:20; de 15 s a 27 s una repetición con el HUD (el reloj vuelve a 3:50); después sigue en 4:47
   tomas.webm 125 s: juego 1 desde 4:20; de 10 s a 110 s sin marcador (tomas de los jugadores, repetición larga); después sigue en 6:10
+  pausa.webm 76 s: juego 2 desde 9:40, pausa en 10:00 (reloj quieto y cartel «GAME PAUSE») y sigue
+  vivo.webm  40 s: el juego en vivo en 5:30, después de una pausa larga que ya terminó
   serie.webm 40 s: juego 2 desde 1:40 con los mismos retratos que el juego 1: solo la serie en pantalla (1–0) dice que es el 2
 
 En los cuadros del juego 2, junto a cada sigla se ven las victorias en la serie (IG 1–0), como en el HUD de 2026.
@@ -69,13 +71,24 @@ def serie(dr, wa, wb, bo=3):
             dr.rectangle((px, y, px + 9, y + alto), fill=col if i < w else (6, 7, 9), outline=(70, 74, 82))
 
 
-def cuadro(gt, oro_a, oro_b, ka, kb, retratos, con_hud=True, vict=None):
+F64 = ImageFont.truetype(FUENTE, 64)
+
+
+def cartel(dr):
+    """El cartel de pausa de la transmisión: arriba a la izquierda, junto al logo del torneo, con una franja blanca debajo."""
+    dr.rectangle((60, 20, 180, 140), fill=(30, 80, 230)); dr.text((120, 80), '26', font=F64, fill=(250, 250, 250), anchor='mm')
+    dr.rectangle((180, 30, 600, 128), fill=(18, 22, 34)); dr.text((210, 79), 'GAME PAUSE', font=F64, fill=(250, 250, 250), anchor='lm')
+    dr.rectangle((60, 150, 600, 186), fill=(245, 245, 245)); dr.text((330, 168), 'OFFICIALS INVESTIGATING', font=F30, fill=(20, 20, 24), anchor='mm')
+
+
+def cuadro(gt, oro_a, oro_b, ka, kb, retratos, con_hud=True, vict=None, siglas=('IG', 'LYON'), pausa=False):
     im = BASE.copy(); dr = ImageDraw.Draw(im)
+    if pausa: cartel(dr)
     if con_hud and vict: serie(dr, *vict)
     if con_hud:
         dr.rectangle((540, 0, 1380, 128), fill=(10, 12, 16))
-        dr.text((640, 34), 'IG', font=F44, fill=(80, 160, 255), anchor='mm')
-        dr.text((1286, 34), 'LYON', font=F44, fill=(255, 80, 90), anchor='mm')
+        dr.text((640, 34), siglas[0], font=F44, fill=(80, 160, 255), anchor='mm')
+        dr.text((1286, 34), siglas[1], font=F44, fill=(255, 80, 90), anchor='mm')
         dr.text((838, 38), '%.1fK' % oro_a, font=F40, fill=(240, 240, 240), anchor='mm')
         dr.text((1092, 38), '%.1fK' % oro_b, font=F40, fill=(240, 240, 240), anchor='mm')
         dr.text((926, 40), str(ka), font=F40, fill=(240, 240, 240), anchor='mm')
@@ -115,4 +128,13 @@ if __name__ == '__main__':
     video('replay.webm', [cuadro(rep(t), oro(rep(t)), oro(rep(t)) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}) for t in range(50)])
     video('tomas.webm', [cuadro(260 + t, oro(260 + t), oro(260 + t) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, con_hud=not (10 <= t < 110)) for t in range(125)])
     video('serie.webm', [cuadro(100 + t, oro(100 + t), oro(100 + t) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, vict=(1, 0)) for t in range(40)])
+    # pausa.webm 76 s: juego 2 desde 9:40; a las 10:00 el reloj se queda quieto 8 s (pausa), 20 s de cámaras con el cartel
+    # «GAME PAUSE» (sin marcador) y el juego sigue en 10:00. El feed tiene esa pausa (5 min) del 600 al 900
+    pz = []
+    for t in range(76):
+        gt = 580 + t if t < 20 else 600 if t < 48 else 600 + (t - 48)
+        pz.append(cuadro(gt, oro(gt), oro(gt) + 0.1, 1, 1, {'blue': 'C', 'red': 'D'}, con_hud=not (28 <= t < 48), vict=(1, 0), pausa=28 <= t < 48))
+    video('pausa.webm', pz)
+    # vivo.webm 40 s: el juego en vivo (T1 vs MKOI) en 5:30, después de una pausa de 10 min que el feed tiene del 300 al 900
+    video('vivo.webm', [cuadro(330 + t, oro(330 + t), oro(330 + t) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, siglas=('T1', 'MKOI')) for t in range(40)])
     print('Videos listos en', GEN)

@@ -50,6 +50,7 @@
     "RiftEngine": "readonly",
     "RiftLector": "readonly",
     "RPUI": "readonly",
+    "RPI18N": "readonly",
     "RPC": "readonly",
     "chrome": "readonly"
   },

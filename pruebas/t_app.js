@@ -72,6 +72,16 @@ module.exports = async function () {
   const c2 = await b.newContext({viewport: {width: 390, height: 844}}); await montar(c2);
   const q = await c2.newPage(); await q.goto(BASE + 'app.html'); await q.waitForTimeout(4000);
   ok = chequear('celular: «Ahora» sin desborde horizontal', await q.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)) && ok;
+  // idiomas: el selector ES | EN en la app y en la portada; en inglés se traduce lo que se ve (también lo que se dibuja después)
+  const ci = await b.newContext({viewport: {width: 1440, height: 1000}}); await montar(ci);
+  const e1 = await ci.newPage(); await e1.goto(BASE + 'app.html'); await e1.waitForTimeout(2500);
+  ok = chequear('idiomas: la app tiene el selector ES | EN', await e1.evaluate(() => /ES\s*\|\s*EN/.test((document.querySelector('[data-rp-lang]') || {}).textContent || ''))) && ok;
+  await e1.click('[data-rp-lang] button[data-l="en"]'); await e1.waitForTimeout(4000);
+  const tabsEn = await e1.$$eval('nav.tabs button', l => l.map(x => x.textContent.trim()));
+  ok = chequear('idiomas: en inglés, las pestañas dicen Now · Worlds · History · Control room', tabsEn.join('·') === 'Now·Worlds·History·Control room', tabsEn.join(' · ')) && ok;
+  const e2 = await ci.newPage(); await e2.goto(BASE + 'index.html'); await e2.waitForTimeout(1500);
+  ok = chequear('idiomas: la elección se recuerda en la portada', await e2.evaluate(() => document.documentElement.lang === 'en' && /I want to watch Worlds/.test(document.body.textContent))) && ok;
+  await ci.close();
   await b.close(); return ok;
 };
 if (require.main === module) module.exports().then(ok => process.exit(ok ? 0 : 1));

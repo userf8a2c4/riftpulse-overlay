@@ -4,6 +4,8 @@ const KEY = '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z'; // clave pública que us
 const API = 'https://esports-api.lolesports.com/persisted/gw/';
 const FEED = 'https://feed.lolesports.com/livestats/v1/';
 const HL = 'es-MX';
+// idioma de las fechas y los números: el del selector ES | EN (rp-i18n.js)
+const LOC = window.RPI18N ? RPI18N.locale() : 'es';
 const WORLDS = '98767975604431411';
 const ROLES = ['top', 'jungle', 'mid', 'bottom', 'support'];
 const ROL_ES = {top: 'Top', jungle: 'Jungla', mid: 'Mid', bottom: 'ADC', support: 'Soporte'};
@@ -608,7 +610,7 @@ function nextText() {
   const n = schedule.find(e => e.state === 'unstarted' && e.match.teams.every(t => t.code !== 'TBD'));
   return n ? `Próximo: ${n.match.teams.map(t => t.code).join(' vs ')} · ${fmtDate(n.startTime)}` : 'No hay partido en vivo ahora.';
 }
-const fmtDate = s => new Intl.DateTimeFormat('es-HN', {weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'}).format(new Date(s));
+const fmtDate = s => new Intl.DateTimeFormat(LOC, {weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'}).format(new Date(s));
 
 
 // Entre mapas: carga el análisis de los juegos ya jugados de la serie (si falta) para poder resumirlos.
@@ -1270,14 +1272,14 @@ function serieHTML(e) {
   if (tap) return `<div class="fs-m" data-act="revelar" data-arg="${esc(e.match.id)}" title="Oculto para no spoilear: tocá para ver"><span class="fs-tm">${lg0(a)}<b>${esc(a.code)}</b></span><span class="sc">• – •<small>tocá para ver</small></span><span class="fs-tm r"><b>${esc(b.code)}</b>${lg0(b)}</span></div>`;
   const lg = t => C.img && C.img[t.code] ? `<img src="${esc(C.img[t.code])}" alt="">` : '';
   const ok = a.code && b.code && a.code !== 'TBD' && b.code !== 'TBD';
-  const sc = done || live ? `${wa} – ${wb}<small>${live ? '● en vivo' : 'Bo' + e.match.strategy.count}</small>` : `vs<small>${new Date(e.startTime).toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit'})}</small>`;
+  const sc = done || live ? `${wa} – ${wb}<small>${live ? '● en vivo' : 'Bo' + e.match.strategy.count}</small>` : `vs<small>${new Date(e.startTime).toLocaleTimeString(LOC, {hour: '2-digit', minute: '2-digit'})}</small>`;
   return `<div class="fs-m${live ? ' live' : ''}"${ok ? ` data-act="h2h" data-arg="${esc(a.code)}|${esc(b.code)}|${esc(e.match.id)}"` : ''}>
     <span class="fs-tm${done && wa < wb ? ' lost' : ''}">${lg(a)}<b>${esc(a.code || 'Por definir')}</b></span><span class="sc">${sc}</span><span class="fs-tm r${done && wb < wa ? ' lost' : ''}"><b>${esc(b.code || 'Por definir')}</b>${lg(b)}</span></div>`;
 }
 function lg0(t) { return C.img && C.img[t.code] ? `<img src="${esc(C.img[t.code])}" alt="">` : ''; }
 function porDia(list) {
   const g = {};
-  list.forEach(e => { const k = new Date(e.startTime).toLocaleDateString('es', {weekday: 'long', day: 'numeric', month: 'long'}); (g[k] = g[k] || []).push(e); });
+  list.forEach(e => { const k = new Date(e.startTime).toLocaleDateString(LOC, {weekday: 'long', day: 'numeric', month: 'long'}); (g[k] = g[k] || []).push(e); });
   return Object.keys(g).map((k, i) => `<div class="fs-day">${list === null ? '' : ''}${esc(k)}</div><div class="fs-sm">${g[k].map(serieHTML).join('')}</div>`).join('');
 }
 function suizaHTML(list) {
@@ -1296,7 +1298,7 @@ function suizaHTML(list) {
   const partido = e => {
     const [a, b] = e.match.teams, wa = (a.result || {}).gameWins || 0, wb = (b.result || {}).gameWins || 0, done = e.state === 'completed', live = e.state === 'inProgress';
     const cl = (x, y) => done ? (x > y ? ' gana' : ' pierde') : '';
-    const sc = done ? wa + '–' + wb : live ? '●' : new Date(e.startTime).toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit'});
+    const sc = done ? wa + '–' + wb : live ? '●' : new Date(e.startTime).toLocaleTimeString(LOC, {hour: '2-digit', minute: '2-digit'});
     return `<div class="sw-m${live ? ' envivo' : ''}${esFav(e) ? ' fav' : ''}" data-act="h2h" data-arg="${esc(a.code)}|${esc(b.code)}|${esc(e.match.id)}"><span class="t${cl(wa, wb)}">${lg(a.code)}<b>${esc(a.code)}</b></span><span class="sc">${sc}</span><span class="t r${cl(wb, wa)}"><b>${esc(b.code)}</b>${lg(b.code)}</span></div>`;
   };
   const caja = (w, l) => {
@@ -1350,7 +1352,7 @@ let FZ_ENV = '';
 function compartirFuerza(elo) {
   const j = JSON.stringify(elo); if (j === FZ_ENV) return;
   try {
-    const data = {rp_cmd: {fuerza: elo, n: Date.now()}};
+    const data = {rp_cmd: {fuerza: elo, lang: window.RPI18N ? RPI18N.lang() : 'es', n: Date.now()}};  // y el idioma elegido
     if (mxStorage()) chrome.storage.local.set(data); else if (mxEmb) window.parent.postMessage({rp: 'set', data}, '*'); else return;
     FZ_ENV = j;
   } catch (e) {}  // todavía arrancando: se manda en el próximo cálculo
@@ -1386,7 +1388,7 @@ function renderCopa() {
       <tr><th></th><th style="text-align:left">Equipo</th><th title="Fuerza estimada del equipo: más alto, más fuerte">Fuerza</th><th>Clasifica</th><th>3-0</th><th>0-3</th><th>Cuartos</th><th>Semis</th><th>Final</th><th>Campeón</th></tr></thead>
       <tbody>${rows}</tbody></table></div>
     <div class="note">Fuerza: la estimada de cada equipo (más alto, más fuerte). 3-0 y 0-3: terminar el Sistema Suizo invicto o sin ganar. «Directo»: no juega el Play-In.
-      Actualizado ${C.at.toLocaleTimeString('es-HN', {hour: '2-digit', minute: '2-digit'})} · ${SIMS.toLocaleString('es-HN')} simulaciones · ${C.n.toLocaleString('es-HN')} partidos en el cálculo de fuerza.</div>`;
+      Actualizado ${C.at.toLocaleTimeString(LOC, {hour: '2-digit', minute: '2-digit'})} · ${SIMS.toLocaleString(LOC)} simulaciones · ${C.n.toLocaleString(LOC)} partidos en el cálculo de fuerza.</div>`;
   const by = f => C.rows.slice().sort((x, y) => f(y) - f(x));
   const w30 = by(x => x.w30).slice(0, 2), l03 = by(x => x.l03).slice(0, 2);
   const usedT = new Set([...w30, ...l03].map(x => x.t));
@@ -1763,16 +1765,16 @@ function renderFiab() {
   const [tot, , w26] = G3.map(x => x[1]), J = BACKTEST && BACKTEST.juego;
   const kpi = (v, l, sub) => `<div class="kpi"><div class="kpi-v">${v}</div><div class="kpi-l">${l}</div><div class="pm">${sub}</div></div>`;
   const kpis = `<div class="kpis">
-      ${kpi(p(tot.serieAcc), 'acierta al ganador de la serie', `antes del partido · ${tot.series.toLocaleString('es-HN')} series`)}
-      ${kpi(p(tot.juegoAcc), 'acierta al ganador del juego', `antes del juego · ${tot.juegos.toLocaleString('es-HN')} juegos`)}
+      ${kpi(p(tot.serieAcc), 'acierta al ganador de la serie', `antes del partido · ${tot.series.toLocaleString(LOC)} series`)}
+      ${kpi(p(tot.juegoAcc), 'acierta al ganador del juego', `antes del juego · ${tot.juegos.toLocaleString(LOC)} juegos`)}
       ${J && J.m15 ? kpi(p(J.m15.acc), 'acierta en el minuto 15', `${J.m15.juegos} juegos que el modelo no vio`) : ''}
       ${J && J.m20 ? kpi(p(J.m20.acc), 'acierta en el minuto 20', `antes del entrenamiento: ${p(J.m20.accAnt)}`) : ''}
       ${kpi(w26.series ? `${Math.round(w26.serieAcc * w26.series)} de ${w26.series}` : '—', 'series del Mundial 2026', 'se actualiza con cada resultado')}
     </div><div class="kpi-ref">Referencia: tirar una moneda acierta el 50%. Cada predicción se hizo sin conocer el resultado.</div>`;
-  const rows = G3.map(([n, s]) => `<tr><td>${n}</td><td class="num">${s.series.toLocaleString('es-HN')}</td><td class="num"><b>${s.series ? p(s.serieAcc) : '—'}</b></td>
-    <td class="num">${s.juegos.toLocaleString('es-HN')}</td><td class="num"><b>${s.juegos ? p(s.juegoAcc) : '—'}</b></td><td class="num">${s.juegos ? s.brier.toFixed(3) : '—'}</td></tr>`).join('');
+  const rows = G3.map(([n, s]) => `<tr><td>${n}</td><td class="num">${s.series.toLocaleString(LOC)}</td><td class="num"><b>${s.series ? p(s.serieAcc) : '—'}</b></td>
+    <td class="num">${s.juegos.toLocaleString(LOC)}</td><td class="num"><b>${s.juegos ? p(s.juegoAcc) : '—'}</b></td><td class="num">${s.juegos ? s.brier.toFixed(3) : '—'}</td></tr>`).join('');
   const bins = Object.entries(all.bins).filter(([, b]) => b.n >= 20).map(([k, b]) =>
-    `<tr><td>${k * 10}–${k * 10 + 10}%</td><td class="num">${b.n.toLocaleString('es-HN')}</td><td class="num">${p(b.dicho / b.n)}</td><td class="num"><b>${p(b.ok / b.n)}</b></td></tr>`).join('');
+    `<tr><td>${k * 10}–${k * 10 + 10}%</td><td class="num">${b.n.toLocaleString(LOC)}</td><td class="num">${p(b.dicho / b.n)}</td><td class="num"><b>${p(b.ok / b.n)}</b></td></tr>`).join('');
   let jg = '<div class="pm">Sin prueba todavía.</div>';
   if (BACKTEST && BACKTEST.juego) {
     const J = BACKTEST.juego, c = k => J[k] ? `<td class="num">${J[k].juegos}</td><td class="num"><b>${p(J[k].acc)}</b></td><td class="num">${p(J[k].accAnt)}</td><td class="num">${J[k].brier.toFixed(3)} <span class="pm">(${J[k].brierAnt.toFixed(3)})</span></td>` : '<td colspan="4">—</td>';
@@ -1795,7 +1797,7 @@ function renderFiab() {
 function fiabResumen() {
   if (!C.loaded || !C.preds) return '<div class="pm">Calculando…</div>';
   const [all, intl, w26] = fiabGroups().map(x => x[1]), p = x => Math.round(x * 100) + '%';
-  return `<div class="iv-st">Acierta al ganador de la serie: <b>${p(all.serieAcc)}</b> <span class="pm">(${all.series.toLocaleString('es-HN')} series)</span></div>
+  return `<div class="iv-st">Acierta al ganador de la serie: <b>${p(all.serieAcc)}</b> <span class="pm">(${all.series.toLocaleString(LOC)} series)</span></div>
     <div class="iv-st">Por juego: <b>${p(all.juegoAcc)}</b> · internacionales: <b>${p(intl.juegoAcc)}</b></div>
     ${BACKTEST && BACKTEST.juego && BACKTEST.juego.m15 ? `<div class="iv-st">En juego, al minuto 15: <b>${p(BACKTEST.juego.m15.acc)}</b> <span class="pm">(${BACKTEST.juego.m15.juegos} juegos)</span></div>` : ''}
     <div class="iv-st">Mundial 2026: <b>${w26.series ? Math.round(w26.serieAcc * w26.series) + '/' + w26.series + ' series' : 'sin series terminadas'}</b></div>`;
@@ -1971,7 +1973,7 @@ function probSerie(a, b, bo) {
 // Punto de color por fuente de datos: verde si respondió hace poco, ámbar si falló o está vieja.
 function salud(src, label) {
   const h = HEALTH[src], ok = h && h.ok && Date.now() - h.at < 180000;
-  return `<span class="salud" title="${h ? (h.ok ? 'OK' : 'con fallos') + ' · ' + new Date(h.at).toLocaleTimeString('es-HN') : 'sin datos aún'}"><span class="sdot" style="background:${!h ? '#3a404c' : ok ? 'var(--ok)' : 'var(--warn)'}"></span>${label}</span>`;
+  return `<span class="salud" title="${h ? (h.ok ? 'OK' : 'con fallos') + ' · ' + new Date(h.at).toLocaleTimeString(LOC) : 'sin datos aún'}"><span class="sdot" style="background:${!h ? '#3a404c' : ok ? 'var(--ok)' : 'var(--warn)'}"></span>${label}</span>`;
 }
 
 // ---------- Inicio: resumen de todo ----------
@@ -2096,7 +2098,7 @@ function renderH2hPanel(a, b, ev) {
   const enf = enfrentamientos(a, b);
   const recientes = enf === undefined ? '<div class="pm">Buscando sus últimos cruces…</div>' : !enf || !enf.last.length ? '<div class="pm">No se cruzaron desde 2025.</div>'
     : `<div class="idet-h2h" style="margin-bottom:4px"><b class="b">${esc(a)}</b> <span class="iv-sc">${enf.wa}–${enf.wb}</span> <b class="r">${esc(b)}</b> <span class="pm">en series desde 2025</span></div>` +
-      enf.last.map(m => `<div class="up-row"><span><b class="${m.ga > m.gb ? '' : 'pm'}">${esc(a)} ${m.ga}</b>–<b class="${m.gb > m.ga ? '' : 'pm'}">${m.gb} ${esc(b)}</b></span><span class="pm">${esc(m.league || '')}${m.block ? ' · ' + esc(m.block) : ''} · ${new Intl.DateTimeFormat('es', {day: 'numeric', month: 'short', year: 'numeric'}).format(new Date(m.date + 'T12:00:00Z'))}</span></div>`).join('');
+      enf.last.map(m => `<div class="up-row"><span><b class="${m.ga > m.gb ? '' : 'pm'}">${esc(a)} ${m.ga}</b>–<b class="${m.gb > m.ga ? '' : 'pm'}">${m.gb} ${esc(b)}</b></span><span class="pm">${esc(m.league || '')}${m.block ? ' · ' + esc(m.block) : ''} · ${new Intl.DateTimeFormat(LOC, {day: 'numeric', month: 'short', year: 'numeric'}).format(new Date(m.date + 'T12:00:00Z'))}</span></div>`).join('');
   const hist = rec.list.length ? rec.list.map(m => `<div class="up-row"><span><b class="${m.ga >= m.gb ? '' : 'pm'}">${esc(a)} ${m.ga}</b>–<b class="${m.ga >= m.gb ? 'pm' : ''}">${m.gb} ${esc(b)}</b></span><span class="pm">${esc(m.block || '')} · ${fmtDate(m.date)}</span></div>`).join('') : '<div class="pm">Sin enfrentamientos previos registrados.</div>';
   return `<div class="idet-head"><div><div class="idet-code">${esc(a)} <span class="pm">vs</span> ${esc(b)}</div><div class="pm">${e ? esc(e.blockName || '') + ' · Bo' + bo : 'Enfrentamiento'}</div></div>${close}</div>
     <div class="idet-grid">
@@ -2159,7 +2161,7 @@ function sharePron(a, b, bo, ev) {
   tarjeta('riftpulse-' + a + '-vs-' + b + '.png', (c, W) => {
     brillo(c, 80, 0, 700, A.rgb, .28); brillo(c, W - 80, 0, 700, B.rgb, .24);
     titulito(c, 'Pronóstico' + (e ? ' · ' + (e.blockName || '') : '') + ' · Bo' + bo, 96);
-    if (e) { c.fillStyle = '#6E7686'; c.font = '500 22px "Inter Tight", sans-serif'; c.fillText(new Date(e.startTime).toLocaleString('es', {weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'}), 60, 132); }
+    if (e) { c.fillStyle = '#6E7686'; c.font = '500 22px "Inter Tight", sans-serif'; c.fillText(new Date(e.startTime).toLocaleString(LOC, {weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'}), 60, 132); }
     c.font = '800 150px "Saira Condensed", sans-serif'; c.fillStyle = A.txt; c.fillText(a, 56, 310); c.textAlign = 'right'; c.fillStyle = B.txt; c.fillText(b, W - 56, 310); c.textAlign = 'left';
     c.fillStyle = '#6E7686'; c.font = '700 34px "Saira Condensed", sans-serif'; c.textAlign = 'center'; c.fillText('VS', W / 2, 296); c.textAlign = 'left';
     c.fillStyle = '#9AA3B2'; c.font = '600 20px "Inter Tight", sans-serif'; c.fillText('De ganar la serie', 60, 382); barra2(c, 60, 396, W - 120, 64, ps, A, B);
@@ -2266,7 +2268,7 @@ function renderInicio() {
     h += C.rows.slice(0, 8).map(r => `<div class="iv-bar"><span>${C.img[r.t] ? `<img src="${esc(C.img[r.t])}" alt="" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : ''} <b>${esc(r.t)}</b></span><div><div style="width:${Math.max(2, Math.round(r.c * 100 / Math.max(C.rows[0].c, 0.01)))}%"></div></div><span>${pct(r.c)}</span></div>`).join('');
   } else h += '<div class="pm">Calculando…</div>';
   setHtml('#iniCopa', h + go('copa', 'El camino de cada equipo, el Pick\'Em y más →'));
-  const fmtDay = s => new Intl.DateTimeFormat('es-HN', {weekday: 'short', day: 'numeric', month: 'short'}).format(new Date(s));
+  const fmtDay = s => new Intl.DateTimeFormat(LOC, {weekday: 'short', day: 'numeric', month: 'short'}).format(new Date(s));
   const done = schedule.filter(e => e.state === 'completed' && e.startTime >= '2026-10-01').slice(-4).reverse();
   h = '<h2>📜 Últimos resultados</h2>' + (done.map(e => {
     const [a, b] = e.match.teams, wa = (a.result || {}).gameWins ?? 0, wb = (b.result || {}).gameWins ?? 0, aw = wa >= wb;
@@ -2280,7 +2282,7 @@ function renderInicio() {
   setHtml('#iniDatos', `<h2>📡 Estado de los datos</h2>
     <div class="iv-st">Retraso frente al stream: <b>${delay} s</b> <span class="pm">(${retrasoManual() ? 'ajustado a mano' : 'automático'})</span></div>
     <div class="iv-st">Los datos de lolesports llegan con <b>${Math.round(feedLag) || '—'} s</b></div>
-    <div class="iv-st">Fuerza de los equipos: <b>${C.loaded ? C.n.toLocaleString('es-HN') + ' partidos' : 'cargando…'}</b></div>
+    <div class="iv-st">Fuerza de los equipos: <b>${C.loaded ? C.n.toLocaleString(LOC) + ' partidos' : 'cargando…'}</b></div>
     <div class="iv-st">${salud('esports', 'lolesports')} ${salud('feed', 'feed en vivo')} ${salud('ddragon', 'Data Dragon')}</div>
     <div class="pm" style="margin-top:6px">Esports vía feed no oficial de lolesports; campeones e ítems por Data Dragon (oficial). No afiliado a Riot Games.</div>`);
   setHtml('#iniFiab', '<h2>📈 Fiabilidad del sistema</h2>' + fiabResumen() + `<button class="ini-go" data-act="fiab">Ver la tasa de aciertos completa</button>`);
@@ -2536,7 +2538,7 @@ function spRender() {
   $('#spMem').innerHTML = SP.members.map(m => `<span class="sp-chip${best && (hits[m.id] || 0) === best ? ' lead' : ''}">${best && (hits[m.id] || 0) === best ? '👑 ' : ''}${esc(m.name)} <span class="n">${hits[m.id] || 0}/${tot[m.id] || 0}</span><button data-sp-del="${m.id}" title="Quitar">✕</button></span>`).join('') || '<span class="pm">Agregá a los integrantes del stream para cargar sus picks.</span>';
   $('#spMatches').innerHTML = list.map(x => {
     const a = x.teams[0].code, b = x.teams[1].code, w = spWinner(x);
-    const st = x.state === 'inProgress' ? '● en vivo' : w ? 'terminó ' + x.teams[0].wins + '–' + x.teams[1].wins : new Date(x.start).toLocaleString('es', {weekday: 'short', hour: '2-digit', minute: '2-digit'});
+    const st = x.state === 'inProgress' ? '● en vivo' : w ? 'terminó ' + x.teams[0].wins + '–' + x.teams[1].wins : new Date(x.start).toLocaleString(LOC, {weekday: 'short', hour: '2-digit', minute: '2-digit'});
     const rows = SP.members.map(m => { const pk = (SP.picks[x.id] || {})[m.id], bt = t => `<button data-sp-m="${esc(x.id)}" data-sp-who="${m.id}" data-sp-t="${esc(t)}" class="${pk === t ? 'on' : ''}${w && pk === t ? (t === w ? ' ok' : ' no') : ''}">${esc(t)}</button>`;
       return `<div class="sp-pk"><span>${esc(m.name)}</span>${a && b ? bt(a) + bt(b) : '<span class="pm">por definir</span><span></span>'}</div>`; }).join('');
     return `<div class="sp-m"><div class="hd"><b>${esc(a || 'Por definir')} vs ${esc(b || 'Por definir')}</b><span>Bo${x.bo} · ${st}</span></div>${rows}</div>`;

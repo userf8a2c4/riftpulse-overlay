@@ -178,6 +178,7 @@ Una regresión logística por minuto, entrenada con juegos profesionales 2025–
 | `ext-overlay.js` | El overlay de la extensión (la versión manual lo baja de acá) |
 | `riftpulse-extension.zip`, `riftpulse-extension-tienda.zip` | La extensión para instalar a mano y el paquete de la Chrome Web Store |
 | `rp-tokens.css`, `rp-design.css`, `rp-ui.js` | El sistema visual común |
+| `rp-i18n.js` | Idiomas: el selector ES \| EN y el diccionario español → inglés |
 | `manifest.webmanifest`, `sw.js`, `icon-*.png` | La app instalable en el celular (PWA) |
 | `riftpulse.obs-scene.json` | Escena lista para importar en OBS |
 | `logo.svg` | La marca |

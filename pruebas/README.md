@@ -30,6 +30,7 @@ En GitHub corren solas con cada cambio en `main`, junto con el linter (`.eslintr
 | `t_magia` | El overlay que «lee la sala»: se oculta sin el juego en pantalla, no muestra clips de otro partido en vivo, desaparece al terminar el juego, reconoce el juego 2 de una serie por las victorias en pantalla aunque los campeones parezcan del 1, no molesta en streams que no son de LoL, Alt+R lo oculta, y la línea de tiempo salta el VOD |
 | `t_historia` | La historia del juego, qué cambió, qué mirar, niveles, visión e ítems (solo si el feed los trae) y la banda de confianza |
 | `t_app` | La app: «Ahora», Mis equipos, sin spoilers, la fase suiza, las tarjetas para compartir, las predicciones del staff y el marcador de la serie al instante |
+| `t_pausa` | Pausas del juego: con el reloj quieto o el cartel «GAME PAUSE» aparece el resumen de lo que va; al reanudarse vuelve todo en el minuto justo; si las pausas guardadas están mal, se miden de nuevo; en vivo, tras una pausa larga, no queda «Juego en pausa» pegado |
 | `t_espectador` | «Tu pronóstico» contra RiftPulse, «Para entender», la app instalable y la bienvenida de la extensión |
 
 ## Herramientas

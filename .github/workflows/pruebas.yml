@@ -35,6 +35,6 @@ jobs:
           npm i --no-save eslint@8.57.0 playwright@1.48.2
           npx playwright install --with-deps chromium
       - name: Linter
-        run: npx eslint --no-eslintrc -c .eslintrc.json --max-warnings 0 engine.js obs.js rp-ui.js sw.js ext-overlay.js app.js pruebas/*.js modelo/*.js
+        run: npx eslint --no-eslintrc -c .eslintrc.json --max-warnings 0 engine.js obs.js rp-ui.js rp-i18n.js sw.js ext-overlay.js app.js pruebas/*.js modelo/*.js
       - name: Pruebas
         run: xvfb-run -a node pruebas/todas.js
