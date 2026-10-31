@@ -23,8 +23,11 @@ async function medir(b, video, url) {
     const css = [...document.querySelectorAll('#rp-overlay-host,#rp-overlay-paneles')].map(h => [...h.shadowRoot.querySelectorAll('style')].map(s => s.textContent).join('')).join('');
     return {c: window.__copias, n: window.__rpAS.n, largas: window.__largas.slice(), blur: /backdrop-filter\s*:\s*blur/.test(css), id: window.__rpAS.id ? window.__rpAS.id.codes.join('-') : ''};
   });
+  // con el video en pausa, el lector descansa (lee cada ~4,5 s en vez de cada 1,5 s)
+  const n0 = await p.evaluate(() => { document.getElementById('v').pause(); return window.__rpAS.n; }); await p.waitForTimeout(9000);
+  const enPausa = (await p.evaluate(() => window.__rpAS.n)) - n0;
   await ctx.close();
-  return {copiasPorLectura: (r.c - a.c) / Math.max(1, r.n - a.n), feedPorMin: feed * 2, largas: r.largas, blur: r.blur, id: r.id};
+  return {enPausa, copiasPorLectura: (r.c - a.c) / Math.max(1, r.n - a.n), feedPorMin: feed * 2, largas: r.largas, blur: r.blur, id: r.id};
 }
 module.exports = async function () {
   const b = await chromium.launch(); let ok = true;
@@ -35,6 +38,7 @@ module.exports = async function () {
     ok = chequear(nombre + ': como mucho 2 copias del cuadro del video por lectura', m.copiasPorLectura <= 2, m.copiasPorLectura.toFixed(1)) && ok;
     ok = chequear(nombre + ': pocos pedidos al feed (como mucho 40 por minuto)', m.feedPorMin <= 40, m.feedPorMin + '/min') && ok;
     ok = chequear(nombre + ': sin desenfoque sobre el video (backdrop-filter)', !m.blur) && ok;
+    if (nombre === 'VOD') ok = chequear('VOD en pausa: el lector descansa (como mucho 3 lecturas en 9 s)', m.enPausa <= 3, m.enPausa + ' lecturas') && ok;
     ok = chequear(nombre + ': sin tareas largas del hilo principal (> 120 ms)', !m.largas.some(x => x > 120), m.largas.join(', ') || 'ninguna') && ok;
   }
   await b.close(); return ok;

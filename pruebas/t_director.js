@@ -93,6 +93,14 @@ module.exports = async function () {
   const t = await ctx.newPage(); t.on('pageerror', e => errores.push(e.message));
   await t.goto(BASE + 'overlay.html?view=auto&tema=minimal'); await t.waitForTimeout(3000);
   ok = chequear('tema minimal: sin marca y sin sombras', await t.evaluate(() => !document.querySelector('.rp-brand') && getComputedStyle(document.querySelector('.rp-bar')).boxShadow === 'none')) && ok;
+  // mínimo radical: la barra sola, translúcida, sin módulos extra ni alertas
+  await t.goto(BASE + 'overlay.html?modo=minimo'); await t.waitForTimeout(3500);
+  const mn = await t.evaluate(() => { const bar = document.querySelector('.rp-low .rp-bar'), bg = bar ? getComputedStyle(bar).backgroundColor : '';
+    return {bar: !!bar && /T1/.test(bar.textContent), alfa: +((bg.match(/rgba?\(([^)]+)\)/) || ['', '0,0,0,1'])[1].split(',')[3] || 1), piezas: document.querySelectorAll('.rp-stage > *').length, marca: !!document.querySelector('.rp-brand')}; });
+  ok = chequear('modo=minimo: solo la barra, translúcida y sin marca ni piezas', mn.bar && mn.alfa <= 0.5 && !mn.piezas && !mn.marca, JSON.stringify(mn)) && ok;
+  // el generador de la URL de OBS en el control
+  const gu = await c.evaluate(() => { const m = document.getElementById('gMod'); m.value = 'minimo'; m.dispatchEvent(new Event('change')); document.getElementById('gSafe').checked = true; document.getElementById('gSafe').dispatchEvent(new Event('change')); return document.getElementById('gUrl').value; });
+  ok = chequear('control: el generador arma la URL de OBS (mínimo + margen seguro)', /overlay\.html\?modo=minimo&safe=1$/.test(gu), gu) && ok;
   await t.goto(BASE + 'overlay.html?view=auto&tema=canal&accent=ff8800'); await t.waitForTimeout(3000);
   const ta = await t.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--team-a').trim().toLowerCase());
   ok = chequear('tema canal: el color del canal en la barra', ta === '#ff8800', ta) && ok;

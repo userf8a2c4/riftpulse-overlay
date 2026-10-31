@@ -39,6 +39,8 @@ jobs:
       - name: Lo publicado está armado con el código de fuente/
         run: |
           python3 fuente/construir_extension.py
-          git diff --exit-code -- app.html ext-overlay.js || { echo "::error::app.html o ext-overlay.js no coinciden con fuente/: corré python3 fuente/construir_extension.py y subí el resultado"; exit 1; }
+          git diff --exit-code -- app.html ext-overlay.js README.md || { echo "::error::app.html, ext-overlay.js o el badge del README no coinciden con fuente/: corré python3 fuente/construir_extension.py y subí el resultado"; exit 1; }
+          V=$(grep -oP "VERSION, VERSION_NOMBRE = '\K[^']+" fuente/construir_extension.py)
+          for z in riftpulse-extension.zip riftpulse-extension-tienda.zip; do unzip -p "$z" '*manifest.json' | grep -q "\"version\": \"$V\"" || { echo "::error::$z no tiene la versión $V: corré el build y subí los ZIP"; exit 1; }; done
       - name: Pruebas
         run: xvfb-run -a node pruebas/todas.js

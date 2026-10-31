@@ -17,7 +17,7 @@
 
 [![Acierto](https://img.shields.io/badge/acierto-75%25%20al%20min%2015-22D3EE?style=flat-square)](https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html)
 [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-instalar-22D3EE?style=flat-square&logo=googlechrome)](https://chromewebstore.google.com/detail/bkdmpcokjfgpnmkfnccgkakdincidoba)
-[![Versión](https://img.shields.io/badge/versi%C3%B3n-0.9%20beta-9AA3B2?style=flat-square)](#-instalar)
+[![Versión](https://img.shields.io/badge/versi%C3%B3n-0.9.6-9AA3B2?style=flat-square)](#-instalar)
 [![Sin apuestas](https://img.shields.io/badge/pron%C3%B3stico-sin%20apuestas-FF4655?style=flat-square)](https://github.com/userf8a2c4/riftpulse-overlay/wiki/Cumplimiento-y-datos)
 [![Licencia](https://img.shields.io/badge/licencia-AGPL--3.0-3D8BFF?style=flat-square)](LICENSE)
 
@@ -143,7 +143,9 @@ Muestra <b>por qué</b> va ganando cada equipo, qué movería el próximo dragó
 2. En OBS: **＋ Fuentes → Navegador** → pegá la URL.
 3. Ponele **1920 × 1080**. Fondo transparente, detecta solo el partido (sin partido, avisa «RiftPulse listo» unos segundos).
 
-<sub>Piezas sueltas, colores de tu canal y escena lista en el <a href="https://github.com/userf8a2c4/riftpulse-overlay/wiki/Paquete-de-gráficos">paquete de gráficos</a>.</sub>
+Para co-streams, el **mínimo radical**: `overlay.html?modo=minimo` (la barra sola; solo aparecen las peleas 5v5 que importan).
+
+<sub>Todos los parámetros de la URL, en <a href="docs/obs-parametros.md">docs/obs-parametros.md</a>. Piezas sueltas, colores de tu canal y escena lista en el <a href="https://github.com/userf8a2c4/riftpulse-overlay/wiki/Paquete-de-gráficos">paquete de gráficos</a>.</sub>
 
 </td>
 </tr>

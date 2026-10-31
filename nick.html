@@ -70,6 +70,12 @@
   .sign{margin-top:44px;font-size:18px}
   .sign .x{display:inline-flex;align-items:center;gap:8px;margin-top:14px}
   footer{border-top:1px solid var(--line);margin-top:40px;padding-top:14px;color:var(--muted);font-size:12px;line-height:1.6}
+  .pasos2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0 10px}
+  .p2{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04)}
+  .p2 h3{margin:0 0 4px}.p2 p{margin:0 0 10px;opacity:.85}
+  .n2{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:#22d3ee;color:#0c0e12}
+  .u2{width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.25);color:inherit;font:12px ui-monospace,monospace}
+  @media (max-width:760px){.pasos2{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="rp-design.css">
 <script src="engine.js"></script>
@@ -89,9 +95,14 @@
   </div>
   <p class="snote">Esto está corriendo ahora mismo: un partido real del Mundial ya jugado, acelerado ×8, con <b>una sola URL</b>. Las piezas entran y salen solas: el impacto antes del dragón o el Barón, lo que pasó en cada pelea en equipo, la alerta en un giro y el resumen al terminar.</p>
 
+  <div class="pasos2">
+    <div class="p2"><span class="n2">1</span><div><h3>Instalá la extensión</h3><p>Un clic desde la tienda de Chrome. Se actualiza sola.</p>
+      <a class="btn primary a-tienda" href="instalar.html#extension" target="_blank" rel="noopener">🧩 Agregar a Chrome (gratis)</a></div></div>
+    <div class="p2"><span class="n2">2</span><div><h3>La URL para OBS</h3><p>Fuente de <b>Navegador</b>, 1920 × 1080. El fondo es transparente.</p>
+      <input class="u2" id="u2" readonly>
+      <div class="cta" style="margin-top:8px"><button class="btn primary" id="copy">📋 Copiar (estándar)</button><button class="btn" id="copyMin">📋 Copiar (mínimo: solo la barra)</button><a class="btn" href="control.html" target="_blank" rel="noopener">🎚 Personalizar</a></div></div></div>
+  </div>
   <div class="cta">
-    <button class="btn primary" id="copy">📋 Copiar URL para OBS</button>
-    <a class="btn a-tienda" href="instalar.html#extension" target="_blank" rel="noopener">🧩 Agregar a Chrome (gratis)</a>
     <a class="btn" href="https://github.com/userf8a2c4/riftpulse-overlay" target="_blank" rel="noopener">⌨ El código en GitHub</a>
     <a class="btn" href="analista.html?demo" target="_blank" rel="noopener">🎙 Ver la mesa de análisis</a>
     <a class="btn" href="https://x.com/CaZe_18" target="_blank" rel="noopener">✉️ Escribime por X</a>
@@ -167,12 +178,15 @@
   // la ficha de RiftPulse en la Chrome Web Store (un clic para instalar); vacía, los botones llevan a la página de instalación
   var TIENDA = 'https://chromewebstore.google.com/detail/bkdmpcokjfgpnmkfnccgkakdincidoba';
   if (TIENDA) document.querySelectorAll('.a-tienda').forEach(function (a) { a.href = TIENDA; });
-  var OVERLAY_URL = location.origin + location.pathname.replace(/[^/]*$/, '') + 'overlay.html?view=auto';
-  document.getElementById('copy').addEventListener('click', function () {
-    var m = document.getElementById('msg');
-    navigator.clipboard.writeText(OVERLAY_URL).then(function () { m.textContent = '¡Copiada! Pegala en un Navegador (Browser Source) de OBS: ' + OVERLAY_URL; },
-      function () { m.textContent = 'Copiala a mano: ' + OVERLAY_URL; });
-  });
+  var BASE_URL = location.origin + location.pathname.replace(/[^/]*$/, '') + 'overlay.html', OVERLAY_URL = BASE_URL + '?view=auto', MIN_URL = BASE_URL + '?modo=minimo';
+  document.getElementById('u2').value = OVERLAY_URL;
+  function copiar(u) {
+    var m = document.getElementById('msg'); document.getElementById('u2').value = u;
+    navigator.clipboard.writeText(u).then(function () { m.textContent = '¡Copiada! Pegala en un Navegador (Browser Source) de OBS: ' + u; },
+      function () { m.textContent = 'Copiala a mano: ' + u; });
+  }
+  document.getElementById('copy').addEventListener('click', function () { copiar(OVERLAY_URL); });
+  document.getElementById('copyMin').addEventListener('click', function () { copiar(MIN_URL); });
 </script>
 </body>
 </html>

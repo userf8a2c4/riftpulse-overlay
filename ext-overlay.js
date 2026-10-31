@@ -225,6 +225,21 @@
   };
   // ---- el resto de la app, el sitio, el overlay y OBS (generado desde el código; {} = un valor que cambia: un equipo, un número, un campeón) ----
   var D2 = {
+    "URL para OBS": "URL for OBS",
+    "Modo": "Mode",
+    "Mínimo: solo la barra y las peleas 5v5": "Minimal: just the bar and 5v5 fights",
+    "Estándar: la barra y la pieza que aporta": "Standard: the bar and the piece that adds something",
+    "Show: más piezas": "Show: more pieces",
+    "Color del canal": "Channel color",
+    "usar": "use",
+    "Logo (https://…)": "Logo (https://…)",
+    "Margen seguro (televisión)": "Safe area (TV)",
+    "✓ Copiada": "✓ Copied",
+    "En OBS:": "In OBS:",
+    "Fuentes → + → Navegador": "Sources → + → Browser",
+    ", pegá la URL, ancho": ", paste the URL, width",
+    "y alto": "and height",
+    ". Todos los parámetros están explicados en": ". Every parameter is explained in",
     "de ganar el juego": "to win the game",
     "al final": "at the end",
     "Qué mirar": "What to watch",
@@ -2306,6 +2321,8 @@
     var v = video(); if (!v || v.readyState < 2 || !v.videoWidth) return;
     // sin juego en pantalla hace más de 2 minutos (otro stream, el desk): se lee cada 6 s en vez de cada 1,5 s
     if (Date.now() - AS.t0 > 120000 && Date.now() - (AS.visto || AS.t0) > 120000 && (AS.salto = (AS.salto || 0) + 1) % 4) return;
+    // un VOD en pausa (ya sincronizado): nada cambia en pantalla, se lee cada ~4,5 s; si se movió el video, enseguida
+    if (v.paused && AS.id && AS.off != null && !AS.trasSalto && (AS.quietoN = (AS.quietoN || 0) + 1) % 3) return;
     AS.busy = true; AS.n++;
     try {
       var ct = v.currentTime, playing = !v.paused && !v.ended, txt = '', zi = null, vars = [], zonas = AS.zona != null ? [AS.zona] : RELOJES.map(function (z, i) { return i; });

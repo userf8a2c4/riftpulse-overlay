@@ -31,6 +31,7 @@
   .btn{width:100%;font-family:var(--ffd);font-weight:700;font-size:14px;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--s1);color:var(--text);cursor:pointer}
   .btn.alert{background:linear-gradient(180deg,var(--signal),#d9a429);color:#201700;border-color:var(--gold)}
   .btn.hide{margin-top:8px}
+  .gen{display:flex;flex-direction:column;gap:7px;font-size:12px}.gen label{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.gen input:not([type]),.gen select,#gUrl{flex:1;min-width:0;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:7px;padding:6px 8px;font:12px var(--ff,inherit)}#gUrl{font-family:ui-monospace,monospace;font-size:11px}
   .note{font-size:11px;color:var(--muted);line-height:1.5;margin-top:10px}
   .ok{color:var(--ok);font-weight:700}
   /* predicciones del stream */
@@ -88,6 +89,19 @@
     <div class="row"><span>Piezas abiertas en OBS</span><b id="stPiezas">buscando…</b></div>
     <div class="row"><span>Última orden</span><b id="stOrden">—</b></div>
     <button class="btn" id="panic" style="background:linear-gradient(180deg,#D92B3A,#B3202D);color:#fff;border-color:#D92B3A;font-size:15px;padding:12px">🚨 Ocultar todo</button>
+  </div>
+
+  <div class="grp" id="urlG"><h2>URL para OBS</h2>
+    <div class="gen">
+      <label>Modo <select id="gMod"><option value="minimo">Mínimo: solo la barra y las peleas 5v5</option><option value="estandar" selected>Estándar: la barra y la pieza que aporta</option><option value="show">Show: más piezas</option><option value="bar">Solo la barra</option></select></label>
+      <label>Color del canal <input type="color" id="gAcc" value="#22d3ee"> <input type="checkbox" id="gAccOn"> usar</label>
+      <label>Logo (https://…) <input id="gLogo" placeholder="https://…/logo.png"></label>
+      <label><input type="checkbox" id="gSafe"> Margen seguro (televisión)</label>
+      <label>Posición <select id="gPos"><option value="bottom">Abajo</option><option value="top">Arriba</option></select></label>
+      <input id="gUrl" readonly>
+      <button class="btn" id="gCopy">📋 Copiar URL</button>
+    </div>
+    <div class="note">En OBS: <b>Fuentes → + → Navegador</b>, pegá la URL, ancho <b>1920</b> y alto <b>1080</b>. Todos los parámetros están explicados en <a href="https://github.com/userf8a2c4/riftpulse-overlay/blob/main/docs/obs-parametros.md" target="_blank" rel="noopener">docs/obs-parametros.md</a>.</div>
   </div>
 
   <div class="grp" id="dirG"><h2>Director automático</h2>
@@ -298,6 +312,24 @@
   showLbl(); renderMembers();
   function loadM(){ RiftEngine.loadMatches().then(function(l){ MATCHES = l; renderMatches(); }); }
   loadM(); setInterval(loadM, 60000);
+
+// el generador de la URL para OBS: elegís y copiás, sin tocar parámetros a mano
+(function () {
+  var $ = function (i) { return document.getElementById(i); };
+  function url() {
+    var base = location.href.replace(/[^/]*([?#].*)?$/, '') + 'overlay.html', q = [], m = $('gMod').value;
+    if (m === 'minimo') q.push('modo=minimo'); else if (m === 'bar') q.push('view=bar'); else { q.push('view=auto'); if (m === 'show') q.push('director=show'); }
+    if ($('gAccOn').checked) q.push('tema=canal', 'accent=' + $('gAcc').value.replace('#', ''));
+    var lg = $('gLogo').value.trim(); if (/^https:\/\//i.test(lg)) q.push('logo=' + encodeURIComponent(lg));
+    if ($('gSafe').checked) q.push('safe=1');
+    if ($('gPos').value === 'top') q.push('pos=top');
+    return base + '?' + q.join('&');
+  }
+  function pinta() { $('gUrl').value = url(); }
+  ['gMod', 'gAcc', 'gAccOn', 'gLogo', 'gSafe', 'gPos'].forEach(function (i) { $(i).addEventListener('input', pinta); $(i).addEventListener('change', pinta); });
+  $('gCopy').addEventListener('click', function () { var b = $('gCopy'); (navigator.clipboard ? navigator.clipboard.writeText($('gUrl').value) : Promise.reject()).then(function () { b.textContent = '✓ Copiada'; }, function () { $('gUrl').select(); document.execCommand('copy'); b.textContent = '✓ Copiada'; }); setTimeout(function () { b.textContent = '📋 Copiar URL'; }, 1600); });
+  pinta();
+})();
 </script>
 </body>
 </html>

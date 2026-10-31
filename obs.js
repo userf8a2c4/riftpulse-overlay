@@ -18,7 +18,10 @@
   'use strict';
   if (!window.RiftEngine) { console.warn('[RiftPulse] falta engine.js'); return; }
   var R = window.RiftEngine, Q = new URLSearchParams(location.search);
-  var VIEW = (Q.get('view') || 'bar').toLowerCase();
+  // ?modo=minimo: el «mínimo radical» para co-streams: la barra sola y transparente, nada más que la pelea 5v5 que importa,
+  // y al terminar el juego se va sola (equivale a view=auto&director=minimo, sin alertas ni la serie entre juegos)
+  var MINIMO = (Q.get('modo') || '').toLowerCase() === 'minimo';
+  var VIEW = MINIMO ? 'auto' : (Q.get('view') || 'bar').toLowerCase();
   var SCALE = Math.max(0.6, Math.min(2.4, parseFloat(Q.get('scale') || '1') || 1));
   // marca del canal: ?accent=ff8800 (color de acento), ?logo=https://… (logo propio), ?brand=0 (sin marca ni precisión), ?safe=1 (márgenes amplios)
   var ACC = (function () { var a = (Q.get('accent') || '').replace('#', ''); return /^[0-9a-f]{3}([0-9a-f]{3})?$/i.test(a) ? '#' + a : null; })();
@@ -32,7 +35,7 @@
 
   // ---------- config (vista bar): defaults <- URL <- control ----------
   var cfg = {
-    modules: (Q.get('modules') || 'prob,pregame,momentum,timers,brand').split(',').map(function (s) { return s.trim(); }),
+    modules: (Q.get('modules') || (MINIMO ? 'prob' : 'prob,pregame,momentum,timers,brand')).split(',').map(function (s) { return s.trim(); }),
     pos: (Q.get('pos') === 'top' ? 'top' : 'bottom'),
     hidden: false,
     auto: {remontada: true, recap: true},  // piezas que aparecen solas (se apagan desde el control)
@@ -40,6 +43,7 @@
   };
   try { var sv = JSON.parse(localStorage.getItem('rp_ctrl') || 'null'); if (sv && BARRA) { if (sv.modules) cfg.modules = sv.modules; if (sv.pos) cfg.pos = sv.pos; if (sv.hidden != null) cfg.hidden = sv.hidden; } if (sv && sv.auto) cfg.auto = sv.auto; if (sv && sv.hideAll != null) cfg.hideAll = sv.hideAll; if (sv && sv.director) cfg.director = sv.director; } catch (e) {}
   if (!BRAND) cfg.modules = cfg.modules.filter(function (m) { return m !== 'brand'; });
+  if (MINIMO) cfg.modules = ['prob'];  // el mínimo radical no cambia con lo guardado en el control
   function has(m) { return cfg.modules.indexOf(m) >= 0; }
 
   var S = SCALE;
@@ -54,6 +58,7 @@
   .rp-ovl.tc{top:0;left:0;right:0;align-items:center}\
   .rp-ovl.mid{inset:0;align-items:center;justify-content:center}\
   .rp-ovl.hide{display:none}\
+  .rp-ovl{transition:opacity 1.2s}.rp-ovl.fin{opacity:0}\
   .logo{display:block}\
   .b{color:var(--team-a-txt)}.r{color:var(--team-b-txt)}\
   /* superficie común: vidrio azul noche con filo dorado */\
@@ -213,7 +218,7 @@
   .rp-rc ul{margin:0;padding-left:' + (18 * S) + 'px;font-size:' + (15 * S) + 'px;line-height:1.6}\
   ';
   // ---------- barra (lower-third) — diseño «Colores de cada equipo»: fichas de equipo, porcentajes grandes, barra fina ----------
-  css += '.rp-bar{background:rgba(var(--g1-rgb),.94);border:1px solid rgba(var(--line-rgb),.12);border-radius:' + (14 * S) + 'px;box-shadow:0 ' + (18 * S) + 'px ' + (48 * S) + 'px rgba(0,0,0,.55);backdrop-filter:blur(10px);align-items:center}' +
+  css += '.rp-bar{background:rgba(var(--g1-rgb),' + (MINIMO ? '.45' : '.62') + ') !important;border:1px solid rgba(var(--line-rgb),.1);border-radius:' + (14 * S) + 'px;box-shadow:0 ' + (12 * S) + 'px ' + (32 * S) + 'px rgba(0,0,0,.35);align-items:center;text-shadow:0 1px 2px rgba(0,0,0,.6)}' +
     '.rp-bar::after{display:none}' +
     '.rp-brand{background:none;border-right:1px solid rgba(var(--line-rgb),.1);padding:' + (10 * S) + 'px ' + (16 * S) + 'px}' +
     '.rp-brand .logo{width:' + (28 * S) + 'px;height:' + (28 * S) + 'px}' +
@@ -525,8 +530,9 @@
   }
 
   // ---------- director (view=auto): decide qué pieza mostrar; nunca dos piezas grandes a la vez ----------
-  var DIR = VIEW === 'auto' && R.crearDirector ? R.crearDirector(Q.get('director') || cfg.director || 'estandar') : null;
-  if (DIR && Q.get('director')) DIR.fijoURL = true;
+  var DIR = VIEW === 'auto' && R.crearDirector ? R.crearDirector(MINIMO ? 'minimo' : Q.get('director') || cfg.director || 'estandar') : null;
+  if (DIR && (Q.get('director') || MINIMO)) DIR.fijoURL = true;
+  if (DIR) DIR.segPelea = 15;  // en OBS la pelea es fuerte y corta: entra, se muestra y sale
   // atajos (control o esta misma página): 1–8 piden una pieza, 0 la quita, R la retiene 30 s, H oculta todo
   var ATAJOS = {'1': 'objetivo', '2': 'pelea', '3': 'oro', '4': 'duelos', '5': 'serie', '6': 'resumen', '7': 'claves', '8': 'remontada', '9': 'historia'};
   var stCur = '', giroVisto = '', dirSig = '';
@@ -568,16 +574,19 @@
         '</div><div class="note">Simulado con el modelo de RiftPulse sobre el estado actual del juego.</div>'); }
     return '';
   }
+  var finAt = 0;
   function renderAuto(s) {
     renderBar(s);
     var d = DIR && !cfg.hideAll && s.match ? DIR.decidir(s) : null, g = s.game, html = '', key = '', gi = DIR && DIR.giro;
     // el giro va en la alerta, sobre la barra (sale aunque haya una pieza grande)
-    if (gi && giroVisto !== gi.clave && Date.now() - gi.at < 8000 && !cfg.hideAll) { giroVisto = gi.clave;
+    if (gi && !MINIMO && giroVisto !== gi.clave && Date.now() - gi.at < 8000 && !cfg.hideAll) { giroVisto = gi.clave;
       var ev = ((g && g.events) || []).filter(function (e) { return ['baron', 'elder', 'dragon', 'inhib', 'fight'].indexOf(e.kind) >= 0 && g.gt - e.gt <= 60; }).slice(-1)[0];
       showCallout('<span class="zap">⚡</span><span class="cc ' + sc(gi.side) + '">' + esc(gi.side === 'blue' ? s.match.blue.code : s.match.red.code) + ' +' + Math.abs(gi.d) + ' pts</span>' + (ev ? ' · ' + esc(ev.txt) : '')); }
     if (d) { html = piezaHTML(d.pieza, s); key = d.clave; }
     // entre juegos (o antes del primero): la serie, con la previa del modelo
-    if (!html && !d && s.match && (!g || g.pBlue == null || g.ended) && !cfg.hideAll) { html = piezaHTML('serie', s); key = 'serie' + (s.match.id || ''); }
+    if (!MINIMO && !html && !d && s.match && (!g || g.pBlue == null || g.ended) && !cfg.hideAll) { html = piezaHTML('serie', s); key = 'serie' + (s.match.id || ''); }
+    // mínimo: al terminar el juego, todo se desvanece a los 6 s (vuelve solo con el juego siguiente)
+    if (MINIMO) { if (g && g.ended) { if (!finAt) finAt = Date.now(); } else finAt = 0; ovl.classList.toggle('fin', !!finAt && Date.now() - finAt > 6000); }
     if (!html) { if (stCur) { stCur = ''; stage.classList.remove('on'); } }
     else if (key !== stCur) {
       stCur = key; stage.classList.remove('on'); stage.innerHTML = html; void stage.offsetWidth; stage.classList.add('on');
@@ -629,7 +638,7 @@
       if (o.dirRetener) DIR.retener(o.dirRetener);
     }
     if (BARRA) {
-      if (o.modules) cfg.modules = o.modules;
+      if (o.modules && !MINIMO) cfg.modules = o.modules;
       if (o.pos) cfg.pos = o.pos;
       if (o.hidden != null) cfg.hidden = o.hidden;
       if (o.testAlert) showCallout('<span class="zap">⚡</span><span class="cc b">Alerta de prueba</span>');

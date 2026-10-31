@@ -16,13 +16,14 @@ import os
 import shutil
 import tempfile
 import zipfile
+import re
 
 AQUI = os.path.dirname(os.path.abspath(__file__))  # fuente/: el lector, el overlay, la app y el ícono
 RAIZ = os.path.dirname(AQUI)  # la raíz del repositorio: el motor, la app (app.js, app.css) y lo que se publica
 WEB = 'https://userf8a2c4.github.io/riftpulse-overlay/'
 # beta: cada ZIP nuevo para la tienda sube el último número (0.9.1, 0.9.2…); la 1.0.0, cuando esté terminada.
 # La versión manual lleva el mismo número, así se sabe qué tiene instalado cada uno.
-VERSION, VERSION_NOMBRE = '0.9.5', '0.9 beta'
+VERSION, VERSION_NOMBRE = '0.9.6', '0.9 beta'
 ext = os.path.join(AQUI, 'extension')
 os.makedirs(ext, exist_ok=True)
 
@@ -226,6 +227,12 @@ with zipfile.ZipFile(os.path.join(RAIZ, 'riftpulse-extension-tienda.zip'), 'w', 
     for raiz, _, fs in sorted(os.walk(tienda)):  # con las subcarpetas (_locales)
         for f in sorted(fs): z.write(os.path.join(raiz, f), os.path.relpath(os.path.join(raiz, f), tienda))
 shutil.rmtree(tmp)
+# la versión, una sola fuente: el badge del README la toma de VERSION (el CI verifica que coincidan)
+_rd = os.path.join(RAIZ, 'README.md')
+if os.path.exists(_rd):
+    _t = open(_rd, encoding='utf-8').read()
+    _n = re.sub(r'versi%C3%B3n-[0-9][^-]*-9AA3B2', 'versi%C3%B3n-' + VERSION + '-9AA3B2', _t)
+    if _n != _t: open(_rd, 'w', encoding='utf-8').write(_n)
 print('Publicado en:', RAIZ)
 
 print('Extensión lista en:', ext)

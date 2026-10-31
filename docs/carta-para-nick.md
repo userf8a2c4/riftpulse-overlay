@@ -44,9 +44,10 @@ No es un número inventado: es un modelo entrenado con más de 2.200 juegos prof
 
 ## Probarlo te lleva un minuto
 
-1. Entrá a **https://userf8a2c4.github.io/riftpulse-overlay** y tocá **📋 Copiar URL del overlay** (es la del director: `overlay.html?view=auto`).
-2. En OBS: **＋ en Fuentes → Navegador** → pegá la URL → **1920 × 1080** → Aceptar.
-3. Listo. Fondo transparente, detecta solo el partido del Mundial y no hay nada que configurar.
+1. **Instalá la extensión** con un clic: [Chrome Web Store](https://chromewebstore.google.com/detail/bkdmpcokjfgpnmkfnccgkakdincidoba).
+2. **La URL para OBS:** `https://userf8a2c4.github.io/riftpulse-overlay/overlay.html?view=auto` → en OBS **＋ en Fuentes → Navegador** → pegala → **1920 × 1080** → Aceptar.
+   Si preferís lo mínimo (solo la barra y las peleas grandes): `overlay.html?modo=minimo`.
+3. Listo. Fondo transparente, detecta solo el partido del Mundial y no hay nada que configurar. Para tu color o tu logo: el generador en [control.html](https://userf8a2c4.github.io/riftpulse-overlay/control.html).
 
 ## Lo que te pido (y lo que no)
 

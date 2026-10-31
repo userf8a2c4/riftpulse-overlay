@@ -5,23 +5,22 @@
 <p align="center"><img src="https://raw.githubusercontent.com/userf8a2c4/riftpulse-overlay/main/docs/img/overlay-en-transmision.jpg" width="720" alt="El director en una transmisión"><br><sub>Partido de ejemplo con datos simulados.</sub></p>
 
 ## Qué muestra y cuándo
-- **Siempre:** la barra con la probabilidad en vivo, el reloj y el próximo objetivo.
-- **El minuto previo a un dragón o al Barón:** cuánto mueve la probabilidad si lo toma cada equipo. Si el objetivo ya está en el mapa, dice «ya está».
-- **Después de una pelea grande:** el daño de los diez jugadores.
+- **Siempre:** la barra con la probabilidad en vivo y el reloj.
+- **El minuto previo a un dragón o al Barón, si pesa** (mueve 6 puntos o más): cuánto mueve la probabilidad si lo toma cada equipo.
+- **Después de una pelea 5v5 que importa** (4 kills o más, o 5 puntos o más de probabilidad): el daño de los diez jugadores (15 s en OBS).
 - **En un giro** (12 puntos o más en ~40 s): la alerta sobre la barra, con el equipo, los puntos y la causa. Sale aunque haya otra pieza en pantalla.
 - **Cuando un equipo cae al 30 % o menos** (desde el min 10): qué necesita para volver.
-- **Al min 20:** la historia del juego hasta ahí, en 3 a 5 frases.
 - **Al terminar el juego:** el resumen, 20 s.
 - **Entre juegos y antes del primero:** la serie, con la previa del modelo.
 
-**Nunca hay dos piezas grandes a la vez**, y entre una y otra siempre pasan al menos 6 s.
+**Nunca hay dos piezas grandes a la vez**, y entre una y otra siempre pasan al menos 20 s: la transmisión respira.
 
 ## Tres niveles
 | Nivel | Qué agrega |
 |---|---|
-| `minimo` | Solo la barra y las alertas de giro |
-| `estandar` (por defecto) | El objetivo, la pelea, la remontada, la historia, el resumen y la serie |
-| `show` | Además el oro, los duelos y la historia cada ~4 minutos de juego |
+| `minimo` | Solo la barra y las peleas 5v5 que importan (con `?modo=minimo`: además sin alertas, y se va al terminar el juego) |
+| `estandar` (por defecto) | Los objetivos que pesan, las peleas que importan, la remontada, el resumen y la serie |
+| `show` | Además el oro, los duelos y la historia (cada ~4 minutos y al min 20) |
 
 Se elige con `&director=` en la URL o desde el [Control de producción](Control-de-producción). Si la URL lo fija, el control no lo cambia.
 

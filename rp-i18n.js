@@ -161,6 +161,21 @@
   };
   // ---- el resto de la app, el sitio, el overlay y OBS (generado desde el código; {} = un valor que cambia: un equipo, un número, un campeón) ----
   var D2 = {
+    "URL para OBS": "URL for OBS",
+    "Modo": "Mode",
+    "Mínimo: solo la barra y las peleas 5v5": "Minimal: just the bar and 5v5 fights",
+    "Estándar: la barra y la pieza que aporta": "Standard: the bar and the piece that adds something",
+    "Show: más piezas": "Show: more pieces",
+    "Color del canal": "Channel color",
+    "usar": "use",
+    "Logo (https://…)": "Logo (https://…)",
+    "Margen seguro (televisión)": "Safe area (TV)",
+    "✓ Copiada": "✓ Copied",
+    "En OBS:": "In OBS:",
+    "Fuentes → + → Navegador": "Sources → + → Browser",
+    ", pegá la URL, ancho": ", paste the URL, width",
+    "y alto": "and height",
+    ". Todos los parámetros están explicados en": ". Every parameter is explained in",
     "de ganar el juego": "to win the game",
     "al final": "at the end",
     "Qué mirar": "What to watch",

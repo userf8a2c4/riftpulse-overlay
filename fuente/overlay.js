@@ -898,6 +898,8 @@
     var v = video(); if (!v || v.readyState < 2 || !v.videoWidth) return;
     // sin juego en pantalla hace más de 2 minutos (otro stream, el desk): se lee cada 6 s en vez de cada 1,5 s
     if (Date.now() - AS.t0 > 120000 && Date.now() - (AS.visto || AS.t0) > 120000 && (AS.salto = (AS.salto || 0) + 1) % 4) return;
+    // un VOD en pausa (ya sincronizado): nada cambia en pantalla, se lee cada ~4,5 s; si se movió el video, enseguida
+    if (v.paused && AS.id && AS.off != null && !AS.trasSalto && (AS.quietoN = (AS.quietoN || 0) + 1) % 3) return;
     AS.busy = true; AS.n++;
     try {
       var ct = v.currentTime, playing = !v.paused && !v.ended, txt = '', zi = null, vars = [], zonas = AS.zona != null ? [AS.zona] : RELOJES.map(function (z, i) { return i; });
