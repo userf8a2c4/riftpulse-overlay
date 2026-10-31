@@ -15,6 +15,11 @@ module.exports = async function () {
   ok = chequear('feed caído: insignia «Sin datos nuevos»', /SIN DATOS NUEVOS/i.test(v.ins), v.ins) && ok;
   st.modo = 'ok'; await p.waitForTimeout(6000); v = await ver();
   ok = chequear('feed de vuelta: la insignia se va sola', !v.ins && v.estado === 'ok', v.estado) && ok;
+  // un juego en curso que lolesports todavía no publica: nunca «Datos al día» sin datos
+  st.modo = 'vacio'; const p2 = await ctx.newPage(); await p2.goto(BASE + 'overlay.html?view=bar'); await p2.waitForTimeout(6000);
+  const ve = await p2.evaluate(() => ({estado: RiftEngine.state.feed && RiftEngine.state.feed.estado, ins: getComputedStyle(document.querySelector('.rp-fd')).display === 'none' ? '' : document.querySelector('.rp-fd').innerText}));
+  await p2.close(); st.modo = 'ok';
+  ok = chequear('juego en vivo sin datos todavía: lo dice («Esperando los datos»), no «Datos al día»', ve.estado === 'esperando' && /ESPERANDO/i.test(ve.ins), JSON.stringify(ve)) && ok;
   st.modo = 'congelado'; st.cong = Date.now() - 90000; await p.waitForTimeout(34000); v = await ver();
   ok = chequear('feed congelado: insignia «Datos retrasados»', /RETRASADOS/i.test(v.ins), v.ins) && ok;
   st.modo = 'ok';

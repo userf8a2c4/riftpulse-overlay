@@ -1868,7 +1868,7 @@
     var pb = Math.round(g.pBlue * 100), pr = 100 - pb, lb = pb >= pr ? ' lead' : '', lr = pr > pb ? ' lead' : '';
     // «juego en pausa» solo si la pantalla no dice lo contrario (con el reloj del HUD corriendo, manda la pantalla)
     var corre = typeof AS !== 'undefined' && AS.on && AS.id && !AS.pausa && Date.now() - AS.visto < 5000;
-    var fdo = s.feed && ['retrasado', 'caido', 'pausa'].indexOf(s.feed.estado) >= 0 && !(corre && s.feed.estado === 'pausa') ? '<div class="seg fdo"><span class="sl">' + esc(s.feed.txt) + '</span></div>' : '';
+    var fdo = s.feed && ['retrasado', 'caido', 'pausa', 'esperando'].indexOf(s.feed.estado) >= 0 && !(corre && s.feed.estado === 'pausa') ? '<div class="seg fdo"><span class="sl">' + esc(s.feed.txt) + '</span></div>' : '';
     if (EXT.indexOf('mini') >= 0) {  // modo mínimo: solo el porcentaje
       bodySig = ''; body.innerHTML = '<div class="seg prob"><span class="tc b">' + esc(m.blue.code) + '</span><div class="bar" style="width:150px"><div class="pb' + lb + '" style="width:' + Math.min(85, Math.max(pb, 15)) + '%">' + pb + '%</div><div class="pr' + lr + '" style="width:' + Math.min(85, Math.max(pr, 15)) + '%">' + pr + '%</div></div><span class="tc r">' + esc(m.red.code) + '</span></div>' + fdo;
       hist.push({t: Date.now(), p: g.pBlue}); checkMomentum(s); showFight(s); return;
@@ -1888,7 +1888,7 @@
     }
     // el minuto y un punto con el estado de los datos (verde: al día · ámbar: retrasados o en pausa · rojo: caídos); el texto,
     // solo cuando hay un problema (nunca se esconde que los datos vienen mal)
-    var est = s.feed ? s.feed.estado : 'ok', dot = est === 'caido' ? 'bad' : (est === 'retrasado' || (est === 'pausa' && !corre)) ? 'warn' : 'ok';
+    var est = s.feed ? s.feed.estado : 'ok', dot = est === 'caido' ? 'bad' : (est === 'retrasado' || est === 'esperando' || (est === 'pausa' && !corre)) ? 'warn' : 'ok';
     html += '<div class="seg tmin"><span class="fdot ' + dot + '" title="' + esc(s.feed ? s.feed.txt : '') + '"></span><span class="tmv"></span></div>';
     html += fdo;
     html += segProximo();

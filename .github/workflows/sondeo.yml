@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '35 20-23 30 10 *'   # TLAW vs LOS y G2 vs HLE, 30/10 (UTC)
-    - cron: '35 17-23 31 10 *'   # Sistema Suizo, 31/10 (UTC)
+    - cron: '5,25,45 17-23 31 10 *'   # Sistema Suizo, 31/10 (UTC): cada 20 min (GitHub saltea o atrasa corridas programadas)
 
 permissions:
   contents: read

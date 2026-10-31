@@ -62,6 +62,7 @@ async function montar(ctx, o) {
   await ctx.addInitScript(() => { try { Object.defineProperty(navigator, 'language', {get: () => 'es-AR'}); } catch (e) {} });
   await ctx.route(/lolesports\.com/, r => {
     if (st.modo === 'caido') return r.fulfill({status: 500, body: 'x'});
+    if (st.modo === 'vacio' && /feed\.lolesports/.test(r.request().url())) return r.fulfill({status: 204, body: ''});
     const u = new URL(r.request().url()); let data = {};
     if (/getSchedule/.test(u.pathname)) data = {schedule: {pages: {}, events: Object.values(evs())}};
     else if (/getEventDetails/.test(u.pathname)) { const e = evs()[u.searchParams.get('id')]; if (!e) return r.fulfill({status: 404, headers: HDR, body: '{}'}); data = {event: {league: {name: 'Worlds'}, match: e.match}}; }

@@ -297,7 +297,7 @@
   function applyHidden() { ovl.classList.toggle('hide', !!cfg.hidden && BARRA); ovl.classList.toggle('allhide', !!cfg.hideAll); }
   // estado de los datos: nunca se borra la última predicción; se avisa con una insignia discreta
   function feedBadge(s) {
-    var f = s.feed || {}, ver = f.estado === 'retrasado' || f.estado === 'caido' || f.estado === 'demo' || f.estado === 'pausa';
+    var f = s.feed || {}, ver = f.estado === 'retrasado' || f.estado === 'caido' || f.estado === 'demo' || f.estado === 'pausa' || f.estado === 'esperando';
     if (!s.match && f.estado !== 'caido') ver = false;  // sin partido las piezas ya están ocultas
     fd.style.display = ver && VIEW !== 'alert' ? '' : 'none';
     if (ver) { fd.className = 'rp-fd ' + f.estado; fd.innerHTML = '<i></i>' + esc(f.txt); }

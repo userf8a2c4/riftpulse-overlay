@@ -711,6 +711,7 @@
     if (NET.errs >= 2) return {estado: 'caido', txt: 'Sin datos nuevos', edad: edad};
     if (!M) return {estado: 'sin_partido', txt: 'Esperando partido', edad: edad};
     if (enPausa()) return {estado: 'pausa', txt: 'Juego en pausa', edad: edad};
+    if (G && (G.waiting || (!G.start && !G.loading))) return {estado: 'esperando', txt: L('Esperando los datos de este juego', 'Waiting for this game\'s data'), edad: edad};
     if (G && G.start && G.lastTs && !G.ended) {
       var atraso = Math.round((dataTime() - G.lastTs) / 1000);
       if (atraso > STALE_S) return {estado: 'retrasado', txt: 'Datos retrasados · ' + atraso + ' s', edad: atraso};
