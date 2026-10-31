@@ -58,7 +58,9 @@
 (function () {
   var $ = function (i) { return document.getElementById(i); }, pc = function (x) { return Math.round(x * 100) + ' %'; };
   var P = window.RiftEngine && RiftEngine.PRECISION;
-  if (P) $('bt').innerHTML = 'Probado en <b>' + P.juegos + ' juegos profesionales</b> que el modelo no vio al entrenarse: acierta al favorito el <b>' + pc(P.acc10) + '</b> de las veces al minuto 10, el <b>' + pc(P.acc15) + '</b> al minuto 15 y el <b>' + pc(P.acc20) + '</b> al minuto 20.';
+  var EN = (function () { try { return localStorage.getItem('rp_lang') === 'en'; } catch (e) { return false; } })();
+  if (P) $('bt').innerHTML = EN ? 'Tested on <b>' + P.juegos + ' pro games</b> the model never saw in training: it picks the winner <b>' + pc(P.acc10) + '</b> of the time at minute 10, <b>' + pc(P.acc15) + '</b> at minute 15 and <b>' + pc(P.acc20) + '</b> at minute 20.'
+    : 'Probado en <b>' + P.juegos + ' juegos profesionales</b> que el modelo no vio al entrenarse: acierta al favorito el <b>' + pc(P.acc10) + '</b> de las veces al minuto 10, el <b>' + pc(P.acc15) + '</b> al minuto 15 y el <b>' + pc(P.acc20) + '</b> al minuto 20.';
   fetch('datos/precision.json?v=' + Math.floor(Date.now() / 6e5)).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
     if (!d || !d.juegos || !d.juegos.length) { $('kpis').innerHTML = '<div class="kpi"><b>—</b><span>Todavía no hay juegos medidos</span></div>'; return; }
     $('tit').textContent = d.torneo || 'Este Mundial';
