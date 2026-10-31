@@ -35,7 +35,7 @@ jobs:
           npm i --no-save eslint@8.57.0 playwright@1.48.2
           npx playwright install --with-deps chromium
       - name: Linter
-        run: npx eslint --no-eslintrc -c .eslintrc.json --max-warnings 0 engine.js obs.js rp-ui.js rp-i18n.js sw.js ext-overlay.js app.js fuente/*.js pruebas/*.js modelo/*.js
+        run: npx eslint --no-eslintrc -c .eslintrc.json --max-warnings 0 engine.js obs.js votacion.js rp-ui.js rp-i18n.js sw.js ext-overlay.js app.js fuente/*.js pruebas/*.js modelo/*.js
       - name: Lo publicado está armado con el código de fuente/
         run: |
           python3 fuente/construir_extension.py

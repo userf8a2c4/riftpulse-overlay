@@ -97,6 +97,7 @@
       <label>Color del canal <input type="color" id="gAcc" value="#22d3ee"> <input type="checkbox" id="gAccOn"> usar</label>
       <label>Logo (https://…) <input id="gLogo" placeholder="https://…/logo.png"></label>
       <label><input type="checkbox" id="gSafe"> Margen seguro (televisión)</label>
+      <label>Tu canal de Twitch (el chat vota) <input id="gCanal" placeholder="nickdaboom"></label>
       <label>Posición <select id="gPos"><option value="bottom">Abajo</option><option value="top">Arriba</option></select></label>
       <input id="gUrl" readonly>
       <button class="btn" id="gCopy">📋 Copiar URL</button>
@@ -323,10 +324,11 @@
     var lg = $('gLogo').value.trim(); if (/^https:\/\//i.test(lg)) q.push('logo=' + encodeURIComponent(lg));
     if ($('gSafe').checked) q.push('safe=1');
     if ($('gPos').value === 'top') q.push('pos=top');
+    var cn = $('gCanal').value.trim().toLowerCase().replace(/^.*twitch\.tv\//, '').replace(/[^a-z0-9_]/g, ''); if (cn) q.push('canal=' + cn);
     return base + '?' + q.join('&');
   }
   function pinta() { $('gUrl').value = url(); }
-  ['gMod', 'gAcc', 'gAccOn', 'gLogo', 'gSafe', 'gPos'].forEach(function (i) { $(i).addEventListener('input', pinta); $(i).addEventListener('change', pinta); });
+  ['gMod', 'gAcc', 'gAccOn', 'gLogo', 'gSafe', 'gPos', 'gCanal'].forEach(function (i) { $(i).addEventListener('input', pinta); $(i).addEventListener('change', pinta); });
   $('gCopy').addEventListener('click', function () { var b = $('gCopy'); (navigator.clipboard ? navigator.clipboard.writeText($('gUrl').value) : Promise.reject()).then(function () { b.textContent = '✓ Copiada'; }, function () { $('gUrl').select(); document.execCommand('copy'); b.textContent = '✓ Copiada'; }); setTimeout(function () { b.textContent = '📋 Copiar URL'; }, 1600); });
   pinta();
 })();

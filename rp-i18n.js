@@ -161,6 +161,7 @@
   };
   // ---- el resto de la app, el sitio, el overlay y OBS (generado desde el código; {} = un valor que cambia: un equipo, un número, un campeón) ----
   var D2 = {
+    "Tu canal de Twitch (el chat vota)": "Your Twitch channel (chat votes)",
     "URL para OBS": "URL for OBS",
     "Modo": "Mode",
     "Mínimo: solo la barra y las peleas 5v5": "Minimal: just the bar and 5v5 fights",

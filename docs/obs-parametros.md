@@ -18,6 +18,7 @@ La forma más fácil de armarla es el generador: en la [página para streamers](
 | **Show**: más piezas (oro, duelos, historia cada ~4 min) | `?view=auto&director=show` |
 | Solo la barra, sin piezas | `?view=bar` |
 | Predicciones del stream | `?view=predicciones` |
+| **El chat contra el modelo** (se suma a cualquiera) | `&canal=tu_canal` |
 
 ## Todos los parámetros
 
@@ -36,6 +37,7 @@ La forma más fácil de armarla es el generador: en la [página para streamers](
 | `safe` | `1` | Márgenes amplios (zona segura de televisión). |
 | `stage` | `tr` | Las piezas grandes arriba a la derecha. |
 | `listo` | `0` · `1` | Mostrar unos segundos «RiftPulse listo» al abrir (por defecto, solo dentro de OBS). |
+| `canal` | tu canal de Twitch, por ejemplo `nickdaboom` | **El chat contra el modelo:** antes de cada Barón o dragón (y al empezar cada juego) tu chat vota escribiendo `1` o `2` (o las siglas); RiftPulse muestra su predicción y, al resolverse, quién acertó y el ranking del chat. Lee el chat de forma anónima (solo lectura). Sin apuestas: solo puntos. |
 | `delay` | segundos, por ejemplo `42` | Tu retraso frente a la transmisión oficial (queda recordado). |
 | `demo` | (sin valor) | Un juego real ya jugado, acelerado, para probar la escena sin partido en vivo. |
 

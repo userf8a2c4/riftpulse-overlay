@@ -17,7 +17,7 @@
   // OBS guarda la página en caché: los scripts llevan la hora en la dirección, así cada hora se toma la última versión sin hacer nada
   (function () {
     var v = Math.floor(Date.now() / 36e5);
-    ['rp-i18n.js', 'engine.js', 'rp-ui.js', 'obs.js'].forEach(function (f) { document.write('<script src="' + f + '?v=' + v + '"><\/script>'); });
+    ['rp-i18n.js', 'engine.js', 'rp-ui.js', 'obs.js', 'votacion.js'].forEach(function (f) { document.write('<script src="' + f + '?v=' + v + '"><\/script>'); });
     // la demo abierta en una pestaña (no en OBS ni dentro de otra página) se ve sobre un fondo oscuro, como sobre un stream
     if (/[?&]demo\b/.test(location.search) && !window.obsstudio && window.top === window) document.body.style.background = 'radial-gradient(1200px 700px at 30% 20%,#1b2433,#0C0E12)';
   })();
