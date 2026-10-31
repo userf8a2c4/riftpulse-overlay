@@ -165,6 +165,8 @@
   footer{margin-top:18px;color:var(--muted);font-size:11.5px;line-height:1.6;border-top:1px solid var(--line);padding-top:12px}
   .pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--ffd);font-size:12px;color:var(--ok);font-weight:700}
   .pill::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px rgba(61,220,151,.6)}
+.decir{border-color:rgba(var(--signal-rgb),.55)!important;background:linear-gradient(180deg,rgba(var(--signal-rgb),.10),rgba(var(--signal-rgb),.03))!important}
+.decir .dz{font-size:20px;line-height:1.45;font-weight:600}
 </style>
 <link rel="stylesheet" href="rp-design.css">
 <script src="rp-i18n.js"></script>
@@ -213,7 +215,14 @@
     return '<div style="display:flex;align-items:baseline;gap:10px"><span class="big2 '+sc(lado)+'">'+(c.dp?(lado==='blue'?m.blue.code:m.red.code)+' +'+Math.abs(c.dp):'±0')+'</span><span class="delta" style="margin:0">puntos de probabilidad desde el min '+mmss(c.desde)+'</span></div>'+
       (c.items.length?'<div class="chg" style="margin-top:10px">'+c.items.map(function(x){ return '<span class="'+sc(x.side)+'"><i class="'+sc(x.side)+'">'+esc(x.code)+'</i>'+esc(x.txt)+'</span>'; }).join('')+'</div>':'<div class="delta">Sin cambios en el mapa: el modelo se mueve solo por el reloj.</div>');
   }
-  function mirarCard(s){
+  // co-caster: la frase para decir en los próximos 20–30 s (el objetivo que viene con sus escenarios, la pelea recién
+// terminada o el cambio grande), lista para leer en voz alta
+function decirCard(s){
+  var d = RiftEngine.decir ? RiftEngine.decir(s) : null; if (!d) return '';
+  var ic = {objetivo:'🎯', pelea:'⚔', cambio:'⚡', fin:'🏁', estado:'🎙'}[d.tipo] || '🎙';
+  return '<div class="card wide decir"><h2>🎙 Para decir ahora</h2><div class="dz">'+ic+' '+esc(d.txt)+'</div></div>';
+}
+function mirarCard(s){
     var o=R.mirar?R.mirar(s):null, m=s.match;
     if (!o) return '<div class="empty">Sin objetivos grandes a la vista.</div>';
     var h='<div class="mir"><span class="k">Próximo</span><span><b>'+esc(o.obj)+'</b> '+(o.vivo?'<b>ya está en el mapa</b>':'en <b>'+mmss(o.en)+'</b>')+'</span>';
@@ -479,7 +488,7 @@
 
     if (CMP){  // modo compacto: solo lo esencial para comentar en vivo
       var k=g.keyPlayer, im=g.impact;
-      content.innerHTML='<div class="grid">'+
+      content.innerHTML='<div class="grid">'+decirCard(s)+
         '<div class="card"><div class="sc"><span class="tc b">'+esc(m.blue.code)+'</span><span class="vs">'+mmss(g.gt)+'</span><span class="tc r">'+esc(m.red.code)+'</span></div>'+
           '<div class="bigp"><span class="n" data-rpn="bigp" style="color:'+(lead?RPC.atxt:RPC.btxt)+'">'+(lead?pb:pr)+'%</span><span class="who">a favor de '+esc(lead?m.blue.code:m.red.code)+'</span></div>'+
           '<div class="pbar"><div class="pb" style="width:'+Math.min(85,Math.max(pb,15))+'%">'+pb+'%</div><div class="pr" style="width:'+Math.min(85,Math.max(pr,15))+'%">'+pr+'%</div></div>'+
@@ -495,7 +504,7 @@
       return;
     }
     content.innerHTML =
-      '<div class="grid">'+(g.recap?recapCard(s):'')+
+      '<div class="grid">'+decirCard(s)+(g.recap?recapCard(s):'')+
         '<div class="card wide"><h2>La historia del juego</h2>'+historiaCard(s)+'</div>'+
         '<div class="card">'+
           '<div class="sc"><span class="tc b">'+esc(m.blue.code)+'</span><span class="vs">'+(m.blue.wins==null?'vs':m.blue.wins+' – '+m.red.wins)+'</span><span class="tc r">'+esc(m.red.code)+'</span></div>'+

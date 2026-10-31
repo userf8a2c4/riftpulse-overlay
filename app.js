@@ -2245,7 +2245,10 @@ function ctxAhora() {
   const s = MX.s; if (!s || !s.match || !s.game || s.game.pBlue == null || !M || s.match.id !== M.id || !window.RiftEngine) return '';
   const m = s.match, cbm = RiftEngine.cambio(s), mi = RiftEngine.mirar(s);
   if (cbm && Math.abs(cbm.dp || 0) >= 3) return `<div class="ah-ctx"><span class="ah-k">Qué cambió</span> <b class="${cbm.dp > 0 ? 'b' : 'r'}">${esc(cbm.dp > 0 ? m.blue.code : m.red.code)} +${Math.abs(cbm.dp)}</b> puntos${cbm.items && cbm.items[0] ? ' · ' + esc(String(cbm.items[0].txt || cbm.items[0]).replace(/<[^>]+>/g, '')) : ''}</div>`;
-  if (mi) return `<div class="ah-ctx"><span class="ah-k">Qué mirar</span> <b>${esc(tr(mi.obj))}</b> ${mi.vivo ? L('ya está en el mapa', 'is already on the map') : L('en', 'in') + ' <b>' + mmss(mi.en) + '</b>'}</div>`;
+  // con los escenarios: con cuánto queda cada equipo si se lo lleva
+  const es = RiftEngine.escenarios ? RiftEngine.escenarios(s) : null, pc = x => Math.round(x * 100) + '%';
+  const esc2 = es && mi && /Bar|Drag|Ancest/.test(mi.obj) ? ` <span class="ah-esc">· ${L('si lo toma', 'if')} <b class="b">${esc(es.a.code)}</b> → ${pc(es.a.p)} · ${L('si lo toma', 'if')} <b class="r">${esc(es.b.code)}</b> → ${pc(es.b.p)}</span>` : '';
+  if (mi) return `<div class="ah-ctx"><span class="ah-k">Qué mirar</span> <b>${esc(tr(mi.obj))}</b> ${mi.vivo ? L('ya está en el mapa', 'is already on the map') : L('en', 'in') + ' <b>' + mmss(mi.en) + '</b>'}${esc2}</div>`;
   return '';
 }
 // la pelea en equipo recién terminada: destacada, 30 s de juego y se va (nunca fija)

@@ -628,3 +628,4 @@ details.ah-sec>summary:hover{color:var(--text)}.ah-sb{padding:2px 2px 8px}
 body[data-densidad="compacto"] details.ah-sec,body[data-densidad="compacto"] #ahHist,body[data-densidad="compacto"] #ahFav,body[data-densidad="compacto"] #ahPron{display:none}
 .hden{display:flex;align-items:center;gap:4px;flex-wrap:wrap}.hden .pm{width:100%;margin-bottom:2px}.hden .hbtn{flex:1;text-align:center;padding:5px 6px}
 .ahora>[hidden]{display:none!important}
+.ah-esc{color:var(--muted);white-space:nowrap}

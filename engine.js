@@ -1470,6 +1470,36 @@
     return {dp: Math.round((g.pBlue - past.p) * 100), desde: past.gt, items: items};
   };
   // ---------- qué mirar ahora: el próximo objetivo, cuánto mueve y quién llega mejor ----------
+  // escenarios del próximo objetivo: con cuánto queda cada equipo si se lo lleva (la probabilidad de ese equipo)
+  RiftEngine.escenarios = function (s) {
+    s = s || snapshot(); var g = s.game, m = s.match;
+    if (!m || !g || g.pBlue == null || !g.impact || g.ended) return null;
+    var im = g.impact, p = g.pBlue, c = function (x) { return Math.max(0.01, Math.min(0.99, x)); };
+    return {obj: im.obj, en: Math.max(0, im.at - g.gt), vivo: im.at <= g.gt,
+      a: {side: 'blue', code: m.blue.code, antes: p, p: c(p + (im.blue || 0) / 100)}, b: {side: 'red', code: m.red.code, antes: 1 - p, p: c(1 - (p - (im.red || 0) / 100))}};
+  };
+  // «para decir ahora»: UNA frase lista para leer en voz alta, lo que importa en los próximos 20–30 s (co-caster)
+  // prioridad: un objetivo en camino (≤ 45 s o en el mapa) con sus escenarios · una pelea recién terminada · un cambio grande
+  RiftEngine.decir = function (s) {
+    s = s || snapshot(); var g = s.game, m = s.match; if (!m || !g || g.pBlue == null) return null;
+    var pc = function (x) { return Math.round(x * 100) + ' %'; }, nom = function (o) { return EN ? ({'Barón': 'Baron', 'Dragón': 'dragon', 'Ancestral': 'Elder'}[o] || o) : o; };
+    if (g.ended && g.recap) return {tipo: 'fin', txt: g.recap.code + L(' gana el juego.', ' wins the game.')};
+    var es = RiftEngine.escenarios(s);
+    if (es && (es.vivo || es.en <= 45)) {
+      var mi = RiftEngine.mirar(s), por = mi && mi.por && mi.por[0];
+      return {tipo: 'objetivo', txt: (es.vivo ? L('El ', 'The ') + nom(es.obj) + L(' está en el mapa', ' is up') : nom(es.obj) + L(' en ', ' in ') + mmss(es.en)) + L(': si lo toma ', ': if ') + es.a.code + L(', pasa de ', ' takes it, they go from ') + pc(es.a.antes) + L(' a ', ' to ') + pc(es.a.p) +
+        L('; si lo toma ', '; if ') + es.b.code + L(', queda en ', ' takes it, they sit at ') + pc(es.b.p) + '.' + (por ? ' ' + L('Ojo: ', 'Watch: ') + (por.side === 'blue' ? m.blue.code : m.red.code) + ' ' + L('lleva ', 'has ') + por.txt + '.' : '')};
+    }
+    var F = g.fight;
+    if (F && F.gt != null && g.gt - F.gt <= 30 && g.gt >= F.gt) {
+      var w = F.win, todos = (w ? F[w] : (F.blue || []).concat(F.red || [])) || [], fig = todos.slice().sort(function (x, y) { return (y.k * 2 + y.a) - (x.k * 2 + x.a); })[0];
+      return {tipo: 'pelea', txt: (w ? m[w].code + L(' gana la pelea ', ' wins the fight ') : L('Pelea pareja ', 'Even fight ')) + F.kb + '–' + F.kr + (fig ? L('; la figura, ', '; standout: ') + fig.name + ' (' + fig.k + '/' + fig.d + '/' + fig.a + ')' : '') + (F.obj ? L(', y después ', ', then ') + F.obj.txt : '') + '.'};
+    }
+    var cb = RiftEngine.cambio(s);
+    if (cb && Math.abs(cb.dp || 0) >= 5) return {tipo: 'cambio', txt: (cb.dp > 0 ? m.blue.code : m.red.code) + ' +' + Math.abs(cb.dp) + L(' puntos en el último minuto', ' points in the last minute') + (cb.items && cb.items[0] ? ': ' + String(cb.items[0].txt || cb.items[0]).replace(/<[^>]+>/g, '') : '') + '.'};
+    var p = g.pBlue, fav = p >= 0.5 ? m.blue.code : m.red.code;
+    return {tipo: 'estado', txt: fav + L(' tiene el ', ' has a ') + pc(Math.max(p, 1 - p)) + L(' de ganar este juego', ' chance to win this game') + (es ? L('; lo próximo: ', '; next up: ') + nom(es.obj) + L(' en ', ' in ') + mmss(es.en) : '') + '.'};
+  };
   RiftEngine.mirar = function (s) {
     s = s || snapshot(); var g = s.game, m = s.match;
     if (!m || !g || g.pBlue == null || g.ended) return null;

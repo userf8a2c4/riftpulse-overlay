@@ -225,6 +225,7 @@
   };
   // ---- el resto de la app, el sitio, el overlay y OBS (generado desde el código; {} = un valor que cambia: un equipo, un número, un campeón) ----
   var D2 = {
+    "🎙 Para decir ahora": "🎙 Say it now",
     "Tu canal de Twitch (el chat vota)": "Your Twitch channel (chat votes)",
     "URL para OBS": "URL for OBS",
     "Modo": "Mode",

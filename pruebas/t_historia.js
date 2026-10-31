@@ -17,6 +17,11 @@ module.exports = async function () {
   ok = chequear('niveles, visión e ítems llegan del feed', !!r.j && r.j.wards && r.j.items && r.j.blue.wp > 0 && r.j.blue.items >= 1, r.j && ('wards ' + r.j.blue.wp + '/' + r.j.red.wp + ' · ítems ' + r.j.blue.items + '/' + r.j.red.items)) && ok;
   const mesa = await p.evaluate(() => { const t = document.getElementById('content').textContent; return {hist: document.querySelectorAll('.hist li').length, wards: /Wards puestas/.test(t), items: /Ítems completos/.test(t), banda: !!document.querySelector('.spark path[opacity=".07"]'), mirar: /Qué mirar ahora/.test(t), cambio: /Qué cambió en el último minuto/.test(t)}; });
   ok = chequear('la mesa muestra la historia, qué cambió y qué mirar', mesa.hist >= 2 && mesa.mirar && mesa.cambio) && ok;
+  // co-caster: la frase para decir ahora, arriba de todo, y los escenarios del próximo objetivo
+  const dz = await p.evaluate(() => { const s = RiftEngine.state, e = RiftEngine.escenarios(s), d = RiftEngine.decir(s), c = document.querySelector('.decir');
+    return {e, d, primera: !!c && c === document.querySelector('#content .card'), txt: c ? c.textContent : ''}; });
+  ok = chequear('escenarios: con cuánto queda cada equipo si se lleva el próximo objetivo', !!dz.e && dz.e.a.p > 0 && dz.e.a.p < 1 && dz.e.b.p > 0 && dz.e.b.p < 1 && dz.e.a.p >= dz.e.a.antes - 0.001, dz.e && (dz.e.obj + ': ' + dz.e.a.code + ' ' + Math.round(dz.e.a.antes * 100) + '→' + Math.round(dz.e.a.p * 100) + ' · ' + dz.e.b.code + ' ' + Math.round(dz.e.b.antes * 100) + '→' + Math.round(dz.e.b.p * 100))) && ok;
+  ok = chequear('la mesa abre con «Para decir ahora»: una frase lista para leer en voz alta', dz.primera && !!dz.d && /IG|LYON/.test(dz.d.txt) && /\.$/.test(dz.d.txt), dz.d && dz.d.tipo + ' · ' + dz.d.txt) && ok;
   ok = chequear('la mesa muestra visión e ítems', mesa.wards && mesa.items) && ok;
   ok = chequear('el gráfico de momentum tiene la banda de confianza', mesa.banda) && ok;
   const o = await ctx.newPage(); o.on('pageerror', e => errores.push(e.message));
