@@ -1,0 +1,21 @@
+# Precisión pública: mide el modelo en cada juego terminado del Mundial actual (se lanza a mano). El JSON del registro
+# (línea PRECISION_JSON) se guarda en precision.json, que muestra precision.html.
+name: Precisión pública
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  precision:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm i --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
+      - run: node pruebas/precision.js
