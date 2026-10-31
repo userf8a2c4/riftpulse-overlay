@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>RiftPulse · configuración</title>
+<style>body{font:14px system-ui,sans-serif;margin:16px;color:#1b1f27}label{display:block;margin:10px 0}select,input{font:inherit;padding:4px 6px}button{font:inherit;padding:6px 14px;margin-top:8px}.ok{color:#127a4a}</style>
+<script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
+</head>
+<body>
+<h3>RiftPulse sobre tu stream</h3>
+<label>Qué se ve
+  <select id="modo"><option value="minimo">Mínimo: la barra y las peleas 5v5 que importan</option><option value="estandar">Estándar: la barra y la pieza que aporta</option><option value="barra">Solo la barra</option></select></label>
+<label>Tu retraso frente a la transmisión oficial (segundos, vacío = automático) <input id="delay" type="number" min="0" max="900" style="width:90px"></label>
+<button id="guardar">Guardar</button> <span id="msg"></span>
+<p style="color:#5b6472;font-size:12px">Sin apuestas: solo el pronóstico del modelo de RiftPulse. No avalado por Riot Games.</p>
+<script src="config.js"></script>
+</body>
+</html>

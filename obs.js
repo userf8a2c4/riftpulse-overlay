@@ -17,7 +17,7 @@
   var LOC = (function () { try { return localStorage.getItem('rp_lang') === 'en' ? 'en-US' : 'es'; } catch (e) { return 'es'; } })();  // fechas en el idioma elegido
   'use strict';
   if (!window.RiftEngine) { console.warn('[RiftPulse] falta engine.js'); return; }
-  var R = window.RiftEngine, Q = new URLSearchParams(location.search);
+  var R = window.RiftEngine, Q = new URLSearchParams(window.RP_PARAMS || location.search);
   // ?modo=minimo: el «mínimo radical» para co-streams: la barra sola y transparente, nada más que la pelea 5v5 que importa,
   // y al terminar el juego se va sola (equivale a view=auto&director=minimo, sin alertas ni la serie entre juegos)
   var MINIMO = (Q.get('modo') || '').toLowerCase() === 'minimo';

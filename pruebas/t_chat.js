@@ -31,6 +31,15 @@ module.exports = async function () {
   // sin ?canal no se conecta a nada
   const p2 = await ctx.newPage(); await p2.goto(BASE + 'overlay.html?view=auto'); await p2.waitForTimeout(2500);
   ok = chequear('sin ?canal= no se conecta al chat', await p2.evaluate(() => !window.__ws.length && !window.RPVOTO)) && ok;
+  // la Extensión de Twitch (superposición de video): sin configuración arranca en el mínimo, con la barra del partido
+  const fs = require('fs'), path = require('path'), R0 = path.join(__dirname, '..');
+  await ctx.route(/\/tw\//, r => { const f = r.request().url().split('/tw/')[1].split('?')[0], src = ['viewer.html', 'config.html', 'inicio.js', 'config.js'].includes(f) ? path.join(R0, 'fuente', 'twitch', f) : path.join(R0, f);
+    r.fulfill({contentType: /html$/.test(f) ? 'text/html' : /css$/.test(f) ? 'text/css' : 'application/javascript', body: fs.readFileSync(src, 'utf8')}); });
+  await ctx.route(/extension-files\.twitch\.tv/, r => r.fulfill({contentType: 'application/javascript', body: ''}));
+  const tw = await ctx.newPage(); tw.on('pageerror', e => errores.push('twitch: ' + e.message));
+  await tw.goto(BASE + 'tw/viewer.html'); await tw.waitForTimeout(5000);
+  const tv = await tw.evaluate(() => ({params: window.RP_PARAMS, bar: !!document.querySelector('.rp-low .rp-bar') && /T1/.test(document.querySelector('.rp-low .rp-bar').textContent)}));
+  ok = chequear('Extensión de Twitch: arranca sola en el modo mínimo con la barra del partido', tv.params === '?modo=minimo&listo=0' && tv.bar, JSON.stringify(tv)) && ok;
   ok = chequear('sin errores de JavaScript', !errores.length, errores.slice(0, 3).join(' | ')) && ok;
   await b.close(); return ok;
 };

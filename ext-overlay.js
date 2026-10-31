@@ -225,6 +225,19 @@
   };
   // ---- el resto de la app, el sitio, el overlay y OBS (generado desde el código; {} = un valor que cambia: un equipo, un número, un campeón) ----
   var D2 = {
+    "Precisión": "Accuracy",
+    "¿Cuánto acierta?": "How accurate is it?",
+    "Mirá todos los juegos de este Mundial →": "See every game of this Worlds →",
+    "Este Mundial": "This Worlds",
+    "¿Está bien calibrado?": "Is it well calibrated?",
+    "Juego por juego": "Game by game",
+    "Antes del Mundial": "Before Worlds",
+    "Fecha": "Date",
+    "Juego": "Game",
+    "juegos medidos": "games measured",
+    "Todavía no hay juegos medidos": "No games measured yet",
+    "sin juegos": "no games",
+    "Cargando": "Loading",
     "🎙 Para decir ahora": "🎙 Say it now",
     "Tu canal de Twitch (el chat vota)": "Your Twitch channel (chat votes)",
     "URL para OBS": "URL for OBS",

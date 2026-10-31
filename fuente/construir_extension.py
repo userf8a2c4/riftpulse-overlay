@@ -233,6 +233,11 @@ if os.path.exists(_rd):
     _t = open(_rd, encoding='utf-8').read()
     _n = re.sub(r'versi%C3%B3n-[0-9][^-]*-9AA3B2', 'versi%C3%B3n-' + VERSION + '-9AA3B2', _t)
     if _n != _t: open(_rd, 'w', encoding='utf-8').write(_n)
+# la Extensión de Twitch (superposición de video): sus páginas + el motor y la pieza de OBS, todo dentro del ZIP (Twitch
+# no permite cargar código de otro lado). Se sube en dev.twitch.tv (ver docs/twitch-extension.md)
+with zipfile.ZipFile(os.path.join(RAIZ, 'riftpulse-twitch.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
+    for f in ['viewer.html', 'config.html', 'inicio.js', 'config.js']: z.write(os.path.join(AQUI, 'twitch', f), f)
+    for f in ['rp-i18n.js', 'engine.js', 'rp-ui.js', 'obs.js', 'rp-tokens.css']: z.write(os.path.join(RAIZ, f), f)
 print('Publicado en:', RAIZ)
 
 print('Extensión lista en:', ext)

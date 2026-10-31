@@ -3,7 +3,7 @@
    predicción y, cuando pasa, quién acertó: el chat o el modelo, con un ranking del chat. Sin apuestas: solo puntos.
    El chat se lee de forma anónima (solo lectura, como cualquier visitante): no hace falta cuenta ni permisos. */
 (function () {
-  var Q = new URLSearchParams(location.search), CANAL = (Q.get('canal') || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
+  var Q = new URLSearchParams(window.RP_PARAMS || location.search), CANAL = (Q.get('canal') || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
   var R = window.RiftEngine; if (!CANAL || !R) return;
   var EN = (function () { try { return localStorage.getItem('rp_lang') === 'en'; } catch (e) { return false; } })();
   var L = function (es, en) { return EN ? en : es; };

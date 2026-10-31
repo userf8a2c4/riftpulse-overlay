@@ -145,6 +145,8 @@ Muestra <b>por qué</b> va ganando cada equipo, qué movería el próximo dragó
 
 Para co-streams, el **mínimo radical**: `overlay.html?modo=minimo` (la barra sola; solo aparecen las peleas 5v5 que importan).
 
+El **chat contra el modelo**: sumá `&canal=tu_canal` y tu chat vota antes de cada Barón o dragón. Y para que todo tu chat lo vea sin instalar nada: la [Extensión de Twitch](docs/twitch-extension.md).
+
 <sub>Todos los parámetros de la URL, en <a href="docs/obs-parametros.md">docs/obs-parametros.md</a>. Piezas sueltas, colores de tu canal y escena lista en el <a href="https://github.com/userf8a2c4/riftpulse-overlay/wiki/Paquete-de-gráficos">paquete de gráficos</a>.</sub>
 
 </td>

@@ -203,7 +203,7 @@
   var videoDelay = (function () { try { return +(localStorage.getItem('rp_retraso') || VIDEO_DEFAULT); } catch (e) { return VIDEO_DEFAULT; } })();
   var delay = videoDelay;
   // ?delay=42 (segundos) en la URL de una pieza de OBS: manda sobre lo guardado y queda recordado
-  try { var qd = new URLSearchParams(location.search).get('delay'); if (qd != null && qd !== '' && isFinite(+qd)) { delay = Math.max(0, Math.round(+qd)); localStorage.setItem('rp_retraso', delay); } } catch (e) {}
+  try { var qd = new URLSearchParams(window.RP_PARAMS || location.search).get('delay'); if (qd != null && qd !== '' && isFinite(+qd)) { delay = Math.max(0, Math.round(+qd)); localStorage.setItem('rp_retraso', delay); } } catch (e) {}
   // ?stale=25: segundos sin datos nuevos para avisar «datos retrasados»
   var STALE_S = (function () { try { var v = +new URLSearchParams(location.search).get('stale'); return v >= 5 ? v : 25; } catch (e) { return 25; } })();
   var now = function () { return Date.now(); };

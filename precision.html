@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Precisión de RiftPulse</title>
+<meta name="description" content="Cuánto acierta el modelo de RiftPulse en cada juego del Mundial: acierto por minuto, calibración y todos los juegos, a la vista.">
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--text);font:400 16px/1.6 Inter Tight,system-ui,sans-serif}
+  .wrap{max-width:1040px;margin:0 auto;padding:28px 16px 60px}
+  a{color:var(--link)}
+  .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.top img{width:40px;height:40px}
+  .top nav{margin-left:auto;display:flex;gap:14px;flex-wrap:wrap;font-size:14px}
+  .hero{margin:34px 0 10px}.hero h1{font-size:clamp(32px,6vw,54px);margin:0}.hero p{font-size:18px;max-width:760px;margin:12px 0 0}
+  section.card{padding:22px;margin-top:18px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}@media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:var(--g0);border:1px solid var(--line2);border-radius:8px;padding:14px}
+  .kpi b{display:block;font-family:Saira Condensed,sans-serif;font-size:38px;line-height:1;font-variant-numeric:tabular-nums}
+  .kpi span{font-size:13px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}td.n{text-align:right;font-variant-numeric:tabular-nums}
+  .ok{color:var(--ok);font-weight:700}.no{color:var(--team-b-txt);font-weight:700}
+  .cal{display:grid;gap:8px}.cal .f{display:grid;grid-template-columns:110px 1fr 70px;gap:10px;align-items:center;font-size:14px}
+  .cal .bar{position:relative;height:16px;background:var(--g0);border:1px solid var(--line2);border-radius:4px}
+  .cal .bar i{position:absolute;top:0;bottom:0;left:0;background:var(--signal);opacity:.75;border-radius:3px}.cal .bar u{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--text)}
+  .note{font-size:13px;color:var(--muted);margin-top:10px}
+  .tbl{max-height:520px;overflow:auto}
+  footer{margin-top:30px;color:var(--muted);font-size:12.5px}
+</style>
+<link rel="stylesheet" href="rp-design.css">
+<script src="rp-i18n.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <img src="logo.svg" alt="">
+    <div class="brand-t">RiftPulse</div>
+    <nav><a href="./">Inicio</a><a href="como-funciona.html">Cómo funciona</a><a href="analista.html">Mesa de análisis</a></nav>
+  </header>
+  <div class="hero">
+    <h1>¿Cuánto acierta?</h1>
+    <p>Todos los juegos del Mundial, a la vista: qué probabilidad le daba RiftPulse a cada equipo a los minutos 10, 15 y 20, y quién ganó. Sin elegir los mejores.</p>
+  </div>
+  <section class="card"><h2 id="tit">Este Mundial</h2><div class="kpis" id="kpis"><div class="kpi"><b>…</b><span>Cargando</span></div></div><div class="note" id="act"></div></section>
+  <section class="card"><h2>¿Está bien calibrado?</h2>
+    <p class="lead">Cuando RiftPulse dice 70 %, ¿el favorito gana 7 de cada 10? Cada fila agrupa los juegos por la probabilidad que daba al minuto 15 al favorito: la barra es cuántos ganó de verdad y la raya, lo que decía el modelo.</p>
+    <div class="cal" id="cal"></div>
+  </section>
+  <section class="card"><h2>Juego por juego</h2><div class="tbl"><table><thead><tr><th>Fecha</th><th>Juego</th><th>Ganó</th><th class="n">Min 10</th><th class="n">Min 15</th><th class="n">Min 20</th></tr></thead><tbody id="filas"></tbody></table></div>
+    <div class="note">La probabilidad es la del equipo que terminó ganando: verde si el modelo lo daba como favorito en ese minuto, rojo si no.</div></section>
+  <section class="card"><h2>Antes del Mundial</h2><p class="lead" id="bt"></p></section>
+  <footer>Pronóstico de un modelo propio, sin apuestas. No avalado por Riot Games. Los datos se miden con la acción «Precisión pública» del repositorio.</footer>
+</div>
+<script src="engine.js"></script>
+<script>
+(function () {
+  var $ = function (i) { return document.getElementById(i); }, pc = function (x) { return Math.round(x * 100) + ' %'; };
+  var P = window.RiftEngine && RiftEngine.PRECISION;
+  if (P) $('bt').innerHTML = 'Probado en <b>' + P.juegos + ' juegos profesionales</b> que el modelo no vio al entrenarse: acierta al favorito el <b>' + pc(P.acc10) + '</b> de las veces al minuto 10, el <b>' + pc(P.acc15) + '</b> al minuto 15 y el <b>' + pc(P.acc20) + '</b> al minuto 20.';
+  fetch('precision.json?v=' + Math.floor(Date.now() / 6e5)).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+    if (!d || !d.juegos || !d.juegos.length) { $('kpis').innerHTML = '<div class="kpi"><b>—</b><span>Todavía no hay juegos medidos</span></div>'; return; }
+    $('tit').textContent = d.torneo || 'Este Mundial';
+    var J = d.juegos, acierto = function (k) { var v = J.filter(function (g) { return g[k] != null && g[k] !== 0.5; }); var ok = v.filter(function (g) { return (g[k] > 0.5) === (g.gana === g.azul); }).length; return {ok: ok, n: v.length}; };
+    var a10 = acierto('p10'), a15 = acierto('p15'), a20 = acierto('p20');
+    var f = function (a) { return a.n ? pc(a.ok / a.n) : '—'; };
+    $('kpis').innerHTML = '<div class="kpi"><b>' + J.length + '</b><span>juegos medidos</span></div>' +
+      '<div class="kpi"><b>' + f(a10) + '</b><span>acierto al min 10 (' + a10.ok + '/' + a10.n + ')</span></div>' +
+      '<div class="kpi"><b>' + f(a15) + '</b><span>acierto al min 15 (' + a15.ok + '/' + a15.n + ')</span></div>' +
+      '<div class="kpi"><b>' + f(a20) + '</b><span>acierto al min 20 (' + a20.ok + '/' + a20.n + ')</span></div>';
+    $('act').textContent = 'Actualizado: ' + new Date(d.actualizado).toLocaleString();
+    // calibración al min 15: la probabilidad del favorito, en grupos
+    var grupos = [[0.5, 0.6], [0.6, 0.7], [0.7, 0.8], [0.8, 0.9], [0.9, 1.01]];
+    $('cal').innerHTML = grupos.map(function (gr) {
+      var v = J.filter(function (g) { if (g.p15 == null) return false; var pf = Math.max(g.p15, 1 - g.p15); return pf >= gr[0] && pf < gr[1]; });
+      if (!v.length) return '<div class="f"><span>' + Math.round(gr[0] * 100) + '–' + Math.min(100, Math.round(gr[1] * 100)) + ' %</span><span class="note">sin juegos</span><span></span></div>';
+      var dijo = v.reduce(function (s, g) { return s + Math.max(g.p15, 1 - g.p15); }, 0) / v.length;
+      var gano = v.filter(function (g) { return (g.p15 > 0.5) === (g.gana === g.azul); }).length / v.length;
+      return '<div class="f"><span>' + Math.round(gr[0] * 100) + '–' + Math.min(100, Math.round(gr[1] * 100)) + ' %</span><div class="bar"><i style="width:' + (gano * 100) + '%"></i><u style="left:' + (dijo * 100) + '%"></u></div><span class="n">' + pc(gano) + ' · ' + v.length + '</span></div>';
+    }).join('');
+    var celda = function (g, k) { if (g[k] == null) return '<td class="n">—</td>'; var pg = g.gana === g.azul ? g[k] : 1 - g[k]; return '<td class="n ' + (pg > 0.5 ? 'ok' : 'no') + '">' + pc(pg) + '</td>'; };
+    $('filas').innerHTML = J.slice().reverse().map(function (g) { return '<tr><td>' + g.fecha + '</td><td>' + g.azul + ' vs ' + g.rojo + ' · J' + g.juego + '</td><td><b>' + g.gana + '</b></td>' + celda(g, 'p10') + celda(g, 'p15') + celda(g, 'p20') + '</tr>'; }).join('');
+  });
+})();
+</script>
+</body>
+</html>
