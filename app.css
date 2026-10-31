@@ -618,7 +618,7 @@ header.top{position:relative;z-index:40}
 .ah-big{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:10px 0 6px}
 .ah-pct{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.ah-pct b{font-size:20px}.ah-num{font-family:var(--ff-display);font-size:44px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
 .ah-big .hero-clock{margin:0}
-.ah-ctx{margin:10px 0 4px;font-size:14px;line-height:1.4}.ah-ctx .ah-k{display:inline-block;margin-right:4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.ah-ctx{margin:10px 0 4px;font-size:14px;line-height:1.4}.ah-ctx .ah-k{display:inline-block;margin-right:4px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
 .ah-fight{margin:10px 0 2px;padding:9px 12px;border-radius:10px;border:1px solid rgba(var(--signal-rgb),.5);background:rgba(var(--signal-rgb),.1);font-size:13.5px;animation:ahIn .35s ease-out}
 @keyframes ahIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 details.ah-sec{border-top:1px solid var(--line);margin-top:8px}details.ah-sec>summary{list-style:none;cursor:pointer;padding:9px 2px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);display:flex;align-items:center;gap:6px}
