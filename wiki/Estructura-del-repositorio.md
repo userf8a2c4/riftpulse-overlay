@@ -10,14 +10,16 @@
 | `analista.html` | [Mesa de análisis](Mesa-de-análisis) (segunda pantalla) |
 | `control.html` | [Control de producción](Control-de-producción) |
 | `nick.html` | Presentación para casters |
-| `engine.js` | Motor: datos en vivo, modelo, director automático, historia del juego y peleas en equipo |
+| `engine.js` | Motor: datos en vivo, modelo, director automático, escenarios, «para decir ahora», historia del juego y peleas en equipo |
 | `ext-overlay.js` | El overlay de la extensión ya armado (la versión manual lo baja de acá) |
 | `fuente/` | El código del overlay de la extensión (`overlay.js`; `lector.js` lee el reloj, el marcador y la serie del video), la plantilla de la app (`app.html`) y `construir_extension.py`, que arma la extensión, `app.html`, `ext-overlay.js` y los dos ZIP: `python3 fuente/construir_extension.py` |
-| `riftpulse-extension.zip`, `riftpulse-extension-tienda.zip` | La extensión para instalar a mano y el paquete de la Chrome Web Store |
+| `descargas/` | La extensión (a mano y para la Chrome Web Store), la Extensión de Twitch y la escena de OBS (las arma el build) |
+| `datos/precision.json` | La precisión medida en cada juego del Mundial ([página](https://userf8a2c4.github.io/riftpulse-overlay/precision.html)) |
+| `votacion.js` | El chat contra el modelo en OBS (`&canal=`) |
+| `precision.html` | Cuánto acierta el modelo, juego por juego |
 | `rp-tokens.css`, `rp-design.css`, `rp-ui.js` | El sistema visual común (ver [Estilo y colores de equipo](Estilo-y-colores-de-equipo)) |
 | `rp-i18n.js` | Idiomas: el selector ES \| EN y el diccionario español → inglés (también para el overlay de la extensión) |
 | `manifest.webmanifest`, `sw.js`, `icon-*.png` | La app instalable (PWA) |
-| `riftpulse.obs-scene.json` | Colección de escenas de OBS con el director (OBS 28+) |
 | `logo.svg` | La marca |
 | `LICENSE` | Licencia AGPL-3.0 |
 | `docs/img/` | Imágenes del README y de esta wiki |

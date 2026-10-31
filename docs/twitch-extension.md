@@ -4,7 +4,7 @@ Con la extensión, **todo tu chat ve RiftPulse sobre tu stream sin instalar nada
 Vos la activás una vez en tu canal. Es la misma barra y el mismo director de OBS (por defecto, el **mínimo**: la barra y
 las peleas 5v5 que importan).
 
-El paquete listo para subir es **`riftpulse-twitch.zip`** (raíz del repositorio; lo arma `python3 fuente/construir_extension.py`).
+El paquete listo para subir es **`descargas/riftpulse-twitch.zip`** (lo lo arma `python3 fuente/construir_extension.py`).
 
 ## Publicarla (una sola vez, la hace el dueño del proyecto)
 1. Entrá a **dev.twitch.tv/console** con tu cuenta de Twitch → **Extensiones → Crear extensión**. Nombre: *RiftPulse*.

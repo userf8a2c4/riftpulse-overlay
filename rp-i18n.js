@@ -161,6 +161,23 @@
   };
   // ---- el resto de la app, el sitio, el overlay y OBS (generado desde el código; {} = un valor que cambia: un equipo, un número, un campeón) ----
   var D2 = {
+    "Dos pasos, una sola vez.": "Two steps, once.",
+    "Elegí cómo se ve y copiá la URL": "Pick the look and copy the URL",
+    "Qué se ve": "What shows",
+    "Estándar: la barra y, en cada momento, lo que aporta (recomendado)": "Standard: the bar and, at each moment, what adds something (recommended)",
+    "Mínimo: la barra y solo las peleas 5v5 que importan": "Minimal: the bar and only the 5v5 fights that matter",
+    "Piezas sueltas": "Single pieces",
+    "Tu canal de Twitch (opcional: el chat vota contra el modelo)": "Your Twitch channel (optional: chat votes against the model)",
+    "por ejemplo, nickdaboom": "for example, nickdaboom",
+    "Retraso (s)": "Delay (s)",
+    "vacío = automático": "empty = automatic",
+    "Pegala en OBS": "Paste it into OBS",
+    "El chat contra el modelo": "Chat vs. the model",
+    "Ver la precisión →": "See the accuracy →",
+    "Ajustes avanzados": "Advanced settings",
+    "parámetros de la URL": "URL parameters",
+    "RiftPulse no está avalado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de las propiedades de Riot Games. Riot Games y todas sus propiedades asociadas son marcas comerciales o marcas registradas de Riot Games, Inc.": "RiftPulse isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.",
+    " no está avalado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de las propiedades de Riot Games. Riot Games y todas sus propiedades asociadas son marcas comerciales o marcas registradas de Riot Games, Inc.": " isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.",
     "Precisión": "Accuracy",
     "¿Cuánto acierta?": "How accurate is it?",
     "Mirá todos los juegos de este Mundial →": "See every game of this Worlds →",

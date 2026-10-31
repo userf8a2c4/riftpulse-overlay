@@ -1,5 +1,5 @@
 // Precisión pública del modelo en el Mundial actual: para cada juego terminado, el motor rehace el juego (igual que en vivo)
-// y se guarda su probabilidad a los minutos 10, 15 y 20 y quién ganó. Imprime PRECISION_JSON {...} para precision.json.
+// y se guarda su probabilidad a los minutos 10, 15 y 20 y quién ganó. Imprime PRECISION_JSON {...} para datos/precision.json.
 // Corre en GitHub Actions (acción «Precisión pública») o en cualquier lado con salida a internet.
 const {chromium} = require('playwright'), fs = require('fs'), path = require('path');
 const KEY = '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z', API = 'https://esports-api.lolesports.com/persisted/gw/', FEED = 'https://feed.lolesports.com/livestats/v1/';

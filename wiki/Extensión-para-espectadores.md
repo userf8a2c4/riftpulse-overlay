@@ -2,13 +2,13 @@
 
 La extensión pone RiftPulse **encima del video** de Twitch o de lolesports.com (solo lo ves vos) y suma un **panel lateral** con toda la app y el centro de mando.
 
-> **Próximamente en la Chrome Web Store:** una instalación de un clic, sin modo de desarrollador. Ya está el paquete (`riftpulse-extension-tienda.zip`); falta publicarlo.
+> **En la [Chrome Web Store](https://chromewebstore.google.com/detail/bkdmpcokjfgpnmkfnccgkakdincidoba):** un clic, sin modo de desarrollador, y se actualiza sola.
 
 ## Instalar (una sola vez)
 
 La forma más fácil: **[la página Instalar](https://userf8a2c4.github.io/riftpulse-overlay/instalar.html)**. Elegís qué querés (sobre el video, como app o para tu stream) y te guía con un botón por paso.
 
-1. **Descargá** el [ZIP](https://userf8a2c4.github.io/riftpulse-overlay/riftpulse-extension.zip) y extraelo: queda la carpeta **riftpulse-extension**. Movela a Documentos y no la borres.
+1. **Descargá** el [ZIP](https://userf8a2c4.github.io/riftpulse-overlay/descargas/riftpulse-extension.zip) y extraelo: queda la carpeta **riftpulse-extension**. Movela a Documentos y no la borres.
 2. Abrí `chrome://extensions` (o `edge://`, `brave://`, `opera://extensions`) y activá el **Modo de desarrollador**.
 3. **Cargar descomprimida** → esa carpeta.
 4. En RiftPulse → **Detalles**, activá **«Permitir scripts de usuario»**: así el overlay se actualiza solo desde la web. (Si tu navegador no lo tiene, funciona igual.)

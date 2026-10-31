@@ -93,29 +93,31 @@
   <p class="nota">Demo con un <b>partido real del Mundial</b>, acelerado: las piezas entran y salen solas. En OBS va con fondo transparente, sobre tu transmisión.</p>
 
   <h2 id="stream">Ponelo en tu stream</h2>
-  <p class="sub">Cuatro pasos, una sola vez.</p>
+  <p class="sub">Dos pasos, una sola vez.</p>
 
   <div class="paso"><span class="n">1</span><div>
-    <h3>Elegí qué querés mostrar</h3>
-    <p>Si no sabés, dejalo así: el director automático muestra en cada momento lo que aporta.</p>
+    <h3>Elegí cómo se ve y copiá la URL</h3>
     <div class="gen">
-      <label class="ancho">Pieza<select id="gVista">
-        <option value="auto">Director automático (recomendado)</option>
-        <option value="bar">Solo la barra de probabilidad</option>
-        <option value="alert">Alerta cuando el juego da vuelta</option>
-        <option value="serie">Serie (entre mapas)</option>
-        <option value="recap">Resumen al terminar el juego</option>
-        <option value="big">Tarjeta grande</option>
-        <option value="duelos">Duelos por línea</option>
-        <option value="remontada">Qué necesita el que va abajo</option>
-        <option value="objectives">Objetivos</option>
-        <option value="keys">Claves del momento</option>
-        <option value="cuadro">Cuadro de eliminatorias</option>
-        <option value="predicciones">Predicciones de tu staff</option>
+      <label class="ancho">Qué se ve<select id="gVista">
+        <option value="auto">Estándar: la barra y, en cada momento, lo que aporta (recomendado)</option>
+        <option value="minimo">Mínimo: la barra y solo las peleas 5v5 que importan</option>
+        <option value="bar">Solo la barra</option>
+        <optgroup label="Piezas sueltas">
+          <option value="alert">Alerta cuando el juego da vuelta</option>
+          <option value="serie">Serie (entre mapas)</option>
+          <option value="recap">Resumen al terminar el juego</option>
+          <option value="big">Tarjeta grande</option>
+          <option value="duelos">Duelos por línea</option>
+          <option value="remontada">Qué necesita el que va abajo</option>
+          <option value="objectives">Objetivos</option>
+          <option value="keys">Claves del momento</option>
+          <option value="cuadro">Cuadro de eliminatorias</option>
+          <option value="predicciones">Predicciones de tu staff</option>
+        </optgroup>
       </select></label>
+      <label class="ancho" title="Antes de cada Barón o dragón tu chat vota quién se lo lleva, contra el modelo">Tu canal de Twitch (opcional: el chat vota contra el modelo)<input id="gCanal" placeholder="por ejemplo, nickdaboom"></label>
       <label>Barra<select id="gPos"><option value="bottom">Abajo</option><option value="top">Arriba</option></select></label>
-      <label>Tamaño<select id="gEsc"><option value="">Normal</option><option value="1.2">Grande</option><option value="0.85">Chico</option></select></label>
-      <label class="ancho" title="Cuántos segundos va atrasado tu stream frente a la transmisión oficial">Retraso de tu stream (segundos)<input id="gRet" type="number" min="0" max="600" step="1" placeholder="0 · si no sabés, dejalo vacío"></label>
+      <label title="Cuántos segundos va atrasado tu stream frente a la transmisión oficial">Retraso (s)<input id="gRet" type="number" min="0" max="600" step="1" placeholder="vacío = automático"></label>
     </div>
     <div class="url" id="url">…</div>
     <div class="acc">
@@ -126,18 +128,8 @@
   </div></div>
 
   <div class="paso"><span class="n">2</span><div>
-    <h3>Agregala en OBS</h3>
-    <p>En <b>Fuentes</b> tocá <b>+ → Navegador</b>, pegá la URL y poné <code>1920</code> × <code>1080</code>. Aceptá.</p>
-  </div></div>
-
-  <div class="paso"><span class="n">3</span><div>
-    <h3>Comprobá que funciona</h3>
-    <p>Si en ese momento no hay partido, vas a ver unos segundos <b>«RiftPulse listo · próximo: …»</b> y después nada: el overlay aparece solo cuando empieza el partido.</p>
-  </div></div>
-
-  <div class="paso"><span class="n">4</span><div>
-    <h3>¿Tu stream va atrasado?</h3>
-    <p>Si la barra se adelanta a lo que ve tu chat, poné tu retraso en el paso 1 y volvé a copiar la URL. En vivo también lo ajustás desde el <b>control</b> (abajo), sin tocar OBS.</p>
+    <h3>Pegala en OBS</h3>
+    <p><b>Fuentes → + → Navegador</b>, pegá la URL y poné <code>1920</code> × <code>1080</code>. Fondo transparente; aparece sola cuando empieza el partido. Si la barra se adelanta a lo que ve tu chat, poné tu retraso arriba o ajustalo en vivo desde el <b>control</b>.</p>
   </div></div>
 
   <details>
@@ -156,25 +148,18 @@
 
   <h2>Qué muestra</h2>
   <div class="feat">
-    <div class="card"><h3>Probabilidad en vivo</h3><p>Se mueve con el oro, las torres, los dragones, el Barón y los inhibidores, en los colores de cada equipo.</p></div>
-    <div class="card"><h3>Antes del juego</h3><p>A quién favorece el modelo cuando arranca la partida, según la fuerza de cada equipo y el lado del mapa.</p></div>
-    <div class="card"><h3>Los giros</h3><p>Un aviso cuando la probabilidad da vuelta, con lo que la movió (un Barón, una pelea).</p></div>
-    <div class="card"><h3>Su acierto, a la vista</h3><p>La marca dice cuánto acierta el modelo a ese minuto: <b style="color:var(--ok)">75 % al minuto 15</b>, medido en 589 juegos que no había visto. <a href="como-funciona.html">Cómo funciona</a>. <a href="precision.html">Mirá todos los juegos de este Mundial →</a></p></div>
+    <div class="card"><h3>Probabilidad en vivo</h3><p>Quién va ganando, en porcentaje, sincronizado con tu stream. Y, antes de cada Barón o dragón, con cuánto queda cada equipo si se lo lleva.</p></div>
+    <div class="card"><h3>El chat contra el modelo</h3><p>Con tu canal en la URL, el chat vota antes de cada objetivo y al final se ve quién acertó: tu chat o RiftPulse. Sin apuestas, solo puntos.</p></div>
+    <div class="card"><h3>Su acierto, a la vista</h3><p>Todos los juegos del Mundial, con lo que decía el modelo y quién ganó. <a href="precision.html">Ver la precisión →</a></p></div>
   </div>
 
   <details>
-    <summary>Ajustes avanzados (se agregan al final de la URL)</summary>
-    <ul>
-      <li><code>&amp;accent=ff8800</code> tu color · <code>&amp;logo=https://…</code> tu logo · <code>&amp;brand=0</code> sin la marca de RiftPulse</li>
-      <li><code>&amp;director=minimo</code>, <code>estandar</code> o <code>show</code>: cuánto muestra el director solo</li>
-      <li><code>&amp;tema=canal</code> (con tu color) o <code>minimal</code> · <code>&amp;safe=1</code> márgenes amplios · <code>&amp;stage=tr</code> la pieza grande arriba a la derecha</li>
-      <li><code>&amp;modules=prob,timers</code> qué lleva la barra · <code>&amp;listo=0</code> sin el aviso «RiftPulse listo» al abrir</li>
-    </ul>
-    <p style="color:var(--muted);margin-bottom:0">Todos los parámetros, en la <a href="https://github.com/userf8a2c4/riftpulse-overlay/wiki/Paquete-de-gráficos">wiki</a>.</p>
+    <summary>Ajustes avanzados</summary>
+    <p style="color:var(--muted);margin-bottom:0">Tu color, tu logo, márgenes de televisión y el resto: con el generador del <a href="control.html">control</a> o, a mano, con los <a href="https://github.com/userf8a2c4/riftpulse-overlay/blob/main/docs/obs-parametros.md">parámetros de la URL</a>.</p>
   </details>
 
   <footer>
-    <p>RiftPulse es pronóstico y análisis, sin apuestas. No está avalado por Riot Games y no refleja sus opiniones. League of Legends y Riot Games son marcas de Riot Games, Inc.</p>
+    <p>RiftPulse es pronóstico y análisis, sin apuestas. No está avalado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de las propiedades de Riot Games. Riot Games y todas sus propiedades asociadas son marcas comerciales o marcas registradas de Riot Games, Inc.</p>
     <p>Hecho por <b>VectisDev</b> · <a href="https://github.com/userf8a2c4/riftpulse-overlay">Código abierto</a></p>
   </footer>
 </div>
@@ -201,14 +186,14 @@
   function aviso(t, mal) { var m = $('#msg'); m.textContent = t; m.style.color = mal ? 'var(--muted)' : ''; }
 
   // generador: una sola URL con lo que se eligió
-  var BARRA = {auto: 1, bar: 1};
+  var BARRA = {auto: 1, bar: 1, minimo: 1};
   function armar(demo) {
     var v = $('#gVista').value, p = [];
-    p.push('view=' + v);
+    p.push(v === 'minimo' ? 'modo=minimo' : 'view=' + v);
     if (v === 'bar') p.push('modules=prob,timers,brand');
     if (BARRA[v] && $('#gPos').value === 'top') p.push('pos=top');
-    if ($('#gEsc').value) p.push('scale=' + $('#gEsc').value);
     var r = parseInt($('#gRet').value, 10); if (r > 0) p.push('delay=' + Math.min(600, r));
+    var cn = $('#gCanal').value.trim().toLowerCase().replace(/^.*twitch\.tv\//, '').replace(/[^a-z0-9_]/g, ''); if (cn && !demo) p.push('canal=' + cn);
     if (demo) p.push('demo');
     return BASE + 'overlay.html?' + p.join('&');
   }
@@ -216,7 +201,7 @@
     $('#gPos').disabled = !BARRA[$('#gVista').value];
     $('#url').textContent = armar(false); $('#probar').href = armar(true); aviso('');
   }
-  ['#gVista', '#gPos', '#gEsc', '#gRet'].forEach(function (s) { $(s).addEventListener('input', pintar); $(s).addEventListener('change', pintar); });
+  ['#gVista', '#gPos', '#gRet', '#gCanal'].forEach(function (s) { $(s).addEventListener('input', pintar); $(s).addEventListener('change', pintar); });
   pintar();
   $('#copiar').addEventListener('click', function () {
     var u = armar(false);
@@ -239,7 +224,7 @@
           settings: {url: base + p[1], width: 1920, height: 1080, reroute_audio: false, css: '', shutdown: false, restart_when_active: false}}; }))
     };
   }
-  window.RP_ESCENA = escena;  // la misma escena que trae el repo (riftpulse.obs-scene.json)
+  window.RP_ESCENA = escena;  // la misma escena que trae el repo (descargas/riftpulse.obs-scene.json)
   $('#escena').addEventListener('click', function () {
     var blob = new Blob([JSON.stringify(escena(BASE), null, 2)], {type: 'application/json'});
     var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'RiftPulse.json';

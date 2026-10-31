@@ -51,7 +51,7 @@
   <section class="card"><h2>Juego por juego</h2><div class="tbl"><table><thead><tr><th>Fecha</th><th>Juego</th><th>Ganó</th><th class="n">Min 10</th><th class="n">Min 15</th><th class="n">Min 20</th></tr></thead><tbody id="filas"></tbody></table></div>
     <div class="note">La probabilidad es la del equipo que terminó ganando: verde si el modelo lo daba como favorito en ese minuto, rojo si no.</div></section>
   <section class="card"><h2>Antes del Mundial</h2><p class="lead" id="bt"></p></section>
-  <footer>Pronóstico de un modelo propio, sin apuestas. No avalado por Riot Games. Los datos se miden con la acción «Precisión pública» del repositorio.</footer>
+  <footer>Pronóstico de un modelo propio, sin apuestas. Los datos se miden con la acción «Precisión pública» del repositorio.<br>RiftPulse no está avalado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de las propiedades de Riot Games. Riot Games y todas sus propiedades asociadas son marcas comerciales o marcas registradas de Riot Games, Inc.</footer>
 </div>
 <script src="engine.js"></script>
 <script>
@@ -59,7 +59,7 @@
   var $ = function (i) { return document.getElementById(i); }, pc = function (x) { return Math.round(x * 100) + ' %'; };
   var P = window.RiftEngine && RiftEngine.PRECISION;
   if (P) $('bt').innerHTML = 'Probado en <b>' + P.juegos + ' juegos profesionales</b> que el modelo no vio al entrenarse: acierta al favorito el <b>' + pc(P.acc10) + '</b> de las veces al minuto 10, el <b>' + pc(P.acc15) + '</b> al minuto 15 y el <b>' + pc(P.acc20) + '</b> al minuto 20.';
-  fetch('precision.json?v=' + Math.floor(Date.now() / 6e5)).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+  fetch('datos/precision.json?v=' + Math.floor(Date.now() / 6e5)).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
     if (!d || !d.juegos || !d.juegos.length) { $('kpis').innerHTML = '<div class="kpi"><b>—</b><span>Todavía no hay juegos medidos</span></div>'; return; }
     $('tit').textContent = d.torneo || 'Este Mundial';
     var J = d.juegos, acierto = function (k) { var v = J.filter(function (g) { return g[k] != null && g[k] !== 0.5; }); var ok = v.filter(function (g) { return (g[k] > 0.5) === (g.gana === g.azul); }).length; return {ok: ok, n: v.length}; };

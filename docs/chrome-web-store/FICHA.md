@@ -4,7 +4,7 @@ Todo lo que pide la tienda ya está listo; solo falta subirlo con tu cuenta.
 
 ## Subir una versión nueva (2 minutos)
 RiftPulse ya está publicada. Cada versión nueva:
-1. Armala: `python3 fuente/construir_extension.py` (sube el número en `VERSION`, al principio de ese archivo). Queda `riftpulse-extension-tienda.zip` en la raíz, también en `https://userf8a2c4.github.io/riftpulse-overlay/riftpulse-extension-tienda.zip`.
+1. Armala: `python3 fuente/construir_extension.py` (sube el número en `VERSION`, al principio de ese archivo). Queda `descargas/riftpulse-extension-tienda.zip` en la raíz, también en `https://userf8a2c4.github.io/riftpulse-overlay/riftpulse-extension-tienda.zip`.
 2. En la [consola de desarrolladores](https://chrome.google.com/webstore/devconsole), abrí RiftPulse → **Paquete** → **Subir paquete nuevo** → elegí ese ZIP.
 3. Si cambió algo de la ficha, actualizala con los textos y las imágenes de abajo (español e inglés).
 4. **Enviar para revisión.** Suele tardar de 1 a 3 días; después les llega sola a todos los que la instalaron.

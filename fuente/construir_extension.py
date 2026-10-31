@@ -208,7 +208,7 @@ open(os.path.join(RAIZ, 'ext-overlay.js'), 'w', encoding='utf-8').write(OVERLAY)
 # la extensión en un ZIP, para instalarla sin git (enlace directo desde la web)
 # los archivos van sueltos en la raíz del ZIP: «Extraer todo» (Windows) o el doble clic (Mac) dejan UNA carpeta,
 # riftpulse-extension, que es justo la que se elige en «Cargar descomprimida» (sin carpetas dentro de carpetas)
-with zipfile.ZipFile(os.path.join(RAIZ, 'riftpulse-extension.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
+with zipfile.ZipFile(os.path.join(RAIZ, 'descargas', 'riftpulse-extension.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
     for raiz, _, fs in sorted(os.walk(ext)):  # con las subcarpetas (_locales)
         for f in sorted(fs): z.write(os.path.join(raiz, f), os.path.relpath(os.path.join(raiz, f), ext))
 # versión para la Chrome Web Store: la tienda no acepta código que se baje de la web, así que el overlay va
@@ -223,7 +223,7 @@ json.dump(man, open(os.path.join(tienda, 'manifest.json'), 'w', encoding='utf-8'
 open(os.path.join(tienda, 'background.js'), 'w', encoding='utf-8').write(TIENDA_BG)
 os.remove(os.path.join(tienda, 'INSTALAR.html'))
 # la tienda exige manifest.json en la raíz del ZIP (sin carpeta)
-with zipfile.ZipFile(os.path.join(RAIZ, 'riftpulse-extension-tienda.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
+with zipfile.ZipFile(os.path.join(RAIZ, 'descargas', 'riftpulse-extension-tienda.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
     for raiz, _, fs in sorted(os.walk(tienda)):  # con las subcarpetas (_locales)
         for f in sorted(fs): z.write(os.path.join(raiz, f), os.path.relpath(os.path.join(raiz, f), tienda))
 shutil.rmtree(tmp)
@@ -235,7 +235,7 @@ if os.path.exists(_rd):
     if _n != _t: open(_rd, 'w', encoding='utf-8').write(_n)
 # la Extensión de Twitch (superposición de video): sus páginas + el motor y la pieza de OBS, todo dentro del ZIP (Twitch
 # no permite cargar código de otro lado). Se sube en dev.twitch.tv (ver docs/twitch-extension.md)
-with zipfile.ZipFile(os.path.join(RAIZ, 'riftpulse-twitch.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
+with zipfile.ZipFile(os.path.join(RAIZ, 'descargas', 'riftpulse-twitch.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
     for f in ['viewer.html', 'config.html', 'inicio.js', 'config.js']: z.write(os.path.join(AQUI, 'twitch', f), f)
     for f in ['rp-i18n.js', 'engine.js', 'rp-ui.js', 'obs.js', 'rp-tokens.css']: z.write(os.path.join(RAIZ, f), f)
 print('Publicado en:', RAIZ)

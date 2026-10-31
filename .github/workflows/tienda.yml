@@ -34,13 +34,13 @@ jobs:
           for v in ID CLIENTE SECRETO REFRESCO; do
             if [ -z "${!v}" ]; then echo "::error::Falta el secreto de la Chrome Web Store ($v). Ver el comentario al principio de tienda.yml."; exit 1; fi
           done
-          echo "Versión: $(unzip -p riftpulse-extension-tienda.zip manifest.json | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')"
+          echo "Versión: $(unzip -p descargas/riftpulse-extension-tienda.zip manifest.json | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')"
           TOKEN=$(curl -sS -X POST https://oauth2.googleapis.com/token \
             -d client_id="$CLIENTE" -d client_secret="$SECRETO" -d refresh_token="$REFRESCO" -d grant_type=refresh_token \
             | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("access_token") or sys.exit("No se obtuvo el token: " + json.dumps(d)))')
           echo "Subiendo el paquete…"
           R=$(curl -sS -X PUT -H "Authorization: Bearer $TOKEN" -H "x-goog-api-version: 2" \
-            -T riftpulse-extension-tienda.zip "https://www.googleapis.com/upload/chromewebstore/v1.1/items/$ID")
+            -T descargas/riftpulse-extension-tienda.zip "https://www.googleapis.com/upload/chromewebstore/v1.1/items/$ID")
           echo "$R"
           echo "$R" | python3 -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get("uploadState") in ("SUCCESS","IN_PROGRESS") else "La subida falló")'
           if [ "$PUBLICAR" = "true" ]; then

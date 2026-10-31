@@ -5,7 +5,7 @@ const {execFileSync} = require('child_process');
 const {montar, chequear, RAIZ, GEN} = require('./mocks');
 function descomprimir(zip) {
   const dest = path.join(GEN, zip || 'zip'); fs.rmSync(dest, {recursive: true, force: true}); fs.mkdirSync(dest, {recursive: true});
-  execFileSync('python3', ['-I', '-c', 'import sys,zipfile;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])', path.join(RAIZ, (zip ? 'riftpulse-extension-tienda' : 'riftpulse-extension') + '.zip'), dest]);
+  execFileSync('python3', ['-I', '-c', 'import sys,zipfile;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])', path.join(RAIZ, 'descargas', (zip ? 'riftpulse-extension-tienda' : 'riftpulse-extension') + '.zip'), dest]);
   return dest;  // los dos ZIP traen los archivos sueltos en la raíz
 }
 async function una(EXT, conScripts) {

@@ -16,7 +16,7 @@ node pruebas/todas.js t_feed
 
 En GitHub corren solas con cada cambio en `main`, junto con el linter (`.eslintrc.json`, cero errores y cero avisos): [Pruebas](../.github/workflows/pruebas.yml).
 
-## Las 14 baterías
+## Las 16 baterías
 
 | Prueba | Qué comprueba |
 |---|---|
@@ -34,11 +34,15 @@ En GitHub corren solas con cada cambio en `main`, junto con el linter (`.eslintr
 | `t_serie` | Una serie en vivo que avanza con la pestaña abierta: reconoce el juego 2; cuando empieza el juego 3 y lolesports todavía no publica sus datos, lo dice y espera sin mostrar otro partido; apenas aparecen, se sincroniza sola |
 | `t_previa` | La previa del próximo partido en vivo: mirando un VOD, la barra dice qué se juega en vivo o cuánto falta (la cuenta regresiva avanza); al tocarla se abre la previa (qué está en juego, datos clave, cómo llegan y versus histórico); en la previa de una transmisión de LoL sin juego en pantalla se ve sola, y en otros streams nada |
 | `t_espectador` | «Tu pronóstico» contra RiftPulse, «Para entender», la app instalable y la bienvenida de la extensión |
+| `t_consumo` | El consumo con el video corriendo: una sola copia del cuadro por lectura, pocos pedidos al feed, sin desenfoque sobre el video, sin tareas largas y el lector en reposo con el VOD en pausa |
+| `t_chat` | El chat contra el modelo (`&canal=`): se conecta al chat en modo anónimo, cuenta los votos, muestra la predicción y quién acertó, con ranking; y la Extensión de Twitch arranca sola en el modo mínimo |
 
 ## Herramientas
 
 | Script | Qué genera |
 |---|---|
+| `exactitud.js` | Con datos reales: si el reconocimiento elige el juego y los equipos correctos (acción «Exactitud del reconocimiento») |
+| `precision.js` | Con datos reales: la probabilidad a los minutos 10, 15 y 20 de cada juego del Mundial contra quién ganó (acción «Precisión pública» → `datos/precision.json`) |
 | `generar.py` | Los videos de prueba con un HUD dibujado a mano (en `pruebas/.gen/`, que no se sube) |
 | `mocks.js` | El simulador del feed de LoL Esports, de Data Dragon, de Twitch y de la página publicada |
 | `imagenes.js` | Las imágenes del README y de la wiki (`docs/img/`) |

@@ -1,5 +1,5 @@
 # Precisión pública: mide el modelo en cada juego terminado del Mundial actual (se lanza a mano). El JSON del registro
-# (línea PRECISION_JSON) se guarda en precision.json, que muestra precision.html.
+# (línea PRECISION_JSON) se guarda en datos/precision.json, que muestra precision.html.
 name: Precisión pública
 
 on:
