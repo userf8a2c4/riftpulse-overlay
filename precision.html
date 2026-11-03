@@ -78,7 +78,8 @@
     var b15 = brier('p15'), b20 = brier('p20');
     $('act').textContent = (EN ? 'Updated: ' : 'Actualizado: ') + new Date(d.actualizado).toLocaleString() +
       (b15 != null ? (EN ? ' · Brier score (0 is perfect, 0.25 is always saying 50 %): ' : ' · Error Brier (0 es perfecto; 0,25, decir siempre 50 %): ') + (EN ? 'min 15 ' : 'min 15 ') + b15.toFixed(3) + (b20 != null ? ' · min 20 ' + b20.toFixed(3) : '') : '') +
-      (EN ? ' · ± is the 95 % margin of error.' : ' · El ± es el margen de error al 95 %.');
+      (EN ? ' · ± is the 95 % margin of error.' : ' · El ± es el margen de error al 95 %.') +
+      (d.fuerza ? (EN ? ' No hindsight: each game uses team strength from before that match.' : ' Sin trampas: cada juego se mide con la fuerza de los equipos de antes de ese partido.') : '');
     // calibración al min 15: la probabilidad del favorito, en grupos
     var grupos = [[0.5, 0.6], [0.6, 0.7], [0.7, 0.8], [0.8, 0.9], [0.9, 1.01]];
     $('cal').innerHTML = grupos.map(function (gr) {
