@@ -2277,7 +2277,7 @@ function renderInicio() {
     const pB = Math.round(G.wp.p * 100), lider = pB >= 50 ? 'blue' : 'red';
     h += `<div class="iv-top">${logoT(A)}<b>${esc(A.code)}</b><span class="iv-sc">${serieTxt}</span><b>${esc(B.code)}</b>${logoT(B)}
         <span class="badge ${G.ended ? 'end' : 'live'}">${G.ended ? 'TERMINADO' : 'EN VIVO'}</span><span class="pm">· ${esc(M.block || '')} · Juego ${n}</span></div>
-      <div class="ah-big"><div class="ah-pct"><b class="${lider[0]}">${esc(code(lider))}</b> <span class="ah-num">${Math.max(pB, 100 - pB)}%</span><span class="pm">${G.ended ? 'al final' : 'de ganar el juego'}</span></div>
+      <div class="ah-big"><div class="ah-pct"><b class="${lider[0]}">${esc(code(lider))}</b> <span class="ah-num">${Math.max(pB, 100 - pB)}%</span><span class="pm">${G.ended ? 'al final' : 'de ganar el juego'}</span><button class="ts-i" data-act="transp" title="¿Cómo se calcula este número?" aria-label="¿Cómo se calcula este número?">ⓘ</button></div>
         <div class="hero-clock"><span class="hc-t" id="iniReloj">${mmss(gt)}</span></div></div>
       ${predBar(G.wp.p, cb, cr)}
       ${ctxAhora()}
@@ -2584,9 +2584,61 @@ document.addEventListener('click', e => {
     pintarSpx(); $('#titulo').dataset.k = ''; renderCuadro(); renderHistList(); renderHead(); renderInicio(); renderAvisos(); if (!$('#vistaMando').hidden) renderMando();
     status(arg ? '🙈 Resultados ocultos. Tocá un marcador para verlo.' : 'Resultados visibles.', false, 4000);
   }
+  else if (act === 'transp') { const hm = $('#hmenu'); if (hm) hm.open = false; abrirTransp(); }
+  else if (act === 'transp-x') { const d = $('#transp'); if (d && d.open) d.close(); }
   else if (act === 'sharepickem') sharePickem();
   else if (act === 'sharepron') { const [a, b, bo, ev] = arg.split('|'); sharePron(a, b, +bo, ev); }
 });
+
+// ---------- «ⓘ ¿cómo se calcula?»: la transparencia en la misma app, para leer en 10 segundos ----------
+// Todo sale de lo que usa el modelo de verdad: las razones del número de ahora (G.wp.parts), los pesos del minuto (modelW)
+// y el acierto medido (RiftEngine.PRECISION y datos/precision.json).
+let TPREC = null;
+function abrirTransp() {
+  const d = $('#transp'); if (!d) return;
+  renderTransp();
+  if (!d.open) { if (d.showModal) d.showModal(); else d.setAttribute('open', ''); }
+  if (!TPREC) fetch('https://userf8a2c4.github.io/riftpulse-overlay/datos/precision.json?v=' + Math.floor(Date.now() / 6e5)).then(r => r.ok ? r.json() : null).then(j => {
+    const v = ((j && j.juegos) || []).filter(g => g.p15 != null && g.p15 !== 0.5); if (!v.length) return;
+    TPREC = {ok: v.filter(g => (g.p15 > 0.5) === (g.gana === g.azul)).length, n: v.length}; if (d.open) renderTransp();
+  }).catch(() => {});
+}
+function renderTransp() {
+  const d = $('#transp'); if (!d) return;
+  const vivo = !!(G && G.wp && G.last && M), cb = vivo ? code('blue') : '', cr = vivo ? code('red') : '';
+  // 1. este número: lo que lo empuja ahora
+  let uno;
+  if (vivo) {
+    const pB = Math.round(G.wp.p * 100), lid = pB >= 50 ? 'blue' : 'red', ps = (G.wp.parts || []).slice(0, 4), mx = Math.max(0.3, ...ps.map(x => Math.abs(x.z)));
+    uno = `<div class="ts-big"><b class="${lid[0]}">${esc(code(lid))}</b><span>${Math.max(pB, 100 - pB)}%</span></div>` +
+      ps.map(x => `<div class="ts-row"><span class="ts-l">${esc(x.txt)}</span><span class="ts-bar"><i class="${x.z >= 0 ? 'ts-b' : 'ts-r'}" style="width:${Math.max(6, Math.round(Math.abs(x.z) / mx * 100))}%"></i></span><b class="${x.z >= 0 ? 'b' : 'r'}">${esc(x.z >= 0 ? cb : cr)}</b></div>`).join('');
+  } else uno = '<div class="pm">Con un juego en vivo, acá ves qué empuja el número.</div>';
+  // 2. qué pesa más en este minuto (los pesos reales del modelo, en puntos desde un juego parejo)
+  let dos = '';
+  if (MODELO) {
+    const min = vivo ? Math.max(1, Math.round(gtNow() / 60)) : 15, w = modelW(min), pt = z => Math.round((1 / (1 + Math.exp(-z)) - 0.5) * 100);
+    const filas = [['1k de oro', w[2]], ['1 dragón', w[7]], ['+100 de fuerza', w[1] * 100 * Math.LN10 / 400 * MODELO.pre.w[1]], ['1 torre', w[4]], ['1 Barón', w[6]], ['1 inhibidor', w[5]]]
+      .map(([l, z]) => [l, pt(z)]).filter(f => f[1] >= 1).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const m2 = Math.max(1, ...filas.map(f => f[1]));
+    dos = `<h3>Qué pesa más <span class="pm">· min ${min}</span></h3>` + filas.map(f => `<div class="ts-row"><span class="ts-l">${f[0]}</span><span class="ts-bar"><i class="ts-g" style="width:${Math.round(f[1] / m2 * 100)}%"></i></span><b>+${f[1]}</b></div>`).join('') +
+      '<div class="pm ts-n">puntos de probabilidad, desde un juego parejo</div>';
+  }
+  // 3. ¿le creo? el acierto medido, sin mirar el futuro
+  const P = window.RiftEngine && RiftEngine.PRECISION, n = TPREC ? TPREC.n : P ? P.juegos : 0, q = TPREC ? TPREC.ok / TPREC.n : P ? P.acc15 : 0;
+  const mg = n ? Math.round(1.96 * Math.sqrt(q * (1 - q) / n) * 100) : 0;
+  const tres = `<div class="ts-kpis"><div><b>${Math.round(q * 100)}%</b><span>${TPREC ? 'acierta al min 15 en este Mundial' : 'acierta al min 15'}</span></div>
+    <div><b>${n}</b><span>${TPREC ? 'juegos medidos' : 'juegos que nunca vio'}</span></div><div><b>±${mg}</b><span>margen de error</span></div></div>
+    <div class="pm ts-n">Medido sin mirar el futuro. Solo cambia si baja el error.</div>`;
+  // 4. qué no ve
+  const cuatro = '<div class="ts-chips"><span>📍 Posiciones</span><span>👁 Visión</span><span>⏱ Reapariciones</span><span>🧠 Lo humano</span></div>';
+  d.innerHTML = `<div class="ts-hd"><h2 id="tsTit">¿Cómo se calcula?</h2><button class="idet-x" data-act="transp-x" aria-label="Cerrar">✕</button></div>
+    <section><h3>Este número</h3>${uno}</section>
+    ${dos ? `<section>${dos}</section>` : ''}
+    <section><h3>¿Le creo?</h3>${tres}</section>
+    <section><h3>Qué no ve</h3>${cuatro}</section>
+    <a class="ts-mas" href="https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html" target="_blank" rel="noopener">Todo el detalle, con fórmulas →</a>`;
+}
+(() => { const d = $('#transp'); if (d) d.addEventListener('click', e => { if (e.target === d) d.close(); }); })();  // tocar afuera la cierra
 
 // ---------- centro de mando: operar el stream en vivo (streamers y analistas) ----------
 // Usa el motor compartido (engine.js): las mismas frases, giros y simulaciones que la mesa de análisis y el overlay.

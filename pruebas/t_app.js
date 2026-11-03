@@ -135,6 +135,17 @@ module.exports = async function () {
   ok = chequear('panel lateral: sigue el juego del video', p0 === 'g1', p0 || 'nada') && ok;
   ok = chequear('panel lateral: un mensaje suelto con otros equipos no lo cambia; dos seguidos, sí', p1 === 'g1' && p2 === 'k1', p1 + ' → ' + p2) && ok;
   ok = chequear('panel lateral: en una transmisión en vivo, un juego que no es el que se juega (un clip) se ignora', p3 === 'k1', p3) && ok;
+  // «ⓘ ¿cómo se calcula?»: la transparencia en la misma app, sin abrir otra pestaña
+  const ct = await b.newContext({viewport: {width: 420, height: 900}}); await montar(ct);
+  const pt = await ct.newPage(); await pt.goto(BASE + 'app.html'); await pt.waitForTimeout(7000);
+  await pt.click('.ts-i'); await pt.waitForTimeout(800);
+  const tv = await pt.evaluate(() => { const d = document.getElementById('transp'); return {open: d.open, secs: d.querySelectorAll('section').length, barras: d.querySelectorAll('section .ts-row').length,
+    cabe: d.scrollWidth <= d.clientWidth + 1, kpis: d.querySelectorAll('.ts-kpis b').length, mas: !!d.querySelector('a.ts-mas[href*="como-funciona"]')}; });
+  await pt.keyboard.press('Escape'); await pt.waitForTimeout(300);
+  const cerro = await pt.evaluate(() => !document.getElementById('transp').open);
+  ok = chequear('ⓘ junto al porcentaje: abre «¿Cómo se calcula?» en la misma app (este número, qué pesa más, ¿le creo?, qué no ve)', tv.open && tv.secs === 4 && tv.barras >= 2 && tv.kpis === 3 && tv.mas, JSON.stringify(tv)) && ok;
+  ok = chequear('«¿Cómo se calcula?»: entra en 420 px y se cierra con Esc', tv.cabe && cerro, JSON.stringify({cabe: tv.cabe, cerro})) && ok;
+  await ct.close();
   await b.close(); return ok;
 };
 if (require.main === module) module.exports().then(ok => process.exit(ok ? 0 : 1));

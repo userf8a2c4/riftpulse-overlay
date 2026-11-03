@@ -81,6 +81,10 @@
   .pesos td.pos{color:var(--ok)}.pesos td.neg{color:var(--team-b-txt)}
   .formula{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px;background:var(--s3);border:1px solid var(--line2);border-radius:6px;padding:10px 12px;margin:8px 0;overflow-x:auto;white-space:pre-wrap}
   .paso3{margin:16px 0}.paso3 h3{font-family:Saira Condensed,sans-serif;font-size:18px;letter-spacing:.6px;margin:0 0 4px}
+  details.fx{margin:4px 0 0}details.fx>summary{cursor:pointer;color:var(--link);font-size:13.5px;list-style:none}details.fx>summary::-webkit-details-marker{display:none}
+  details.fx>summary::before{content:"▸ "}details.fx[open]>summary::before{content:"▾ "}
+  #smedir .lista,#snove .lista{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+  #smedir .lista li,#snove .lista li{background:var(--s3);border:1px solid var(--line2);border-radius:6px;padding:10px 12px;margin:0}
   footer{margin-top:30px;color:var(--muted);font-size:12.5px}
 </style>
 <link rel="stylesheet" href="rp-design.css">
@@ -378,6 +382,20 @@
     '<li><b>' + L('Los tiempos.', 'Timers.') + '</b> ' + L('Ni las habilidades definitivas listas, ni cuánto falta para que reaparezca cada jugador justo antes de un Barón.', 'Neither ultimates being up, nor how long until each player respawns right before a Baron.') + '</li>' +
     '<li><b>' + L('Lo humano.', 'The human side.') + '</b> ' + L('La comunicación, los nervios, un parche recién salido o un campeón sorpresa.', 'Comms, nerves, a fresh patch or a surprise champion.') + '</li>' +
     '</ul><p class="note">' + L('Por eso es una probabilidad y no una certeza: 75 % quiere decir que, de cada 4 juegos parecidos, 1 lo gana el otro.', 'That is why it is a probability, not a certainty: 75 % means that out of 4 similar games, the other team wins 1.') + '</p>';
+
+  // menos texto a la vista: lo largo queda plegado («Ver la fórmula», «Leer más»), lo corto se ve de entrada
+  var plegar = function (antes, els, txt) {
+    if (!els.length) return; var d = document.createElement('details'); d.className = 'fx'; var sm = document.createElement('summary'); sm.textContent = txt; d.appendChild(sm);
+    antes.parentNode.insertBefore(d, antes.nextSibling); els.forEach(function (e) { d.appendChild(e); });
+  };
+  document.querySelectorAll('#sformulas .paso3').forEach(function (p) {
+    var h = p.querySelector('h3'), els = [].slice.call(p.children).filter(function (e) { return e !== h; }); plegar(h, els, L('Ver la fórmula', 'See the formula'));
+  });
+  var nota = document.querySelector('#spesos .note'); if (nota) plegar(document.querySelector('#spesos .pesos'), [nota], L('Cómo leer la tabla', 'How to read the table'));
+  document.querySelectorAll('#smedir .lista li, #snove .lista li').forEach(function (li) {
+    var b = li.querySelector('b'), resto = [].slice.call(li.childNodes).filter(function (n) { return n !== b && (n.nodeType === 1 || n.textContent.trim()); });
+    var sp = document.createElement('span'); resto.forEach(function (n) { sp.appendChild(n); }); plegar(b, [sp], L('Leer más', 'Read more'));
+  });
 
   // el acierto del Mundial, al día (de datos/precision.json)
   fetch('datos/precision.json?v=' + Math.floor(Date.now() / 6e5)).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
