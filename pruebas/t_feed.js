@@ -10,9 +10,10 @@ module.exports = async function () {
   let v = await ver();
   ok = chequear('con datos normales muestra la probabilidad y ninguna insignia', /%/.test(v.barra) && !v.ins, v.barra.replace(/\s+/g, ' ').slice(0, 60)) && ok;
   ok = chequear('?delay=30 en la URL se aplica', v.delay === 30, v.delay + ' s') && ok;
-  st.modo = 'caido'; await p.waitForTimeout(9000); v = await ver();
+  // con retraso casi todo sale del caché: un fallo se nota recién con el próximo pedido nuevo (cada tramo de 10 s), así que se espera la insignia hasta 16 s
+  st.modo = 'caido'; for (let i = 0; i < 16; i++) { await p.waitForTimeout(1000); v = await ver(); if (/SIN DATOS NUEVOS/i.test(v.ins)) break; }
   ok = chequear('feed caído: mantiene la última predicción', /%/.test(v.barra)) && ok;
-  ok = chequear('feed caído: insignia «Sin datos nuevos»', /SIN DATOS NUEVOS/i.test(v.ins), v.ins) && ok;
+  ok = chequear('feed caído: insignia «Sin datos nuevos» (en menos de 16 s)', /SIN DATOS NUEVOS/i.test(v.ins), v.ins) && ok;
   st.modo = 'ok'; await p.waitForTimeout(6000); v = await ver();
   ok = chequear('feed de vuelta: la insignia se va sola', !v.ins && v.estado === 'ok', v.estado) && ok;
   // un juego en curso que lolesports todavía no publica: nunca «Datos al día» sin datos

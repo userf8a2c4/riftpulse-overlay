@@ -798,7 +798,8 @@
   function feedState() {
     var edad = NET.okAt ? Math.round((Date.now() - NET.okAt) / 1000) : null;
     if (DEMO) return {estado: 'demo', txt: 'DEMO · partido ya jugado', edad: edad};
-    if (NET.errs >= 2) return {estado: 'caido', txt: 'Sin datos nuevos', edad: edad};
+    // caído: dos fallos seguidos, o uno y más de 8 s sin una respuesta buena (con retraso casi todo sale del caché y los pedidos nuevos son pocos)
+    if (NET.errs >= 2 || (NET.errs >= 1 && edad != null && edad > 8)) return {estado: 'caido', txt: 'Sin datos nuevos', edad: edad};
     if (!M) return {estado: 'sin_partido', txt: 'Esperando partido', edad: edad};
     if (enPausa()) return {estado: 'pausa', txt: 'Juego en pausa', edad: edad};
     if (G && (G.waiting || (!G.start && !G.loading))) return {estado: 'esperando', txt: L('Esperando los datos de este juego', 'Waiting for this game\'s data'), edad: edad};
