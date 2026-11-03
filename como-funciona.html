@@ -72,6 +72,15 @@
   .dos{display:grid;grid-template-columns:1fr 1fr;gap:18px}
   @media(max-width:760px){.dos{grid-template-columns:1fr}}
   .si{color:var(--ok);font-weight:700}.no{color:var(--team-b-txt);font-weight:700}
+  .t30{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}@media(max-width:760px){.t30{grid-template-columns:1fr}}
+  .t30 div{background:var(--s3);border:1px solid var(--line2);border-radius:6px;padding:14px}
+  .t30 b{display:block;font-family:Saira Condensed,sans-serif;font-size:17px;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px}
+  .capas{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;font-size:14px}
+  .capas a{border:1px solid var(--line2);border-radius:999px;padding:5px 12px;text-decoration:none}
+  .pesos{overflow-x:auto}.pesos td.n{text-align:right}.pesos th.n{text-align:right}
+  .pesos td.pos{color:var(--ok)}.pesos td.neg{color:var(--team-b-txt)}
+  .formula{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px;background:var(--s3);border:1px solid var(--line2);border-radius:6px;padding:10px 12px;margin:8px 0;overflow-x:auto;white-space:pre-wrap}
+  .paso3{margin:16px 0}.paso3 h3{font-family:Saira Condensed,sans-serif;font-size:18px;letter-spacing:.6px;margin:0 0 4px}
   footer{margin-top:30px;color:var(--muted);font-size:12.5px}
 </style>
 <link rel="stylesheet" href="rp-design.css">
@@ -90,6 +99,8 @@
     <h1>Cómo funciona</h1>
     <p>RiftPulse mira el mismo partido que vos y responde una pregunta: <b>¿quién va ganando, y por cuánto?</b> Acá está todo lo que hace para llegar a ese número, qué tan seguido acierta y en qué casos se equivoca.</p>
   </div>
+
+  <section class="card" id="s30"></section>
 
   <section class="card">
     <h2>En tres pasos</h2>
@@ -156,6 +167,11 @@
     <p class="note"><b>Error Brier:</b> mide qué tan buenas son las probabilidades, no solo si acierta. Decir 95 % y fallar suma mucho error; decir 60 % y fallar, poco. Una moneda da 0,250: menos es mejor. Por eso, en la barra del overlay, el número de acierto cambia con el minuto del juego.</p>
     <p class="note"><b>La banda clara del gráfico:</b> alrededor de la línea de probabilidad hay una franja que se angosta a medida que avanza el juego. Su ancho sale de este acierto medido en cada minuto: es ancha al principio, cuando el modelo acierta 62 %, y fina al final, cuando acierta más de 83 %. Es una guía de cuánta confianza darle al número en ese momento, no un intervalo estadístico.</p>
   </section>
+
+  <section class="card" id="spesos"></section>
+  <section class="card" id="sformulas"></section>
+  <section class="card" id="smedir"></section>
+  <section class="card" id="snove"></section>
 
   <section class="card">
     <div class="dos">
@@ -271,6 +287,106 @@
   document.getElementById('curva').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Acierto del modelo según el minuto">' + g +
     '<line x1="' + P + '" x2="' + (W - 10) + '" y1="' + Y(0.5) + '" y2="' + Y(0.5) + '" stroke="'+RPC.btxt+'" stroke-dasharray="4 4" opacity=".6"/><text x="' + (W - 12) + '" y="' + (Y(0.5) - 6) + '" fill="'+RPC.btxt+'" font-size="12" text-anchor="end">una moneda</text>' +
     '<path d="' + path + '" fill="none" stroke="'+RPC.a+'" stroke-width="3"/>' + dots + '</svg>';
+})();
+</script>
+<script>
+// Transparencia por capas: todo sale de lo que usa el motor de verdad (RiftEngine.MODELO, RiftEngine.elo) y de datos/precision.json
+(function () {
+  'use strict';
+  var R = window.RiftEngine, M = R && R.MODELO; if (!M) return;
+  var EN = window.RPI18N && RPI18N.lang() === 'en', L = function (es, en) { return EN ? en : es; };
+  var $ = function (i) { return document.getElementById(i); };
+  var GH = 'https://github.com/userf8a2c4/riftpulse-overlay/blob/main/';
+  var sig = function (z) { return 1 / (1 + Math.exp(-z)); };
+  var pts = function (z) { var v = Math.round((sig(z) - 0.5) * 1000) / 10; return v; };
+  var num = function (v) { return (v > 0 ? '+' : v < 0 ? '−' : '') + String(Math.abs(v)).replace('.', EN ? '.' : ','); };
+  var pc = function (x) { return Math.round(x * 100) + ' %'; };
+  var P = R.PRECISION, miles = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, EN ? ',' : '.'); };
+
+  // ---------- capa 1: en 30 segundos ----------
+  $('s30').innerHTML = '<h2>' + L('En 30 segundos', 'In 30 seconds') + '</h2><div class="t30">' +
+    '<div><b>' + L('Qué mira', 'What it reads') + '</b>' + L('El oro, las kills, las torres, los dragones, el Barón y los inhibidores de cada equipo (del feed oficial, cada 2 s), más la fuerza de los equipos y el draft.',
+      'Each team\'s gold, kills, towers, dragons, Baron and inhibitors (from the official feed, every 2 s), plus team strength and the draft.') + '</div>' +
+    '<div><b>' + L('Cómo decide', 'How it decides') + '</b>' + L('Lo compara con lo que pasó en ' + miles(M.juegos) + ' juegos profesionales en el mismo minuto: «con esta ventaja, a esta altura, ¿cuántas veces ganó el que iba arriba?».',
+      'It compares it with what happened in ' + miles(M.juegos) + ' pro games at the same minute: «with this lead, at this point, how often did the leading team win?».') + '</div>' +
+    '<div><b>' + L('Cuánto acierta', 'How often it is right') + '</b><span id="s30acc">' + L('Al minuto 15, el ' + pc(P.acc15) + ' en ' + P.juegos + ' juegos que nunca vio.', 'At minute 15, ' + pc(P.acc15) + ' over ' + P.juegos + ' games it never saw.') + '</span> <a href="precision.html">' + L('Todos los juegos del Mundial →', 'Every Worlds game →') + '</a></div></div>' +
+    '<p class="note">' + L('Todo está a la vista, por capas: empezá por arriba y bajá hasta donde te interese.', 'Everything is in plain sight, in layers: start at the top and go as deep as you like.') + '</p>' +
+    '<div class="capas"><a href="#spesos">' + L('Cuánto pesa cada cosa', 'How much each thing weighs') + '</a><a href="#sformulas">' + L('Paso a paso, con fórmulas', 'Step by step, with formulas') + '</a><a href="#smedir">' + L('Cómo lo medimos', 'How we measure it') + '</a><a href="#snove">' + L('Qué no ve', 'What it can\'t see') + '</a><a href="' + GH.replace('/blob/main/', '') + '" target="_blank" rel="noopener">' + L('El código', 'The code') + '</a></div>';
+
+  // ---------- capa 2: cuánto pesa cada cosa (con los pesos reales del motor) ----------
+  var MIN = Object.keys(M.min).map(Number).sort(function (a, b) { return a - b; });
+  var eloZ = 100 * Math.LN10 / 400 * M.pre.w[1];  // 100 puntos de fuerza, en la escala de la previa
+  var FILAS = [
+    [L('Jugar del lado azul', 'Playing on blue side'), function (w) { return w[0]; }],
+    [L('100 puntos más de fuerza (Elo)', '100 more strength points (Elo)'), function (w) { return w[1] * eloZ; }],
+    [L('1.000 de oro de ventaja', '1,000 gold lead'), function (w) { return w[2]; }],
+    [L('5 kills más', '5 more kills'), function (w) { return w[3]; }],
+    [L('1 torre más', '1 more tower'), function (w) { return w[4]; }],
+    [L('1 inhibidor más', '1 more inhibitor'), function (w) { return w[5]; }],
+    [L('1 Barón más', '1 more Baron'), function (w) { return w[6]; }],
+    [L('1 dragón más', '1 more dragon'), function (w) { return w[7]; }],
+    [L('Alma de dragón', 'Dragon soul'), function (w) { return w[8]; }],
+    [L('Punto de alma', 'Soul point'), function (w) { return w[9]; }],
+    [L('Dragón Ancestral', 'Elder Dragon'), function (w) { return w[10]; }]
+  ];
+  var celda = function (z) { var v = pts(z); return '<td class="n ' + (v > 0.05 ? 'pos' : v < -0.05 ? 'neg' : '') + '">' + (Math.abs(v) < 0.05 ? '0' : num(v)) + '</td>'; };
+  $('spesos').innerHTML = '<h2>' + L('Cuánto pesa cada cosa', 'How much each thing weighs') + '</h2>' +
+    '<p class="lead">' + L('Estos son los pesos que usa el motor ahora mismo (salen del mismo archivo, así que nunca quedan viejos). Cada número dice cuántos <b>puntos de probabilidad</b> suma eso solo, partiendo de un juego parejo (50 %).',
+      'These are the weights the engine uses right now (read from the same file, so they never go stale). Each number says how many <b>probability points</b> that alone adds, starting from an even game (50 %).') + '</p>' +
+    '<div class="pesos"><table><thead><tr><th>' + L('Si un equipo tiene…', 'If a team has…') + '</th>' + MIN.map(function (m) { return '<th class="n">' + L('Min ', 'Min ') + m + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    FILAS.map(function (f) { return '<tr><td>' + f[0] + '</td>' + MIN.map(function (m) { return celda(f[1](M.min[m])); }).join('') + '</tr>'; }).join('') + '</tbody></table></div>' +
+    '<p class="note">' + L('Cómo leerla: el oro es lo que más pesa y la fuerza previa se va apagando con los minutos. Algunas cosas suman 0 o un poco en contra: no es que no importen, es que el oro ya las incluye (una torre o unas kills ya dieron oro) y el modelo no las cuenta dos veces. Los efectos no se suman exacto en puntos (se suman antes de pasar a porcentaje), pero dan la idea. El modelo también usa la curva del draft, que no entra en la tabla porque no tiene una unidad simple.',
+      'How to read it: gold weighs the most and pre-game strength fades as minutes pass. Some things add 0 or slightly negative: not because they don\'t matter, but because gold already includes them (a tower or some kills already gave gold) and the model doesn\'t count them twice. Effects don\'t add up exactly in points (they add before becoming a percentage), but it gives the idea. The model also uses the draft curve, left out of the table because it has no simple unit.') + '</p>';
+
+  // ---------- capa 3: paso a paso, con fórmulas ----------
+  var w = M.pre.w.map(function (v) { var t = Math.abs(v).toFixed(2); return (v < 0 ? '− ' : '') + (EN ? t : t.replace('.', ',')); });
+  var mas = function (i) { return M.pre.w[i] < 0 ? ' ' : ' + '; };
+  $('sformulas').innerHTML = '<h2>' + L('Paso a paso, con fórmulas', 'Step by step, with formulas') + '</h2>' +
+    '<div class="paso3"><h3>1 · ' + L('La fuerza de cada equipo (Elo)', 'Each team\'s strength (Elo)') + '</h3><p>' + L('Con los resultados de 2025–26 de todas las ligas. Después de cada serie:', 'From 2025–26 results of every league. After each series:') + '</p>' +
+    '<div class="formula">' + L('esperado = 1 / (1 + 10^(−(fuerzaA − fuerzaB) / 400))\nfuerzaA += K × (mapas ganados − mapas jugados × esperado)      K = 24 (32 en internacionales)\nfuerza = Elo + ajuste de la región (Corea, China, EMEA…; se mueve 25 % con cada cruce internacional)\ncada temporada nueva: Elo = 1500 + 0,7 × (Elo − 1500)',
+      'expected = 1 / (1 + 10^(−(strengthA − strengthB) / 400))\nstrengthA += K × (maps won − maps played × expected)      K = 24 (32 at internationals)\nstrength = Elo + region adjustment (Korea, China, EMEA…; moves 25 % with each international clash)\neach new season: Elo = 1500 + 0.7 × (Elo − 1500)') + '</div>' +
+    '<p class="note">' + L('La misma cuenta corre en la app, en OBS y en la extensión; una acción la actualiza cada día en', 'The same math runs in the app, OBS and the extension; an action refreshes it daily in') + ' <a href="datos/fuerza.json">datos/fuerza.json</a>. ' + L('Código:', 'Code:') + ' <a href="' + GH + 'engine.js" target="_blank" rel="noopener">engine.js · ELO</a></p></div>' +
+    '<div class="paso3"><h3>2 · ' + L('La previa (antes del juego)', 'The pre-game') + '</h3>' +
+    '<div class="formula">' + L('z₀ = ' + w[0] + ' (lado azul)' + mas(1) + w[1] + ' × diferencia de fuerza' + mas(2) + w[2] + ' × tipo de daño' + mas(3) + w[3] + ' × frontline' + mas(4) + w[4] + ' × curva del draft',
+      'z₀ = ' + w[0] + ' (blue side)' + mas(1) + w[1] + ' × strength gap' + mas(2) + w[2] + ' × damage type' + mas(3) + w[3] + ' × frontline' + mas(4) + w[4] + ' × draft curve') + '</div>' +
+    '<p class="note">' + L('La diferencia de fuerza va en la escala del Elo (×ln10/400). «Tipo de daño»: si un draft es casi todo físico o todo mágico. «Frontline»: si no tiene ningún tanque. «Curva»: si sus campeones rinden más temprano o tarde, según datos pro.',
+      'The strength gap is on the Elo scale (×ln10/400). «Damage type»: whether a draft is almost all physical or all magic. «Frontline»: whether it has no tank. «Curve»: whether its champions perform better early or late, from pro data.') + '</p></div>' +
+    '<div class="paso3"><h3>3 · ' + L('En vivo, minuto a minuto', 'Live, minute by minute') + '</h3>' +
+    '<div class="formula">' + L('z = w₀(min) + w₁(min) × previa + w₂(min) × oro/1000 + w₃(min) × kills/5 + … + w₁₁(min) × curva del draft\nprobabilidad del azul = 1 / (1 + e^(−z))',
+      'z = w₀(min) + w₁(min) × pre-game + w₂(min) × gold/1000 + w₃(min) × kills/5 + … + w₁₁(min) × draft curve\nblue win probability = 1 / (1 + e^(−z))') + '</div>' +
+    '<p class="note">' + L('Es una regresión logística entrenada por separado en los minutos 10, 15, 20 y 25 (la tabla de arriba); entre medio, los pesos se interpolan, y en el minuto 0 solo cuenta la previa. Nunca dice más de 99 % ni menos de 1 %. Código:',
+      'It is a logistic regression trained separately at minutes 10, 15, 20 and 25 (the table above); in between, weights are interpolated, and at minute 0 only the pre-game counts. It never says more than 99 % or less than 1 %. Code:') + ' <a href="' + GH + 'engine.js" target="_blank" rel="noopener">engine.js · winProb</a> · <a href="' + GH + 'modelo/entrenar.py" target="_blank" rel="noopener">modelo/entrenar.py</a></p></div>' +
+    '<div class="paso3"><h3>4 · ' + L('La serie', 'The series') + '</h3>' +
+    '<div class="formula">' + L('P(serie) = p × P(si gana este juego) + (1 − p) × P(si lo pierde)\nlos mapas que faltan: 1 / (1 + 10^(−(fuerzaA − fuerzaB) / 400))', 'P(series) = p × P(if it wins this game) + (1 − p) × P(if it loses it)\nremaining maps: 1 / (1 + 10^(−(strengthA − strengthB) / 400))') + '</div></div>';
+
+  // ---------- capa 4: cómo lo medimos ----------
+  $('smedir').innerHTML = '<h2>' + L('Cómo lo medimos', 'How we measure it') + '</h2>' +
+    '<ul class="lista">' +
+    '<li><b>' + L('Con juegos que el modelo nunca vio.', 'On games the model never saw.') + '</b> ' + L('Se entrena con lo anterior a una fecha y se mide en lo posterior: ' + P.juegos + ' juegos (agosto a octubre de 2026) y, en noviembre, otros 712 para confirmarlo.', 'It is trained on everything before a date and measured on what came after: ' + P.juegos + ' games (August to October 2026) and, in November, another 712 to confirm it.') + '</li>' +
+    '<li><b>' + L('Con el error Brier, no solo el acierto.', 'With the Brier score, not just accuracy.') + '</b> ' + L('Es el error de la probabilidad al cuadrado: decir 90 % y perder cuesta mucho; decir 55 % y perder, poco. Una moneda da 0,25; menos es mejor.', 'It is the squared error of the probability: saying 90 % and losing costs a lot; saying 55 % and losing, little. A coin scores 0.25; lower is better.') + '</li>' +
+    '<li><b>' + L('En el Mundial, sin mirar el futuro.', 'At Worlds, without hindsight.') + '</b> <span id="smund">' + L('Cada juego se mide con la fuerza de los equipos de antes de ese partido.', 'Each game is measured with team strength from before that match.') + '</span> <a href="precision.html">' + L('Ver todos los juegos →', 'See every game →') + '</a></li>' +
+    '<li><b>' + L('Lo que probamos y no sirvió.', 'What we tried that didn\'t help.') + '</b> ' + L('En noviembre probamos, una por una: la fuerza con ajuste por región dentro del juego, la tendencia del oro de los últimos 3 minutos, el oro de mid y ADC, el oro según el draft, cómo va la serie y darle más peso a lo reciente. Antes, nivel, CS, wards e ítems. Ninguna bajó el error, así que el modelo sigue igual. Solo entra lo que mejora.',
+      'In November we tried, one by one: region-adjusted strength inside the game, the gold trend of the last 3 minutes, mid and ADC gold, gold by draft, series state and weighting recent games more. Before that, level, CS, wards and items. None lowered the error, so the model stays as is. Only what improves gets in.') + '</li>' +
+    '<li><b>' + L('Un error que corregimos.', 'A mistake we fixed.') + '</b> ' + L('Hasta noviembre, la página de precisión decía 78 % al minuto 15 en el Mundial, pero se medía con una fuerza de los equipos que ya conocía los resultados (incluido el del propio juego). Medido bien da menos, y es lo que publicamos ahora. También descubrimos que OBS y la extensión sin panel usaban una fuerza más pobre: al arreglarlo, el acierto al minuto 10 en el Mundial pasó de 63 % a 71 %.',
+      'Until November, the accuracy page said 78 % at minute 15 at Worlds, but it was measured with team strength that already knew the results (including that very game\'s). Measured properly it is lower, and that is what we publish now. We also found OBS and the extension without the panel used a poorer strength: fixing it took Worlds accuracy at minute 10 from 63 % to 71 %.') + '</li>' +
+    '</ul><p class="note">' + L('Las pruebas son públicas:', 'The tests are public:') + ' <a href="' + GH + 'pruebas/precision.js" target="_blank" rel="noopener">pruebas/precision.js</a> · <a href="' + GH + 'modelo/entrenar.py" target="_blank" rel="noopener">modelo/entrenar.py</a></p>';
+
+  // ---------- capa 5: qué no ve ----------
+  $('snove').innerHTML = '<h2>' + L('Qué no ve', 'What it can\'t see') + '</h2><ul class="lista">' +
+    '<li><b>' + L('Dónde está cada jugador.', 'Where each player is.') + '</b> ' + L('El feed oficial no da posiciones: no sabe si alguien está mal parado o quién tiene prioridad en el río.', 'The official feed has no positions: it can\'t tell if someone is caught out or who has river priority.') + '</li>' +
+    '<li><b>' + L('La visión.', 'Vision.') + '</b> ' + L('Sabe cuántas wards se pusieron, pero no dónde; contarlas no mejoró la predicción.', 'It knows how many wards were placed, but not where; counting them didn\'t improve predictions.') + '</li>' +
+    '<li><b>' + L('Los tiempos.', 'Timers.') + '</b> ' + L('Ni las habilidades definitivas listas, ni cuánto falta para que reaparezca cada jugador justo antes de un Barón.', 'Neither ultimates being up, nor how long until each player respawns right before a Baron.') + '</li>' +
+    '<li><b>' + L('Lo humano.', 'The human side.') + '</b> ' + L('La comunicación, los nervios, un parche recién salido o un campeón sorpresa.', 'Comms, nerves, a fresh patch or a surprise champion.') + '</li>' +
+    '</ul><p class="note">' + L('Por eso es una probabilidad y no una certeza: 75 % quiere decir que, de cada 4 juegos parecidos, 1 lo gana el otro.', 'That is why it is a probability, not a certainty: 75 % means that out of 4 similar games, the other team wins 1.') + '</p>';
+
+  // el acierto del Mundial, al día (de datos/precision.json)
+  fetch('datos/precision.json?v=' + Math.floor(Date.now() / 6e5)).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+    if (!d || !d.juegos || !d.juegos.length) return;
+    var v = d.juegos.filter(function (g) { return g.p15 != null && g.p15 !== 0.5; }), ok = v.filter(function (g) { return (g.p15 > 0.5) === (g.gana === g.azul); }).length;
+    if (!v.length) return;
+    var t = L('En este Mundial, el ' + pc(ok / v.length) + ' al minuto 15 (' + v.length + ' juegos, sin mirar el futuro).', 'At this Worlds, ' + pc(ok / v.length) + ' at minute 15 (' + v.length + ' games, without hindsight).');
+    $('s30acc').textContent = t;
+  }).catch(function () {});
 })();
 </script>
 </body>

@@ -572,6 +572,7 @@
     "Fuerza: la estimada del equipo según resultados 2025–26 (más alto = más fuerte).": "Strength: the team's estimate from 2025–26 results (higher = stronger).",
     "Ganó": "Won",
     "Antes": "Before",
+    "¿Cómo se calcula cada número? Todo, por capas →": "How is each number calculated? All of it, in layers →",
     "Glosario para empezar a mirar": "Glossary to get started",
     "Hay una versión nueva de la extensión que sincroniza sola con el video. Se instala": "There's a new version of the extension that syncs with the video on its own. It installs",
     "Impacto del objetivo": "Objective impact",

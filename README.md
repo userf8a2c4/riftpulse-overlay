@@ -115,7 +115,7 @@ El chat vota con <b>1</b> o <b>2</b> antes de cada objetivo y al final se ve qui
 
 **🎥 OBS:** en la [página](https://userf8a2c4.github.io/riftpulse-overlay/#stream) elegí cómo se ve y copiá la URL → en OBS, **Fuentes → + → Navegador**, pegala, **1920 × 1080**.
 - Para co-streams, el **mínimo**: `overlay.html?modo=minimo` (la barra y solo las peleas 5v5 que importan).
-- **Tu chat contra el modelo:** sumá `&canal=tu_canal`.
+- **Tu chat contra el modelo:** sumá `&canal=tu_canal`. Con eso, además, `!porque` en el chat muestra qué es lo que más pesa en la probabilidad.
 - Todos los parámetros: [docs/obs-parametros.md](docs/obs-parametros.md) · para que todo tu chat lo vea sin instalar nada: la [Extensión de Twitch](docs/twitch-extension.md) (en preparación).
 
 <details>
@@ -138,6 +138,8 @@ Una regresión logística por minuto, entrenada con juegos profesionales 2025–
 <sub>Medido en 589 juegos que el modelo no vio. En octubre de 2026 se reentrenó con 4.805 juegos y se confirmó en 691 juegos nuevos de 2026. Nivel, CS, wards e ítems no mejoraron la predicción, así que el modelo se quedó como está. En noviembre se probaron, con 4.820 juegos y 712 de prueba, el Elo con regiones, la tendencia del oro, el oro de mid y ADC, el oro según el draft y cómo va la serie: tampoco mejoraron, así que el modelo sigue igual. Lo que sí mejoró la precisión en vivo fue darles a OBS y a la extensión la fuerza real de los equipos (`datos/fuerza.json`): en este Mundial, medido sin resultados futuros, el acierto al min 10 pasó de 63 % a 71 % y al min 15 de 74 % a 77 %. Detalle en <a href="https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html">Cómo funciona</a>, con simulador incluido.</sub>
 
 **Todos los juegos de este Mundial, a la vista:** qué decía el modelo a los minutos 10, 15 y 20 y quién ganó, en la [página de precisión](https://userf8a2c4.github.io/riftpulse-overlay/precision.html).
+
+**Cómo se calcula todo, por capas** (en 30 segundos, cuánto pesa cada cosa con los pesos reales del motor, las fórmulas, cómo lo medimos, lo que probamos y no sirvió, y qué no ve): [Cómo funciona](https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html).
 
 <img src="docs/img/divisor.svg" width="100%" alt="">
 

@@ -28,6 +28,18 @@ module.exports = async function () {
   ok = chequear('muestra la pregunta, los votos y la predicción del modelo', r.durante.on && /Barón/i.test(r.durante.txt) && /4 votos/.test(r.durante.txt) && /modelo dice: T1/i.test(r.durante.txt), r.durante.txt.slice(0, 140)) && ok;
   ok = chequear('al resolverse: quién se lo llevó, si acertaron el chat y el modelo, y el ranking', /MKOI se lleva el Barón/i.test(r.despues) && /✗/.test(r.despues) && /u2 1/.test(r.despues), r.despues.slice(0, 160)) && ok;
   ok = chequear('lleva la cuenta: chat contra modelo y puntos por persona', r.db.modelo.n === 1 && r.db.modelo.ok === 0 && r.db.chat.n === 1 && r.db.pts.u2 === 1 && !r.db.pts.u1, JSON.stringify({chat: r.db.chat, modelo: r.db.modelo, pts: r.db.pts})) && ok;
+  // «¿por qué?»: !porque muestra las 3 razones que más pesan; una vez por minuto; nunca encima de una votación
+  const pq = await p.evaluate(async () => {
+    RPVOTO.reiniciar(); await new Promise(r => setTimeout(r, 15000));  // que se vaya la tarjeta de la votación anterior
+    window.__chatIn('u7', '!porque'); await new Promise(r => setTimeout(r, 400));
+    const card = document.querySelector('.rp-vt'), uno = {on: card.classList.contains('on'), txt: card.innerText.replace(/\s+/g, ' '), n: card.querySelectorAll('.vm').length};
+    const otra = RPVOTO.porque();  // al ratito: no se repite
+    const gt = RiftEngine.state.game.gt; RPVOTO.abrir({clave: 'prueba2', tipo: 'juego', a: 'T1', b: 'MKOI', seg: 30, modelo: {side: 'blue', p: 0.6}, gt0: gt});
+    const conVoto = RPVOTO.porque(true); RPVOTO.reiniciar();
+    return {uno, otra, conVoto};
+  });
+  ok = chequear('!porque en el chat: sale «¿Por qué?» con las razones que más pesan (hasta 3)', pq.uno.on && /por qué/i.test(pq.uno.txt) && pq.uno.n >= 1 && pq.uno.n <= 3, pq.uno.txt.slice(0, 160)) && ok;
+  ok = chequear('!porque: como mucho una vez por minuto y nunca encima de una votación', pq.otra === false && pq.conVoto === false, JSON.stringify({otra: pq.otra, conVoto: pq.conVoto})) && ok;
   // sin ?canal no se conecta a nada
   const p2 = await ctx.newPage(); await p2.goto(BASE + 'overlay.html?view=auto'); await p2.waitForTimeout(2500);
   ok = chequear('sin ?canal= no se conecta al chat', await p2.evaluate(() => !window.__ws.length && !window.RPVOTO)) && ok;

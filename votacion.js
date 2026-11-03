@@ -1,7 +1,8 @@
 /* RiftPulse — «el chat contra el modelo». En el overlay de OBS con ?canal=nombre_del_canal: antes de cada Barón o dragón
    (y al empezar cada juego) el chat vota quién se lo lleva escribiendo 1 o 2 (o las siglas); RiftPulse muestra su
    predicción y, cuando pasa, quién acertó: el chat o el modelo, con un ranking del chat. Sin apuestas: solo puntos.
-   El chat se lee de forma anónima (solo lectura, como cualquier visitante): no hace falta cuenta ni permisos. */
+   El chat se lee de forma anónima (solo lectura, como cualquier visitante): no hace falta cuenta ni permisos.
+   Y «¿por qué?»: si alguien escribe !porque (o !rp, !why), sale unos 12 s qué es lo que más pesa en la probabilidad. */
 (function () {
   var Q = new URLSearchParams(window.RP_PARAMS || location.search), CANAL = (Q.get('canal') || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
   var R = window.RiftEngine; if (!CANAL || !R) return;
@@ -37,12 +38,31 @@
     ws.onmessage = function (e) {
       String(e.data).split('\r\n').forEach(function (l) {
         if (/^PING/.test(l)) { ws.send(l.replace('PING', 'PONG')); return; }
-        var m = l.match(/^:([^!]+)![^ ]+ PRIVMSG #[^ ]+ :(.*)$/); if (m) votar(m[1], m[2]);
+        var m = l.match(/^:([^!]+)![^ ]+ PRIVMSG #[^ ]+ :(.*)$/); if (m && !comando(m[2])) votar(m[1], m[2]);
       });
     };
     ws.onclose = function () { setTimeout(conectar, Math.min(30000, 2000 * Math.pow(2, reintento++))); };
   }
   conectar();
+
+  // ---------- «¿por qué?»: las 3 cosas que más pesan ahora, como mucho una vez por minuto y nunca encima de una votación ----------
+  var PQ = {ult: 0, t: null};
+  function comando(t) {
+    if (!/^!(porque|porqué|por\s?qu[eé]|why|rp)\b/i.test(String(t).trim())) return false;
+    porque(); return true;
+  }
+  function porque() {
+    var s = R.state, g = s && s.game, m = s && s.match;
+    if (!g || g.pBlue == null || !m || !(g.reasons || []).length || g.ended) return false;
+    if ((V && !V.resultado) || Date.now() - PQ.ult < 60000) return false;
+    PQ.ult = Date.now();
+    var a = m.blue.code, b = m.red.code, pa = Math.round(g.pBlue * 100), fav = pa >= 50 ? a : b;
+    var li = g.reasons.slice(0, 3).map(function (x) { return '<div class="vm">• ' + esc(x.txt) + ' <b>' + esc(x.z >= 0 ? a : b) + '</b></div>'; }).join('');
+    mostrar('<h4>🔎 ' + L('¿Por qué ', 'Why ') + esc(fav) + ' ' + Math.max(pa, 100 - pa) + ' %?</h4><div class="vh">' + L('Lo que más pesa ahora, según el modelo', 'What weighs most right now, per the model') + '</div>' + li +
+      '<div class="rk">' + L('Cómo se calcula todo: riftpulse · cómo funciona', 'How it is all calculated: riftpulse · how it works') + '</div>');
+    clearTimeout(PQ.t); PQ.t = setTimeout(function () { if (!V) ocultar(); }, 12000);
+    return true;
+  }
 
   // ---------- la votación ----------
   var V = null;  // {clave, tipo: 'objetivo'|'juego', obj, a, b, hasta, desde, modelo: {side, p}, v: {usuario: lado}, gt0, resultado}
@@ -114,6 +134,6 @@
     if (!DB.hechas[ko]) abrir({clave: ko, tipo: 'objetivo', obj: im.obj, a: a, b: b, seg: Math.max(20, Math.min(50, im.at - g.gt)), modelo: {side: fav, p: pf}, gt0: g.gt});
   });
   // para el control y las pruebas
-  window.RPVOTO = {abrir: abrir, cerrar: cerrar, votar: votar, estado: function () { return V ? JSON.parse(JSON.stringify(V)) : null; }, db: function () { return DB; },
+  window.RPVOTO = {abrir: abrir, cerrar: cerrar, votar: votar, porque: function (forzar) { if (forzar) PQ.ult = 0; return porque(); }, estado: function () { return V ? JSON.parse(JSON.stringify(V)) : null; }, db: function () { return DB; },
     reiniciar: function () { DB = {pts: {}, chat: {ok: 0, n: 0}, modelo: {ok: 0, n: 0}, hechas: {}}; guardar(); cancelar(); }};
 })();
