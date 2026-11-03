@@ -8,11 +8,24 @@ function descomprimir(zip) {
   execFileSync('python3', ['-I', '-c', 'import sys,zipfile;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])', path.join(RAIZ, 'descargas', (zip ? 'riftpulse-extension-tienda' : 'riftpulse-extension') + '.zip'), dest]);
   return dest;  // los dos ZIP traen los archivos sueltos en la raíz
 }
+// El service worker de la extensión: se revisa la lista cada segundo (el evento puede llegar antes de empezar a esperarlo)
+// y, si a los 10 s no apareció, se lo despierta abriendo una página de la extensión (Chromium nombra las extensiones sin
+// empaquetar con el sha256 de la ruta de la carpeta, en letras a–p).
+async function esperarSW(ctx, EXT) {
+  const id = require('crypto').createHash('sha256').update(path.resolve(EXT)).digest('hex').slice(0, 32).replace(/./g, c => String.fromCharCode(97 + parseInt(c, 16)));
+  for (let i = 0; i < 45; i++) {
+    const sw = ctx.serviceWorkers().find(w => w.url().startsWith('chrome-extension://'));
+    if (sw) return sw;
+    if (i === 10) { const p = await ctx.newPage(); await p.goto('chrome-extension://' + id + '/panel.html').catch(() => {}); await p.close().catch(() => {}); }
+    await ctx.waitForEvent('serviceworker', {timeout: 1000}).catch(() => {});
+  }
+  throw new Error('la extensión no arrancó su service worker en 45 s');
+}
 async function una(EXT, conScripts) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rp-'));
   const ctx = await chromium.launchPersistentContext(dir, {headless: true, channel: 'chromium', args: ['--disable-extensions-except=' + EXT, '--load-extension=' + EXT, '--enable-experimental-extension-apis'], viewport: {width: 1500, height: 900}});
   await montar(ctx, {video: 'correr.webm'});
-  let sw = ctx.serviceWorkers()[0] || await ctx.waitForEvent('serviceworker'); const id = sw.url().split('/')[2];
+  let sw = await esperarSW(ctx, EXT); const id = sw.url().split('/')[2];
   if (conScripts) {
     const ex = await ctx.newPage(); await ex.goto('chrome://extensions'); await ex.waitForTimeout(800);
     await ex.evaluate(async id => { await chrome.developerPrivate.updateProfileConfiguration({inDeveloperMode: true}); await chrome.developerPrivate.updateExtensionConfiguration({extensionId: id, userScriptsAccess: true}); }, id);
