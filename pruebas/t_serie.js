@@ -46,14 +46,26 @@ module.exports = async function () {
     if (e.ct >= 48 && e.barra && vuelve == null) vuelve = e.ct;
     if (e.ct > 58) break;
   }
-  await c2.close(); await b.close();
+  await c2.close();
   ok = chequear('en vivo con clips de otro partido: reconoce el juego en vivo', sinc != null && sinc < 19, sinc != null ? 'a los ' + sinc.toFixed(0) + ' s' : 'no lo reconoció') && ok;
   ok = chequear('los clips no cambian el partido (ni en el overlay ni en los datos)', !cambios.length, cambios.length ? cambios.slice(0, 4).join(' · ') : 'siempre T1 vs MKOI') && ok;
   ok = chequear('el minuto sigue siendo el del juego en vivo, también durante los clips', minuto <= 3, 'peor ' + minuto.toFixed(1) + ' s') && ok;
   ok = chequear('durante el clip la barra se aparta, y vuelve sola', barraClip <= 4 && vuelve != null && vuelve <= 54, barraClip + ' s con la barra en el clip · vuelve ' + (vuelve != null ? 'a los ' + vuelve.toFixed(0) + ' s' : 'nunca')) && ok;
+  // eliminatorias al mejor de 5: 3 rectángulos por lado, se lee cualquier marcador de la serie
+  const pb = await b.newPage(); await pb.setContent('<body></body>');
+  await pb.addScriptTag({content: fs.readFileSync(path.join(RAIZ, 'fuente', 'lector.js'), 'utf8')});
+  const bo5 = [];
+  for (const f of ['00', '10', '21', '22', '12', '02']) {
+    const d = 'data:image/png;base64,' + fs.readFileSync(path.join(RAIZ, 'pruebas', '.gen', 'bo5', f + '.png')).toString('base64');
+    const r = await pb.evaluate(async d => { const i = new Image(); i.src = d; await i.decode(); return RiftLector.serie(i); }, d);
+    bo5.push(f + '→' + (r ? r.i + '' + r.d : '—'));
+  }
+  await pb.close();
+  ok = chequear('Bo5 (cuartos, semis y final): lee la serie en cualquier marcador', bo5.every(x => x.slice(0, 2) === x.slice(-2)), bo5.join(' ')) && ok;
   ok = chequear('en vivo reconoce el juego 2 de TES vs BLG', j2 != null, j2 != null ? 'a los ' + j2.toFixed(0) + ' s' : 'no lo reconoció') && ok;
   ok = chequear('empieza el juego 3 sin datos todavía: lo dice y espera (no muestra otro partido)', espera != null && !otro.length, espera ? 'a los ' + espera.ct.toFixed(0) + ' s · ' + espera.txt : otro.length ? 'mostró ' + otro.slice(0, 3).join(', ') : 'no avisó') && ok;
   ok = chequear('aparecen los datos del juego 3: se sincroniza sola, sin recargar', j3 != null && j3 <= 45, j3 != null ? 'a los ' + j3.toFixed(0) + ' s (los datos aparecen a los 36)' : 'no lo reconoció') && ok;
   ok = chequear('el overlay se ve con el juego 3', visible3) && ok;
+  await b.close();
   return ok;
 };

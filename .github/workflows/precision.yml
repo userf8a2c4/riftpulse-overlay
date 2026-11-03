@@ -1,12 +1,18 @@
-# Precisión pública: mide el modelo en cada juego terminado del Mundial actual (se lanza a mano). El JSON del registro
-# (línea PRECISION_JSON) se guarda en datos/precision.json, que muestra precision.html.
+# Precisión pública: mide el modelo en cada juego terminado del Mundial actual y guarda datos/precision.json, que muestra
+# precision.html. Corre sola cada día de octubre y noviembre (después de los partidos) y también a mano.
 name: Precisión pública
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '20 6 * 10,11 *'   # 06:20 UTC, cuando ya terminó la jornada en América
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: precision
+  cancel-in-progress: false
 
 jobs:
   precision:
@@ -19,3 +25,13 @@ jobs:
           node-version: 20
       - run: npm i --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
       - run: node pruebas/precision.js
+        env:
+          SALIDA: datos/precision.json
+      - name: Subir los datos nuevos
+        run: |
+          if git diff --quiet -- datos/precision.json; then echo "sin cambios"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add datos/precision.json
+          git commit -m "Precisión pública: datos al día ($(python3 -c 'import json;print(len(json.load(open("datos/precision.json"))["juegos"]))') juegos)"
+          git pull --rebase -q origin main && git push origin HEAD:main

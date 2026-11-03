@@ -38,5 +38,10 @@ const KEY = '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z', API = 'https://esports-a
   const res = {actualizado: new Date().toISOString(), torneo: 'Mundial ' + anio, juegos};
   console.log('juegos medidos:', juegos.length);
   console.log('PRECISION_JSON ' + JSON.stringify(res));
+  // con SALIDA=datos/precision.json la guarda (la acción programada la sube sola); nunca pisa datos buenos con menos juegos
+  if (process.env.SALIDA) {
+    let antes = 0; try { antes = JSON.parse(fs.readFileSync(process.env.SALIDA, 'utf8')).juegos.length; } catch (e) {}
+    if (juegos.length >= antes && juegos.length) fs.writeFileSync(process.env.SALIDA, JSON.stringify(res) + '\n'); else console.log('no se guarda: ' + juegos.length + ' juegos contra ' + antes);
+  }
   await b.close();
 })();

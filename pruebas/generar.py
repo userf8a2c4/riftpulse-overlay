@@ -154,6 +154,10 @@ if __name__ == '__main__':
         if 20 <= t < 48: gt = 260 + (t - 20); vc.append(cuadro(gt, oro(gt), oro(gt) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, siglas=('IG', 'LYON') if t < 38 else ('', '')))
         else: vc.append(cuadro(330 + t, oro(330 + t), oro(330 + t) + 0.1, 0, 0, {'blue': 'A', 'red': 'B'}, siglas=('T1', 'MKOI')))
     video('vivoclip.webm', vc)
+    # bo5/: cuadros sueltos de una serie al mejor de 5 (cuartos, semifinales y final: 3 rectángulos por lado)
+    os.makedirs(os.path.join(GEN, 'bo5'), exist_ok=True)
+    for v in [(0, 0), (1, 0), (2, 1), (2, 2), (1, 2), (0, 2)]:
+        cuadro(600, 18, 18, 3, 3, {'blue': 'A', 'red': 'B'}, vict=v + (5,)).save(os.path.join(GEN, 'bo5', '%d%d.png' % v))
     # previa.webm 20 s: la previa de una transmisión (el desk, sin el juego en pantalla)
     video('previa.webm', [cuadro(0, 2.5, 2.5, 0, 0, {'blue': 'A', 'red': 'B'}, con_hud=False) for t in range(20)])
     print('Videos listos en', GEN)

@@ -30,11 +30,13 @@ RiftPulse pone sobre el video del Mundial de League of Legends la probabilidad d
 • Cada pelea, explicada: quién la ganó, qué hizo cada jugador y cuánto movió el juego.
 • ¿Pausa técnica? Mientras dura el «GAME PAUSE», un resumen de lo que va del juego, debajo del cartel.
 • Te cuenta el juego: cómo arrancó, el giro clave, qué cambió en el último minuto y qué mirar ahora (el próximo dragón o Barón y cuánto vale para cada equipo).
-• Honesto: muestra cuánto acierta el modelo en cada minuto (75 % al minuto 15, medido en 589 juegos que no vio).
+• Antes de cada Barón o dragón: con cuánto queda cada equipo si se lo lleva.
+• Honesto: cuánto acierta, a la vista. En este Mundial, el 73 % de los juegos al minuto 15; todos los juegos están en riftpulse · precisión.
+• Liviano: una barra mínima que se aparta en repeticiones y clips, y casi no usa la compu.
 • Panel lateral con todo el Mundial: tu pronóstico contra el de RiftPulse, la fase suiza, las eliminatorias, el Pick'Em y el historial entre los equipos.
 • Sin spoilers en los VOD, en español o en inglés (botón ES | EN).
 
-Gratis, sin cuentas y sin apuestas. No está avalado por Riot Games. League of Legends y Riot Games son marcas de Riot Games, Inc.
+Gratis, sin cuentas y sin apuestas. RiftPulse no está avalado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de las propiedades de Riot Games. Riot Games y todas sus propiedades asociadas son marcas comerciales o marcas registradas de Riot Games, Inc.
 
 ### English
 **Name:** RiftPulse — your LoL Worlds second screen
@@ -49,11 +51,13 @@ RiftPulse puts each team's win probability on top of the League of Legends World
 • Every fight, explained: who won it, what each player did and how much it moved the game.
 • Technical pause? While the «GAME PAUSE» lasts, a recap of the game so far, right below the banner.
 • It tells the story of the game: how it started, the key swing, what changed in the last minute and what to watch next (the next dragon or Baron and what it's worth to each team).
-• Honest: it shows how often the model is right at each minute (75% at minute 15, measured on 589 games it never saw).
+• Before every Baron or dragon: where each team ends up if it takes it.
+• Honest: its accuracy, in plain sight. At this Worlds, 73% of games at minute 15; every game is listed on the RiftPulse accuracy page.
+• Light: a minimal bar that steps aside during replays and clips, and barely uses your computer.
 • A side panel with all of Worlds: your picks vs RiftPulse's, the Swiss Stage, the knockouts, Pick'Em and head-to-head history.
 • No spoilers in VODs, in English or Spanish (ES | EN button).
 
-Free, no accounts, no betting. Not endorsed by Riot Games. League of Legends and Riot Games are trademarks of Riot Games, Inc.
+Free, no accounts, no betting. RiftPulse isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.
 
 **Categoría / Category:** Deportes / Sports  ·  **Idiomas / Languages:** Español, English
 
