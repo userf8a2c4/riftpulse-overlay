@@ -4,6 +4,10 @@ name: Precisión pública
 
 on:
   workflow_dispatch:
+    inputs:
+      modo:
+        description: 'elo (la de siempre, guarda los datos) o mundial (solo para comparar con la fuerza vieja; no guarda nada)'
+        default: elo
   schedule:
     - cron: '20 6 * 10,11 *'   # 06:20 UTC, cuando ya terminó la jornada en América
 
@@ -26,8 +30,9 @@ jobs:
       - run: npm i --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
       - run: node pruebas/precision.js
         env:
-          SALIDA: datos/precision.json
-          SALIDA_FUERZA: datos/fuerza.json
+          MODO: ${{ inputs.modo || 'elo' }}
+          SALIDA: ${{ (inputs.modo || 'elo') == 'elo' && 'datos/precision.json' || '' }}
+          SALIDA_FUERZA: ${{ (inputs.modo || 'elo') == 'elo' && 'datos/fuerza.json' || '' }}
       - name: Subir los datos nuevos
         run: |
           git add -N datos/fuerza.json 2>/dev/null || true

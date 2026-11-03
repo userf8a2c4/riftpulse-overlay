@@ -12,7 +12,7 @@ const KEY = '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z', API = 'https://esports-a
   await p.addScriptTag({content: 'window.RP_SIN_FUERZA = 1;'});  // sin datos/fuerza.json (es la de hoy: sabría resultados futuros)
   await p.addScriptTag({content: fs.readFileSync(path.join(__dirname, '..', 'engine.js'), 'utf8')});
   const anio = process.env.ANIO || String(new Date().getUTCFullYear());
-  const medido = await p.evaluate(async ([KEY, API, FEED, anio]) => {
+  const medido = await p.evaluate(async ([KEY, API, FEED, anio, MODO]) => {
     const j = async u => { try { const r = await fetch(u, {headers: {'x-api-key': KEY}}); return r.status === 200 ? r.json() : null; } catch (e) { return null; } };
     const iso = t => new Date(Math.floor(t / 10000) * 10000).toISOString();
     const ms = (await RiftEngine.loadMatches()).filter(x => x.state === 'completed' && String(x.start).slice(0, 4) === anio && x.teams.every(t => t.code))
@@ -28,9 +28,21 @@ const KEY = '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z', API = 'https://esports-a
     const todos = evs.filter(e => e.type === 'match' && e.match && e.startTime >= '2025-01-01').sort((x, y) => (x.startTime < y.startTime ? -1 : 1));
     const F = E.nuevo(); E.regiones(F, todos); let ip = 0;
     const avanzar = hasta => { while (ip < todos.length && todos[ip].startTime < hasta) { if (todos[ip].state === 'completed') E.paso(F, todos[ip]); ip++; } };
+    // MODO=mundial: para comparar, la fuerza vieja del motor (un Elo solo con el Mundial), también sin resultados futuros
+    const mundialHasta = hasta => {
+      const W = {__: 0};  // nunca vacía: si no, el motor caería en su Elo del Mundial con todos los resultados (los del futuro también)
+      todos.filter(e => e.league && e.league.slug === 'worlds' && e.state === 'completed' && e.startTime >= anio && e.startTime < hasta).forEach(e => {
+        const a = e.match.teams[0], b = e.match.teams[1]; if (!a.code || !b.code) return;
+        const ea = W[a.code] || 1500, eb = W[b.code] || 1500, wa = (a.result || {}).gameWins || 0, wb = (b.result || {}).gameWins || 0; if (wa === wb) return;
+        const x = 1 / (1 + Math.pow(10, (eb - ea) / 400)), k = 24 * Math.max(1, Math.abs(wa - wb)) / (wa + wb > 1 ? 1.5 : 1), r = wa > wb ? 1 : 0;
+        W[a.code] = ea + k * (r - x); W[b.code] = eb - k * (r - x);
+      });
+      return W;
+    };
     const out = [];
     for (const m of ms) {
-      avanzar(m.start); if (F.n > 50) RiftEngine.setFuerza(E.tabla(F));
+      avanzar(m.start);
+      if (MODO === 'mundial') RiftEngine.setFuerza(mundialHasta(m.start)); else if (F.n > 50) RiftEngine.setFuerza(E.tabla(F));
       const d = await j(API + 'getEventDetails?hl=es-MX&id=' + m.id); if (!d) continue;
       const ev = d.data.event;
       for (const [k, g] of ev.match.games.entries()) {
@@ -52,7 +64,7 @@ const KEY = '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z', API = 'https://esports-a
     }
     avanzar('9999');
     return {out, fuerza: {actualizado: new Date().toISOString(), series: F.n, elo: E.tabla(F), region: F.reg, ajuste: F.off}};
-  }, [KEY, API, FEED, anio]);
+  }, [KEY, API, FEED, anio, process.env.MODO || 'elo']);
   const juegos = medido.out, fuerza = medido.fuerza;
   const res = {actualizado: new Date().toISOString(), torneo: 'Mundial ' + anio, fuerza: 'Elo de RiftPulse con los resultados anteriores a cada partido', juegos};
   console.log('fuerza de los equipos:', fuerza.series, 'series ·', Object.keys(fuerza.elo).length, 'equipos');
