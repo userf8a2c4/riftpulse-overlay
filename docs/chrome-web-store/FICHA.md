@@ -31,7 +31,7 @@ RiftPulse pone sobre el video del Mundial de League of Legends la probabilidad d
 • ¿Pausa técnica? Mientras dura el «GAME PAUSE», un resumen de lo que va del juego, debajo del cartel.
 • Te cuenta el juego: cómo arrancó, el giro clave, qué cambió en el último minuto y qué mirar ahora (el próximo dragón o Barón y cuánto vale para cada equipo).
 • Antes de cada Barón o dragón: con cuánto queda cada equipo si se lo lleva.
-• Honesto: cuánto acierta, a la vista. En este Mundial, el 73 % de los juegos al minuto 15; todos los juegos están en riftpulse · precisión.
+• Honesto: cuánto acierta, a la vista. En este Mundial, el 77 % de los juegos al minuto 15 (medido sin resultados futuros); todos los juegos están en riftpulse · precisión.
 • Liviano: una barra mínima que se aparta en repeticiones y clips, y casi no usa la compu.
 • Panel lateral con todo el Mundial: tu pronóstico contra el de RiftPulse, la fase suiza, las eliminatorias, el Pick'Em y el historial entre los equipos.
 • Sin spoilers en los VOD, en español o en inglés (botón ES | EN).
@@ -52,7 +52,7 @@ RiftPulse puts each team's win probability on top of the League of Legends World
 • Technical pause? While the «GAME PAUSE» lasts, a recap of the game so far, right below the banner.
 • It tells the story of the game: how it started, the key swing, what changed in the last minute and what to watch next (the next dragon or Baron and what it's worth to each team).
 • Before every Baron or dragon: where each team ends up if it takes it.
-• Honest: its accuracy, in plain sight. At this Worlds, 73% of games at minute 15; every game is listed on the RiftPulse accuracy page.
+• Honest: its accuracy, in plain sight. At this Worlds, 77% of games at minute 15 (measured without hindsight); every game is listed on the RiftPulse accuracy page.
 • Light: a minimal bar that steps aside during replays and clips, and barely uses your computer.
 • A side panel with all of Worlds: your picks vs RiftPulse's, the Swiss Stage, the knockouts, Pick'Em and head-to-head history.
 • No spoilers in VODs, in English or Spanish (ES | EN button).

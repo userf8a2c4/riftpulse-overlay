@@ -135,7 +135,7 @@ Una regresión logística por minuto, entrenada con juegos profesionales 2025–
 |---|:---:|:---:|:---:|:---:|:---:|
 | **Acierto** | 62 % | 68 % | **75 %** | 79 % | 84 % |
 
-<sub>Medido en 589 juegos que el modelo no vio. En octubre de 2026 se reentrenó con 4.805 juegos y se confirmó en 691 juegos nuevos de 2026. Nivel, CS, wards e ítems no mejoraron la predicción, así que el modelo se quedó como está. Detalle en <a href="https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html">Cómo funciona</a>, con simulador incluido.</sub>
+<sub>Medido en 589 juegos que el modelo no vio. En octubre de 2026 se reentrenó con 4.805 juegos y se confirmó en 691 juegos nuevos de 2026. Nivel, CS, wards e ítems no mejoraron la predicción, así que el modelo se quedó como está. En noviembre se probaron, con 4.820 juegos y 712 de prueba, el Elo con regiones, la tendencia del oro, el oro de mid y ADC, el oro según el draft y cómo va la serie: tampoco mejoraron, así que el modelo sigue igual. Lo que sí mejoró la precisión en vivo fue darles a OBS y a la extensión la fuerza real de los equipos (`datos/fuerza.json`): en este Mundial, medido sin resultados futuros, el acierto al min 10 pasó de 63 % a 71 % y al min 15 de 74 % a 77 %. Detalle en <a href="https://userf8a2c4.github.io/riftpulse-overlay/como-funciona.html">Cómo funciona</a>, con simulador incluido.</sub>
 
 **Todos los juegos de este Mundial, a la vista:** qué decía el modelo a los minutos 10, 15 y 20 y quién ganó, en la [página de precisión](https://userf8a2c4.github.io/riftpulse-overlay/precision.html).
 

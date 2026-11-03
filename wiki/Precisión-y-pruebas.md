@@ -36,3 +36,11 @@ Los números están en un solo lugar del código (`PRECISION` en `engine.js`): l
 - Acertar más que una moneda (50 %) ya es señal de valor; 75 % al minuto 15 es fuerte para un modelo público.
 - Ninguna predicción usó información del futuro: es "fuera de muestra".
 - Lo que no está probado, no se afirma.
+
+## Noviembre de 2026: qué se probó y qué entró
+
+Con 4.820 juegos (712 de prueba que el modelo no vio, 71 internacionales) se probó cada idea por separado, con el Brier como regla: solo entra lo que lo baja en los minutos 15 y 20 sin empeorar en internacionales.
+
+- **No entró nada nuevo dentro del juego:** Elo con regiones, tendencia del oro (últimos 3 min), oro de mid y ADC, oro según el draft, cómo va la serie y más peso a lo reciente quedaron iguales o peor que el modelo de hoy (Brier 0,174 al min 15).
+- **Lo que sí mejoró:** OBS y la extensión sin panel usaban un Elo hecho solo con el Mundial; ahora usan la fuerza real de los equipos (`datos/fuerza.json`, el mismo Elo de la app). En este Mundial, medido sin resultados futuros: min 10 de 63 % a 71 %, min 15 de 74 % a 77 %.
+- **La precisión pública ahora es honesta:** cada juego se mide con la fuerza de los equipos de antes de ese partido, con margen de error y Brier a la vista.
