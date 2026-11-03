@@ -146,12 +146,47 @@
   // ---------- modelo (idéntico a winProbModelo de la app) ----------
   function modelW(min) {
     var ks = Object.keys(MODELO.min).map(Number).sort(function (a, b) { return a - b; });
-    var pts = [[0, [MODELO.pre.w[0], 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]].concat(ks.map(function (k) { return [k, MODELO.min[k]]; }));
+    var w0 = [MODELO.pre.w[0], 1]; while (w0.length < MODELO.min[ks[0]].length) w0.push(0);  // en el min 0 solo cuenta la previa
+    var pts = [[0, w0]].concat(ks.map(function (k) { return [k, MODELO.min[k]]; }));
     if (min >= pts[pts.length - 1][0]) return pts[pts.length - 1][1];
     for (var i = 1; i < pts.length; i++) if (min <= pts[i][0]) {
       var a = pts[i - 1][0], wa = pts[i - 1][1], bb = pts[i][0], wb = pts[i][1], t = (min - a) / (bb - a);
       return wa.map(function (v, j) { return v + (wb[j] - v) * t; });
     }
+  }
+  // Variables extra del modelo: los grupos que pasaron la prueba del reentrenamiento (MODELO.extra, en este orden),
+  // calculados igual que en modelo/entrenar.py. c = {samples, roles: {blue, red}, dr, serie: [victorias azul − rojo, quién perdió el anterior]}
+  var EXTRA_TXT = {tendencia: ['Tendencia del oro (últimos 3 min)'], carries: ['Oro de mid y ADC'], oro_x_draft: ['Ventaja de oro según el draft'],
+    serie: ['Cómo va la serie', 'Eligió lado (perdió el anterior)']};
+  function extrasModelo(f, gt, c) {
+    var b = f.blueTeam, r = f.redTeam, gd = (b.totalGold - r.totalGold) / 1000, out = [];
+    c = c || {};
+    (MODELO.extra || []).forEach(function (g) {
+      if (g === 'tendencia') {
+        var s0 = null; (c.samples || []).forEach(function (x) { if (x.gt <= gt - 180) s0 = x; });
+        out.push(s0 && gt - s0.gt <= 240 ? gd - s0.diff / 1000 : 0);
+      } else if (g === 'carries') {
+        var cg = function (t, side) {
+          var ps = t.participants || [], ro = (c.roles && c.roles[side]) || [], k = 0; if (ps.length !== 5 || ro.length !== 5) return null;
+          ps.forEach(function (p, i) { if (ro[i] === 'mid' || ro[i] === 'bottom') k += p.totalGold || 0; }); return k;
+        };
+        var cb = cg(b, 'blue'), cr = cg(r, 'red'); out.push(cb == null || cr == null ? 0 : (cb - cr) / 1000 - gd * 0.4);
+      } else if (g === 'oro_x_draft') out.push(gd * (c.dr || 0));
+      else if (g === 'serie') { var se = c.serie || [0, 0]; out.push(se[0] || 0, se[1] || 0); }
+    });
+    return out;
+  }
+  // cómo iba la serie antes de este juego, con los ganadores de los juegos anteriores: [azul − rojo, +1 si el azul perdió el anterior, −1 si el rojo]
+  function serieAntes() {
+    if (!M || !G || !M.games || !M.strategy || (M.strategy.count || 1) <= 1) return [0, 0];
+    var n = M.games.findIndex(function (x) { return x.id === G.id; }), cb = code('blue'), cr = code('red'), d = 0, ult = null;
+    if (n <= 0) return [0, 0];
+    for (var i = 0; i < n; i++) { var mp = MAPS[M.games[i].id]; if (!mp || !mp.winner) return [0, 0]; if (mp.winner === cb) d++; else if (mp.winner === cr) d--; ult = mp.winner; }
+    return [d, ult === cr ? 1 : ult === cb ? -1 : 0];
+  }
+  function rolesDe(meta) {
+    var f = function (k) { return ((meta && meta[k + 'TeamMetadata'] && meta[k + 'TeamMetadata'].participantMetadata) || []).map(function (p) { return p.role; }); };
+    return {blue: f('blue'), red: f('red')};
   }
   function winProb(f, gt) {
     var b = f.blueTeam, r = f.redTeam, min = gt / 60, parts = [], w = modelW(min);
@@ -163,6 +198,10 @@
     var txt = ['Lado del mapa', 'Predicción previa', k1(Math.abs(gd)) + ' de oro de ventaja', pl(b.totalKills - r.totalKills, 'kill más', 'kills más'),
       pl(b.towers - r.towers, 'torre más', 'torres más'), pl(b.inhibitors - r.inhibitors, 'inhibidor más', 'inhibidores más'), pl(b.barons - r.barons, 'Barón más', 'Barones más'),
       pl(el(b) - el(r), 'dragón más', 'dragones más'), 'Alma de dragón', 'Punto de alma', 'Dragón Ancestral', 'Curva del draft'];
+    if (MODELO.extra && MODELO.extra.length) {
+      x = x.concat(extrasModelo(f, gt, {samples: G.samples, roles: rolesDe(G.meta), dr: x[11], serie: serieAntes()}));
+      MODELO.extra.forEach(function (g) { txt = txt.concat(EXTRA_TXT[g] || []); });
+    }
     var zAll = 0;
     x.forEach(function (v, i) { var z = w[i] * v; zAll += z; if (Math.abs(z) > 0.01 && (i < 2 || w[i] > 0)) parts.push({z: z, txt: txt[i]}); });
     var z = Math.max(-4.6, Math.min(4.6, zAll));
@@ -1387,6 +1426,8 @@
   RiftEngine.MODELO = MODELO;       // fuente única de los pesos del modelo (la app los lee de aquí)
   RiftEngine.PRECISION = PRECISION;
   RiftEngine.accAt = accAt;
+  RiftEngine.extrasModelo = extrasModelo;  // la app calcula las mismas variables extra con esta función
+  RiftEngine.serieAntes = function (id) { return G && G.id === id ? serieAntes() : [0, 0]; };  // solo si es el mismo juego que sigue el motor
   RiftEngine.setFuerza = function (elo) { FUERZA.elo = elo && Object.keys(elo).length ? elo : null; previa(); emit(); };
   RiftEngine.elo = ELO;            // el mismo Elo en la app, la acción de datos/fuerza.json y las pruebas
   RiftEngine.fuerza = function () { var E = tablaFuerza(); return {fuente: FUERZA.fuente, equipos: E ? Object.keys(E).length : 0}; };

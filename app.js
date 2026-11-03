@@ -277,7 +277,8 @@ const MODELO = (window.RiftEngine && window.RiftEngine.MODELO) || null;
 // Pesos del modelo en un minuto dado: en el minuto 0 solo cuenta la predicción previa; entre minutos entrenados se interpola.
 function modelW(min) {
   const ks = Object.keys(MODELO.min).map(Number).sort((a, b) => a - b);
-  const pts = [[0, [MODELO.pre.w[0], 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], ...ks.map(k => [k, MODELO.min[k]])];
+  const w0 = [MODELO.pre.w[0], 1]; while (w0.length < MODELO.min[ks[0]].length) w0.push(0);  // en el min 0 solo cuenta la previa
+  const pts = [[0, w0], ...ks.map(k => [k, MODELO.min[k]])];
   if (min >= pts[pts.length - 1][0]) return pts[pts.length - 1][1];
   for (let i = 1; i < pts.length; i++) if (min <= pts[i][0]) {
     const [a, wa] = pts[i - 1], [bb, wb] = pts[i], t = (min - a) / (bb - a);
@@ -288,11 +289,19 @@ function winProbModelo(f, gt) {
   const b = f.blueTeam, r = f.redTeam, min = gt / 60, parts = [], w = modelW(min);
   const el = t => elementals(t).length, eld = t => t.dragons.filter(d => d === 'elder').length, gd = b.totalGold - r.totalGold;
   const pl = (n, s1, s2) => `${Math.abs(n)} ${Math.abs(n) === 1 ? s1 : s2}`;
-  const x = [1, G.pre ? (G.pre.zNoSide ?? G.pre.z) : 0, gd / 1000, (b.totalKills - r.totalKills) / 5, b.towers - r.towers, b.inhibitors - r.inhibitors,
+  let x = [1, G.pre ? (G.pre.zNoSide ?? G.pre.z) : 0, gd / 1000, (b.totalKills - r.totalKills) / 5, b.towers - r.towers, b.inhibitors - r.inhibitors,
     b.barons - r.barons, el(b) - el(r), (el(b) >= 4) - (el(r) >= 4), (el(b) === 3) - (el(r) === 3), eld(b) - eld(r), G.draft ? (G.draft.blue.scale - G.draft.red.scale) * 10 : 0];
-  const txt = ['Lado del mapa', 'Predicción previa al juego', `${k1(Math.abs(gd))} de oro de ventaja`, pl(b.totalKills - r.totalKills, 'kill más', 'kills más'),
+  let txt = ['Lado del mapa', 'Predicción previa al juego', `${k1(Math.abs(gd))} de oro de ventaja`, pl(b.totalKills - r.totalKills, 'kill más', 'kills más'),
     pl(b.towers - r.towers, 'torre más', 'torres más'), pl(b.inhibitors - r.inhibitors, 'inhibidor más', 'inhibidores más'), pl(b.barons - r.barons, 'Barón más', 'Barones más'),
     pl(el(b) - el(r), 'dragón más', 'dragones más'), 'Alma de dragón', 'Punto de alma', 'Dragón Ancestral', 'Curva del draft'];
+  // las variables extra que pasaron el reentrenamiento (MODELO.extra), con la misma función que el motor
+  if (MODELO.extra && MODELO.extra.length && RiftEngine.extrasModelo) {
+    const rol = k => ((G.meta && G.meta[k + 'TeamMetadata'] && G.meta[k + 'TeamMetadata'].participantMetadata) || []).map(p => p.role);
+    const serie = RiftEngine.serieAntes(G.id);
+    x = x.concat(RiftEngine.extrasModelo(f, gt, {samples: G.samples, roles: {blue: rol('blue'), red: rol('red')}, dr: x[11], serie}));
+    const T = {tendencia: ['Tendencia del oro (últimos 3 min)'], carries: ['Oro de mid y ADC'], oro_x_draft: ['Ventaja de oro según el draft'], serie: ['Cómo va la serie', 'Eligió lado (perdió el anterior)']};
+    MODELO.extra.forEach(g => { txt = txt.concat(T[g] || []); });
+  }
   // Todas las variables cuentan para la probabilidad; como razones solo se muestran las que pesan en su sentido natural.
   let zAll = 0;
   x.forEach((v, i) => { const z = w[i] * v; zAll += z; if (Math.abs(z) > 0.01 && (i < 2 || w[i] > 0)) parts.push({z, txt: txt[i]}); });

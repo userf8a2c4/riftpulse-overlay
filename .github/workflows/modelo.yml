@@ -4,9 +4,14 @@ name: Reentrenar el modelo
 
 on:
   workflow_dispatch:
+    inputs:
+      datos_de:
+        description: 'Opcional: número de una corrida anterior de esta acción para reusar sus juegos (sin volver a juntarlos, ~1 h menos)'
+        default: ''
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   modelo:
@@ -21,7 +26,15 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install numpy scikit-learn
-      - run: node modelo/recolectar.js
+      - if: inputs.datos_de != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: modelo-datos
+          path: modelo/datos/
+          run-id: ${{ inputs.datos_de }}
+          github-token: ${{ github.token }}
+      - if: inputs.datos_de == ''
+        run: node modelo/recolectar.js
       - run: python3 modelo/entrenar.py
       - uses: actions/upload-artifact@v4
         if: always()

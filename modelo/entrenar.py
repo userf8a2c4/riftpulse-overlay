@@ -146,10 +146,12 @@ def zpre(i, cual, w): x = PRE[cual]['X'][i]; return float(x[1:] @ w[1:])
 # la previa final (con todos los juegos): el motor arma zpre con estos pesos, así que los modelos por minuto finales también
 lr_pre, _ = ajustar(PRE['region']['X'], Y); W_FINAL = lr_pre.coef_[0]
 propuesta = {'pre': [round(float(v), 4) for v in W_FINAL], 'min': {}}
+IDXM = {}
 for m in [10, 15, 20, 25]:
     idx = [i for i, g in enumerate(ok) if minuto(g, m)]
     if not idx: continue
     yi, tri, tei, ii = Y[idx], tr[idx], te[idx], I[idx]
+    IDXM[m] = idx
     fila = {}
     Xv = np.array([base12(ok[i], m, zpre(i, 'viejo', actual_pre)) for i in idx], float)
     Xr = np.array([base12(ok[i], m, zpre(i, 'region', PRE['region']['w'])) for i in idx], float)
@@ -185,8 +187,29 @@ def mejora(clave, contra):
                bi(m, clave) <= min(bi(m, c) for c in contra) + 0.002 for m in [15, 20])
 res['veredicto'] = {'elo_region': mejora('elo_region', ['actual', 'reentrenado']), 'elo_region_reciente': mejora('elo_region_reciente', ['elo_region'])}
 for k in ['+' + g for g in GRUPOS] + ['+todo']: res['veredicto'][k] = mejora(k, ['elo_region'])
+# las variables extra que entran: las que pasaron solas, y juntas tienen que pasar también (si no, solo la mejor)
+ELEGIDOS = [g for g in GRUPOS if res['veredicto']['+' + g]]
+def con_extras(m, gs, wpre):
+    idx = IDXM[m]
+    return np.hstack([np.array([base12(ok[i], m, zpre(i, 'region', wpre)) for i in idx], float)] +
+                     [np.array([extra(ok[i], m, g) for i in idx], float) for g in gs]), idx
+if len(ELEGIDOS) > 1:
+    for m in res['por_minuto']:
+        X, idx = con_extras(m, ELEGIDOS, PRE['region']['w']); yi, tri, tei, ii = Y[idx], tr[idx], te[idx], I[idx]
+        lr, _ = ajustar(X[tri], yi[tri]); p = lr.predict_proba(X)[:, 1]
+        res['por_minuto'][m]['+elegidos'] = {'todos': medir(p[tei], yi[tei]), 'intl': medir(p[tei & ii], yi[tei & ii])}
+    if not mejora('+elegidos', ['elo_region']):
+        ELEGIDOS = [min(ELEGIDOS, key=lambda g: res['por_minuto'][15]['+' + g]['todos']['brier'])]
+res['extra'] = ELEGIDOS
 res['veredicto']['previa_region'] = res['previa']['region']['todos']['brier'] < res['previa']['actual']['todos']['brier']
+# el modelo propuesto, en el formato de MODELO en engine.js (con MODELO.extra si entró alguna variable nueva)
+if ELEGIDOS:
+    for m in list(propuesta['min']):
+        X, idx = con_extras(int(m), ELEGIDOS, W_FINAL); lr, _ = ajustar(X, Y[idx])
+        propuesta['min'][m] = [round(float(v), 4) for v in lr.coef_[0]]
 res['modelo_propuesto'] = {'pre': {'w': propuesta['pre']}, 'min': propuesta['min'], 'juegos': len(ok)}
+if ELEGIDOS: res['modelo_propuesto']['extra'] = ELEGIDOS
+print('VARIABLES NUEVAS QUE ENTRAN:', ELEGIDOS or 'ninguna')
 print('VEREDICTO:', json.dumps(res['veredicto']))
 print('MODELO_PROPUESTO ' + json.dumps(res['modelo_propuesto'], separators=(',', ':')))
 json.dump(res, open(os.path.join(AQUI, 'datos', 'resultado.json'), 'w'), indent=1)

@@ -51,6 +51,18 @@ module.exports = async function () {
   const pf = await c3.newPage(); await pf.goto(BASE + 'overlay.html?view=bar'); await pf.waitForTimeout(7000);
   const vf = await pf.evaluate(() => ({f: RiftEngine.fuerza(), pre: RiftEngine.state.game && RiftEngine.state.game.pre}));
   ok = chequear('sin la app, la fuerza de los equipos sale de datos/fuerza.json', vf.f.fuente === 'datos' && vf.pre && vf.pre.fuente === 'datos' && vf.pre.elo && vf.pre.p > 0.6, JSON.stringify(vf)) && ok;
+  // variables extra del modelo (MODELO.extra): se calculan como en modelo/entrenar.py, y con pesos en cero no cambian nada
+  const ex = await pf.evaluate(() => {
+    const M = RiftEngine.MODELO, viejo = {extra: M.extra, min: M.min}, R = ['top', 'jungle', 'mid', 'bottom', 'support'];
+    const t = g => ({totalGold: g, participants: R.map((r, i) => ({totalGold: i >= 2 && i <= 3 ? g * 0.3 : g * 0.4 / 3}))});
+    M.extra = ['tendencia', 'carries', 'oro_x_draft', 'serie'];
+    const v = RiftEngine.extrasModelo({blueTeam: t(30000), redTeam: t(28000)}, 900, {samples: [{gt: 600, diff: 0}, {gt: 700, diff: 500}], roles: {blue: R, red: R}, dr: 0.5, serie: [1, -1]});
+    const p0 = RiftEngine.state.game.pBlue; M.min = {}; for (const k in viejo.min) M.min[k] = viejo.min[k].concat([0, 0, 0, 0, 0]);
+    RiftEngine.setFuerza(null); const p1 = RiftEngine.state.game.pBlue;
+    M.extra = viejo.extra; M.min = viejo.min; RiftEngine.setFuerza(null);
+    return {v: v.map(x => Math.round(x * 100) / 100), igual: Math.abs(p0 - p1) < 1e-9};
+  });
+  ok = chequear('variables extra del modelo: tendencia, oro de mid y ADC, oro por draft y la serie', JSON.stringify(ex.v) === '[1.5,0.4,1,1,-1]' && ex.igual, JSON.stringify(ex)) && ok;
   const vs = await p.evaluate(() => RiftEngine.fuerza());
   ok = chequear('sin datos/fuerza.json no la inventa: el Elo del Mundial si hay resultados, o ninguna', vs.fuente !== 'datos' && vs.fuente !== 'app', JSON.stringify(vs)) && ok;
   await fz.close();
