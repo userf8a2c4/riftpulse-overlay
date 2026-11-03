@@ -1,5 +1,6 @@
 // Junta los juegos profesionales 2025–26 desde el feed público de lolesports, para reentrenar el modelo.
-// Por juego: el draft, cuadros en los min 10, 15, 20 y 25 (equipos y jugadores) y quién ganó.
+// Por juego: el draft, cuadros en los min 7, 10, 12, 15, 17, 20, 22 y 25 (equipos; el oro de cada jugador; y el detalle por jugador
+// en los min 10, 15, 20 y 25), cómo iba la serie antes del juego y quién ganó.
 // Corre en GitHub Actions (acción «Reentrenar el modelo»): node modelo/recolectar.js → modelo/datos/juegos.jsonl y series.json
 const fs = require('fs'), path = require('path');
 const ENG = fs.readFileSync(path.join(__dirname, '..', 'engine.js'), 'utf8');
@@ -23,6 +24,8 @@ const ganador = f => { const s = x => x.inhibitors * 3 + x.towers; const b = f.b
 function foto(f, d) {
   const eq = t => ({oro: t.totalGold, kills: t.totalKills, torres: t.towers, inhib: t.inhibitors, barones: t.barons, dragones: t.dragons});
   const o = {estado: f.gameState, azul: eq(f.blueTeam), rojo: eq(f.redTeam)};
+  // el oro de cada jugador (en el orden del feed: top, jungla, mid, ADC, soporte), del cuadro del equipo
+  for (const [k, t] of [['azul', f.blueTeam], ['rojo', f.redTeam]]) if (t.participants && t.participants.length === 5) o[k].oroJ = t.participants.map(p => p.totalGold);
   const ps = (d && d.participants) || [], lado = (a, b) => ps.filter(p => p.participantId >= a && p.participantId <= b);
   const sum = (xs, k) => xs.reduce((s, p) => s + (+p[k] || 0), 0);
   if (ps.length >= 10) for (const [k, xs] of [['azul', lado(1, 5)], ['rojo', lado(6, 10)]]) {
@@ -34,8 +37,8 @@ function foto(f, d) {
 async function juego(id) {
   const w0 = await j(FEED + 'window/' + id); if (!w0 || !w0.frames || !w0.frames.length) return null;
   const t0 = ts(w0.frames[0]), out = {id, meta: w0.gameMetadata, inicio: w0.frames[0].rfc460Timestamp, minutos: {}};
-  for (const m of [10, 15, 20, 25]) {
-    const t = iso(t0 + m * 60000), [w, d] = await Promise.all([j(FEED + 'window/' + id + '?startingTime=' + t), j(FEED + 'details/' + id + '?startingTime=' + t)]);
+  for (const m of [7, 10, 12, 15, 17, 20, 22, 25]) {
+    const t = iso(t0 + m * 60000), det = m % 5 === 0, [w, d] = await Promise.all([j(FEED + 'window/' + id + '?startingTime=' + t), det ? j(FEED + 'details/' + id + '?startingTime=' + t) : null]);
     const f = w && w.frames && w.frames[w.frames.length - 1], df = d && d.frames && d.frames[d.frames.length - 1];
     if (!f || ts(f) < t0 + (m - 1) * 60000) break;   // el juego ya había terminado
     out.minutos[m] = foto(f, df);
@@ -73,7 +76,14 @@ async function juego(id) {
         const cod = (x, lado) => { const tid = x.meta[lado + 'TeamMetadata'].esportsTeamId; return (T.find(t => t.id === tid) || {}).code; };
         const cuenta = {}; res.forEach(x => { const c = cod(x, x.ganador); cuenta[c] = (cuenta[c] || 0) + 1; });
         if ((cuenta[a.code] || 0) !== wa || (cuenta[b.code] || 0) !== wb) { descartadas++; return; }
-        res.forEach(x => { x.fecha = e.startTime; x.liga = l.slug; x.azul = cod(x, 'blue'); x.rojo = cod(x, 'red'); juegos.write(JSON.stringify(x) + '\n'); nj++; });
+        // cómo iba la serie antes de cada juego (en eliminatorias el que pierde elige lado)
+        const bo = (det.data.event.match.strategy || {}).count || 1, g0 = {}; let prev = null;
+        res.forEach((x, i) => {
+          x.fecha = e.startTime; x.liga = l.slug; x.azul = cod(x, 'blue'); x.rojo = cod(x, 'red'); x.serie = e.match.id; x.bo = bo; x.n = i + 1;
+          x.antes = {azul: g0[x.azul] || 0, rojo: g0[x.rojo] || 0}; x.perdioAntes = prev ? (prev === x.azul ? 'rojo' : 'azul') : null;
+          const gan = cod(x, x.ganador); g0[gan] = (g0[gan] || 0) + 1; prev = gan;
+          juegos.write(JSON.stringify(x) + '\n'); nj++;
+        });
       }));
       if (i % 40 === 0) console.log('  ', l.slug, i, '/', evs.length, '· juegos:', nj);
     }

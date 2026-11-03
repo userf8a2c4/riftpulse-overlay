@@ -45,6 +45,15 @@ module.exports = async function () {
   const u = await pt.textContent('#url'), pr = await pt.getAttribute('#probar', 'href');
   ok = chequear('la portada arma la URL con la pieza, la posición y el retraso', /overlay\.html\?view=bar&modules=prob,timers,brand&pos=top&delay=30$/.test(u) && /&demo$/.test(pr), u) && ok;
   await c2.close();
+  // la fuerza de los equipos sin la app: OBS usa datos/fuerza.json (la arma la acción diaria) y, si no está, el Elo del Mundial
+  const fz = await chromium.launch(), c3 = await fz.newContext(), ELO = {T1: 1820, MKOI: 1480, IG: 1600, LYON: 1590, KOI: 1500, G2: 1610, HLE: 1700, TES: 1690, BLG: 1720, GEN: 1800};
+  await montar(c3, {fuerza: {series: 3000, elo: ELO}});
+  const pf = await c3.newPage(); await pf.goto(BASE + 'overlay.html?view=bar'); await pf.waitForTimeout(7000);
+  const vf = await pf.evaluate(() => ({f: RiftEngine.fuerza(), pre: RiftEngine.state.game && RiftEngine.state.game.pre}));
+  ok = chequear('sin la app, la fuerza de los equipos sale de datos/fuerza.json', vf.f.fuente === 'datos' && vf.pre && vf.pre.fuente === 'datos' && vf.pre.elo && vf.pre.p > 0.6, JSON.stringify(vf)) && ok;
+  const vs = await p.evaluate(() => RiftEngine.fuerza());
+  ok = chequear('sin datos/fuerza.json no la inventa: el Elo del Mundial si hay resultados, o ninguna', vs.fuente !== 'datos' && vs.fuente !== 'app', JSON.stringify(vs)) && ok;
+  await fz.close();
   await b.close(); return ok;
 };
 if (require.main === module) module.exports().then(ok => process.exit(ok ? 0 : 1));

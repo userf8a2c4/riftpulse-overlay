@@ -94,6 +94,8 @@ async function montar(ctx, o) {
   await ctx.route(/fonts\.(googleapis|gstatic)/, r => process.env.RP_FUENTES ? r.continue() : r.fulfill({status: 404, body: ''}));
   await ctx.route(/userf8a2c4\.github\.io/, r => {
     const f = decodeURIComponent(new URL(r.request().url()).pathname.replace('/riftpulse-overlay/', '')) || 'index.html', fp = path.join(RAIZ, f);
+    // la fuerza de los equipos que arma la acción diaria: en las pruebas, solo la que pida cada una ({fuerza: {elo}})
+    if (f === 'datos/fuerza.json') return o.fuerza ? r.fulfill({contentType: 'application/json', headers: HDR, body: JSON.stringify(Object.assign({actualizado: new Date().toISOString()}, o.fuerza))}) : r.fulfill({status: 404, headers: HDR, body: ''});
     if (!fs.existsSync(fp) || fs.statSync(fp).isDirectory()) return r.fulfill({status: 404, body: ''});
     r.fulfill({contentType: TIPOS[path.extname(fp)] || 'text/plain', body: fs.readFileSync(fp)});
   });

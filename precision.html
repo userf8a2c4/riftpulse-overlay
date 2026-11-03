@@ -15,7 +15,7 @@
   .top nav{margin-left:auto;display:flex;gap:14px;flex-wrap:wrap;font-size:14px}
   .hero{margin:34px 0 10px}.hero h1{font-size:clamp(32px,6vw,54px);margin:0}.hero p{font-size:18px;max-width:760px;margin:12px 0 0}
   section.card{padding:22px;margin-top:18px}
-  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}@media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
   .kpi{background:var(--g0);border:1px solid var(--line2);border-radius:8px;padding:14px}
   .kpi b{display:block;font-family:Saira Condensed,sans-serif;font-size:38px;line-height:1;font-variant-numeric:tabular-nums}
   .kpi span{font-size:13px;color:var(--muted)}
@@ -48,7 +48,7 @@
     <p class="lead">Cuando RiftPulse dice 70 %, ¿el favorito gana 7 de cada 10? Cada fila agrupa los juegos por la probabilidad que daba al minuto 15 al favorito: la barra es cuántos ganó de verdad y la raya, lo que decía el modelo.</p>
     <div class="cal" id="cal"></div>
   </section>
-  <section class="card"><h2>Juego por juego</h2><div class="tbl"><table><thead><tr><th>Fecha</th><th>Juego</th><th>Ganó</th><th class="n">Min 10</th><th class="n">Min 15</th><th class="n">Min 20</th></tr></thead><tbody id="filas"></tbody></table></div>
+  <section class="card"><h2>Juego por juego</h2><div class="tbl"><table><thead><tr><th>Fecha</th><th>Juego</th><th>Ganó</th><th class="n">Antes</th><th class="n">Min 10</th><th class="n">Min 15</th><th class="n">Min 20</th></tr></thead><tbody id="filas"></tbody></table></div>
     <div class="note">La probabilidad es la del equipo que terminó ganando: verde si el modelo lo daba como favorito en ese minuto, rojo si no.</div></section>
   <section class="card"><h2>Antes del Mundial</h2><p class="lead" id="bt"></p></section>
   <footer>Pronóstico de un modelo propio, sin apuestas. Los datos se miden con la acción «Precisión pública» del repositorio.<br>RiftPulse no está avalado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de las propiedades de Riot Games. Riot Games y todas sus propiedades asociadas son marcas comerciales o marcas registradas de Riot Games, Inc.</footer>
@@ -65,13 +65,20 @@
     if (!d || !d.juegos || !d.juegos.length) { $('kpis').innerHTML = '<div class="kpi"><b>—</b><span>Todavía no hay juegos medidos</span></div>'; return; }
     $('tit').textContent = d.torneo || 'Este Mundial';
     var J = d.juegos, acierto = function (k) { var v = J.filter(function (g) { return g[k] != null && g[k] !== 0.5; }); var ok = v.filter(function (g) { return (g[k] > 0.5) === (g.gana === g.azul); }).length; return {ok: ok, n: v.length}; };
-    var a10 = acierto('p10'), a15 = acierto('p15'), a20 = acierto('p20');
+    var a0 = acierto('p0'), a10 = acierto('p10'), a15 = acierto('p15'), a20 = acierto('p20');
     var f = function (a) { return a.n ? pc(a.ok / a.n) : '—'; };
-    $('kpis').innerHTML = '<div class="kpi"><b>' + J.length + '</b><span>juegos medidos</span></div>' +
-      '<div class="kpi"><b>' + f(a10) + '</b><span>acierto al min 10 (' + a10.ok + '/' + a10.n + ')</span></div>' +
-      '<div class="kpi"><b>' + f(a15) + '</b><span>acierto al min 15 (' + a15.ok + '/' + a15.n + ')</span></div>' +
-      '<div class="kpi"><b>' + f(a20) + '</b><span>acierto al min 20 (' + a20.ok + '/' + a20.n + ')</span></div>';
-    $('act').textContent = 'Actualizado: ' + new Date(d.actualizado).toLocaleString();
+    // margen de error al 95 % (intervalo de Wilson): con pocos juegos, el acierto puede moverse bastante
+    var mg = function (a) { if (!a.n) return ''; var z = 1.96, q = a.ok / a.n, w = z * Math.sqrt(q * (1 - q) / a.n + z * z / (4 * a.n * a.n)) / (1 + z * z / a.n); return ' · ±' + Math.round(w * 100); };
+    // Brier: el error medio de la probabilidad al cuadrado (0 = perfecto, 0,25 = decir siempre 50 %); castiga el exceso de confianza
+    var brier = function (k) { var v = J.filter(function (g) { return g[k] != null; }); return v.length ? v.reduce(function (s, g) { var y = g.gana === g.azul ? 1 : 0; return s + (g[k] - y) * (g[k] - y); }, 0) / v.length : null; };
+    var kp = function (a, txt) { return '<div class="kpi"><b>' + f(a) + '</b><span>' + txt + ' (' + a.ok + '/' + a.n + mg(a) + ')</span></div>'; };
+    $('kpis').innerHTML = '<div class="kpi"><b>' + J.length + '</b><span>' + (EN ? 'games measured' : 'juegos medidos') + '</span></div>' +
+      (a0.n ? kp(a0, EN ? 'before the game' : 'antes del juego') : '') +
+      kp(a10, EN ? 'right at min 10' : 'acierto al min 10') + kp(a15, EN ? 'right at min 15' : 'acierto al min 15') + kp(a20, EN ? 'right at min 20' : 'acierto al min 20');
+    var b15 = brier('p15'), b20 = brier('p20');
+    $('act').textContent = (EN ? 'Updated: ' : 'Actualizado: ') + new Date(d.actualizado).toLocaleString() +
+      (b15 != null ? (EN ? ' · Brier score (0 is perfect, 0.25 is always saying 50 %): ' : ' · Error Brier (0 es perfecto; 0,25, decir siempre 50 %): ') + (EN ? 'min 15 ' : 'min 15 ') + b15.toFixed(3) + (b20 != null ? ' · min 20 ' + b20.toFixed(3) : '') : '') +
+      (EN ? ' · ± is the 95 % margin of error.' : ' · El ± es el margen de error al 95 %.');
     // calibración al min 15: la probabilidad del favorito, en grupos
     var grupos = [[0.5, 0.6], [0.6, 0.7], [0.7, 0.8], [0.8, 0.9], [0.9, 1.01]];
     $('cal').innerHTML = grupos.map(function (gr) {
@@ -82,7 +89,7 @@
       return '<div class="f"><span>' + Math.round(gr[0] * 100) + '–' + Math.min(100, Math.round(gr[1] * 100)) + ' %</span><div class="bar"><i style="width:' + (gano * 100) + '%"></i><u style="left:' + (dijo * 100) + '%"></u></div><span class="n">' + pc(gano) + ' · ' + v.length + '</span></div>';
     }).join('');
     var celda = function (g, k) { if (g[k] == null) return '<td class="n">—</td>'; var pg = g.gana === g.azul ? g[k] : 1 - g[k]; return '<td class="n ' + (pg > 0.5 ? 'ok' : 'no') + '">' + pc(pg) + '</td>'; };
-    $('filas').innerHTML = J.slice().reverse().map(function (g) { return '<tr><td>' + g.fecha + '</td><td>' + g.azul + ' vs ' + g.rojo + ' · J' + g.juego + '</td><td><b>' + g.gana + '</b></td>' + celda(g, 'p10') + celda(g, 'p15') + celda(g, 'p20') + '</tr>'; }).join('');
+    $('filas').innerHTML = J.slice().reverse().map(function (g) { return '<tr><td>' + g.fecha + '</td><td>' + g.azul + ' vs ' + g.rojo + ' · J' + g.juego + '</td><td><b>' + g.gana + '</b></td>' + celda(g, 'p0') + celda(g, 'p10') + celda(g, 'p15') + celda(g, 'p20') + '</tr>'; }).join('');
   });
 })();
 </script>

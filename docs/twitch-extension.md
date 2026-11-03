@@ -17,6 +17,7 @@ El paquete listo para subir es **`descargas/riftpulse-twitch.zip`** (lo lo arma 
    - `https://esports-api.lolesports.com`
    - `https://feed.lolesports.com`
    - `https://ddragon.leagueoflegends.com`
+   - `https://userf8a2c4.github.io` (la fuerza de los equipos, `datos/fuerza.json`)
 5. **Archivos → Subir versión:** `riftpulse-twitch.zip`.
 6. Probala en **Prueba local / alojada** en tu canal; después **Enviar a revisión**. Twitch revisa las extensiones a mano
    (puede tardar varios días); mientras tanto la pueden usar los canales que agregues como probadores.

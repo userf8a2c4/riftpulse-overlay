@@ -1018,38 +1018,25 @@ window.repetir = async (id, juego = 1, min = 15, vel = 1) => {
 };
 
 // ---------- copa: Elo por región + simulación del torneo ----------
-const LIGAS_ELO = ['98767975604431411', '98767991325878492', '113464388705111224', '98767991310872058', '98767991314006698',
-  '98767991302996019', '98767991299243165', '98767991332355509', '113476371197627891', '113470291645289904', '113475181634818701',
-  '113475149040947852', '116096325848746167', '116838530616006090'];
-const REG_LIGA = {lck: 'KR', lpl: 'CN', lec: 'EU', lcs: 'NA', lta_n: 'NA', 'cblol-brazil': 'BR', lta_s: 'BR', lcp: 'PAC'};
+const LIGAS_ELO = RiftEngine.elo.LIGAS, REG_LIGA = RiftEngine.elo.REG;
 const REG_ES = {KR: 'Corea', CN: 'China', EU: 'EMEA', NA: 'Norteamérica', PAC: 'Pacífico', BR: 'Brasil'};
-const INTL = new Set(['worlds', 'msi', 'first_stand', 'ewc_lol', 'americas_cup', 'lta_cross']);
+const INTL = new Set(Object.keys(RiftEngine.elo.INTL));
 // Cabezas de serie del Sistema Suizo (primer oficial de lolesports). null = ganador del Play-In.
 const SEEDS = [['GEN', 'AL', 'TLAW', 'G2'], ['LOS', 'TSW', 'HLE', 'BLG'], ['LYON', 'MKOI', 'T1', 'TES'], ['CFO', 'IG', 'DK', null]];
 const SIMS = 20000, ENCOGER = 0.55, FORMA = 35;
-const C = {loaded: false, loading: false, r: {}, off: {KR: 110, CN: 100, EU: 0, NA: -60, PAC: -70, BR: -110},
+const C = {loaded: false, loading: false, r: {}, off: RiftEngine.elo.nuevo().off,
   reg: {}, img: {}, done: new Set(), season: '2025', n: 0, rows: null, at: null, preds: []};
-const eloOf = t => (C.r[t] ?? 1500) + (C.off[C.reg[t]] ?? -150);
+const eloOf = t => RiftEngine.elo.de(C, t);
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const pk = (a, b) => (a < b ? a + '|' + b : b + '|' + a);
 const pct = x => x >= 0.995 ? '>99%' : x > 0 && x < 0.005 ? '<1%' : Math.round(x * 100) + '%';
 
+// el mismo Elo que el motor, la acción de datos/fuerza.json y el entrenamiento del modelo (RiftEngine.elo, en engine.js)
 function eloMatch(e) {
-  if (C.done.has(e.match.id)) return;
-  C.done.add(e.match.id);
-  const y = e.startTime.slice(0, 4);
-  if (y > C.season) { C.season = y; for (const k in C.r) C.r[k] = 1500 + 0.7 * (C.r[k] - 1500); } // cambio de temporada
-  const [a, b] = e.match.teams, wa = (a.result || {}).gameWins || 0, wb = (b.result || {}).gameWins || 0;
-  if (!wa && !wb) return;
-  // Predicción hecha ANTES de conocer este resultado: sirve para medir la tasa de aciertos.
-  C.preds.push({slug: e.league.slug, date: e.startTime, pg: 1 / (1 + 10 ** (-(eloOf(a.code) - eloOf(b.code)) * ENCOGER / 400)), wa, wb, bo: (e.match.strategy || {}).count || 1});
-  const ea = 1 / (1 + 10 ** ((eloOf(b.code) - eloOf(a.code)) / 400));
-  const intl = INTL.has(e.league.slug), d = (intl ? 32 : 24) * (wa - (wa + wb) * ea);
-  C.r[a.code] = (C.r[a.code] ?? 1500) + d;
-  C.r[b.code] = (C.r[b.code] ?? 1500) - d;
-  const ga = C.reg[a.code], gb = C.reg[b.code];
-  if (intl && ga && gb && ga !== gb) { C.off[ga] += d * 0.25; C.off[gb] -= d * 0.25; }
-  C.n++;
+  const a = e.match.teams[0], b = e.match.teams[1], wa = (a.result || {}).gameWins || 0, wb = (b.result || {}).gameWins || 0;
+  const dif = RiftEngine.elo.paso(C, e);
+  // predicción hecha ANTES de conocer este resultado: sirve para medir la tasa de aciertos
+  if (dif != null) C.preds.push({slug: e.league.slug, date: e.startTime, pg: 1 / (1 + 10 ** (-dif * ENCOGER / 400)), wa, wb, bo: (e.match.strategy || {}).count || 1});
 }
 
 async function loadCopa() {

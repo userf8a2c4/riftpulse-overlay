@@ -456,7 +456,7 @@
     var pm = pMapa(code('blue'), code('red')), q = pm == null ? 0.5 : pm;
     function f(x, y) { return x >= need ? 1 : y >= need ? 0 : q * f(x + 1, y) + (1 - q) * f(x, y + 1); }
     var ifB = f(wb + 1, wr), ifR = f(wb, wr + 1), p = G.wp.p;
-    return {bo: bo, need: need, score: [wb, wr], ifBlue: ifB, ifRed: ifR, pNow: p * ifB + (1 - p) * ifR, pMapa: q, metodo: pm == null ? 'mapas que faltan: 50/50 (sin datos de fuerza)' : FUERZA.fuente === 'app' ? 'mapas que faltan estimados con el Elo de RiftPulse' : 'mapas que faltan estimados con los resultados del Mundial'};
+    return {bo: bo, need: need, score: [wb, wr], ifBlue: ifB, ifRed: ifR, pNow: p * ifB + (1 - p) * ifR, pMapa: q, metodo: pm == null ? 'mapas que faltan: 50/50 (sin datos de fuerza)' : FUERZA.fuente !== 'mundial' ? 'mapas que faltan estimados con el Elo de RiftPulse' : 'mapas que faltan estimados con los resultados del Mundial'};
   }
 
   // ---------- colores de cada equipo ----------
@@ -496,8 +496,53 @@
   }
 
   // ---------- fuerza de los equipos (Elo) ----------
-  // La app manda su Elo completo (RiftEngine.setFuerza); si no, se calcula un Elo con los resultados del Mundial.
-  var FUERZA = {elo: null, fuente: null};
+  // Un solo Elo para todo RiftPulse (la app, el motor, la acción que arma datos/fuerza.json y el entrenamiento del modelo):
+  // resultados de 2025–26 de todas las ligas, con ajuste por región (que se mueve con los cruces internacionales),
+  // K más alto en internacionales y regresión al 70 % en cada cambio de temporada.
+  // De dónde sale la fuerza en vivo: el Elo de la app si está abierta (setFuerza); si no, datos/fuerza.json (la acción
+  // «Precisión pública» lo arma cada día); y si tampoco, un Elo solo con los resultados del Mundial.
+  var ELO = {
+    LIGAS: ['98767975604431411', '98767991325878492', '113464388705111224', '98767991310872058', '98767991314006698',
+      '98767991302996019', '98767991299243165', '98767991332355509', '113476371197627891', '113470291645289904', '113475181634818701',
+      '113475149040947852', '116096325848746167', '116838530616006090'],
+    REG: {lck: 'KR', lpl: 'CN', lec: 'EU', lcs: 'NA', lta_n: 'NA', 'cblol-brazil': 'BR', lta_s: 'BR', lcp: 'PAC'},
+    INTL: {worlds: 1, msi: 1, first_stand: 1, ewc_lol: 1, esports_world_cup: 1, americas_cup: 1, lta_cross: 1},
+    nuevo: function () { return {r: {}, off: {KR: 110, CN: 100, EU: 0, NA: -60, PAC: -70, BR: -110}, reg: {}, season: '2025', n: 0, done: new Set()}; },
+    de: function (F, t) { var o = F.off[F.reg[t]]; return (F.r[t] != null ? F.r[t] : 1500) + (o != null ? o : -150); },
+    // la región de cada equipo, según la liga donde juega (no depende de los resultados)
+    regiones: function (F, evs) {
+      (evs || []).forEach(function (e) { var g = e.league && ELO.REG[e.league.slug]; if (g && e.match) (e.match.teams || []).forEach(function (t) { if (t.code) F.reg[t.code] = g; }); });
+    },
+    // suma el resultado de una serie; devuelve la diferencia de fuerza ANTES de sumarlo (para medir aciertos) o null
+    paso: function (F, e) {
+      if (!e || !e.match || F.done.has(e.match.id)) return null;
+      F.done.add(e.match.id);
+      var y = String(e.startTime).slice(0, 4);
+      if (y > F.season) { F.season = y; for (var k in F.r) F.r[k] = 1500 + 0.7 * (F.r[k] - 1500); }  // cambio de temporada
+      var a = e.match.teams[0], b = e.match.teams[1]; if (!a || !b || !a.code || !b.code) return null;
+      var wa = (a.result || {}).gameWins || 0, wb = (b.result || {}).gameWins || 0;
+      if (!wa && !wb) return null;
+      var dif = ELO.de(F, a.code) - ELO.de(F, b.code), ea = 1 / (1 + Math.pow(10, -dif / 400));
+      var intl = !!ELO.INTL[e.league && e.league.slug], d = (intl ? 32 : 24) * (wa - (wa + wb) * ea);
+      F.r[a.code] = (F.r[a.code] != null ? F.r[a.code] : 1500) + d;
+      F.r[b.code] = (F.r[b.code] != null ? F.r[b.code] : 1500) - d;
+      var ga = F.reg[a.code], gb = F.reg[b.code];
+      if (intl && ga && gb && ga !== gb) { F.off[ga] += d * 0.25; F.off[gb] -= d * 0.25; }
+      F.n++;
+      return dif;
+    },
+    tabla: function (F) { var o = {}; for (var t in F.r) o[t] = Math.round(ELO.de(F, t) * 10) / 10; return o; }
+  };
+  var FUERZA = {elo: null, datos: null, fuente: null};
+  var FUERZA_URL = 'https://userf8a2c4.github.io/riftpulse-overlay/datos/fuerza.json', FUERZA_PEDIDA = false;
+  function cargarFuerza() {
+    if (FUERZA_PEDIDA || typeof fetch === 'undefined' || (typeof window !== 'undefined' && window.RP_SIN_FUERZA)) return; FUERZA_PEDIDA = true;
+    fetch(FUERZA_URL + '?v=' + Math.floor(Date.now() / 36e5)).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      // solo si es reciente (menos de 21 días) y tiene equipos de verdad
+      if (!j || !j.elo || Object.keys(j.elo).length < 10 || !(Date.now() - Date.parse(j.actualizado) < 21 * 864e5)) return;
+      FUERZA.datos = j.elo; if (G && G.meta) { previa(); emit(); }
+    }).catch(function () {});
+  }
   function eloMundial() {
     var ev = (SCH.events || []).filter(function (e) { return e.state === 'completed' && e.match && (e.match.teams || []).length === 2; })
       .sort(function (a, b) { return a.startTime < b.startTime ? -1 : 1; });
@@ -512,9 +557,15 @@
     });
     return E;
   }
+  // la tabla de fuerza que se usa ahora y de dónde salió ('app', 'datos' o 'mundial')
+  function tablaFuerza() {
+    cargarFuerza();
+    if (FUERZA.elo) { FUERZA.fuente = 'app'; return FUERZA.elo; }
+    if (FUERZA.datos) { FUERZA.fuente = 'datos'; return FUERZA.datos; }
+    var E = eloMundial(); FUERZA.fuente = E ? 'mundial' : null; return E;
+  }
   function pMapa(a, b) {
-    var E = FUERZA.elo || eloMundial(); if (!E || E[a] == null || E[b] == null) return null;
-    if (!FUERZA.elo) FUERZA.fuente = 'mundial';
+    var E = tablaFuerza(); if (!E || E[a] == null || E[b] == null) return null;
     return 1 / (1 + Math.pow(10, (E[b] - E[a]) / 400));
   }
 
@@ -533,7 +584,7 @@
   function previa() {
     if (!G || !G.meta || !G.meta.blueTeamMetadata) return;
     cargarCampeones();
-    var w = MODELO.pre.w, cb = code('blue'), cr = code('red'), E = FUERZA.elo || eloMundial();
+    var w = MODELO.pre.w, cb = code('blue'), cr = code('red'), E = tablaFuerza();
     var ok = !!(E && E[cb] != null && E[cr] != null), ez = ok ? (E[cb] - E[cr]) * Math.LN10 / 400 : 0;
     var lado = function (side) {
       var ps = (G.meta[side + 'TeamMetadata'] || {}).participantMetadata || [], ad = 0, ap = 0, front = 0, sc = 0;
@@ -549,7 +600,7 @@
     var B = lado('blue'), Rd = lado('red'), ext = function (t) { return t.ad >= 0.8 || t.ad <= 0.2 ? 1 : 0; }, nof = function (t) { return t.front ? 0 : 1; };
     var x = [1, ez, CAMPS ? ext(Rd) - ext(B) : 0, CAMPS ? nof(Rd) - nof(B) : 0, (B.scale - Rd.scale) * 10], z = 0;
     x.forEach(function (v, i) { z += w[i] * v; });
-    G.pre = {z: z, zNoSide: z - w[0], p: 1 / (1 + Math.exp(-z)), elo: ok, fuente: ok ? (FUERZA.elo ? 'app' : 'mundial') : null};
+    G.pre = {z: z, zNoSide: z - w[0], p: 1 / (1 + Math.exp(-z)), elo: ok, fuente: ok ? FUERZA.fuente : null};
     G.draft = {blue: {scale: B.scale}, red: {scale: Rd.scale}};
     if (G.last) G.wp = winProb(G.last, G.gt);
   }
@@ -686,7 +737,7 @@
         blue: {code: bt.code, img: https(bt.image || ''), wins: REPLAY ? null : (bt.result || {}).gameWins},
         red: {code: rt.code, img: https(rt.image || ''), wins: REPLAY ? null : (rt.result || {}).gameWins}} : null,
       game: G ? {id: G.id, gt: G.gt, state: G.last ? G.last.gameState : null, ended: !!G.ended, pausa: enPausa(),
-        waiting: !!G.waiting, carga: G.carga != null ? G.carga : null, pBlue: G.wp ? G.wp.p : null, acc: accAt(G.gt),
+        waiting: !!G.waiting, carga: G.carga != null ? G.carga : null, pBlue: G.wp ? G.wp.p : null, acc: accAt(G.gt), pre: G.pre ? {p: G.pre.p, elo: G.pre.elo, fuente: G.pre.fuente} : null,
         reasons: G.wp ? G.wp.parts : [], events: G.events.slice(-8), timers: G.t,
         stats: G.last ? {blue: tstat(G.last.blueTeam), red: tstat(G.last.redTeam)} : null,
         samples: G.samples ? G.samples.slice() : [], impact: impactNext(),
@@ -1336,7 +1387,9 @@
   RiftEngine.MODELO = MODELO;       // fuente única de los pesos del modelo (la app los lee de aquí)
   RiftEngine.PRECISION = PRECISION;
   RiftEngine.accAt = accAt;
-  RiftEngine.setFuerza = function (elo) { FUERZA.elo = elo && Object.keys(elo).length ? elo : null; FUERZA.fuente = FUERZA.elo ? 'app' : null; previa(); emit(); };
+  RiftEngine.setFuerza = function (elo) { FUERZA.elo = elo && Object.keys(elo).length ? elo : null; previa(); emit(); };
+  RiftEngine.elo = ELO;            // el mismo Elo en la app, la acción de datos/fuerza.json y las pruebas
+  RiftEngine.fuerza = function () { var E = tablaFuerza(); return {fuente: FUERZA.fuente, equipos: E ? Object.keys(E).length : 0}; };
   RiftEngine.pMapa = pMapa;
   RiftEngine.colores = colores;
   // ---------- director: qué pieza mostrar en cada momento del juego ----------

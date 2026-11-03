@@ -571,6 +571,7 @@
     "Fuerza: la estimada de cada equipo (más alto, más fuerte). 3-0 y 0-3: terminar el Sistema Suizo invicto o sin ganar. «Directo»: no juega el Play-In. Actualizado {} · {} simulaciones · {} partidos en el cálculo de fuerza.": "Strength: each team's estimate (higher is stronger). 3-0 and 0-3: finishing the Swiss Stage unbeaten or winless. «Direct»: skips the Play-In. Updated {} · {} simulations · {} matches in the strength calculation.",
     "Fuerza: la estimada del equipo según resultados 2025–26 (más alto = más fuerte).": "Strength: the team's estimate from 2025–26 results (higher = stronger).",
     "Ganó": "Won",
+    "Antes": "Before",
     "Glosario para empezar a mirar": "Glossary to get started",
     "Hay una versión nueva de la extensión que sincroniza sola con el video. Se instala": "There's a new version of the extension that syncs with the video on its own. It installs",
     "Impacto del objetivo": "Objective impact",

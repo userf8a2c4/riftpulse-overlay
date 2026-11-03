@@ -157,7 +157,7 @@ Una regresión logística por minuto, entrenada con juegos profesionales 2025–
 | `manifest.webmanifest`, `sw.js`, `icon-*.png`, `logo.svg` | La app instalable (PWA) y la marca |
 | `fuente/` | La fuente de la extensión (`overlay.js`, `lector.js`), de la Extensión de Twitch (`twitch/`), la plantilla de la app y `construir_extension.py`, que arma todo lo publicado |
 | `descargas/` | Lo que se descarga: la extensión (a mano y para la tienda), la Extensión de Twitch y la escena de OBS. Lo arma el build |
-| `datos/` | `precision.json`: la precisión medida en cada juego del Mundial |
+| `datos/` | `precision.json`: la precisión medida en cada juego del Mundial · `fuerza.json`: la fuerza (Elo) de cada equipo, que el motor usa en vivo sin la app (las dos las actualiza sola la acción «Precisión pública») |
 | `docs/` | Parámetros de OBS, la guía de la Extensión de Twitch, la ficha de la tienda, la carta para Nick e imágenes |
 | `modelo/` | Recolección de juegos reales y reentrenamiento del modelo |
 | `pruebas/` | Pruebas automáticas, simulador del feed y mediciones con datos reales ([detalle](pruebas/README.md)) |

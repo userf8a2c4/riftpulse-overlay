@@ -42,7 +42,7 @@ En GitHub corren solas con cada cambio en `main`, junto con el linter (`.eslintr
 | Script | Qué genera |
 |---|---|
 | `exactitud.js` | Con datos reales: si el reconocimiento elige el juego y los equipos correctos (acción «Exactitud del reconocimiento») |
-| `precision.js` | Con datos reales: la probabilidad a los minutos 10, 15 y 20 de cada juego del Mundial contra quién ganó (acción «Precisión pública» → `datos/precision.json`) |
+| `precision.js` | Con datos reales: la probabilidad antes del juego y a los minutos 10, 15 y 20 de cada juego del Mundial contra quién ganó, con la fuerza de los equipos que había antes de cada partido (acción «Precisión pública» → `datos/precision.json` y la fuerza de hoy en `datos/fuerza.json`) |
 | `generar.py` | Los videos de prueba con un HUD dibujado a mano (en `pruebas/.gen/`, que no se sube) |
 | `mocks.js` | El simulador del feed de LoL Esports, de Data Dragon, de Twitch y de la página publicada |
 | `imagenes.js` | Las imágenes del README y de la wiki (`docs/img/`) |
